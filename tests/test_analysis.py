@@ -3,8 +3,8 @@ from __future__ import annotations
 import unittest
 from datetime import datetime, timedelta
 
-from energy_mvp.analysis import analyze
-from energy_mvp.models import LoadedData, Reading
+from energy_mvp.analysis import analyze, validate_analysis_invariants
+from energy_mvp.models import Finding, LoadedData, Reading
 
 
 def reading(
@@ -165,6 +165,47 @@ class AnalysisTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "ne peut pas etre negative"):
             analyze(data, source="test.csv")
+
+    def test_announced_savings_cannot_exceed_energy_or_covered_cost(self) -> None:
+        result = analyze(
+            loaded(
+                reading(0, 30, production=0, tariff=0.2),
+                reading(1, 70, production=10, tariff=0.2),
+            ),
+            source="test.csv",
+        )
+        finding = result.findings[0]
+        finding.estimated_saving_kwh = 101
+        with self.assertRaisesRegex(AssertionError, "energie totale"):
+            validate_analysis_invariants(result)
+
+        finding.estimated_saving_kwh = 50
+        finding.estimated_saving_cost = 21
+        with self.assertRaisesRegex(AssertionError, "cout total"):
+            validate_analysis_invariants(result)
+
+    def test_sum_of_announced_savings_cannot_hide_double_counting(self) -> None:
+        result = analyze(
+            loaded(
+                reading(0, 30, production=0, tariff=0.2),
+                reading(1, 70, production=10, tariff=0.2),
+            ),
+            source="test.csv",
+        )
+        result.findings[0].estimated_saving_kwh = 60
+        result.findings[0].estimated_saving_cost = 10
+        result.findings.append(
+            Finding(
+                level="moyen",
+                title="Signal chevauchant",
+                detail="Test d'invariant",
+                estimated_saving_kwh=60,
+                estimated_saving_cost=10,
+            )
+        )
+
+        with self.assertRaisesRegex(AssertionError, "somme des economies"):
+            validate_analysis_invariants(result)
 
     def test_empty_dataset_has_clean_error(self) -> None:
         data = loaded()

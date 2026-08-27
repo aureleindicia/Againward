@@ -8,6 +8,56 @@ from typing import Any
 from .models import AnalysisResult, Finding, LoadedData
 
 
+def validate_analysis_invariants(result: AnalysisResult) -> None:
+    """Refuse un resultat structure numeriquement impossible avant publication."""
+
+    if result.total_energy_kwh < 0:
+        raise AssertionError("Invariant viole: energie totale negative.")
+    if result.off_production_kwh is not None:
+        if not 0 <= result.off_production_kwh <= result.total_energy_kwh + 1e-9:
+            raise AssertionError(
+                "Invariant viole: energie hors production hors des bornes du total."
+            )
+    if result.total_cost is not None and result.total_cost < 0:
+        raise AssertionError("Invariant viole: cout total negatif.")
+    announced_energy = 0.0
+    announced_cost = 0.0
+    for finding in result.findings:
+        saving_energy = finding.estimated_saving_kwh
+        saving_cost = finding.estimated_saving_cost
+        if saving_energy is not None:
+            announced_energy += saving_energy
+            if not 0 <= saving_energy <= result.total_energy_kwh + 1e-9:
+                raise AssertionError(
+                    "Invariant viole: economie annoncee superieure a l'energie totale."
+                )
+        if saving_cost is not None:
+            announced_cost += saving_cost
+            if saving_cost < 0:
+                raise AssertionError("Invariant viole: economie financiere negative.")
+            if saving_energy is None:
+                raise AssertionError(
+                    "Invariant viole: economie financiere sans energie associee."
+                )
+            if result.total_cost is None:
+                raise AssertionError(
+                    "Invariant viole: economie financiere sans cout total couvert."
+                )
+            if saving_cost > result.total_cost + 1e-9:
+                raise AssertionError(
+                    "Invariant viole: economie annoncee superieure au cout total."
+                )
+
+    if announced_energy > result.total_energy_kwh + 1e-9:
+        raise AssertionError(
+            "Invariant viole: somme des economies superieure a l'energie totale."
+        )
+    if result.total_cost is not None and announced_cost > result.total_cost + 1e-9:
+        raise AssertionError(
+            "Invariant viole: somme des economies superieure au cout total."
+        )
+
+
 def _anomaly_indices(values: list[float]) -> set[int]:
     if len(values) < 5:
         return set()
@@ -261,12 +311,7 @@ def analyze(
             "production totale et intensite globale non calculees."
         )
 
-    if off_production is not None and off_production > total_energy + 1e-9:
-        raise AssertionError("Invariant viole: energie hors production > energie totale.")
-    if total_cost is not None and total_cost < 0:
-        raise AssertionError("Invariant viole: cout total negatif.")
-
-    return AnalysisResult(
+    result = AnalysisResult(
         source=source,
         start=data.coverage_start or min(reading.timestamp for reading in readings),
         end=data.coverage_end or max(reading.timestamp for reading in readings),
@@ -309,3 +354,5 @@ def analyze(
             "data_quality": asdict(data.quality),
         },
     )
+    validate_analysis_invariants(result)
+    return result

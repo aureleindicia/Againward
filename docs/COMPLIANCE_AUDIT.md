@@ -19,7 +19,7 @@ Cet audit distingue une preuve reproductible d'une intention architecturale. Les
 | 5 | PROUVE | Chaque hypothese importante contient alternatives, contre-tests et `best_reason_false`. |
 | 6 | PROUVE | `workspace/demo_review.py` execute une review distincte avant synthese. |
 | 7 | PROUVE | La review lit les JSON quantitatifs; les nombres ne sont pas recalcules dans le rendu. |
-| 8 | PARTIEL | Unites, fuites temporelles et invariants sont testes; l'audit numerique exhaustif reste a etendre aux contextes invalides. |
+| 8 | PROUVE | Unites, periodes, fuites temporelles, invariants et contextes invalides sont testes; un contexte facultatif invalide ne supprime plus l'energie valide. |
 | 9 | PROUVE | Depot initial inspecte, scripts executes et rapport mensuel reproduit avant extension. |
 | 10 | PROUVE | `MeasurementKind`, conversions W/kW/MW et Wh/kWh/MWh, refus des unites ambigues. |
 | 11 | PROUVE | `generate_demo.py` produit 120 jours a 15 minutes de maniere deterministe. |
@@ -27,7 +27,7 @@ Cet audit distingue une preuve reproductible d'une intention architecturale. Les
 | 13 | PROUVE | Six familles d'anomalies et cinq incidents de donnees dans une ground truth separee. |
 | 14 | PROUVE | Appariement evenementiel et metriques precision/rappel/F1 dans `validation.py`. |
 | 15 | PROUVE | Detecteur generique explicitement borne a `candidate_signals_only`. |
-| 16 | PARTIEL | Toolbox composable importante disponible; des comparaisons multi-compteurs et change-points plus generiques restent possibles. |
+| 16 | PROUVE | Toolbox composable documentee: inspection, profils, groupes, baselines, residus, derive, changement de niveau, evenements, energie, cout et annualisation. |
 
 ## Exigences 17 a 32 — outils, baselines et quantification
 
@@ -67,9 +67,9 @@ Cet audit distingue une preuve reproductible d'une intention architecturale. Les
 | 43 | PROUVE | `AnalysisBundle` et `AnalysisEvent` alimentent JSON/Markdown/HTML sans recalcul critique. |
 | 44 | PROUVE | Quatre PNG analytiques utiles, sans interface graphique ni dependance lourde. |
 | 45 | PROUVE | HTML/CSS autonome leger et lisible sur mobile. |
-| 46 | PROUVE | 70 tests couvrent notamment unites, temps, aggregation multi-mois, baselines, evenements, couts, annualisation et double comptage. |
+| 46 | PROUVE | 75 tests couvrent notamment unites, temps, aggregation multi-mois, baselines, evenements, couts, annualisation et double comptage. |
 | 47 | PROUVE | Vide, mesure unique, production nulle, constante, sans anomalie, anomalie massive, sans tarif, mensuel et irregularite sont explicites. |
-| 48 | PARTIEL | Energie, cout, hors-production, exces et chevauchement controles; borne economie/cout total a formaliser si une economie est publiee. |
+| 48 | PROUVE | Energie, cout, hors-production, exces, chevauchement et economies eventuelles sont bornes; une economie ne peut depasser energie ou cout totaux couverts. |
 
 ## Exigences 49 a 65 — demonstration, exploitation et trajectoire
 

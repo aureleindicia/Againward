@@ -446,6 +446,69 @@ def fit_rolling_median_baseline(
     }
 
 
+def measure_linear_drift(
+    points: Sequence[dict[str, Any]], *, value_key: str = "residual_kw"
+) -> dict[str, Any]:
+    """Mesure une pente temporelle; Codex decide si elle constitue une derive."""
+
+    usable = sorted(
+        (datetime.fromisoformat(str(item["timestamp"])), float(item[value_key]))
+        for item in points
+        if item.get("timestamp") is not None and item.get(value_key) is not None
+    )
+    if len(usable) < 3:
+        raise ValueError("Une mesure de derive exige au moins trois points complets.")
+    origin = usable[0][0]
+    elapsed_days = [(timestamp - origin).total_seconds() / 86400.0 for timestamp, _ in usable]
+    if elapsed_days[-1] <= 0:
+        raise ValueError("La mesure de derive exige des timestamps distincts.")
+    values = [value for _, value in usable]
+    x_mean = sum(elapsed_days) / len(elapsed_days)
+    y_mean = sum(values) / len(values)
+    denominator = sum((value - x_mean) ** 2 for value in elapsed_days)
+    slope = sum(
+        (x - x_mean) * (y - y_mean) for x, y in zip(elapsed_days, values)
+    ) / denominator
+    intercept = y_mean - slope * x_mean
+    predicted = [intercept + slope * value for value in elapsed_days]
+    residual_sum = sum((actual - expected) ** 2 for actual, expected in zip(values, predicted))
+    total_sum = sum((value - y_mean) ** 2 for value in values)
+    return {
+        "points": len(usable),
+        "start": usable[0][0].isoformat(),
+        "end": usable[-1][0].isoformat(),
+        "slope_per_day": slope,
+        "intercept": intercept,
+        "r_squared": 1 - residual_sum / total_sum if total_sum > 0 else None,
+        "decision": None,
+    }
+
+
+def compare_level_shift(
+    before: Sequence[float], after: Sequence[float]
+) -> dict[str, float | int | None]:
+    """Compare deux regimes avec medianes et dispersions robustes."""
+
+    if len(before) < 3 or len(after) < 3:
+        raise ValueError("Un changement de niveau exige trois valeurs par regime.")
+    before_values = [float(value) for value in before]
+    after_values = [float(value) for value in after]
+    before_median = median(before_values)
+    after_median = median(after_values)
+    delta = after_median - before_median
+    return {
+        "before_points": len(before_values),
+        "after_points": len(after_values),
+        "before_median": before_median,
+        "after_median": after_median,
+        "delta": delta,
+        "delta_percent": 100 * delta / before_median if before_median else None,
+        "before_mad": median(abs(value - before_median) for value in before_values),
+        "after_mad": median(abs(value - after_median) for value in after_values),
+        "decision": None,
+    }
+
+
 def calculate_residuals(
     readings: Sequence[Reading], model: dict[str, Any]
 ) -> list[dict[str, Any]]:

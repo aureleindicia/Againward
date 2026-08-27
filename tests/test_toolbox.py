@@ -9,12 +9,14 @@ from energy_mvp.toolbox import (
     calculate_cost,
     calculate_excess_energy,
     calculate_residuals,
+    compare_level_shift,
     estimate_baseload,
     fit_activity_baseline,
     fit_linear_baseline,
     fit_rolling_median_baseline,
     fit_time_baseline,
     group_residual_events,
+    measure_linear_drift,
     union_excess_energy,
 )
 
@@ -123,6 +125,34 @@ class ToolboxTests(unittest.TestCase):
         self.assertTrue(model["past_only"])
         self.assertEqual(model["residuals"][-1]["expected_kw"], 20)
         self.assertEqual(model["residuals"][-1]["residual_kw"], 80)
+
+    def test_linear_drift_is_measured_without_automatic_decision(self) -> None:
+        start = datetime(2026, 1, 1)
+        points = [
+            {
+                "timestamp": (start + timedelta(days=index)).isoformat(),
+                "residual_kw": 3 + 2 * index,
+            }
+            for index in range(30)
+        ]
+
+        result = measure_linear_drift(points)
+
+        self.assertAlmostEqual(result["slope_per_day"], 2)
+        self.assertAlmostEqual(result["r_squared"], 1)
+        self.assertIsNone(result["decision"])
+
+    def test_level_shift_uses_robust_medians_and_leaves_decision_to_codex(self) -> None:
+        result = compare_level_shift(
+            [10.0] * 19 + [1000.0],
+            [15.0] * 19 + [-1000.0],
+        )
+
+        self.assertEqual(result["before_median"], 10)
+        self.assertEqual(result["after_median"], 15)
+        self.assertEqual(result["delta"], 5)
+        self.assertEqual(result["delta_percent"], 50)
+        self.assertIsNone(result["decision"])
 
     def test_residual_points_are_grouped_into_temporal_events(self) -> None:
         start = datetime(2026, 1, 1)

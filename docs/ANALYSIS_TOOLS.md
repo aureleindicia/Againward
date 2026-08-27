@@ -98,6 +98,25 @@ horaire. `fit_rolling_median_baseline()` ne consulte que les lignes anterieures 
   doit choisir la baseline selon le contexte, pas uniquement selon le meilleur R2.
 - Exemple : `fit_rolling_median_baseline(data.readings, window_rows=96 * 7)`.
 
+## `measure_linear_drift(points, value_key="residual_kw")`
+
+- Objectif : mesurer une pente par jour et sa qualite d'ajustement sans conclure automatiquement.
+- Entree : points horodates contenant une valeur quantitative, trois au minimum.
+- Sortie : pente, intercept, R2, periode et `decision=None`.
+- Hypotheses : relation lineaire utile comme premier test; timestamps distincts.
+- Limitations : saisonnalite et ruptures de niveau peuvent imiter une pente; Codex doit tester les
+  contre-explications.
+- Exemple : `measure_linear_drift(residuals)`.
+
+## `compare_level_shift(before, after)`
+
+- Objectif : mesurer un changement robuste entre deux regimes choisis par Codex.
+- Entree : au moins trois valeurs avant et apres.
+- Sortie : medianes, MAD, ecart absolu/relatif et `decision=None`.
+- Hypotheses : les periodes sont comparables et leur frontiere est justifiee.
+- Limitations : ne localise pas la cause et ne choisit pas le point de rupture.
+- Exemple : `compare_level_shift(residus_reference, residus_recents)`.
+
 ## `group_residual_events(residuals, threshold_kw, max_gap_minutes)`
 
 - Objectif : regrouper des points residuels proches en evenements temporels.

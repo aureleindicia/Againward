@@ -589,12 +589,25 @@ def load_data(
             if indices["energy"] is not None and resolved_energy_unit is not None
             else 0.0
         )
-        if (
-            energy < 0
-            or (production is not None and production < 0)
-            or (tariff is not None and tariff < 0)
-            or (power is not None and power < 0)
-        ):
+        if production is not None and production < 0:
+            quality.invalid_values_by_column["production"] = (
+                quality.invalid_values_by_column.get("production", 0) + 1
+            )
+            production = None
+        if tariff is not None and tariff < 0:
+            quality.invalid_values_by_column["tariff_per_kwh"] = (
+                quality.invalid_values_by_column.get("tariff_per_kwh", 0) + 1
+            )
+            tariff = None
+        primary_power_is_impossible = (
+            indices["energy"] is None and power is not None and power < 0
+        )
+        if indices["energy"] is not None and power is not None and power < 0:
+            quality.invalid_values_by_column["power"] = (
+                quality.invalid_values_by_column.get("power", 0) + 1
+            )
+            power = None
+        if energy < 0 or primary_power_is_impossible:
             quality.impossible_value_rows += 1
             discarded += 1
             continue

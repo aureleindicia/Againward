@@ -271,6 +271,26 @@ class LoadDataTests(unittest.TestCase):
         )
         self.assertIsNone(loaded.readings[1].outside_temperature_c)
 
+    def test_negative_optional_context_never_discards_valid_energy(self) -> None:
+        path = self.csv_file(
+            "timestamp,energy_kwh,power_kw,production,tariff_per_kwh\n"
+            "2026-01-01 00:00,5,20,1,0.2\n"
+            "2026-01-01 00:15,5,-20,-1,-0.2\n"
+        )
+
+        loaded = load_data(path)
+
+        self.assertEqual(len(loaded.readings), 2)
+        self.assertEqual(sum(item.energy_kwh for item in loaded.readings), 10)
+        self.assertIsNone(loaded.readings[1].power_kw)
+        self.assertIsNone(loaded.readings[1].production)
+        self.assertIsNone(loaded.readings[1].tariff_per_kwh)
+        self.assertEqual(loaded.quality.impossible_value_rows, 0)
+        self.assertEqual(
+            loaded.quality.invalid_values_by_column,
+            {"power": 1, "production": 1, "tariff_per_kwh": 1},
+        )
+
     def test_empty_file_has_clean_error(self) -> None:
         path = self.csv_file("")
 
