@@ -86,7 +86,7 @@ Cet audit distingue une preuve reproductible d'une intention architecturale. Les
 | 57 | PROUVE | `create_workspace.py` cree l'isolation input/processed/scratch/outputs et refuse tout ecrasement. |
 | 58 | PROUVE | Aucun SaaS, React, paiement, cloud, microservice ou base vectorielle. |
 | 59 | PROUVE | Benchmarks 10k/100k/500k; 500k reste acceptable sans Polars/DuckDB. |
-| 60 | A FAIRE | Le dossier importe ne contient pas de metadonnees `.git`; aucun commit ne peut encore prouver l'historique. |
+| 60 | PROUVE | Depot local `main` initialise; etat complet verifie enregistre par le commit `755ab91`. |
 | 61 | PROUVE | Travail autonome, sans secret ni action externe. |
 | 62 | PARTIEL | Sequence complete prouvee sur la demo; un nouveau client depend encore de l'exploration Codex ad hoc, ce qui est voulu, mais le cadrage de workspace doit etre formalise. |
 | 63 | PROUVE | Les signaux automatiques restent candidats et la selection H01-H08 apporte une valeur distincte. |
@@ -98,7 +98,7 @@ Cet audit distingue une preuve reproductible d'une intention architecturale. Les
 1. Etendre l'investigation agentique a un second dataset de forme differente de la demo principale.
 2. Ajouter des comparaisons multi-compteurs lorsque des donnees adaptees existent.
 3. Formaliser davantage les criteres de severite sans automatiser la decision analytique.
-4. Initialiser un historique Git local et produire des commits coherents apres verification.
+4. Continuer avec des commits cibles, chacun precede et suivi par les tests pertinents.
 
 Les performances multi-scenarios actuelles sont : 90 vrais positifs, 2 faux positifs,
 0 faux negatif, precision 0,9783, rappel 1,0000 et F1 0,9890. Ces valeurs sont une preuve de
