@@ -4,7 +4,7 @@ Source : `examples/sample_energy.csv`
 
 ## Synthese
 
-- Periode analysee : 01/01/2026 -> 01/12/2026
+- Periode couverte (fin exclue) : 01/01/2026 -> 01/01/2027
 - Consommation totale : 611 850 kWh
 - Cout energetique estime : 107 073,75 EUR
 - Consommation hors production : 41 100 kWh (6,7 %)
@@ -14,13 +14,17 @@ Source : `examples/sample_energy.csv`
 
 ## Signaux a examiner
 
-### [FAIBLE] Consommation hors production limitee
+### [CANDIDAT — FAIBLE] Consommation hors production limitee
 
-6.7% de l'energie est consommee sur des lignes ou la production est <= 0. Verifier les veilles, les utilites et les arrets planifies.
+6.7% de l'energie est consommee sur des lignes ou la production renseignee est <= 0. Ce volume est une consommation observee, pas une economie recuperable.
 
-### [MOYEN] Pointe de puissance notable
+Elements quantitatifs :
+- `energie_hors_production_kwh=41100`
+- `part_sur_couverture_production=0.0671733`
 
-La pointe (198.0 kW) atteint au moins 150 % de la puissance moyenne. Examiner le demarrage simultane des equipements.
+Limites avant confirmation :
+- La charge incompressible n'est pas encore estimee.
+- La cause physique et la part evitable exigent une investigation.
 
 ## Detail mensuel
 
@@ -45,6 +49,14 @@ La pointe (198.0 kW) atteint au moins 150 % de la puissance moyenne. Examiner le
 - Lignes analysees : 12
 - Lignes ecartees : 0
 - Mode energie : interval
+- Nature de mesure : energy_per_interval
+- Bornes de periode estimees avec l'intervalle nominal detecte; utiliser --interval-minutes si la derniere borne doit etre contractuelle.
+- Frequence nominale : 44 640,000 minutes
+- Couverture temporelle estimee : 100,0 %
+- Transformations tracees :
+  - Frequence nominale detectee: 44640 minute(s).
+  - Les timestamps sont traites par defaut comme debuts d'intervalles; utiliser --timestamp-position end si la source suit l'autre convention.
+- Resolution insuffisante pour une analyse horaire, nocturne ou de demarrage.
 - Aucun avertissement de qualite detecte.
 
 ## Limites

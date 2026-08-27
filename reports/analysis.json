@@ -2,7 +2,7 @@
   "automatic_analysis": {
     "source": "examples/demo_15min.csv",
     "start": "2026-01-05T00:00:00",
-    "end": "2026-05-04T23:45:00",
+    "end": "2026-05-05T00:00:00",
     "input_rows": 11519,
     "valid_rows": 11515,
     "discarded_rows": 4,
@@ -123,6 +123,9 @@
     "metadata": {
       "energy_mode": "interval",
       "measurement_kind": "energy_per_interval",
+      "timestamp_position": "start",
+      "coverage_bounds_available": true,
+      "coverage_bounds_method": "inferred_nominal_interval",
       "columns": {
         "date": "timestamp",
         "energy": "energy_kwh",
@@ -170,6 +173,7 @@
         "processing_log": [
           "1 doublon(s) strictement identique(s) supprime(s).",
           "Frequence nominale detectee: 15 minute(s).",
+          "Les timestamps sont traites par defaut comme debuts d'intervalles; utiliser --timestamp-position end si la source suit l'autre convention.",
           "1 ligne(s) avec valeur impossible ecartee(s).",
           "1 ligne(s) avec timestamp invalide ecartee(s).",
           "1 ligne(s) sans mesure energetique ecartee(s)."
@@ -192,6 +196,10 @@
       "rows": 11515,
       "start": "2026-01-05T00:00:00",
       "end": "2026-05-04T23:45:00",
+      "coverage_start": "2026-01-05T00:00:00",
+      "coverage_end": "2026-05-05T00:00:00",
+      "timestamp_position": "start",
+      "coverage_bounds_method": "inferred_nominal_interval",
       "measurement_kind": "energy_per_interval",
       "source_units": {
         "energy": "kwh",

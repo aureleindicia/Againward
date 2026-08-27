@@ -8,7 +8,7 @@ Les kWh ci-dessous sont des surconsommations observees par rapport a une baselin
 
 ## 2. Donnees analysees
 
-- Periode : 2026-01-05T00:00:00 -> 2026-05-04T23:45:00.
+- Periode couverte (fin exclue) : 2026-01-05T00:00:00 -> 2026-05-05T00:00:00.
 - Mesures valides : 11515 quarts d'heure.
 - Energie totale : 153 411,4 kWh.
 - Production : 143 191,6 unites.

@@ -45,6 +45,15 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--timestamp-position",
+        choices=("auto", "start", "end"),
+        default="auto",
+        help=(
+            "Position du timestamp dans l'intervalle. Auto utilise debut pour energie/puissance "
+            "et fin pour un index cumulatif."
+        ),
+    )
+    parser.add_argument(
         "--price-per-kwh", "--default-tariff", dest="default_tariff", type=float,
         help="Tarif par kWh si absent des donnees",
     )
@@ -74,6 +83,7 @@ def main(argv: list[str] | None = None) -> int:
             interval_minutes=args.interval_minutes,
             energy_unit=args.energy_unit,
             power_unit=args.power_unit,
+            timestamp_position=args.timestamp_position,
         )
         result = analyze(
             loaded,

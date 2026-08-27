@@ -4,7 +4,7 @@ Source : `examples/demo_15min.csv`
 
 ## Synthese
 
-- Periode analysee : 05/01/2026 -> 04/05/2026
+- Periode couverte (fin exclue) : 05/01/2026 -> 05/05/2026
 - Consommation totale : 153 411 kWh
 - Cout energetique estime : 26 847,00 EUR
 - Consommation hors production : 41 708 kWh (27,2 %)
@@ -75,11 +75,13 @@ Limites avant confirmation :
 - Lignes ecartees : 4
 - Mode energie : interval
 - Nature de mesure : energy_per_interval
+- Bornes de periode estimees avec l'intervalle nominal detecte; utiliser --interval-minutes si la derniere borne doit etre contractuelle.
 - Frequence nominale : 15,000 minutes
 - Couverture temporelle estimee : 100,0 %
 - Transformations tracees :
   - 1 doublon(s) strictement identique(s) supprime(s).
   - Frequence nominale detectee: 15 minute(s).
+  - Les timestamps sont traites par defaut comme debuts d'intervalles; utiliser --timestamp-position end si la source suit l'autre convention.
   - 1 ligne(s) avec valeur impossible ecartee(s).
   - 1 ligne(s) avec timestamp invalide ecartee(s).
   - 1 ligne(s) sans mesure energetique ecartee(s).

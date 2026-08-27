@@ -345,7 +345,7 @@ def render_markdown(review: dict[str, Any], automatic: dict[str, Any]) -> str:
         "",
         "## 2. Donnees analysees",
         "",
-        f"- Periode : {automatic['start']} -> {automatic['end']}.",
+        f"- Periode couverte (fin exclue) : {automatic['start']} -> {automatic['end']}.",
         f"- Mesures valides : {automatic['valid_rows']} quarts d'heure.",
         f"- Energie totale : {fmt(automatic['total_energy_kwh'], 1)} kWh.",
         f"- Production : {fmt(automatic['total_production'], 1)} unites.",

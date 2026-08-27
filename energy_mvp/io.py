@@ -4,7 +4,7 @@ import csv
 import re
 import unicodedata
 from collections import Counter
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from statistics import median
 from typing import Any
@@ -390,6 +390,28 @@ def _assign_interval_hours(
         reading.interval_hours = typical
 
 
+def _coverage_bounds(
+    readings: list[Reading], *, timestamp_position: str, cumulative: bool
+) -> tuple[datetime | None, datetime | None]:
+    if not readings:
+        return None, None
+    if cumulative:
+        first_hours = readings[0].interval_hours
+        start = (
+            readings[0].timestamp
+            if first_hours is None
+            else readings[0].timestamp - timedelta(hours=first_hours)
+        )
+        return start, readings[-1].timestamp
+    first_hours = readings[0].interval_hours
+    last_hours = readings[-1].interval_hours
+    if first_hours is None or last_hours is None:
+        return None, None
+    if timestamp_position == "start":
+        return readings[0].timestamp, readings[-1].timestamp + timedelta(hours=last_hours)
+    return readings[0].timestamp - timedelta(hours=first_hours), readings[-1].timestamp
+
+
 def load_data(
     path: str | Path,
     *,
@@ -406,10 +428,13 @@ def load_data(
     interval_minutes: float | None = None,
     energy_unit: str | None = None,
     power_unit: str | None = None,
+    timestamp_position: str = "auto",
 ) -> LoadedData:
     source = Path(path).expanduser()
     if not source.is_file():
         raise DataError(f"Fichier introuvable: {source}")
+    if timestamp_position not in {"auto", "start", "end"}:
+        raise DataError("timestamp_position doit valoir auto, start ou end.")
     suffix = source.suffix.lower()
     if suffix == ".csv":
         headers, rows = _read_csv(source)
@@ -455,6 +480,23 @@ def load_data(
             )
         selected_mode = "power"
         measurement_kind = MeasurementKind.POWER
+
+    if (
+        measurement_kind is MeasurementKind.CUMULATIVE_ENERGY
+        and timestamp_position == "start"
+    ):
+        raise DataError(
+            "Un index cumulatif est un releve instantane de fin d'intervalle; "
+            "--timestamp-position start est incompatible."
+        )
+
+    resolved_timestamp_position = (
+        "end"
+        if measurement_kind is MeasurementKind.CUMULATIVE_ENERGY
+        else "start"
+        if timestamp_position == "auto"
+        else timestamp_position
+    )
 
     resolved_power_unit = (
         _resolve_unit(headers[indices["power"]], power_unit, quantity="power")
@@ -655,6 +697,30 @@ def load_data(
             "Puissance convertie en energie par la formule kWh = kW x duree en heures."
         )
 
+    coverage_start, coverage_end = _coverage_bounds(
+        parsed,
+        timestamp_position=resolved_timestamp_position,
+        cumulative=measurement_kind is MeasurementKind.CUMULATIVE_ENERGY,
+    )
+    coverage_bounds_method = (
+        "cumulative_reading_differences"
+        if measurement_kind is MeasurementKind.CUMULATIVE_ENERGY
+        else "explicit_interval"
+        if interval_minutes is not None
+        else "inferred_nominal_interval"
+        if coverage_start is not None and coverage_end is not None
+        else "unavailable"
+    )
+    if measurement_kind is MeasurementKind.CUMULATIVE_ENERGY:
+        quality.processing_log.append(
+            "Les timestamps d'index sont traites comme fins d'intervalles entre deux releves."
+        )
+    elif timestamp_position == "auto":
+        quality.processing_log.append(
+            "Les timestamps sont traites par defaut comme debuts d'intervalles; "
+            "utiliser --timestamp-position end si la source suit l'autre convention."
+        )
+
     if quality.identical_duplicates_removed:
         warnings.append(
             f"{quality.identical_duplicates_removed} doublon(s) strictement identique(s) supprime(s)."
@@ -725,4 +791,8 @@ def load_data(
         energy_mode=selected_mode,
         measurement_kind=measurement_kind,
         quality=quality,
+        timestamp_position=resolved_timestamp_position,
+        coverage_start=coverage_start,
+        coverage_end=coverage_end,
+        coverage_bounds_method=coverage_bounds_method,
     )

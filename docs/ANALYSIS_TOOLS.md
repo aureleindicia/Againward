@@ -14,6 +14,8 @@ Toutes les energies retournees sont en `kWh` et toutes les puissances en `kW`.
 - Sortie : dictionnaire serialisable.
 - Hypotheses : le chargement et la normalisation ont deja ete effectues.
 - Limitations : ne juge pas si les variables disponibles suffisent a une conclusion metier.
+- Convention temporelle : expose les timestamps bruts, les bornes de couverture et leur methode
+  (`explicit_interval`, `inferred_nominal_interval` ou differences d'index cumulatif).
 - Exemple : `inspect_dataset(load_data("examples/demo_15min.csv"))`.
 
 ## `extract_period(readings, start, end)`

@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "analysis_type": "agentic_energy_prediagnostic_monthly",
+  "source": "examples/sample_energy.csv",
+  "ground_truth_used": false,
+  "hypotheses": [
+    {
+      "hypothesis_id": "M01",
+      "observation": "Trois mois ont une production declaree nulle.",
+      "hypothesis": "Leur consommation constitue une economie recuperable.",
+      "tests_requested": [
+        "Quantifier energie et cout associe.",
+        "Rechercher heures actives, charge incompressible et jours couverts."
+      ],
+      "results": {
+        "months": [
+          "2026-01",
+          "2026-06",
+          "2026-08"
+        ],
+        "count": 3,
+        "observed_energy_kwh": 41100.0,
+        "associated_cost": 7192.5,
+        "recoverable_saving_kwh": null,
+        "missing_context": [
+          "heures reellement actives dans chaque mois",
+          "charge incompressible",
+          "arrets planifies et jours couverts"
+        ]
+      },
+      "alternative_explanations": [
+        "Charges fixes legitimes.",
+        "Production partielle non visible dans l'agregat.",
+        "Arret planifie avec utilites maintenues."
+      ],
+      "best_reason_false": "Un total mensuel a production nulle ne separe ni la charge incompressible ni les heures d'exploitation.",
+      "decision": "INSUFFISAMMENT_ETAYE",
+      "confidence": {
+        "observation": "elevee",
+        "opportunity": "faible"
+      }
+    },
+    {
+      "hypothesis_id": "M02",
+      "observation": "La valeur de puissance declaree en octobre est la plus haute.",
+      "hypothesis": "Un demarrage simultane d'equipements explique cette pointe.",
+      "tests_requested": [
+        "Verifier la duree et l'heure de la pointe.",
+        "Comparer production et demarrages a granularite fine."
+      ],
+      "results": {
+        "maximum_month": "2026-10",
+        "maximum_power_kw": 198.0,
+        "median_other_months_kw": 119.0,
+        "duration_available": false,
+        "timestamp_granularity_supports_startup_test": false
+      },
+      "alternative_explanations": [
+        "Maximum mensuel normal.",
+        "Convention de colonne non documentee.",
+        "Production mensuelle legerement superieure."
+      ],
+      "best_reason_false": "Un timestamp mensuel et une puissance unique ne donnent ni heure ni duree; la cause de demarrage est intestable.",
+      "decision": "REJETE",
+      "confidence": {
+        "observation": "elevee",
+        "cause": "nulle"
+      }
+    },
+    {
+      "hypothesis_id": "M03",
+      "observation": "L'intensite d'octobre depasse la mediane des mois actifs.",
+      "hypothesis": "Octobre revele une degradation robuste d'efficacite.",
+      "tests_requested": [
+        "Comparer l'ecart a la dispersion des mois actifs.",
+        "Chercher une baseline validee passe-vers-futur."
+      ],
+      "results": {
+        "months_with_positive_production": 9,
+        "median_kwh_per_unit": 5.596153846153846,
+        "mad_kwh_per_unit": 0.038628762541806694,
+        "october_kwh_per_unit": 5.817427385892116,
+        "october_delta_percent_vs_median": 3.9540288887938306,
+        "minimum_kwh_per_unit": 5.424657534246576,
+        "maximum_kwh_per_unit": 5.817427385892116,
+        "validated_baseline_available": false,
+        "reason": "neuf points actifs seulement; aucune validation temporelle robuste"
+      },
+      "alternative_explanations": [
+        "Mix produit et charges fixes non mesures.",
+        "Nombre de jours ouvres different.",
+        "Variabilite mensuelle normale."
+      ],
+      "best_reason_false": "Neuf points actifs ne permettent pas une baseline temporelle robuste ni le controle des facteurs confondants.",
+      "decision": "INSUFFISAMMENT_ETAYE",
+      "confidence": {
+        "observation": "elevee",
+        "opportunity": "faible"
+      }
+    }
+  ],
+  "final_review": {
+    "confirmed": [],
+    "with_reservations": [],
+    "insufficient": [
+      "M01",
+      "M03"
+    ],
+    "rejected": [
+      "M02"
+    ],
+    "annualization_performed": false,
+    "recoverable_savings_claimed": false,
+    "intraday_claim_made": false
+  }
+}

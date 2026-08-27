@@ -268,8 +268,8 @@ def analyze(
 
     return AnalysisResult(
         source=source,
-        start=min(reading.timestamp for reading in readings),
-        end=max(reading.timestamp for reading in readings),
+        start=data.coverage_start or min(reading.timestamp for reading in readings),
+        end=data.coverage_end or max(reading.timestamp for reading in readings),
         input_rows=data.input_rows,
         valid_rows=len(readings),
         discarded_rows=data.discarded_rows,
@@ -288,6 +288,11 @@ def analyze(
         metadata={
             "energy_mode": data.energy_mode,
             "measurement_kind": data.measurement_kind.value,
+            "timestamp_position": data.timestamp_position,
+            "coverage_bounds_available": (
+                data.coverage_start is not None and data.coverage_end is not None
+            ),
+            "coverage_bounds_method": data.coverage_bounds_method,
             "columns": data.columns,
             "source_units": data.source_units,
             "tariff_coverage": tariff_coverage,

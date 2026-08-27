@@ -1,7 +1,7 @@
 {
   "source": "examples/sample_energy.csv",
   "start": "2026-01-01T00:00:00",
-  "end": "2026-12-01T00:00:00",
+  "end": "2027-01-01T00:00:00",
   "input_rows": 12,
   "valid_rows": 12,
   "discarded_rows": 0,
@@ -104,14 +104,16 @@
     {
       "level": "faible",
       "title": "Consommation hors production limitee",
-      "detail": "6.7% de l'energie est consommee sur des lignes ou la production est <= 0. Verifier les veilles, les utilites et les arrets planifies.",
-      "estimated_saving_kwh": null,
-      "estimated_saving_cost": null
-    },
-    {
-      "level": "moyen",
-      "title": "Pointe de puissance notable",
-      "detail": "La pointe (198.0 kW) atteint au moins 150 % de la puissance moyenne. Examiner le demarrage simultane des equipements.",
+      "detail": "6.7% de l'energie est consommee sur des lignes ou la production renseignee est <= 0. Ce volume est une consommation observee, pas une economie recuperable.",
+      "status": "candidate_signal",
+      "basis": [
+        "energie_hors_production_kwh=41100",
+        "part_sur_couverture_production=0.0671733"
+      ],
+      "limitations": [
+        "La charge incompressible n'est pas encore estimee.",
+        "La cause physique et la part evitable exigent une investigation."
+      ],
       "estimated_saving_kwh": null,
       "estimated_saving_cost": null
     }
@@ -119,6 +121,10 @@
   "warnings": [],
   "metadata": {
     "energy_mode": "interval",
+    "measurement_kind": "energy_per_interval",
+    "timestamp_position": "start",
+    "coverage_bounds_available": true,
+    "coverage_bounds_method": "inferred_nominal_interval",
     "columns": {
       "date": "date",
       "energy": "consommation_kwh",
@@ -126,6 +132,44 @@
       "tariff": "tarif_kwh",
       "power": "puissance_kw"
     },
-    "tariff_coverage": 12
+    "source_units": {
+      "energy": "kwh",
+      "power": "kw"
+    },
+    "tariff_coverage": 12,
+    "tariff_coverage_ratio": 1.0,
+    "covered_cost": 107073.75,
+    "production_coverage": 12,
+    "production_coverage_ratio": 1.0,
+    "power_average_method": "sample_mean",
+    "capabilities": {
+      "intraday_analysis": false,
+      "night_analysis": false,
+      "startup_analysis": false
+    },
+    "data_quality": {
+      "blank_rows": 0,
+      "invalid_timestamp_rows": 0,
+      "missing_measurement_rows": 0,
+      "impossible_value_rows": 0,
+      "identical_duplicates_removed": 0,
+      "conflicting_duplicates": 0,
+      "out_of_order_rows": 0,
+      "timezone_normalized_rows": 0,
+      "missing_values_by_column": {},
+      "invalid_values_by_column": {},
+      "inferred_frequency_minutes": 44640.0,
+      "detected_frequencies_minutes": [
+        44640.0
+      ],
+      "frequency_change_count": 0,
+      "irregular_interval_count": 0,
+      "gap_count": 0,
+      "coverage_ratio": 1.0,
+      "processing_log": [
+        "Frequence nominale detectee: 44640 minute(s).",
+        "Les timestamps sont traites par defaut comme debuts d'intervalles; utiliser --timestamp-position end si la source suit l'autre convention."
+      ]
+    }
   }
 }

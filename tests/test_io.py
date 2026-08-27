@@ -97,6 +97,32 @@ class LoadDataTests(unittest.TestCase):
         self.assertEqual([item.interval_hours for item in loaded.readings], [0.25] * 4)
         self.assertEqual(loaded.quality.gap_count, 1)
 
+    def test_interval_start_position_extends_coverage_to_exclusive_end(self) -> None:
+        path = self.csv_file(
+            "timestamp,energy_kwh\n"
+            "2026-01-01 00:00,5\n"
+            "2026-01-01 00:15,5\n"
+        )
+
+        loaded = load_data(path)
+
+        self.assertEqual(loaded.coverage_start, datetime(2026, 1, 1, 0, 0))
+        self.assertEqual(loaded.coverage_end, datetime(2026, 1, 1, 0, 30))
+        self.assertEqual(loaded.timestamp_position, "start")
+        self.assertEqual(loaded.coverage_bounds_method, "inferred_nominal_interval")
+
+    def test_interval_end_position_moves_coverage_start_backward(self) -> None:
+        path = self.csv_file(
+            "timestamp,energy_kwh\n"
+            "2026-01-01 00:00,5\n"
+            "2026-01-01 00:15,5\n"
+        )
+
+        loaded = load_data(path, timestamp_position="end")
+
+        self.assertEqual(loaded.coverage_start, datetime(2025, 12, 31, 23, 45))
+        self.assertEqual(loaded.coverage_end, datetime(2026, 1, 1, 0, 15))
+
     def test_monotonic_interval_energy_is_not_misclassified_as_counter(self) -> None:
         path = self.csv_file(
             "timestamp,energy_kwh\n"
@@ -120,6 +146,19 @@ class LoadDataTests(unittest.TestCase):
         self.assertEqual(loaded.measurement_kind, MeasurementKind.CUMULATIVE_ENERGY)
         self.assertEqual([item.energy_kwh for item in loaded.readings], [25, 25])
         self.assertEqual(loaded.discarded_rows, 1)
+        self.assertEqual(loaded.coverage_start, datetime(2026, 1, 1))
+        self.assertEqual(loaded.coverage_end, datetime(2026, 1, 3))
+        self.assertEqual(loaded.timestamp_position, "end")
+        self.assertEqual(loaded.coverage_bounds_method, "cumulative_reading_differences")
+
+    def test_cumulative_index_rejects_start_timestamp_semantics(self) -> None:
+        path = self.csv_file(
+            "timestamp,index_kwh\n"
+            "2026-01-01,100\n2026-01-02,125\n"
+        )
+
+        with self.assertRaisesRegex(DataError, "incompatible"):
+            load_data(path, timestamp_position="start")
 
     def test_identical_duplicate_is_removed_and_traced(self) -> None:
         path = self.csv_file(

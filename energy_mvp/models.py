@@ -63,6 +63,10 @@ class LoadedData:
     energy_mode: str = "interval"
     measurement_kind: MeasurementKind = MeasurementKind.ENERGY_PER_INTERVAL
     quality: DataQuality = field(default_factory=DataQuality)
+    timestamp_position: str = "start"
+    coverage_start: datetime | None = None
+    coverage_end: datetime | None = None
+    coverage_bounds_method: str = "unavailable"
 
 
 @dataclass(slots=True)

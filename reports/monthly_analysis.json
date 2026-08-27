@@ -1,0 +1,354 @@
+{
+  "automatic_analysis": {
+    "source": "examples/sample_energy.csv",
+    "start": "2026-01-01T00:00:00",
+    "end": "2027-01-01T00:00:00",
+    "input_rows": 12,
+    "valid_rows": 12,
+    "discarded_rows": 0,
+    "total_energy_kwh": 611850.0,
+    "total_cost": 107073.75,
+    "total_production": 101500.0,
+    "energy_intensity": 6.028078817733991,
+    "off_production_kwh": 41100.0,
+    "off_production_share": 0.06717332679578328,
+    "peak_power_kw": 198.0,
+    "average_power_kw": 118.5,
+    "anomaly_count": 0,
+    "monthly": [
+      {
+        "month": "2026-01",
+        "energy_kwh": 12500.0,
+        "cost": 2187.5,
+        "production": 0.0,
+        "intensity": null
+      },
+      {
+        "month": "2026-02",
+        "energy_kwh": 58200.0,
+        "cost": 10185.0,
+        "production": 10400.0,
+        "intensity": 5.596153846153846
+      },
+      {
+        "month": "2026-03",
+        "energy_kwh": 61750.0,
+        "cost": 10806.25,
+        "production": 11100.0,
+        "intensity": 5.563063063063063
+      },
+      {
+        "month": "2026-04",
+        "energy_kwh": 59400.0,
+        "cost": 10395.0,
+        "production": 10950.0,
+        "intensity": 5.424657534246576
+      },
+      {
+        "month": "2026-05",
+        "energy_kwh": 63200.0,
+        "cost": 11060.0,
+        "production": 11300.0,
+        "intensity": 5.592920353982301
+      },
+      {
+        "month": "2026-06",
+        "energy_kwh": 14800.0,
+        "cost": 2590.0,
+        "production": 0.0,
+        "intensity": null
+      },
+      {
+        "month": "2026-07",
+        "energy_kwh": 65500.0,
+        "cost": 11462.5,
+        "production": 11600.0,
+        "intensity": 5.646551724137931
+      },
+      {
+        "month": "2026-08",
+        "energy_kwh": 13800.0,
+        "cost": 2415.0,
+        "production": 0.0,
+        "intensity": null
+      },
+      {
+        "month": "2026-09",
+        "energy_kwh": 67400.0,
+        "cost": 11795.0,
+        "production": 11800.0,
+        "intensity": 5.711864406779661
+      },
+      {
+        "month": "2026-10",
+        "energy_kwh": 70100.0,
+        "cost": 12267.5,
+        "production": 12050.0,
+        "intensity": 5.817427385892116
+      },
+      {
+        "month": "2026-11",
+        "energy_kwh": 64800.0,
+        "cost": 11340.0,
+        "production": 11500.0,
+        "intensity": 5.6347826086956525
+      },
+      {
+        "month": "2026-12",
+        "energy_kwh": 60400.0,
+        "cost": 10570.0,
+        "production": 10800.0,
+        "intensity": 5.592592592592593
+      }
+    ],
+    "findings": [
+      {
+        "level": "faible",
+        "title": "Consommation hors production limitee",
+        "detail": "6.7% de l'energie est consommee sur des lignes ou la production renseignee est <= 0. Ce volume est une consommation observee, pas une economie recuperable.",
+        "status": "candidate_signal",
+        "basis": [
+          "energie_hors_production_kwh=41100",
+          "part_sur_couverture_production=0.0671733"
+        ],
+        "limitations": [
+          "La charge incompressible n'est pas encore estimee.",
+          "La cause physique et la part evitable exigent une investigation."
+        ],
+        "estimated_saving_kwh": null,
+        "estimated_saving_cost": null
+      }
+    ],
+    "warnings": [],
+    "metadata": {
+      "energy_mode": "interval",
+      "measurement_kind": "energy_per_interval",
+      "timestamp_position": "start",
+      "coverage_bounds_available": true,
+      "coverage_bounds_method": "inferred_nominal_interval",
+      "columns": {
+        "date": "date",
+        "energy": "consommation_kwh",
+        "production": "production",
+        "tariff": "tarif_kwh",
+        "power": "puissance_kw"
+      },
+      "source_units": {
+        "energy": "kwh",
+        "power": "kw"
+      },
+      "tariff_coverage": 12,
+      "tariff_coverage_ratio": 1.0,
+      "covered_cost": 107073.75,
+      "production_coverage": 12,
+      "production_coverage_ratio": 1.0,
+      "power_average_method": "sample_mean",
+      "capabilities": {
+        "intraday_analysis": false,
+        "night_analysis": false,
+        "startup_analysis": false
+      },
+      "data_quality": {
+        "blank_rows": 0,
+        "invalid_timestamp_rows": 0,
+        "missing_measurement_rows": 0,
+        "impossible_value_rows": 0,
+        "identical_duplicates_removed": 0,
+        "conflicting_duplicates": 0,
+        "out_of_order_rows": 0,
+        "timezone_normalized_rows": 0,
+        "missing_values_by_column": {},
+        "invalid_values_by_column": {},
+        "inferred_frequency_minutes": 44640.0,
+        "detected_frequencies_minutes": [
+          44640.0
+        ],
+        "frequency_change_count": 0,
+        "irregular_interval_count": 0,
+        "gap_count": 0,
+        "coverage_ratio": 1.0,
+        "processing_log": [
+          "Frequence nominale detectee: 44640 minute(s).",
+          "Les timestamps sont traites par defaut comme debuts d'intervalles; utiliser --timestamp-position end si la source suit l'autre convention."
+        ]
+      }
+    }
+  },
+  "quantitative_results": {
+    "schema_version": 1,
+    "source": "examples/sample_energy.csv",
+    "ground_truth_read": false,
+    "dataset": {
+      "rows": 12,
+      "coverage_start": "2026-01-01T00:00:00",
+      "coverage_end": "2027-01-01T00:00:00",
+      "frequency_minutes": 44640.0,
+      "intraday_analysis_allowed": false
+    },
+    "tests": {
+      "M01_zero_production_months": {
+        "months": [
+          "2026-01",
+          "2026-06",
+          "2026-08"
+        ],
+        "count": 3,
+        "observed_energy_kwh": 41100.0,
+        "associated_cost": 7192.5,
+        "recoverable_saving_kwh": null,
+        "missing_context": [
+          "heures reellement actives dans chaque mois",
+          "charge incompressible",
+          "arrets planifies et jours couverts"
+        ]
+      },
+      "M02_declared_power": {
+        "maximum_month": "2026-10",
+        "maximum_power_kw": 198.0,
+        "median_other_months_kw": 119.0,
+        "duration_available": false,
+        "timestamp_granularity_supports_startup_test": false
+      },
+      "M03_intensity": {
+        "months_with_positive_production": 9,
+        "median_kwh_per_unit": 5.596153846153846,
+        "mad_kwh_per_unit": 0.038628762541806694,
+        "october_kwh_per_unit": 5.817427385892116,
+        "october_delta_percent_vs_median": 3.9540288887938306,
+        "minimum_kwh_per_unit": 5.424657534246576,
+        "maximum_kwh_per_unit": 5.817427385892116,
+        "validated_baseline_available": false,
+        "reason": "neuf points actifs seulement; aucune validation temporelle robuste"
+      }
+    },
+    "forbidden_tests": [
+      "profil nocturne",
+      "demarrage d'equipement",
+      "recurrence journaliere",
+      "duree du pic de puissance",
+      "integration d'un exces infra-mensuel"
+    ]
+  },
+  "investigation": {
+    "schema_version": 1,
+    "analysis_type": "agentic_energy_prediagnostic_monthly",
+    "source": "examples/sample_energy.csv",
+    "ground_truth_used": false,
+    "hypotheses": [
+      {
+        "hypothesis_id": "M01",
+        "observation": "Trois mois ont une production declaree nulle.",
+        "hypothesis": "Leur consommation constitue une economie recuperable.",
+        "tests_requested": [
+          "Quantifier energie et cout associe.",
+          "Rechercher heures actives, charge incompressible et jours couverts."
+        ],
+        "results": {
+          "months": [
+            "2026-01",
+            "2026-06",
+            "2026-08"
+          ],
+          "count": 3,
+          "observed_energy_kwh": 41100.0,
+          "associated_cost": 7192.5,
+          "recoverable_saving_kwh": null,
+          "missing_context": [
+            "heures reellement actives dans chaque mois",
+            "charge incompressible",
+            "arrets planifies et jours couverts"
+          ]
+        },
+        "alternative_explanations": [
+          "Charges fixes legitimes.",
+          "Production partielle non visible dans l'agregat.",
+          "Arret planifie avec utilites maintenues."
+        ],
+        "best_reason_false": "Un total mensuel a production nulle ne separe ni la charge incompressible ni les heures d'exploitation.",
+        "decision": "INSUFFISAMMENT_ETAYE",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "faible"
+        }
+      },
+      {
+        "hypothesis_id": "M02",
+        "observation": "La valeur de puissance declaree en octobre est la plus haute.",
+        "hypothesis": "Un demarrage simultane d'equipements explique cette pointe.",
+        "tests_requested": [
+          "Verifier la duree et l'heure de la pointe.",
+          "Comparer production et demarrages a granularite fine."
+        ],
+        "results": {
+          "maximum_month": "2026-10",
+          "maximum_power_kw": 198.0,
+          "median_other_months_kw": 119.0,
+          "duration_available": false,
+          "timestamp_granularity_supports_startup_test": false
+        },
+        "alternative_explanations": [
+          "Maximum mensuel normal.",
+          "Convention de colonne non documentee.",
+          "Production mensuelle legerement superieure."
+        ],
+        "best_reason_false": "Un timestamp mensuel et une puissance unique ne donnent ni heure ni duree; la cause de demarrage est intestable.",
+        "decision": "REJETE",
+        "confidence": {
+          "observation": "elevee",
+          "cause": "nulle"
+        }
+      },
+      {
+        "hypothesis_id": "M03",
+        "observation": "L'intensite d'octobre depasse la mediane des mois actifs.",
+        "hypothesis": "Octobre revele une degradation robuste d'efficacite.",
+        "tests_requested": [
+          "Comparer l'ecart a la dispersion des mois actifs.",
+          "Chercher une baseline validee passe-vers-futur."
+        ],
+        "results": {
+          "months_with_positive_production": 9,
+          "median_kwh_per_unit": 5.596153846153846,
+          "mad_kwh_per_unit": 0.038628762541806694,
+          "october_kwh_per_unit": 5.817427385892116,
+          "october_delta_percent_vs_median": 3.9540288887938306,
+          "minimum_kwh_per_unit": 5.424657534246576,
+          "maximum_kwh_per_unit": 5.817427385892116,
+          "validated_baseline_available": false,
+          "reason": "neuf points actifs seulement; aucune validation temporelle robuste"
+        },
+        "alternative_explanations": [
+          "Mix produit et charges fixes non mesures.",
+          "Nombre de jours ouvres different.",
+          "Variabilite mensuelle normale."
+        ],
+        "best_reason_false": "Neuf points actifs ne permettent pas une baseline temporelle robuste ni le controle des facteurs confondants.",
+        "decision": "INSUFFISAMMENT_ETAYE",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "faible"
+        }
+      }
+    ],
+    "final_review": {
+      "confirmed": [],
+      "with_reservations": [],
+      "insufficient": [
+        "M01",
+        "M03"
+      ],
+      "rejected": [
+        "M02"
+      ],
+      "annualization_performed": false,
+      "recoverable_savings_claimed": false,
+      "intraday_claim_made": false
+    }
+  },
+  "events": [],
+  "artifacts": {
+    "investigation_json": "reports/monthly_investigation.json",
+    "report_markdown": "reports/monthly_final.md",
+    "report_html": "reports/monthly_final.html"
+  }
+}

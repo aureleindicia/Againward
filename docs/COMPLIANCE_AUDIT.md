@@ -15,7 +15,7 @@ Cet audit distingue une preuve reproductible d'une intention architecturale. Les
 | 1 | PROUVE | Separation Codex/Python montree par `workspace/demo_investigation.py`, la review et les resultats quantitatifs. |
 | 2 | PROUVE | Calculs dans `energy_mvp/`, choix et interpretation dans le journal d'investigation. |
 | 3 | PROUVE | Le pipeline automatique ne produit que des `candidate_signal`; Codex conserve ou rejette huit hypotheses. |
-| 4 | PARTIEL | Boucle complete H01-H08 sur la demo; orchestration a refaire par Codex pour chaque nouveau client. |
+| 4 | PROUVE | Boucle H01-H08 sur la demo haute frequence et M01-M03 sur la fixture mensuelle, avec refus des tests impossibles. |
 | 5 | PROUVE | Chaque hypothese importante contient alternatives, contre-tests et `best_reason_false`. |
 | 6 | PROUVE | `workspace/demo_review.py` execute une review distincte avant synthese. |
 | 7 | PROUVE | La review lit les JSON quantitatifs; les nombres ne sont pas recalcules dans le rendu. |
@@ -67,7 +67,7 @@ Cet audit distingue une preuve reproductible d'une intention architecturale. Les
 | 43 | PROUVE | `AnalysisBundle` et `AnalysisEvent` alimentent JSON/Markdown/HTML sans recalcul critique. |
 | 44 | PROUVE | Quatre PNG analytiques utiles, sans interface graphique ni dependance lourde. |
 | 45 | PROUVE | HTML/CSS autonome leger et lisible sur mobile. |
-| 46 | PROUVE | 66 tests couvrent notamment unites, temps, aggregation multi-mois, baselines, evenements, couts, annualisation et double comptage. |
+| 46 | PROUVE | 70 tests couvrent notamment unites, temps, aggregation multi-mois, baselines, evenements, couts, annualisation et double comptage. |
 | 47 | PROUVE | Vide, mesure unique, production nulle, constante, sans anomalie, anomalie massive, sans tarif, mensuel et irregularite sont explicites. |
 | 48 | PARTIEL | Energie, cout, hors-production, exces et chevauchement controles; borne economie/cout total a formaliser si une economie est publiee. |
 
@@ -88,17 +88,16 @@ Cet audit distingue une preuve reproductible d'une intention architecturale. Les
 | 59 | PROUVE | Benchmarks 10k/100k/500k; 500k reste acceptable sans Polars/DuckDB. |
 | 60 | PROUVE | Depot local `main` initialise; etat complet verifie enregistre par le commit `755ab91`. |
 | 61 | PROUVE | Travail autonome, sans secret ni action externe. |
-| 62 | PARTIEL | Sequence complete prouvee sur la demo; un nouveau client depend encore de l'exploration Codex ad hoc, ce qui est voulu, mais le cadrage de workspace doit etre formalise. |
+| 62 | PROUVE | Sequence complete prouvee sur donnees 15 minutes et mensuelles; le workspace formalise l'accueil d'un nouveau fichier sans automatiser le raisonnement. |
 | 63 | PROUVE | Les signaux automatiques restent candidats et la selection H01-H08 apporte une valeur distincte. |
 | 64 | PROUVE | Python est la seule source des nombres; la review ne modifie pas les valeurs. |
 | 65 | PROUVE | Les sept etapes immediates ont ete executees au moins sur le scenario de demonstration. |
 
 ## Prochaines preuves prioritaires
 
-1. Etendre l'investigation agentique a un second dataset de forme differente de la demo principale.
-2. Ajouter des comparaisons multi-compteurs lorsque des donnees adaptees existent.
-3. Formaliser davantage les criteres de severite sans automatiser la decision analytique.
-4. Continuer avec des commits cibles, chacun precede et suivi par les tests pertinents.
+1. Ajouter des comparaisons multi-compteurs lorsque des donnees adaptees existent.
+2. Formaliser davantage les criteres de severite sans automatiser la decision analytique.
+3. Continuer avec des commits cibles, chacun precede et suivi par les tests pertinents.
 
 Les performances multi-scenarios actuelles sont : 90 vrais positifs, 2 faux positifs,
 0 faux negatif, precision 0,9783, rappel 1,0000 et F1 0,9890. Ces valeurs sont une preuve de

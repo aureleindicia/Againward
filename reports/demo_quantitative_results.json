@@ -13,6 +13,10 @@
     "rows": 11515,
     "start": "2026-01-05T00:00:00",
     "end": "2026-05-04T23:45:00",
+    "coverage_start": "2026-01-05T00:00:00",
+    "coverage_end": "2026-05-05T00:00:00",
+    "timestamp_position": "start",
+    "coverage_bounds_method": "inferred_nominal_interval",
     "measurement_kind": "energy_per_interval",
     "source_units": {
       "energy": "kwh",

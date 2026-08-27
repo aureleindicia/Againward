@@ -21,7 +21,7 @@ def render_markdown(result: AnalysisResult, currency: str = "EUR") -> str:
         "",
         "## Synthese",
         "",
-        f"- Periode analysee : {result.start:%d/%m/%Y} -> {result.end:%d/%m/%Y}",
+        f"- Periode couverte (fin exclue) : {result.start:%d/%m/%Y} -> {result.end:%d/%m/%Y}",
         f"- Consommation totale : {_number(result.total_energy_kwh)} kWh",
         f"- Cout energetique estime : {_number(result.total_cost, 2)} {currency}",
     ]
@@ -90,6 +90,12 @@ def render_markdown(result: AnalysisResult, currency: str = "EUR") -> str:
         f"- Nature de mesure : {result.metadata.get('measurement_kind', 'non renseignee')}",
     ])
     quality = result.metadata.get("data_quality", {})
+    bounds_method = result.metadata.get("coverage_bounds_method")
+    if bounds_method == "inferred_nominal_interval":
+        lines.append(
+            "- Bornes de periode estimees avec l'intervalle nominal detecte; "
+            "utiliser --interval-minutes si la derniere borne doit etre contractuelle."
+        )
     frequency = quality.get("inferred_frequency_minutes")
     if frequency is not None:
         lines.append(f"- Frequence nominale : {_number(frequency, 3)} minutes")

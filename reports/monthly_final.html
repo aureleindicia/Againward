@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pre-diagnostic energetique</title><style>
+body{font-family:system-ui,sans-serif;max-width:900px;margin:auto;padding:20px;color:#17202a;line-height:1.55}
+h1{color:#123c69}h2{margin-top:2rem;border-bottom:1px solid #ccd6dd;padding-bottom:.3rem}
+h3{color:#236192}p,li{font-size:1rem}code{background:#eef2f5;padding:.1rem .25rem}
+figure{margin:1.25rem 0}img{max-width:100%;height:auto;border:1px solid #d8dee4}figcaption{font-size:.9rem;color:#52606d}
+@media(max-width:600px){body{padding:12px}h1{font-size:1.55rem}h2{font-size:1.25rem}}
+</style></head><body><h1>Pre-diagnostic energetique agentique — donnees mensuelles</h1>
+<h2>1. Resume executif</h2>
+<p>Aucune opportunite energetique n&#x27;est confirmee. Les totaux sont calculables, mais la granularite mensuelle interdit les conclusions nocturnes, horaires et de demarrage.</p>
+<h2>2. Donnees analysees</h2>
+<ul>
+<li>12 mesures couvrant 2026-01-01T00:00:00 -&gt; 2027-01-01T00:00:00.</li>
+<li>Energie, production, tarif et une valeur de puissance par mois.</li>
+</ul>
+<h2>3. Qualite des donnees</h2>
+<p>Les douze lignes sont exploitables pour les totaux. La resolution, et non la proprete du fichier, constitue la limitation dominante.</p>
+<h2>4. Profil energetique</h2>
+<p>Les trois mois a production nulle totalisent 41 100,0 kWh, soit 7 192,50 EUR de cout associe observe.</p>
+<h2>5. Baseline</h2>
+<p>Aucune baseline validee n&#x27;est retenue : neuf mois actifs ne suffisent pas pour une calibration passe-vers-futur robuste avec variables contextuelles.</p>
+<h2>6. Investigations realisees</h2>
+<p>M01 consommation sans production, M02 puissance d&#x27;octobre, M03 intensite d&#x27;octobre.</p>
+<h2>7. Opportunites confirmees</h2>
+<p>Aucune.</p>
+<h2>8. Efficacite energetique</h2>
+<p>Octobre atteint 5,817 kWh/unite, soit 4,0 % au-dessus de la mediane. Ce signal reste insuffisamment etaye sans mix produit, jours ouvres et temperature.</p>
+<h2>9. Impact economique</h2>
+<p>Le cout des mois sans production est un cout observe, pas une economie. Aucun potentiel recuperable ni projection annuelle n&#x27;est publie.</p>
+<h2>10. Opportunites necessitant verification</h2>
+<ul>
+<li>Obtenir des courbes de charge horaires ou 15 minutes pour les mois sans production.</li>
+<li>Documenter la signification exacte de la colonne de puissance.</li>
+<li>Ajouter jours ouvres, mix produit et temperature avant de revoir l&#x27;intensite.</li>
+</ul>
+<h2>11. Hypotheses rejetees importantes</h2>
+<p>M02 est rejetee : 198,0 kW en octobre ne permet pas d&#x27;affirmer un demarrage simultane sans heure ni duree.</p>
+<h2>12. Recommandations</h2>
+<ul>
+<li>Collecter au minimum quatre semaines a 15 minutes.</li>
+<li>Confirmer les unites, la position des timestamps et le sens de la puissance.</li>
+<li>Reprendre ensuite M01 et M03 avec des periodes comparables.</li>
+</ul>
+<h2>13. Limites</h2>
+<p>Douze agregats mensuels, aucune temperature, aucun horaire, aucune mesure machine et aucune preuve de causalite.</p>
+<h2>14. Methodologie</h2>
+<p>Normalisation deterministe, controles de resolution, quantification Python, formulation d&#x27;hypotheses, recherche de contre-explications et review contradictoire Codex.</p></body></html>

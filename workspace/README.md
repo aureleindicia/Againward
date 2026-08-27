@@ -11,3 +11,7 @@ L'investigation synthetique se relance depuis la racine avec :
 ```sh
 python -m workspace.demo_investigation
 ```
+
+Les modules `monthly_investigation.py` et `monthly_review.py` montrent aussi une investigation
+sur douze agregats mensuels : les calculs permis sont conserves et les conclusions horaires
+incompatibles avec la granularite sont rejetees.

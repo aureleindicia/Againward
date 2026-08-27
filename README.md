@@ -75,6 +75,13 @@ Une unite absente d'un en-tete generique est refusee. Une puissance a timestamps
 est refusee sans `--interval-minutes`. Les doublons conflictuels sont refuses ; les doublons
 strictement identiques et chaque suppression/conversion sont traces.
 
+Par defaut, un timestamp d'energie ou de puissance designe le debut de son intervalle, tandis
+qu'un releve cumulatif designe sa fin. Pour une source qui horodate les fins d'intervalles :
+
+```sh
+python analyze.py energie.csv --timestamp-position end
+```
+
 ## Demonstration complete reproductible
 
 Depuis la racine du depot :
@@ -108,6 +115,15 @@ Livrables principaux :
 - `reports/charts/` : PNG analytiques sans interface graphique ;
 - `reports/validation.json` : validation post-investigation sur les evenements ;
 - `reports/validation_scenarios.json` : cinq profils, plusieurs seeds et cas sans anomalie.
+
+Une seconde investigation, volontairement limitee a douze agregats mensuels, verifie que Codex
+rejette les conclusions horaires impossibles :
+
+```sh
+python analyze.py examples/sample_energy.csv --output reports/demo.md --json-output reports/demo.json
+python -m workspace.monthly_investigation
+python -m workspace.monthly_review
+```
 
 Scenarios disponibles :
 
