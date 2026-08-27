@@ -1,4 +1,4 @@
-# Pre-diagnostic energetique agentique — donnees mensuelles
+# Analyse et investigation de performance energetique — donnees mensuelles
 
 ## 1. Resume executif
 
@@ -77,6 +77,7 @@ Aucune cause physique n'est etablie avec ces douze agregats mensuels.
 ## 13. Limites
 
 Douze agregats mensuels, aucune temperature, aucun horaire, aucune mesure machine et aucune preuve de causalite.
+Cette prestation ne constitue pas un audit energetique reglementaire.
 
 ## 14. Methodologie
 

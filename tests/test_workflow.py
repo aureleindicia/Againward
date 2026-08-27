@@ -26,6 +26,11 @@ class GenericWorkflowTests(unittest.TestCase):
             self.assertEqual(state["candidate_detection"]["status"], "unavailable")
             self.assertEqual(state["candidate_detection"]["events"], [])
             self.assertFalse(state["source"]["ground_truth_available_to_investigation"])
+            positioning = state["service_positioning"]
+            self.assertEqual(positioning["category"], "investigation énergétique sur données")
+            self.assertTrue(positioning["standalone_use"])
+            self.assertFalse(positioning["regulatory_audit"])
+            self.assertIn("mainteneur", positioning["complements"])
             self.assertTrue((output / "ANALYST_BRIEF.md").exists())
             self.assertTrue((output / "questions.json").exists())
             self.assertTrue((output / "human_review.json").exists())

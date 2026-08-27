@@ -25,7 +25,7 @@ def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
     tests = quantitative["tests"]
     review = {
         "schema_version": 2,
-        "analysis_type": "agentic_energy_prediagnostic_monthly",
+        "analysis_type": "agentic_energy_investigation_monthly",
         "source": quantitative["source"],
         "ground_truth_used": False,
         "follow_up_policy": {
@@ -170,7 +170,7 @@ def render_markdown(review: dict[str, Any], quantitative: dict[str, Any]) -> str
     power = tests["M02_declared_power"]
     intensity = tests["M03_intensity"]
     return "\n".join([
-        "# Pre-diagnostic energetique agentique — donnees mensuelles", "",
+        "# Analyse et investigation de performance energetique — donnees mensuelles", "",
         "## 1. Resume executif", "",
         "Aucune opportunite energetique n'est confirmee. Les totaux sont calculables, mais la granularite mensuelle interdit les conclusions nocturnes, horaires et de demarrage.", "",
         "## 2. Donnees analysees", "",
@@ -203,7 +203,8 @@ def render_markdown(review: dict[str, Any], quantitative: dict[str, Any]) -> str
         "3. Ne rien demander pour M02 : l'hypothese de demarrage est deja rejetee.",
         "Aucune cause physique n'est etablie avec ces douze agregats mensuels.", "",
         "## 13. Limites", "",
-        "Douze agregats mensuels, aucune temperature, aucun horaire, aucune mesure machine et aucune preuve de causalite.", "",
+        "Douze agregats mensuels, aucune temperature, aucun horaire, aucune mesure machine et aucune preuve de causalite.",
+        "Cette prestation ne constitue pas un audit energetique reglementaire.", "",
         "## 14. Methodologie", "",
         "Normalisation deterministe, controles de resolution, quantification Python, formulation d'hypotheses, recherche de contre-explications et review contradictoire Codex.", "",
     ])

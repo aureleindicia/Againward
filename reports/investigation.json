@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "analysis_type": "agentic_energy_prediagnostic",
+  "analysis_type": "agentic_energy_investigation",
   "source": "examples/demo_15min.csv",
   "quantitative_source": "reports/demo_quantitative_results.json",
   "ground_truth_used": false,
@@ -807,6 +807,12 @@
         "evaluation_window": "au moins trois occurrences comparables après intervention",
         "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
       },
+      "continuous_monitoring": {
+        "activation_condition": "après une correction dont l'effet initial a été vérifié",
+        "cadence": "réévaluation à chaque nouvelle occurrence comparable",
+        "alert_rule": "alerte si le comportement réapparaît sur trois occurrences comparables",
+        "owner_role": "responsable de site"
+      },
       "recoverable_saving": null
     },
     {
@@ -864,6 +870,12 @@
         "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
         "evaluation_window": "au moins trois occurrences comparables après intervention",
         "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+      },
+      "continuous_monitoring": {
+        "activation_condition": "après une correction dont l'effet initial a été vérifié",
+        "cadence": "réévaluation à chaque nouvelle occurrence comparable",
+        "alert_rule": "alerte si le comportement réapparaît sur trois occurrences comparables",
+        "owner_role": "responsable de production ou maintenance"
       },
       "recoverable_saving": null
     },
@@ -924,6 +936,12 @@
         "evaluation_window": "au moins trois occurrences comparables après intervention",
         "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
       },
+      "continuous_monitoring": {
+        "activation_condition": "après une correction dont l'effet initial a été vérifié",
+        "cadence": "réévaluation à chaque nouvelle occurrence comparable",
+        "alert_rule": "alerte si le comportement réapparaît sur trois occurrences comparables",
+        "owner_role": "opérateur présent"
+      },
       "recoverable_saving": null
     },
     {
@@ -982,6 +1000,12 @@
         "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
         "evaluation_window": "au moins trois occurrences comparables après intervention",
         "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+      },
+      "continuous_monitoring": {
+        "activation_condition": "après une correction dont l'effet initial a été vérifié",
+        "cadence": "réévaluation à chaque nouvelle occurrence comparable",
+        "alert_rule": "alerte si le comportement réapparaît sur trois occurrences comparables",
+        "owner_role": "responsable de production"
       },
       "recoverable_saving": null
     },
@@ -1047,6 +1071,12 @@
         "evaluation_window": "au moins trois occurrences comparables après intervention",
         "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
       },
+      "continuous_monitoring": {
+        "activation_condition": "après une correction dont l'effet initial a été vérifié",
+        "cadence": "réévaluation à chaque nouvelle occurrence comparable",
+        "alert_rule": "alerte si le comportement réapparaît sur trois occurrences comparables",
+        "owner_role": "responsable maintenance"
+      },
       "recoverable_saving": null
     },
     {
@@ -1110,6 +1140,12 @@
         "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
         "evaluation_window": "au moins trois occurrences comparables après intervention",
         "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+      },
+      "continuous_monitoring": {
+        "activation_condition": "après une correction dont l'effet initial a été vérifié",
+        "cadence": "réévaluation à chaque nouvelle occurrence comparable",
+        "alert_rule": "alerte si le comportement réapparaît sur trois occurrences comparables",
+        "owner_role": "responsable de site avec maintenance"
       },
       "recoverable_saving": null
     }

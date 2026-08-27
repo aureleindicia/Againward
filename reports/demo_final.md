@@ -1,8 +1,9 @@
-# Pre-diagnostic energetique agentique — demonstration
+# Analyse et investigation de performance energetique — demonstration
 
 ## 1. Resume executif
 
 Trois comportements sont confirmes par les donnees : une derive progressive de la charge fixe, une baisse temporaire d'efficacite a production comparable et un nouveau niveau de charge inactive persistant. Trois autres signaux (nuit, week-end et pic ponctuel) meritent une verification operationnelle.
+Cette investigation est un livrable autonome sur les comportements mesurés. Elle peut également orienter un auditeur, frigoriste, électricien ou mainteneur vers les périodes et hypothèses qui méritent un contrôle terrain.
 
 Les kWh ci-dessous sont des surconsommations observees par rapport a une baseline, pas des economies garanties. Aucun total portefeuille ni projection annuelle n'est publie, car certaines fenetres se chevauchent et la part recuperable est inconnue.
 
@@ -144,6 +145,7 @@ Aucune cause physique n'est etablie par ce dataset. Les actions ci-dessous sont 
 - Effort : Entretien de 10 minutes, sans mesure ni arret d'equipement..
 - Attendu si l'hypothèse est vraie : Si la charge est non requise, aucun usage nocturne obligatoire ne sera identifie pour expliquer le palier observe.
 - Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.
+- Monitoring après correction : réévaluation à chaque nouvelle occurrence comparable; règle d'alerte = alerte si le comportement réapparaît sur trois occurrences comparables.
 
 ### R-H02 — H02
 
@@ -157,6 +159,7 @@ Aucune cause physique n'est etablie par ce dataset. Les actions ci-dessous sont 
 - Effort : Lecture du planning et reponse oui/non, environ 5 minutes..
 - Attendu si l'hypothèse est vraie : Si la charge est anormale, le planning ne montrera ni maintenance, ni nettoyage, ni production pendant ces quatre jours.
 - Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.
+- Monitoring après correction : réévaluation à chaque nouvelle occurrence comparable; règle d'alerte = alerte si le comportement réapparaît sur trois occurrences comparables.
 
 ### R-H03 — H03
 
@@ -170,6 +173,7 @@ Aucune cause physique n'est etablie par ce dataset. Les actions ci-dessous sont 
 - Effort : Question de 5 minutes a l'operateur; aucun test terrain demande..
 - Attendu si l'hypothèse est vraie : Si le pic correspond a un incident energetique, l'operateur signalera un fonctionnement inhabituel plutot qu'un demarrage planifie.
 - Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.
+- Monitoring après correction : réévaluation à chaque nouvelle occurrence comparable; règle d'alerte = alerte si le comportement réapparaît sur trois occurrences comparables.
 
 ### R-H04 — H04
 
@@ -183,6 +187,7 @@ Aucune cause physique n'est etablie par ce dataset. Les actions ci-dessous sont 
 - Effort : 20 à 30 minutes sur les journaux existants.
 - Attendu si l'hypothèse est vraie : Si l'efficacité s'est réellement dégradée, aucun changement de recette, cadence ou exigence qualité suffisant ne coïncidera avec les 11 jours.
 - Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.
+- Monitoring après correction : réévaluation à chaque nouvelle occurrence comparable; règle d'alerte = alerte si le comportement réapparaît sur trois occurrences comparables.
 
 ### R-H05 — H05
 
@@ -196,6 +201,7 @@ Aucune cause physique n'est etablie par ce dataset. Les actions ci-dessous sont 
 - Effort : 30 minutes pendant un arrêt déjà planifié.
 - Attendu si l'hypothèse est vraie : Si l'air comprimé contribue à la dérive, le compresseur cyclera ou la pression baissera mesurablement sans demande de production.
 - Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.
+- Monitoring après correction : réévaluation à chaque nouvelle occurrence comparable; règle d'alerte = alerte si le comportement réapparaît sur trois occurrences comparables.
 
 ### R-H06 — H06
 
@@ -209,10 +215,12 @@ Aucune cause physique n'est etablie par ce dataset. Les actions ci-dessous sont 
 - Effort : entretien de 15 minutes et consultation du journal de travaux.
 - Attendu si l'hypothèse est vraie : Si le palier est involontaire, aucun nouveau besoin permanent suffisant ne sera documenté à sa date d'apparition.
 - Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.
+- Monitoring après correction : réévaluation à chaque nouvelle occurrence comparable; règle d'alerte = alerte si le comportement réapparaît sur trois occurrences comparables.
 
 ## 13. Limites
 
 Dataset synthetique, quatre mois, tarif simple, aucune mesure par equipement et aucune preuve de causalite physique. Les surconsommations ne sont pas des economies garanties.
+Cette prestation ne constitue pas un audit energetique reglementaire.
 
 ## 14. Methodologie
 

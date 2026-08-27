@@ -6,12 +6,13 @@ from pathlib import Path
 
 from .analysis import analyze
 from .io import DataError, load_data
+from .positioning import SERVICE_TITLE
 from .report import render_markdown, write_json
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Pre-diagnostic energetique local pour donnees industrielles CSV/XLSX."
+        description=f"{SERVICE_TITLE}, locale, à partir de données industrielles CSV/XLSX."
     )
     parser.add_argument("source", help="Fichier .csv ou .xlsx a analyser")
     parser.add_argument("--output", "-o", help="Rapport Markdown (defaut: reports/<fichier>-rapport.md)")

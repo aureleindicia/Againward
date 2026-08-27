@@ -5,6 +5,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from .models import AnalysisBundle, AnalysisResult
+from .positioning import REGULATORY_DISCLAIMER
 
 
 def _number(value: float | None, decimals: int = 0) -> str:
@@ -118,9 +119,13 @@ def render_markdown(result: AnalysisResult, currency: str = "EUR") -> str:
         "",
         "## Limites",
         "",
-        "Ce rapport est un outil de pre-diagnostic. Les signaux sont des pistes a verifier avec "
-        "le contexte d'exploitation, les factures, les courbes de charge et un professionnel qualifie. "
-        "Il ne remplace pas un audit energetique reglementaire.",
+        "Ce rapport ouvre une investigation énergétique sur données. Les signaux automatiques "
+        "sont des pistes à tester avec le contexte d'exploitation, les factures, les courbes de "
+        "charge et, lorsque nécessaire, un professionnel qualifié. L'investigation peut produire "
+        "une conclusion autonome sur les comportements mesurés, sans prétendre identifier une cause "
+        "physique que les preuves ne permettent pas d'établir.",
+        "",
+        REGULATORY_DISCLAIMER,
         "",
     ])
     return "\n".join(lines)

@@ -11,6 +11,7 @@ from typing import Any
 from .analysis import analyze
 from .intake import assess_intake, intake_template
 from .io import load_data
+from .positioning import positioning_payload
 from .signals import detect_candidate_events
 from .tariffs import calculate_tariff_cost, tariff_plan_from_dict
 from .toolbox import inspect_dataset
@@ -42,6 +43,9 @@ def _brief(state: dict[str, Any]) -> str:
         "# Dossier d'exploration Codex — nouveau client", "",
         "Ce document ne contient aucune conclusion confirmée. Il prépare une investigation "
         "sur un dataset inconnu sans accès à une vérité terrain.", "",
+        "L'objectif n'est pas de préparer un autre audit : l'investigation doit détecter et "
+        "quantifier les dérives, éliminer les fausses pistes, cibler les contrôles terrain puis "
+        "mesurer l'effet d'une correction. Elle peut aussi guider un intervenant technique.", "",
         "## Garde-fous", "",
         "- Ne jamais ouvrir ni demander de fichier de ground truth.",
         "- Les événements automatiques sont uniquement des signaux candidats.",
@@ -147,6 +151,7 @@ def prepare_investigation(
     state = {
         "schema_version": 1,
         "status": "awaiting_codex_exploration",
+        "service_positioning": positioning_payload(),
         "prepared_at_utc": prepared_at,
         "source": {
             "name": source_path.name,

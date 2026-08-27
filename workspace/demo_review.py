@@ -122,6 +122,12 @@ def build_operational_recommendations(entries: list[dict[str, Any]]) -> list[dic
                 "evaluation_window": "au moins trois occurrences comparables après intervention",
                 "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence",
             },
+            "continuous_monitoring": {
+                "activation_condition": "après une correction dont l'effet initial a été vérifié",
+                "cadence": "réévaluation à chaque nouvelle occurrence comparable",
+                "alert_rule": "alerte si le comportement réapparaît sur trois occurrences comparables",
+                "owner_role": owners[hypothesis_id],
+            },
             "recoverable_saving": None,
         })
     validate_recommendations(recommendations)
@@ -447,7 +453,7 @@ def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
         )
     return {
         "schema_version": 2,
-        "analysis_type": "agentic_energy_prediagnostic",
+        "analysis_type": "agentic_energy_investigation",
         "source": "examples/demo_15min.csv",
         "quantitative_source": "reports/demo_quantitative_results.json",
         "ground_truth_used": False,
@@ -522,7 +528,10 @@ def render_markdown(review: dict[str, Any], automatic: dict[str, Any]) -> str:
                 "- Mesure après intervention : "
                 f"{recommendation['post_action_measurement']['metric']}, "
                 f"{recommendation['post_action_measurement']['evaluation_window']}; "
-                f"succès = {recommendation['post_action_measurement']['success_rule']}.", "",
+                f"succès = {recommendation['post_action_measurement']['success_rule']}.",
+                "- Monitoring après correction : "
+                f"{recommendation['continuous_monitoring']['cadence']}; "
+                f"règle d'alerte = {recommendation['continuous_monitoring']['alert_rule']}.", "",
             ])
         return lines
 
@@ -538,7 +547,7 @@ def render_markdown(review: dict[str, Any], automatic: dict[str, Any]) -> str:
     )["baseline_candidates"]["production_temperature_activity_product_interaction"]
     quality = automatic["metadata"]["data_quality"]
     lines = [
-        "# Pre-diagnostic energetique agentique — demonstration",
+        "# Analyse et investigation de performance energetique — demonstration",
         "",
         "## 1. Resume executif",
         "",
@@ -546,6 +555,9 @@ def render_markdown(review: dict[str, Any], automatic: dict[str, Any]) -> str:
         "fixe, une baisse temporaire d'efficacite a production comparable et un nouveau niveau "
         "de charge inactive persistant. Trois autres signaux (nuit, week-end et pic ponctuel) "
         "meritent une verification operationnelle.",
+        "Cette investigation est un livrable autonome sur les comportements mesurés. Elle peut "
+        "également orienter un auditeur, frigoriste, électricien ou mainteneur vers les périodes "
+        "et hypothèses qui méritent un contrôle terrain.",
         "",
         "Les kWh ci-dessous sont des surconsommations observees par rapport a une baseline, pas des "
         "economies garanties. Aucun total portefeuille ni projection annuelle n'est publie, car "
@@ -674,6 +686,7 @@ def render_markdown(review: dict[str, Any], automatic: dict[str, Any]) -> str:
         "",
         "Dataset synthetique, quatre mois, tarif simple, aucune mesure par equipement et aucune preuve "
         "de causalite physique. Les surconsommations ne sont pas des economies garanties.",
+        "Cette prestation ne constitue pas un audit energetique reglementaire.",
         "",
         "## 14. Methodologie",
         "",
@@ -723,7 +736,7 @@ def render_html(markdown: str) -> str:
     body = "\n".join(blocks)
     return f"""<!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pre-diagnostic energetique</title><style>
+<title>Investigation de performance energetique</title><style>
 body{{font-family:system-ui,sans-serif;max-width:900px;margin:auto;padding:20px;color:#17202a;line-height:1.55}}
 h1{{color:#123c69}}h2{{margin-top:2rem;border-bottom:1px solid #ccd6dd;padding-bottom:.3rem}}
 h3{{color:#236192}}p,li{{font-size:1rem}}code{{background:#eef2f5;padding:.1rem .25rem}}

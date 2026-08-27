@@ -43,6 +43,12 @@ def recommendation() -> dict[str, object]:
             "evaluation_window": "10 nuits après action",
             "success_rule": "baisse persistante cohérente avec la prédiction pré-enregistrée",
         },
+        "continuous_monitoring": {
+            "activation_condition": "après correction validée",
+            "cadence": "chaque nuit comparable",
+            "alert_rule": "alerte après trois réapparitions",
+            "owner_role": "responsable maintenance",
+        },
         "recoverable_saving": None,
     }
 
@@ -66,6 +72,12 @@ class RecommendationTests(unittest.TestCase):
         payload = recommendation()
         payload["post_action_measurement"] = {}
         with self.assertRaisesRegex(ValueError, "après intervention"):
+            validate_operational_recommendation(payload)
+
+    def test_incomplete_continuous_monitoring_is_rejected(self) -> None:
+        payload = recommendation()
+        payload["continuous_monitoring"] = {"cadence": "chaque nuit"}
+        with self.assertRaisesRegex(ValueError, "monitoring continu incomplet"):
             validate_operational_recommendation(payload)
 
 

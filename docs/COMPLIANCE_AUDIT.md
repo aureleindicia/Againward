@@ -18,6 +18,8 @@ sous-ensemble synthétique. En revanche, le détecteur Python n'atteint que F1 0
 aveugle globale et aucun pilote client réel ni test terrain terminé ne justifie une maturité
 commerciale élevée.
 
-Le positionnement conforme reste : **outil agentique local de pré-diagnostic énergétique
-industriel**, avec Python comme vérité quantitative, Codex comme analyste contradictoire et revue
-humaine obligatoire avant livraison.
+Le positionnement retenu est désormais : **service local d'analyse et d'investigation de
+performance énergétique sur données**, avec Python comme vérité quantitative, Codex comme analyste
+contradictoire et revue humaine obligatoire avant livraison. Le service possède une valeur
+autonome et peut aussi guider les professionnels terrain. Il ne constitue pas un audit énergétique
+réglementaire.

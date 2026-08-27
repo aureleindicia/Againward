@@ -64,6 +64,11 @@ def validate_operational_recommendation(payload: dict[str, Any]) -> None:
     for name in ("metric", "baseline_definition", "evaluation_window", "success_rule"):
         if not str(after.get(name, "")).strip():
             raise ValueError(f"Mesure après intervention incomplète: {name} est requis.")
+    monitoring = payload.get("continuous_monitoring")
+    if monitoring is not None:
+        for name in ("activation_condition", "cadence", "alert_rule", "owner_role"):
+            if not str(monitoring.get(name, "")).strip():
+                raise ValueError(f"Plan de monitoring continu incomplet: {name} est requis.")
     if payload.get("recoverable_saving") is not None and cause_status != "confirmed":
         raise ValueError("Une économie récupérable ne peut être publiée avec une cause non prouvée.")
 

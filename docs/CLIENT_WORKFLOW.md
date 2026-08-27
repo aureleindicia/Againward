@@ -4,6 +4,14 @@ Ce workflow est local-first et conçu pour une petite entreprise. Python prépar
 preuves quantitatives ; Codex choisit les investigations et rédige ; un humain autorise la
 livraison. Aucun stade automatique ne transforme un signal candidat en économie.
 
+La prestation est une investigation de performance énergétique autonome sur données : elle doit
+détecter et quantifier les dérives, éliminer les fausses pistes, cibler les vérifications terrain
+et mesurer l'effet après correction. Elle n'est pas limitée à la préparation d'un autre audit.
+Elle peut néanmoins fournir à un auditeur, frigoriste, électricien ou mainteneur les périodes,
+preuves et hypothèses qui indiquent précisément où chercher.
+
+Cette prestation ne constitue pas un audit énergétique réglementaire.
+
 ## 1. Créer et renseigner le dossier
 
 ```sh
@@ -39,7 +47,9 @@ résultat provenant de Python, contre-explication, meilleure raison d'être faus
 confiance, statut explicite de la cause physique et éventuelle demande minimale. Une décision
 incertaine exige une demande précise ; une décision tranchée ne déclenche pas de question par
 réflexe. Les recommandations sont validées séparément et ne peuvent annoncer une économie
-récupérable lorsque la cause n'est pas prouvée.
+récupérable lorsque la cause n'est pas prouvée. Elles définissent toujours une mesure après
+intervention. Si le comportement mérite un suivi durable, elles peuvent aussi définir un bloc
+`continuous_monitoring` avec condition d'activation, cadence, règle d'alerte et responsable.
 
 ## 4. Questions et réponses
 

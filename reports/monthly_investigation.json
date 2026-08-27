@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "analysis_type": "agentic_energy_prediagnostic_monthly",
+  "analysis_type": "agentic_energy_investigation_monthly",
   "source": "examples/sample_energy.csv",
   "ground_truth_used": false,
   "follow_up_policy": {

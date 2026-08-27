@@ -3,10 +3,11 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
 
-from energy_mvp.models import AnalysisBundle, AnalysisEvent
-from energy_mvp.report import write_bundle_json
+from energy_mvp.models import AnalysisBundle, AnalysisEvent, AnalysisResult
+from energy_mvp.report import render_markdown, write_bundle_json
 
 
 class ReportTests(unittest.TestCase):
@@ -76,6 +77,24 @@ class ReportTests(unittest.TestCase):
             event = self.event(5)
             event.duration_hours = 2
             event.__post_init__()
+
+    def test_report_uses_investigation_positioning_and_regulatory_boundary(self) -> None:
+        result = AnalysisResult(
+            source="test.csv", start=datetime(2026, 1, 1), end=datetime(2026, 1, 2),
+            input_rows=1, valid_rows=1, discarded_rows=0, total_energy_kwh=10,
+            total_cost=None, total_production=None, energy_intensity=None,
+            off_production_kwh=None, off_production_share=None, peak_power_kw=None,
+            average_power_kw=None, anomaly_count=0, monthly=[], findings=[], warnings=[],
+            metadata={
+                "energy_mode": "interval", "measurement_kind": "energy_per_interval",
+                "data_quality": {}, "capabilities": {"intraday_analysis": False},
+            },
+        )
+        markdown = render_markdown(result)
+
+        self.assertIn("investigation énergétique sur données", markdown)
+        self.assertIn("ne constitue pas un audit énergétique réglementaire", markdown)
+        self.assertNotIn("pre-diagnostic", markdown.lower())
 
 
 if __name__ == "__main__":

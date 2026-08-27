@@ -1,14 +1,15 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pre-diagnostic energetique</title><style>
+<title>Investigation de performance energetique</title><style>
 body{font-family:system-ui,sans-serif;max-width:900px;margin:auto;padding:20px;color:#17202a;line-height:1.55}
 h1{color:#123c69}h2{margin-top:2rem;border-bottom:1px solid #ccd6dd;padding-bottom:.3rem}
 h3{color:#236192}p,li{font-size:1rem}code{background:#eef2f5;padding:.1rem .25rem}
 figure{margin:1.25rem 0}img{max-width:100%;height:auto;border:1px solid #d8dee4}figcaption{font-size:.9rem;color:#52606d}
 @media(max-width:600px){body{padding:12px}h1{font-size:1.55rem}h2{font-size:1.25rem}}
-</style></head><body><h1>Pre-diagnostic energetique agentique — demonstration</h1>
+</style></head><body><h1>Analyse et investigation de performance energetique — demonstration</h1>
 <h2>1. Resume executif</h2>
 <p>Trois comportements sont confirmes par les donnees : une derive progressive de la charge fixe, une baisse temporaire d&#x27;efficacite a production comparable et un nouveau niveau de charge inactive persistant. Trois autres signaux (nuit, week-end et pic ponctuel) meritent une verification operationnelle.</p>
+<p>Cette investigation est un livrable autonome sur les comportements mesurés. Elle peut également orienter un auditeur, frigoriste, électricien ou mainteneur vers les périodes et hypothèses qui méritent un contrôle terrain.</p>
 <p>Les kWh ci-dessous sont des surconsommations observees par rapport a une baseline, pas des economies garanties. Aucun total portefeuille ni projection annuelle n&#x27;est publie, car certaines fenetres se chevauchent et la part recuperable est inconnue.</p>
 <h2>2. Donnees analysees</h2>
 <ul>
@@ -114,6 +115,7 @@ figure{margin:1.25rem 0}img{max-width:100%;height:auto;border:1px solid #d8dee4}
 <li>Effort : Entretien de 10 minutes, sans mesure ni arret d&#x27;equipement..</li>
 <li>Attendu si l&#x27;hypothèse est vraie : Si la charge est non requise, aucun usage nocturne obligatoire ne sera identifie pour expliquer le palier observe.</li>
 <li>Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.</li>
+<li>Monitoring après correction : réévaluation à chaque nouvelle occurrence comparable; règle d&#x27;alerte = alerte si le comportement réapparaît sur trois occurrences comparables.</li>
 </ul>
 <h3>R-H02 — H02</h3>
 <ul>
@@ -127,6 +129,7 @@ figure{margin:1.25rem 0}img{max-width:100%;height:auto;border:1px solid #d8dee4}
 <li>Effort : Lecture du planning et reponse oui/non, environ 5 minutes..</li>
 <li>Attendu si l&#x27;hypothèse est vraie : Si la charge est anormale, le planning ne montrera ni maintenance, ni nettoyage, ni production pendant ces quatre jours.</li>
 <li>Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.</li>
+<li>Monitoring après correction : réévaluation à chaque nouvelle occurrence comparable; règle d&#x27;alerte = alerte si le comportement réapparaît sur trois occurrences comparables.</li>
 </ul>
 <h3>R-H03 — H03</h3>
 <ul>
@@ -140,6 +143,7 @@ figure{margin:1.25rem 0}img{max-width:100%;height:auto;border:1px solid #d8dee4}
 <li>Effort : Question de 5 minutes a l&#x27;operateur; aucun test terrain demande..</li>
 <li>Attendu si l&#x27;hypothèse est vraie : Si le pic correspond a un incident energetique, l&#x27;operateur signalera un fonctionnement inhabituel plutot qu&#x27;un demarrage planifie.</li>
 <li>Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.</li>
+<li>Monitoring après correction : réévaluation à chaque nouvelle occurrence comparable; règle d&#x27;alerte = alerte si le comportement réapparaît sur trois occurrences comparables.</li>
 </ul>
 <h3>R-H04 — H04</h3>
 <ul>
@@ -153,6 +157,7 @@ figure{margin:1.25rem 0}img{max-width:100%;height:auto;border:1px solid #d8dee4}
 <li>Effort : 20 à 30 minutes sur les journaux existants.</li>
 <li>Attendu si l&#x27;hypothèse est vraie : Si l&#x27;efficacité s&#x27;est réellement dégradée, aucun changement de recette, cadence ou exigence qualité suffisant ne coïncidera avec les 11 jours.</li>
 <li>Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.</li>
+<li>Monitoring après correction : réévaluation à chaque nouvelle occurrence comparable; règle d&#x27;alerte = alerte si le comportement réapparaît sur trois occurrences comparables.</li>
 </ul>
 <h3>R-H05 — H05</h3>
 <ul>
@@ -166,6 +171,7 @@ figure{margin:1.25rem 0}img{max-width:100%;height:auto;border:1px solid #d8dee4}
 <li>Effort : 30 minutes pendant un arrêt déjà planifié.</li>
 <li>Attendu si l&#x27;hypothèse est vraie : Si l&#x27;air comprimé contribue à la dérive, le compresseur cyclera ou la pression baissera mesurablement sans demande de production.</li>
 <li>Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.</li>
+<li>Monitoring après correction : réévaluation à chaque nouvelle occurrence comparable; règle d&#x27;alerte = alerte si le comportement réapparaît sur trois occurrences comparables.</li>
 </ul>
 <h3>R-H06 — H06</h3>
 <ul>
@@ -179,8 +185,10 @@ figure{margin:1.25rem 0}img{max-width:100%;height:auto;border:1px solid #d8dee4}
 <li>Effort : entretien de 15 minutes et consultation du journal de travaux.</li>
 <li>Attendu si l&#x27;hypothèse est vraie : Si le palier est involontaire, aucun nouveau besoin permanent suffisant ne sera documenté à sa date d&#x27;apparition.</li>
 <li>Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.</li>
+<li>Monitoring après correction : réévaluation à chaque nouvelle occurrence comparable; règle d&#x27;alerte = alerte si le comportement réapparaît sur trois occurrences comparables.</li>
 </ul>
 <h2>13. Limites</h2>
 <p>Dataset synthetique, quatre mois, tarif simple, aucune mesure par equipement et aucune preuve de causalite physique. Les surconsommations ne sont pas des economies garanties.</p>
+<p>Cette prestation ne constitue pas un audit energetique reglementaire.</p>
 <h2>14. Methodologie</h2>
 <p>Validation et normalisation deterministes, baseline passee-&gt;future, residualisation, comparaisons contextuelles, recherche d&#x27;explications alternatives, quantification Python, review adversariale Codex et controle des chevauchements.</p></body></html>

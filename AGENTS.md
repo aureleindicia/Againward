@@ -1610,15 +1610,20 @@ Les exemples synthétiques peuvent être versionnés.
 
 ## 55. Positionnement
 
-Le système est un :
+Le système est une :
 
 ```text
-outil agentique de pré-diagnostic énergétique industriel
+plateforme locale d'analyse et d'investigation de performance énergétique sur données
 ```
+
+Sa valeur autonome consiste à détecter et quantifier les dérives, éliminer les fausses pistes,
+cibler les vérifications terrain puis mesurer l'effet après correction. Il peut aussi compléter
+le travail d'un auditeur, frigoriste, électricien ou mainteneur en indiquant où chercher et
+pourquoi. Ne pas le réduire à une préparation superficielle avant un autre service.
 
 Il n’est pas :
 
-- un audit réglementaire ;
+- un audit énergétique réglementaire ;
 - une certification ;
 - un diagnostic mécanique définitif ;
 - une garantie contractuelle d’économie.

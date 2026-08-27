@@ -1,7 +1,21 @@
-# Energy Analyzer — pre-diagnostic energetique agentique
+# Energy Analyzer — investigation energetique sur donnees
 
 Energy Analyzer est un environnement local-first dans lequel Codex agit comme analyste
 energetique et Python comme couche de calcul verifiable.
+
+Sa valeur centrale est une **analyse de performance énergétique sur données** : détecter des
+dérives et anomalies difficiles à voir dans les factures, quantifier leur coût observé, tester
+les explications concurrentes, indiquer précisément ce qui mérite une vérification terrain, puis
+mesurer l'effet après correction. Ce résultat peut être utile de façon autonome ; il n'est pas
+présenté comme une simple préparation avant le « vrai » travail.
+
+L'investigation peut également compléter un auditeur énergétique, un frigoriste, un électricien
+ou un mainteneur en lui indiquant quelles périodes, quels équipements plausibles et quelles
+contre-explications examiner. Lorsque le comportement corrigé doit rester sous contrôle, le même
+cadre permet un monitoring continu fondé sur une baseline et une règle d'alerte explicites.
+
+Le positionnement commercial et les formulations autorisées sont détaillés dans
+[`docs/POSITIONING.md`](docs/POSITIONING.md).
 
 ```text
 donnees -> validation Python -> signaux candidats -> investigation Codex
@@ -246,11 +260,13 @@ energy_mvp/analysis.py       indicateurs et signaux candidats simples
 energy_mvp/toolbox.py        outils quantitatifs composables pour Codex
 energy_mvp/signals.py        detecteur generique de candidats
 energy_mvp/case_lifecycle.py cycle questions/reponses et verrou de livraison
+energy_mvp/positioning.py    positionnement canonique exposé aux dossiers client
 energy_mvp/tariffs.py        plages tarifaires et puissance mensuelle
 energy_mvp/validation.py     appariement d'evenements temporels
 energy_mvp/charts.py         PNG standard-library
 docs/ANALYSIS_TOOLS.md       catalogue des outils
 docs/CLIENT_WORKFLOW.md      procédure nouveau client et contrats JSON
+docs/POSITIONING.md          proposition de valeur et frontière réglementaire
 docs/MEGA_GOAL_AUDIT.md      preuves, limites et notes critiques actuelles
 workspace/                   experiences agentiques ad hoc
 tests/                       non-regressions deterministes
@@ -258,7 +274,16 @@ tests/                       non-regressions deterministes
 
 ## Positionnement et limites
 
-Le systeme est un outil agentique de pre-diagnostic industriel. Il ne constitue ni audit
-reglementaire, ni diagnostic mecanique, ni garantie d'economie. Une surconsommation mesuree
-n'est pas automatiquement recuperable. Les causes physiques et actions doivent etre validees
-avec l'exploitation et, si necessaire, un professionnel qualifie.
+Energy Analyzer est un service d'**analyse et d'investigation de performance énergétique sur
+données**. Il peut constituer un livrable autonome : comportements mesurés, anomalies retenues ou
+rejetées, coût observé, vérifications ciblées et protocole de mesure après correction.
+
+Il ne constitue pas un audit énergétique réglementaire, une certification, un diagnostic
+mécanique définitif ni une garantie contractuelle d'économie. Une surconsommation mesurée n'est
+pas automatiquement récupérable. Les causes physiques et actions doivent être validées avec
+l'exploitation et, lorsque nécessaire, un professionnel qualifié.
+
+Les pilotes initiaux peuvent bénéficier d'un prix réduit afin d'obtenir des preuves réelles. Le
+modèle cible n'est toutefois pas un « petit diagnostic à bas prix » : le prix doit refléter le
+périmètre, la difficulté de l'investigation, le suivi humain et la valeur décisionnelle créée,
+sans dépendre artificiellement du nombre d'anomalies trouvé.

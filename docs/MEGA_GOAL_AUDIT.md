@@ -143,7 +143,7 @@ réel du pilote avant d'affirmer que ce volume est confortable partout.
 | Qualité de détection | **6,0** | Très bonne non-régression mais F1 aveugle Python de 0,381; Codex améliore fortement seulement sur 6 cas |
 | Capacité d'investigation | **7,0** | Valeur Codex démontrée sur 3 sessions, falsification et découverte ad hoc; preuve encore synthétique et taxonomie instable |
 | Qualité des recommandations | **6,0** | Contrat opérationnel solide et démo détaillée; aucune action réelle ni évaluation indépendante |
-| Valeur commerciale potentielle | **7,0** | Pré-diagnostic local différencié et questions actionnables; ROI, volonté de payer et temps humain non validés |
+| Valeur commerciale potentielle | **7,0** | Investigation locale autonome, quantification et questions actionnables; ROI, volonté de payer et temps humain non validés |
 | Maturité pour un vrai client | **5,5** | Intake, traçabilité et gate existent; aucun pilote réel, aucune validation terrain et dépendance à un opérateur expert |
 
 Aucune note n'est relevée à 8 pour compenser une autre faiblesse. La seule dimension à 8 est la
@@ -160,5 +160,6 @@ fiabilité quantitative interne, soutenue par des tests ciblés et des reproduct
 5. Stabiliser une taxonomie d'événements sans empêcher les découvertes ad hoc de Codex.
 6. Améliorer le détecteur aveugle sans ajuster ses seuils sur un unique générateur.
 
-Le système est donc praticable pour un **pilote supervisé**, pas encore pour une prestation
-automatique ou une promesse contractuelle d'économie.
+Le système est donc praticable pour une **investigation pilote supervisée**, pas encore pour une
+prestation automatique ou une promesse contractuelle d'économie. Cette limite de maturité ne
+réduit pas le service à la préparation d'un audit réglementaire.
