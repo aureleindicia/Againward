@@ -733,11 +733,23 @@
     }
   },
   "investigation": {
-    "schema_version": 1,
+    "schema_version": 2,
     "analysis_type": "agentic_energy_prediagnostic",
     "source": "examples/demo_15min.csv",
     "quantitative_source": "reports/demo_quantitative_results.json",
     "ground_truth_used": false,
+    "follow_up_policy": {
+      "required_for": [
+        "INSUFFISAMMENT_ETAYE",
+        "A_CONSERVER_AVEC_RESERVES"
+      ],
+      "forbidden_for": [
+        "CONFIRME",
+        "REJETE"
+      ],
+      "trigger": "incertitude materielle que la reponse peut reduire",
+      "selection": "information minimale, realiste et la moins couteuse d'abord"
+    },
     "responsibility_split": {
       "codex": "hypotheses, tests choisis, critique, decisions, synthese",
       "python": "calculs, baselines, metriques, energie, cout, chevauchements"
@@ -822,6 +834,23 @@
           "observation": "elevee",
           "opportunity": "moyenne"
         },
+        "physical_cause_status": "non_etablie_avec_les_donnees_disponibles",
+        "follow_up_requests": [
+          {
+            "request_id": "H01-Q1",
+            "request_type": "question_metier",
+            "ask_client": "Demander au responsable de site quels equipements ou utilites devaient rester actifs entre 00:00 et 05:00 pendant les 15 nuits concernees.",
+            "why_useful": "Une liste courte des usages nocturnes permet de distinguer un besoin de procede d'un equipement reste actif par habitude ou erreur de consigne.",
+            "hypotheses_distinguished": [
+              "charge nocturne necessaire au procede",
+              "charge nocturne non requise ou consigne incorrecte"
+            ],
+            "client_effort": "Entretien de 10 minutes, sans mesure ni arret d'equipement.",
+            "effort_level": "tres_faible",
+            "expected_if_true": "Si la charge est non requise, aucun usage nocturne obligatoire ne sera identifie pour expliquer le palier observe.",
+            "priority": 1
+          }
+        ],
         "severity": "moyenne",
         "report_section": "verification"
       },
@@ -903,6 +932,23 @@
           "observation": "elevee",
           "opportunity": "moyenne"
         },
+        "physical_cause_status": "non_etablie_avec_les_donnees_disponibles",
+        "follow_up_requests": [
+          {
+            "request_id": "H02-Q1",
+            "request_type": "question_metier",
+            "ask_client": "Verifier dans le planning si maintenance, nettoyage ou production non comptabilisee avait lieu pendant les quatre jours de week-end identifies.",
+            "why_useful": "Le planning existant suffit a tester l'explication operationnelle la plus probable avant toute visite ou instrumentation.",
+            "hypotheses_distinguished": [
+              "activite de week-end legitime mais absente de la production",
+              "charge de week-end sans activite planifiee"
+            ],
+            "client_effort": "Lecture du planning et reponse oui/non, environ 5 minutes.",
+            "effort_level": "tres_faible",
+            "expected_if_true": "Si la charge est anormale, le planning ne montrera ni maintenance, ni nettoyage, ni production pendant ces quatre jours.",
+            "priority": 1
+          }
+        ],
         "severity": "faible",
         "report_section": "verification"
       },
@@ -975,6 +1021,23 @@
           "observation": "elevee",
           "opportunity": "faible"
         },
+        "physical_cause_status": "non_etablie_avec_les_donnees_disponibles",
+        "follow_up_requests": [
+          {
+            "request_id": "H03-Q1",
+            "request_type": "question_metier",
+            "ask_client": "Demander ce qui s'est passe le jour et pendant les deux heures exactes du pic: demarrage, essai, incident, maintenance ou aucune operation connue.",
+            "why_useful": "Le journal ou la memoire de l'operateur permet de separer un evenement normal et necessaire d'un incident ou d'une valeur capteur douteuse.",
+            "hypotheses_distinguished": [
+              "operation ponctuelle legitime",
+              "incident energetique ou mesure capteur erronee"
+            ],
+            "client_effort": "Question de 5 minutes a l'operateur; aucun test terrain demande.",
+            "effort_level": "tres_faible",
+            "expected_if_true": "Si le pic correspond a un incident energetique, l'operateur signalera un fonctionnement inhabituel plutot qu'un demarrage planifie.",
+            "priority": 1
+          }
+        ],
         "severity": "faible",
         "report_section": "verification"
       },

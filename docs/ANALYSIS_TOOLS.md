@@ -207,3 +207,32 @@ Le moteur d'analyse ne lit jamais le fichier de ground truth. Les scenarios disp
 
 La ground truth n'est ouverte qu'apres la fin des investigations, pour calculer les metriques
 de validation.
+## Poursuite objective d'une investigation incertaine
+
+`information_request()` construit une prochaine verification minimale et
+`validate_follow_up_logic()` controle le journal avant sa publication.
+
+Une demande n'est permise que pour `INSUFFISAMMENT_ETAYE` ou
+`A_CONSERVER_AVEC_RESERVES`. Une hypothese `CONFIRME` ou `REJETE` ne declenche aucune
+question systematique. Chaque demande doit pouvoir modifier la decision ou la confiance et precise :
+
+- la question, la donnee ou le test terrain exact a demander ;
+- son utilite ;
+- au moins deux hypotheses qu'il departage ;
+- l'effort concret et son niveau ;
+- le resultat attendu si l'hypothese examinee est vraie.
+
+`next_information_request()` choisit la priorite la plus basse numeriquement : Codex commence par
+la question metier ou le controle existant le moins couteux, avant une nouvelle instrumentation.
+Les formulations generiques telles que « plus de donnees » sont refusees. Si aucune verification
+realiste ne permet d'etablir une cause physique, le journal conserve explicitement
+`physical_cause_status = non_etablie_avec_les_donnees_disponibles` et ne force pas de recommandation.
+
+- Objectif : reduire une incertitude materielle par la prochaine action minimale.
+- Entree : decision Codex et demande structuree issue de la review contradictoire.
+- Sortie : champs serialisables dans `investigation.json` et affichables dans le rapport.
+- Hypotheses : la demande peut reellement departager les explications encore plausibles.
+- Limitations : le module valide la precision et la coherence, mais Codex reste responsable de la
+  pertinence metier de la question.
+- Exemple : demander si un nettoyage etait planifie durant quatre week-ends anormaux avant de
+  proposer une mesure machine ou un test d'arret.

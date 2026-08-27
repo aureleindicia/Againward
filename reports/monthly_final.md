@@ -39,9 +39,25 @@ Le cout des mois sans production est un cout observe, pas une economie. Aucun po
 
 ## 10. Opportunites necessitant verification
 
-- Obtenir des courbes de charge horaires ou 15 minutes pour les mois sans production.
-- Documenter la signification exacte de la colonne de puissance.
-- Ajouter jours ouvres, mix produit et temperature avant de revoir l'intensite.
+Les questions ci-dessous ne sont posees que parce que M01 et M03 restent indeterminees; M02, deja rejetee, ne declenche aucune demande.
+
+### M01 — prochaine verification minimale
+
+- A demander : Pour chacun des trois mois a production nulle, confirmer en une ligne si le site etait ferme et quelles utilites devaient obligatoirement rester actives.
+- Pourquoi : Cette reponse indique si l'energie correspond a un arret reel, a une activite non renseignee ou a des besoins incompressibles connus.
+- Hypotheses departagees : charge potentiellement evitable pendant fermeture / charge legitime ou production manquante dans le fichier.
+- Effort client : Environ 10 minutes avec le calendrier d'exploitation. (tres_faible).
+- Attendu si l'hypothese est vraie : Si une charge evitable existe, le client confirmera une fermeture complete sans procede ni exigence de securite expliquant tout ou partie de la consommation.
+- Cause physique : non etablie avec les donnees disponibles.
+
+### M03 — prochaine verification minimale
+
+- A demander : Indiquer si octobre avait un mix produit, un nombre de jours ouvres ou des horaires sensiblement differents d'un mois actif habituel, et lequel.
+- Pourquoi : Ces trois facteurs simples peuvent expliquer le ratio mensuel sans degradation energetique et evitent une collecte instrumentee prematuree.
+- Hypotheses departagees : degradation reelle de l'efficacite en octobre / effet normal du mix produit, des jours ouvres ou des horaires.
+- Effort client : Environ 10 a 15 minutes avec le responsable de production. (tres_faible).
+- Attendu si l'hypothese est vraie : Si la degradation est reelle, aucun changement operationnel important ne sera signale alors que l'intensite restera anormalement haute.
+- Cause physique : non etablie avec les donnees disponibles.
 
 ## 11. Hypotheses rejetees importantes
 
@@ -49,9 +65,10 @@ M02 est rejetee : 198,0 kW en octobre ne permet pas d'affirmer un demarrage simu
 
 ## 12. Recommandations
 
-1. Collecter au minimum quatre semaines a 15 minutes.
-2. Confirmer les unites, la position des timestamps et le sens de la puissance.
-3. Reprendre ensuite M01 et M03 avec des periodes comparables.
+1. Poser d'abord les deux questions minimales M01 et M03 ci-dessus.
+2. Ne demander une courbe 15 minutes que si leurs reponses laissent une incertitude materielle et que l'enjeu justifie cet effort supplementaire.
+3. Ne rien demander pour M02 : l'hypothese de demarrage est deja rejetee.
+Aucune cause physique n'est etablie avec ces douze agregats mensuels.
 
 ## 13. Limites
 

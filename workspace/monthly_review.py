@@ -7,6 +7,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+from energy_mvp.investigation import (
+    information_request,
+    next_information_request,
+    validate_follow_up_logic,
+)
 from energy_mvp.models import AnalysisBundle
 from energy_mvp.report import write_bundle_json
 from workspace.demo_review import render_html
@@ -18,11 +23,17 @@ def fmt(value: float, decimals: int = 1) -> str:
 
 def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
     tests = quantitative["tests"]
-    return {
-        "schema_version": 1,
+    review = {
+        "schema_version": 2,
         "analysis_type": "agentic_energy_prediagnostic_monthly",
         "source": quantitative["source"],
         "ground_truth_used": False,
+        "follow_up_policy": {
+            "required_for": ["INSUFFISAMMENT_ETAYE", "A_CONSERVER_AVEC_RESERVES"],
+            "forbidden_for": ["CONFIRME", "REJETE"],
+            "trigger": "incertitude materielle que la reponse peut reduire",
+            "selection": "information minimale, realiste et la moins couteuse d'abord",
+        },
         "hypotheses": [
             {
                 "hypothesis_id": "M01",
@@ -44,6 +55,20 @@ def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
                 ),
                 "decision": "INSUFFISAMMENT_ETAYE",
                 "confidence": {"observation": "elevee", "opportunity": "faible"},
+                "physical_cause_status": "non_etablie_avec_les_donnees_disponibles",
+                "follow_up_requests": [information_request(
+                    request_id="M01-Q1", request_type="question_metier",
+                    ask_client=("Pour chacun des trois mois a production nulle, confirmer en une ligne "
+                                "si le site etait ferme et quelles utilites devaient obligatoirement rester actives."),
+                    why_useful=("Cette reponse indique si l'energie correspond a un arret reel, a une "
+                                "activite non renseignee ou a des besoins incompressibles connus."),
+                    hypotheses_distinguished=("charge potentiellement evitable pendant fermeture",
+                                              "charge legitime ou production manquante dans le fichier"),
+                    client_effort="Environ 10 minutes avec le calendrier d'exploitation.",
+                    effort_level="tres_faible",
+                    expected_if_true=("Si une charge evitable existe, le client confirmera une fermeture complete "
+                                      "sans procede ni exigence de securite expliquant tout ou partie de la consommation."),
+                )],
             },
             {
                 "hypothesis_id": "M02",
@@ -65,6 +90,8 @@ def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
                 ),
                 "decision": "REJETE",
                 "confidence": {"observation": "elevee", "cause": "nulle"},
+                "physical_cause_status": "non_etablie_et_non_inferable_a_cette_resolution",
+                "follow_up_requests": [],
             },
             {
                 "hypothesis_id": "M03",
@@ -86,6 +113,20 @@ def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
                 ),
                 "decision": "INSUFFISAMMENT_ETAYE",
                 "confidence": {"observation": "elevee", "opportunity": "faible"},
+                "physical_cause_status": "non_etablie_avec_les_donnees_disponibles",
+                "follow_up_requests": [information_request(
+                    request_id="M03-Q1", request_type="question_metier",
+                    ask_client=("Indiquer si octobre avait un mix produit, un nombre de jours ouvres ou des "
+                                "horaires sensiblement differents d'un mois actif habituel, et lequel."),
+                    why_useful=("Ces trois facteurs simples peuvent expliquer le ratio mensuel sans "
+                                "degradation energetique et evitent une collecte instrumentee prematuree."),
+                    hypotheses_distinguished=("degradation reelle de l'efficacite en octobre",
+                                              "effet normal du mix produit, des jours ouvres ou des horaires"),
+                    client_effort="Environ 10 a 15 minutes avec le responsable de production.",
+                    effort_level="tres_faible",
+                    expected_if_true=("Si la degradation est reelle, aucun changement operationnel important ne "
+                                      "sera signale alors que l'intensite restera anormalement haute."),
+                )],
             },
         ],
         "final_review": {
@@ -98,10 +139,27 @@ def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
             "intraday_claim_made": False,
         },
     }
+    validate_follow_up_logic(review["hypotheses"])
+    return review
 
 
 def render_markdown(review: dict[str, Any], quantitative: dict[str, Any]) -> str:
     tests = quantitative["tests"]
+    by_id = {item["hypothesis_id"]: item for item in review["hypotheses"]}
+
+    def request_lines(hypothesis_id: str) -> list[str]:
+        request = next_information_request(by_id[hypothesis_id])
+        if request is None:
+            return []
+        return [
+            f"### {hypothesis_id} — prochaine verification minimale", "",
+            f"- A demander : {request['ask_client']}",
+            f"- Pourquoi : {request['why_useful']}",
+            "- Hypotheses departagees : " + " / ".join(request["hypotheses_distinguished"]) + ".",
+            f"- Effort client : {request['client_effort']} ({request['effort_level']}).",
+            f"- Attendu si l'hypothese est vraie : {request['expected_if_true']}",
+            "- Cause physique : non etablie avec les donnees disponibles.", "",
+        ]
     inactive = tests["M01_zero_production_months"]
     power = tests["M02_declared_power"]
     intensity = tests["M03_intensity"]
@@ -126,15 +184,18 @@ def render_markdown(review: dict[str, Any], quantitative: dict[str, Any]) -> str
         "## 9. Impact economique", "",
         "Le cout des mois sans production est un cout observe, pas une economie. Aucun potentiel recuperable ni projection annuelle n'est publie.", "",
         "## 10. Opportunites necessitant verification", "",
-        "- Obtenir des courbes de charge horaires ou 15 minutes pour les mois sans production.",
-        "- Documenter la signification exacte de la colonne de puissance.",
-        "- Ajouter jours ouvres, mix produit et temperature avant de revoir l'intensite.", "",
+        "Les questions ci-dessous ne sont posees que parce que M01 et M03 restent indeterminees; "
+        "M02, deja rejetee, ne declenche aucune demande.", "",
+        *request_lines("M01"),
+        *request_lines("M03"),
         "## 11. Hypotheses rejetees importantes", "",
         f"M02 est rejetee : {fmt(power['maximum_power_kw'], 1)} kW en octobre ne permet pas d'affirmer un demarrage simultane sans heure ni duree.", "",
         "## 12. Recommandations", "",
-        "1. Collecter au minimum quatre semaines a 15 minutes.",
-        "2. Confirmer les unites, la position des timestamps et le sens de la puissance.",
-        "3. Reprendre ensuite M01 et M03 avec des periodes comparables.", "",
+        "1. Poser d'abord les deux questions minimales M01 et M03 ci-dessus.",
+        "2. Ne demander une courbe 15 minutes que si leurs reponses laissent une incertitude "
+        "materielle et que l'enjeu justifie cet effort supplementaire.",
+        "3. Ne rien demander pour M02 : l'hypothese de demarrage est deja rejetee.",
+        "Aucune cause physique n'est etablie avec ces douze agregats mensuels.", "",
         "## 13. Limites", "",
         "Douze agregats mensuels, aucune temperature, aucun horaire, aucune mesure machine et aucune preuve de causalite.", "",
         "## 14. Methodologie", "",

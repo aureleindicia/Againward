@@ -1,8 +1,20 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "analysis_type": "agentic_energy_prediagnostic_monthly",
   "source": "examples/sample_energy.csv",
   "ground_truth_used": false,
+  "follow_up_policy": {
+    "required_for": [
+      "INSUFFISAMMENT_ETAYE",
+      "A_CONSERVER_AVEC_RESERVES"
+    ],
+    "forbidden_for": [
+      "CONFIRME",
+      "REJETE"
+    ],
+    "trigger": "incertitude materielle que la reponse peut reduire",
+    "selection": "information minimale, realiste et la moins couteuse d'abord"
+  },
   "hypotheses": [
     {
       "hypothesis_id": "M01",
@@ -38,7 +50,24 @@
       "confidence": {
         "observation": "elevee",
         "opportunity": "faible"
-      }
+      },
+      "physical_cause_status": "non_etablie_avec_les_donnees_disponibles",
+      "follow_up_requests": [
+        {
+          "request_id": "M01-Q1",
+          "request_type": "question_metier",
+          "ask_client": "Pour chacun des trois mois a production nulle, confirmer en une ligne si le site etait ferme et quelles utilites devaient obligatoirement rester actives.",
+          "why_useful": "Cette reponse indique si l'energie correspond a un arret reel, a une activite non renseignee ou a des besoins incompressibles connus.",
+          "hypotheses_distinguished": [
+            "charge potentiellement evitable pendant fermeture",
+            "charge legitime ou production manquante dans le fichier"
+          ],
+          "client_effort": "Environ 10 minutes avec le calendrier d'exploitation.",
+          "effort_level": "tres_faible",
+          "expected_if_true": "Si une charge evitable existe, le client confirmera une fermeture complete sans procede ni exigence de securite expliquant tout ou partie de la consommation.",
+          "priority": 1
+        }
+      ]
     },
     {
       "hypothesis_id": "M02",
@@ -65,7 +94,9 @@
       "confidence": {
         "observation": "elevee",
         "cause": "nulle"
-      }
+      },
+      "physical_cause_status": "non_etablie_et_non_inferable_a_cette_resolution",
+      "follow_up_requests": []
     },
     {
       "hypothesis_id": "M03",
@@ -96,7 +127,24 @@
       "confidence": {
         "observation": "elevee",
         "opportunity": "faible"
-      }
+      },
+      "physical_cause_status": "non_etablie_avec_les_donnees_disponibles",
+      "follow_up_requests": [
+        {
+          "request_id": "M03-Q1",
+          "request_type": "question_metier",
+          "ask_client": "Indiquer si octobre avait un mix produit, un nombre de jours ouvres ou des horaires sensiblement differents d'un mois actif habituel, et lequel.",
+          "why_useful": "Ces trois facteurs simples peuvent expliquer le ratio mensuel sans degradation energetique et evitent une collecte instrumentee prematuree.",
+          "hypotheses_distinguished": [
+            "degradation reelle de l'efficacite en octobre",
+            "effet normal du mix produit, des jours ouvres ou des horaires"
+          ],
+          "client_effort": "Environ 10 a 15 minutes avec le responsable de production.",
+          "effort_level": "tres_faible",
+          "expected_if_true": "Si la degradation est reelle, aucun changement operationnel important ne sera signale alors que l'intensite restera anormalement haute.",
+          "priority": 1
+        }
+      ]
     }
   ],
   "final_review": {

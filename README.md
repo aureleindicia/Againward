@@ -9,6 +9,10 @@ donnees -> validation Python -> signaux candidats -> investigation Codex
 ```
 
 Le pipeline automatique ne confirme pas d'opportunites et ne remplace pas l'investigation.
+Quand une review reste incertaine, elle produit une prochaine verification minimale structuree
+(question metier, donnee precise ou test terrain simple). Une decision deja confirmee ou rejetee
+ne declenche pas de demande systematique, et une cause physique non prouvable reste explicitement
+non etablie.
 Le projet fonctionne sans cloud, serveur, base de donnees ni API OpenAI.
 
 ## Installation Termux

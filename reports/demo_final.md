@@ -90,12 +90,41 @@ Les couts ci-dessus portent uniquement sur les periodes observees. La review de 
 - H02 week-end : 877,3 kWh sur la periode, soit 153,53 EUR au tarif de 0,175 EUR/kWh. Recurrence 4/4 jours, production nulle.
 - H03 pic ponctuel : 239,2 kWh sur la periode, soit 41,86 EUR au tarif de 0,175 EUR/kWh. Un seul evenement de deux heures ; pas d'annualisation.
 
+### H01 — prochaine verification minimale
+
+- A demander : Demander au responsable de site quels equipements ou utilites devaient rester actifs entre 00:00 et 05:00 pendant les 15 nuits concernees.
+- Pourquoi : Une liste courte des usages nocturnes permet de distinguer un besoin de procede d'un equipement reste actif par habitude ou erreur de consigne.
+- Hypotheses departagees : charge nocturne necessaire au procede / charge nocturne non requise ou consigne incorrecte.
+- Effort client : Entretien de 10 minutes, sans mesure ni arret d'equipement. (tres_faible).
+- Attendu si l'hypothese est vraie : Si la charge est non requise, aucun usage nocturne obligatoire ne sera identifie pour expliquer le palier observe.
+- Cause physique : non etablie avec les donnees disponibles.
+
+### H02 — prochaine verification minimale
+
+- A demander : Verifier dans le planning si maintenance, nettoyage ou production non comptabilisee avait lieu pendant les quatre jours de week-end identifies.
+- Pourquoi : Le planning existant suffit a tester l'explication operationnelle la plus probable avant toute visite ou instrumentation.
+- Hypotheses departagees : activite de week-end legitime mais absente de la production / charge de week-end sans activite planifiee.
+- Effort client : Lecture du planning et reponse oui/non, environ 5 minutes. (tres_faible).
+- Attendu si l'hypothese est vraie : Si la charge est anormale, le planning ne montrera ni maintenance, ni nettoyage, ni production pendant ces quatre jours.
+- Cause physique : non etablie avec les donnees disponibles.
+
+### H03 — prochaine verification minimale
+
+- A demander : Demander ce qui s'est passe le jour et pendant les deux heures exactes du pic: demarrage, essai, incident, maintenance ou aucune operation connue.
+- Pourquoi : Le journal ou la memoire de l'operateur permet de separer un evenement normal et necessaire d'un incident ou d'une valeur capteur douteuse.
+- Hypotheses departagees : operation ponctuelle legitime / incident energetique ou mesure capteur erronee.
+- Effort client : Question de 5 minutes a l'operateur; aucun test terrain demande. (tres_faible).
+- Attendu si l'hypothese est vraie : Si le pic correspond a un incident energetique, l'operateur signalera un fonctionnement inhabituel plutot qu'un demarrage planifie.
+- Cause physique : non etablie avec les donnees disponibles.
+
 ## 11. Hypotheses rejetees importantes
 
 - H07 : l'intensite de mai n'est ni comparable ni independante.
 - H08 : le signal de pointe et H03 couvrent exactement les memes huit points ; les additionner doublerait 239,2 kWh.
 
 ## 12. Recommandations
+
+Aucune cause physique n'est etablie par ce dataset. Les actions ci-dessous sont des verifications, pas des diagnostics d'equipement ni des investissements prescrits.
 
 1. Rechercher d'abord le changement de charge inactive apparu en fin de periode.
 2. Examiner les tendances de pression, debit, consignes et cycles des utilites pendant H05.

@@ -15,6 +15,11 @@ from energy_mvp.charts import (
     plot_power_timeseries,
 )
 from energy_mvp.io import load_data
+from energy_mvp.investigation import (
+    information_request,
+    next_information_request,
+    validate_follow_up_logic,
+)
 from energy_mvp.models import AnalysisBundle, AnalysisEvent
 from energy_mvp.report import write_bundle_json
 from energy_mvp.toolbox import calculate_residuals
@@ -57,6 +62,20 @@ def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
             ),
             "decision": "A_CONSERVER_AVEC_RESERVES",
             "confidence": {"observation": "elevee", "opportunity": "moyenne"},
+            "physical_cause_status": "non_etablie_avec_les_donnees_disponibles",
+            "follow_up_requests": [information_request(
+                request_id="H01-Q1", request_type="question_metier",
+                ask_client=("Demander au responsable de site quels equipements ou utilites devaient rester "
+                            "actifs entre 00:00 et 05:00 pendant les 15 nuits concernees."),
+                why_useful=("Une liste courte des usages nocturnes permet de distinguer un besoin de procede "
+                            "d'un equipement reste actif par habitude ou erreur de consigne."),
+                hypotheses_distinguished=("charge nocturne necessaire au procede",
+                                          "charge nocturne non requise ou consigne incorrecte"),
+                client_effort="Entretien de 10 minutes, sans mesure ni arret d'equipement.",
+                effort_level="tres_faible",
+                expected_if_true=("Si la charge est non requise, aucun usage nocturne obligatoire ne sera identifie "
+                                  "pour expliquer le palier observe."),
+            )],
             "severity": "moyenne",
             "report_section": "verification",
         },
@@ -85,6 +104,20 @@ def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
             ),
             "decision": "A_CONSERVER_AVEC_RESERVES",
             "confidence": {"observation": "elevee", "opportunity": "moyenne"},
+            "physical_cause_status": "non_etablie_avec_les_donnees_disponibles",
+            "follow_up_requests": [information_request(
+                request_id="H02-Q1", request_type="question_metier",
+                ask_client=("Verifier dans le planning si maintenance, nettoyage ou production non comptabilisee "
+                            "avait lieu pendant les quatre jours de week-end identifies."),
+                why_useful=("Le planning existant suffit a tester l'explication operationnelle la plus probable "
+                            "avant toute visite ou instrumentation."),
+                hypotheses_distinguished=("activite de week-end legitime mais absente de la production",
+                                          "charge de week-end sans activite planifiee"),
+                client_effort="Lecture du planning et reponse oui/non, environ 5 minutes.",
+                effort_level="tres_faible",
+                expected_if_true=("Si la charge est anormale, le planning ne montrera ni maintenance, ni nettoyage, "
+                                  "ni production pendant ces quatre jours."),
+            )],
             "severity": "faible",
             "report_section": "verification",
         },
@@ -113,6 +146,20 @@ def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
             ),
             "decision": "A_CONSERVER_AVEC_RESERVES",
             "confidence": {"observation": "elevee", "opportunity": "faible"},
+            "physical_cause_status": "non_etablie_avec_les_donnees_disponibles",
+            "follow_up_requests": [information_request(
+                request_id="H03-Q1", request_type="question_metier",
+                ask_client=("Demander ce qui s'est passe le jour et pendant les deux heures exactes du pic: "
+                            "demarrage, essai, incident, maintenance ou aucune operation connue."),
+                why_useful=("Le journal ou la memoire de l'operateur permet de separer un evenement normal et "
+                            "necessaire d'un incident ou d'une valeur capteur douteuse."),
+                hypotheses_distinguished=("operation ponctuelle legitime",
+                                          "incident energetique ou mesure capteur erronee"),
+                client_effort="Question de 5 minutes a l'operateur; aucun test terrain demande.",
+                effort_level="tres_faible",
+                expected_if_true=("Si le pic correspond a un incident energetique, l'operateur signalera un "
+                                  "fonctionnement inhabituel plutot qu'un demarrage planifie."),
+            )],
             "severity": "faible",
             "report_section": "verification",
         },
@@ -240,6 +287,7 @@ def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
             "report_section": "rejected",
         },
     ]
+    validate_follow_up_logic(entries)
     event_types = {
         "H01": "night_anomaly",
         "H02": "weekend_anomaly",
@@ -292,11 +340,17 @@ def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
             }
         )
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "analysis_type": "agentic_energy_prediagnostic",
         "source": "examples/demo_15min.csv",
         "quantitative_source": "reports/demo_quantitative_results.json",
         "ground_truth_used": False,
+        "follow_up_policy": {
+            "required_for": ["INSUFFISAMMENT_ETAYE", "A_CONSERVER_AVEC_RESERVES"],
+            "forbidden_for": ["CONFIRME", "REJETE"],
+            "trigger": "incertitude materielle que la reponse peut reduire",
+            "selection": "information minimale, realiste et la moins couteuse d'abord",
+        },
         "responsibility_split": {
             "codex": "hypotheses, tests choisis, critique, decisions, synthese",
             "python": "calculs, baselines, metriques, energie, cout, chevauchements",
@@ -317,6 +371,23 @@ def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
 
 def render_markdown(review: dict[str, Any], automatic: dict[str, Any]) -> str:
     by_id = {item["hypothesis_id"]: item for item in review["hypotheses"]}
+
+    def follow_up_lines(hypothesis_ids: list[str]) -> list[str]:
+        lines: list[str] = []
+        for hypothesis_id in hypothesis_ids:
+            request = next_information_request(by_id[hypothesis_id])
+            if request is None:
+                continue
+            lines.extend([
+                f"### {hypothesis_id} — prochaine verification minimale", "",
+                f"- A demander : {request['ask_client']}",
+                f"- Pourquoi : {request['why_useful']}",
+                "- Hypotheses departagees : " + " / ".join(request["hypotheses_distinguished"]) + ".",
+                f"- Effort client : {request['client_effort']} ({request['effort_level']}).",
+                f"- Attendu si l'hypothese est vraie : {request['expected_if_true']}",
+                "- Cause physique : non etablie avec les donnees disponibles.", "",
+            ])
+        return lines
 
     def observed_line(hypothesis_id: str, energy_key: str = "excess_energy_kwh") -> str:
         values = by_id[hypothesis_id]["results"]
@@ -449,6 +520,7 @@ def render_markdown(review: dict[str, Any], automatic: dict[str, Any]) -> str:
         f"- H02 week-end : {observed_line('H02')} Recurrence 4/4 jours, production nulle.",
         f"- H03 pic ponctuel : {observed_line('H03')} Un seul evenement de deux heures ; pas d'annualisation.",
         "",
+        *follow_up_lines(["H01", "H02", "H03"]),
         "## 11. Hypotheses rejetees importantes",
         "",
         "- H07 : l'intensite de mai n'est ni comparable ni independante.",
@@ -456,6 +528,9 @@ def render_markdown(review: dict[str, Any], automatic: dict[str, Any]) -> str:
         f"doublerait {fmt(by_id['H08']['results']['double_counted_kwh'], 1)} kWh.",
         "",
         "## 12. Recommandations",
+        "",
+        "Aucune cause physique n'est etablie par ce dataset. Les actions ci-dessous sont des "
+        "verifications, pas des diagnostics d'equipement ni des investissements prescrits.",
         "",
         "1. Rechercher d'abord le changement de charge inactive apparu en fin de periode.",
         "2. Examiner les tendances de pression, debit, consignes et cycles des utilites pendant H05.",

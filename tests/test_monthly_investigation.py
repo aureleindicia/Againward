@@ -22,6 +22,16 @@ class MonthlyInvestigationTests(unittest.TestCase):
         }
         self.assertEqual(decisions["M02"], "REJETE")
         self.assertEqual(decisions["M03"], "INSUFFISAMMENT_ETAYE")
+        by_id = {item["hypothesis_id"]: item for item in review["hypotheses"]}
+        self.assertEqual(by_id["M02"]["follow_up_requests"], [])
+        for hypothesis_id in ("M01", "M03"):
+            request = by_id[hypothesis_id]["follow_up_requests"][0]
+            self.assertTrue(request["ask_client"])
+            self.assertTrue(request["why_useful"])
+            self.assertGreaterEqual(len(request["hypotheses_distinguished"]), 2)
+            self.assertTrue(request["client_effort"])
+            self.assertTrue(request["expected_if_true"])
+            self.assertIn("non_etablie", by_id[hypothesis_id]["physical_cause_status"])
 
 
 if __name__ == "__main__":
