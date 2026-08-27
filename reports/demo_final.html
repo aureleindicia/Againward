@@ -66,7 +66,9 @@ figure{margin:1.25rem 0}img{max-width:100%;height:auto;border:1px solid #d8dee4}
 <ul>
 <li>A demander : Demander au responsable de site quels equipements ou utilites devaient rester actifs entre 00:00 et 05:00 pendant les 15 nuits concernees.</li>
 <li>Pourquoi : Une liste courte des usages nocturnes permet de distinguer un besoin de procede d&#x27;un equipement reste actif par habitude ou erreur de consigne.</li>
+<li>Valeur informationnelle : elevee: la reponse peut faire passer la piste de reservee a rejetee ou a test terrain.</li>
 <li>Hypotheses departagees : charge nocturne necessaire au procede / charge nocturne non requise ou consigne incorrecte.</li>
+<li>Responsable pressenti : responsable de site.</li>
 <li>Effort client : Entretien de 10 minutes, sans mesure ni arret d&#x27;equipement. (tres_faible).</li>
 <li>Attendu si l&#x27;hypothese est vraie : Si la charge est non requise, aucun usage nocturne obligatoire ne sera identifie pour expliquer le palier observe.</li>
 <li>Cause physique : non etablie avec les donnees disponibles.</li>
@@ -75,7 +77,9 @@ figure{margin:1.25rem 0}img{max-width:100%;height:auto;border:1px solid #d8dee4}
 <ul>
 <li>A demander : Verifier dans le planning si maintenance, nettoyage ou production non comptabilisee avait lieu pendant les quatre jours de week-end identifies.</li>
 <li>Pourquoi : Le planning existant suffit a tester l&#x27;explication operationnelle la plus probable avant toute visite ou instrumentation.</li>
+<li>Valeur informationnelle : elevee: le planning peut expliquer completement les quatre occurrences sans nouvelle mesure.</li>
 <li>Hypotheses departagees : activite de week-end legitime mais absente de la production / charge de week-end sans activite planifiee.</li>
+<li>Responsable pressenti : responsable de production ou maintenance.</li>
 <li>Effort client : Lecture du planning et reponse oui/non, environ 5 minutes. (tres_faible).</li>
 <li>Attendu si l&#x27;hypothese est vraie : Si la charge est anormale, le planning ne montrera ni maintenance, ni nettoyage, ni production pendant ces quatre jours.</li>
 <li>Cause physique : non etablie avec les donnees disponibles.</li>
@@ -84,7 +88,9 @@ figure{margin:1.25rem 0}img{max-width:100%;height:auto;border:1px solid #d8dee4}
 <ul>
 <li>A demander : Demander ce qui s&#x27;est passe le jour et pendant les deux heures exactes du pic: demarrage, essai, incident, maintenance ou aucune operation connue.</li>
 <li>Pourquoi : Le journal ou la memoire de l&#x27;operateur permet de separer un evenement normal et necessaire d&#x27;un incident ou d&#x27;une valeur capteur douteuse.</li>
+<li>Valeur informationnelle : moyenne: la reponse peut classer le pic comme operation legitime, incident ou mesure douteuse.</li>
 <li>Hypotheses departagees : operation ponctuelle legitime / incident energetique ou mesure capteur erronee.</li>
+<li>Responsable pressenti : operateur present ou responsable de production.</li>
 <li>Effort client : Question de 5 minutes a l&#x27;operateur; aucun test terrain demande. (tres_faible).</li>
 <li>Attendu si l&#x27;hypothese est vraie : Si le pic correspond a un incident energetique, l&#x27;operateur signalera un fonctionnement inhabituel plutot qu&#x27;un demarrage planifie.</li>
 <li>Cause physique : non etablie avec les donnees disponibles.</li>
@@ -96,12 +102,83 @@ figure{margin:1.25rem 0}img{max-width:100%;height:auto;border:1px solid #d8dee4}
 </ul>
 <h2>12. Recommandations</h2>
 <p>Aucune cause physique n&#x27;est etablie par ce dataset. Les actions ci-dessous sont des verifications, pas des diagnostics d&#x27;equipement ni des investissements prescrits.</p>
+<h3>R-H01 — H01</h3>
 <ul>
-<li>Rechercher d&#x27;abord le changement de charge inactive apparu en fin de periode.</li>
-<li>Examiner les tendances de pression, debit, consignes et cycles des utilites pendant H05.</li>
-<li>Comparer journaux de production, produits et etats machine pendant H04.</li>
-<li>Identifier les equipements actifs pendant H01 et les quatre jours H02.</li>
-<li>Rapprocher H03 du journal d&#x27;exploitation avant toute action.</li>
+<li>Anomalie mesurée : Hausse nocturne bornee du residu de puissance.</li>
+<li>Impact observé : 2 152,8 kWh, 376,74 EUR sur 2026-01-25/2026-02-09.</li>
+<li>Confiance : medium.</li>
+<li>Causes plausibles classées : 1. utilité nocturne nécessaire (untested) ; 2. consigne ou équipement maintenu sans besoin (untested).</li>
+<li>Cause physique : plausible mais non prouvée ; aucune économie récupérable publiée.</li>
+<li>Prochaine vérification : Demander au responsable de site quels equipements ou utilites devaient rester actifs entre 00:00 et 05:00 pendant les 15 nuits concernees.</li>
+<li>Responsable : responsable de site.</li>
+<li>Effort : Entretien de 10 minutes, sans mesure ni arret d&#x27;equipement..</li>
+<li>Attendu si l&#x27;hypothèse est vraie : Si la charge est non requise, aucun usage nocturne obligatoire ne sera identifie pour expliquer le palier observe.</li>
+<li>Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.</li>
+</ul>
+<h3>R-H02 — H02</h3>
+<ul>
+<li>Anomalie mesurée : Charge de jour sur quatre jours de week-end consecutifs.</li>
+<li>Impact observé : 877,3 kWh, 153,53 EUR sur 2026-02-19/2026-03-06.</li>
+<li>Confiance : medium.</li>
+<li>Causes plausibles classées : 1. maintenance ou nettoyage (untested) ; 2. charge de week-end non planifiée (untested).</li>
+<li>Cause physique : plausible mais non prouvée ; aucune économie récupérable publiée.</li>
+<li>Prochaine vérification : Verifier dans le planning si maintenance, nettoyage ou production non comptabilisee avait lieu pendant les quatre jours de week-end identifies.</li>
+<li>Responsable : responsable de production ou maintenance.</li>
+<li>Effort : Lecture du planning et reponse oui/non, environ 5 minutes..</li>
+<li>Attendu si l&#x27;hypothèse est vraie : Si la charge est anormale, le planning ne montrera ni maintenance, ni nettoyage, ni production pendant ces quatre jours.</li>
+<li>Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.</li>
+</ul>
+<h3>R-H03 — H03</h3>
+<ul>
+<li>Anomalie mesurée : Huit quarts d&#x27;heure consecutifs depassent la baseline de plus de 80 kW.</li>
+<li>Impact observé : 239,2 kWh, 41,86 EUR sur 2026-02-24T10:00/2026-02-24T12:00.</li>
+<li>Confiance : low.</li>
+<li>Causes plausibles classées : 1. opération ponctuelle légitime (untested) ; 2. incident ou mesure capteur erronée (untested).</li>
+<li>Cause physique : plausible mais non prouvée ; aucune économie récupérable publiée.</li>
+<li>Prochaine vérification : Demander ce qui s&#x27;est passe le jour et pendant les deux heures exactes du pic: demarrage, essai, incident, maintenance ou aucune operation connue.</li>
+<li>Responsable : opérateur présent.</li>
+<li>Effort : Question de 5 minutes a l&#x27;operateur; aucun test terrain demande..</li>
+<li>Attendu si l&#x27;hypothèse est vraie : Si le pic correspond a un incident energetique, l&#x27;operateur signalera un fonctionnement inhabituel plutot qu&#x27;un demarrage planifie.</li>
+<li>Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.</li>
+</ul>
+<h3>R-H04 — H04</h3>
+<ul>
+<li>Anomalie mesurée : Le residu actif augmente sans hausse equivalente du residu inactif.</li>
+<li>Impact observé : 2 123,7 kWh, 371,65 EUR sur 2026-03-16/2026-03-31.</li>
+<li>Confiance : high.</li>
+<li>Causes plausibles classées : 1. dégradation du procédé (untested) ; 2. recette, cadence ou qualité non mesurée (untested).</li>
+<li>Cause physique : plausible mais non prouvée ; aucune économie récupérable publiée.</li>
+<li>Prochaine vérification : Comparer le journal de production et les changements de recette, cadence ou réglage pendant les 11 jours concernés avec les 15 jours précédents.</li>
+<li>Responsable : responsable de production.</li>
+<li>Effort : 20 à 30 minutes sur les journaux existants.</li>
+<li>Attendu si l&#x27;hypothèse est vraie : Si l&#x27;efficacité s&#x27;est réellement dégradée, aucun changement de recette, cadence ou exigence qualité suffisant ne coïncidera avec les 11 jours.</li>
+<li>Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.</li>
+</ul>
+<h3>R-H05 — H05</h3>
+<ul>
+<li>Anomalie mesurée : Le residu inactif augmente progressivement pendant trente jours.</li>
+<li>Impact observé : 4 232,3 kWh, 740,65 EUR sur 2026-03-06/2026-04-05.</li>
+<li>Confiance : high.</li>
+<li>Causes plausibles classées : 1. fuite d&#x27;air comprimé (untested) ; 2. dérive de régulation (untested) ; 3. autre auxiliaire fixe (untested).</li>
+<li>Cause physique : plausible mais non prouvée ; aucune économie récupérable publiée.</li>
+<li>Prochaine vérification : Lors d&#x27;un prochain arrêt autorisé, relever pendant 30 minutes la pression réseau et le nombre de démarrages compresseur sans ouvrir de vanne ni modifier de sécurité.</li>
+<li>Responsable : responsable maintenance.</li>
+<li>Effort : 30 minutes pendant un arrêt déjà planifié.</li>
+<li>Attendu si l&#x27;hypothèse est vraie : Si l&#x27;air comprimé contribue à la dérive, le compresseur cyclera ou la pression baissera mesurablement sans demande de production.</li>
+<li>Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.</li>
+</ul>
+<h3>R-H06 — H06</h3>
+<ul>
+<li>Anomalie mesurée : Apres la derive, un niveau residuel inactif reste durablement eleve.</li>
+<li>Impact observé : 5 979,0 kWh, 1 046,33 EUR sur 2026-04-05/2026-05-05.</li>
+<li>Confiance : high.</li>
+<li>Causes plausibles classées : 1. nouveau besoin légitime (untested) ; 2. consigne modifiée (untested) ; 3. auxiliaire maintenu actif (untested).</li>
+<li>Cause physique : plausible mais non prouvée ; aucune économie récupérable publiée.</li>
+<li>Prochaine vérification : Lister les équipements, consignes, travaux ou exigences d&#x27;exploitation ajoutés ou modifiés autour du début exact du nouveau palier.</li>
+<li>Responsable : responsable de site avec maintenance.</li>
+<li>Effort : entretien de 15 minutes et consultation du journal de travaux.</li>
+<li>Attendu si l&#x27;hypothèse est vraie : Si le palier est involontaire, aucun nouveau besoin permanent suffisant ne sera documenté à sa date d&#x27;apparition.</li>
+<li>Mesure après intervention : puissance moyenne ou énergie sur la même fenêtre comparable, au moins trois occurrences comparables après intervention; succès = effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence.</li>
 </ul>
 <h2>13. Limites</h2>
 <p>Dataset synthetique, quatre mois, tarif simple, aucune mesure par equipement et aucune preuve de causalite physique. Les surconsommations ne sont pas des economies garanties.</p>

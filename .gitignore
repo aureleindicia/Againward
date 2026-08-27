@@ -11,6 +11,9 @@ workspaces/*/scratch/
 workspaces/*/outputs/
 workspaces/*/README.md
 workspaces/*/workspace.json
+workspaces/*/intake.json
+workspaces/*/questions.json
+workspaces/*/human_review.json
 workspace/*/input/
 workspace/*/processed/
 workspace/*/outputs/

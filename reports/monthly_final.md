@@ -45,7 +45,9 @@ Les questions ci-dessous ne sont posees que parce que M01 et M03 restent indeter
 
 - A demander : Pour chacun des trois mois a production nulle, confirmer en une ligne si le site etait ferme et quelles utilites devaient obligatoirement rester actives.
 - Pourquoi : Cette reponse indique si l'energie correspond a un arret reel, a une activite non renseignee ou a des besoins incompressibles connus.
+- Valeur informationnelle : elevee: la reponse determine si les mois sont comparables a une fermeture reelle.
 - Hypotheses departagees : charge potentiellement evitable pendant fermeture / charge legitime ou production manquante dans le fichier.
+- Responsable pressenti : responsable du site.
 - Effort client : Environ 10 minutes avec le calendrier d'exploitation. (tres_faible).
 - Attendu si l'hypothese est vraie : Si une charge evitable existe, le client confirmera une fermeture complete sans procede ni exigence de securite expliquant tout ou partie de la consommation.
 - Cause physique : non etablie avec les donnees disponibles.
@@ -54,7 +56,9 @@ Les questions ci-dessous ne sont posees que parce que M01 et M03 restent indeter
 
 - A demander : Indiquer si octobre avait un mix produit, un nombre de jours ouvres ou des horaires sensiblement differents d'un mois actif habituel, et lequel.
 - Pourquoi : Ces trois facteurs simples peuvent expliquer le ratio mensuel sans degradation energetique et evitent une collecte instrumentee prematuree.
+- Valeur informationnelle : elevee: un changement operationnel documente peut expliquer le ratio sans instrumentation.
 - Hypotheses departagees : degradation reelle de l'efficacite en octobre / effet normal du mix produit, des jours ouvres ou des horaires.
+- Responsable pressenti : responsable de production.
 - Effort client : Environ 10 a 15 minutes avec le responsable de production. (tres_faible).
 - Attendu si l'hypothese est vraie : Si la degradation est reelle, aucun changement operationnel important ne sera signale alors que l'intensite restera anormalement haute.
 - Cause physique : non etablie avec les donnees disponibles.

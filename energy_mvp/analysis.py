@@ -166,7 +166,7 @@ def analyze(
                  "production_count": 0, "row_count": 0}
     )
     for reading, tariff in zip(readings, effective_tariffs):
-        month = reading.timestamp.strftime("%Y-%m")
+        month = reading.operational_timestamp.strftime("%Y-%m")
         bucket = month_buckets[month]
         bucket["row_count"] += 1
         bucket["energy_kwh"] += reading.energy_kwh
@@ -334,6 +334,7 @@ def analyze(
             "energy_mode": data.energy_mode,
             "measurement_kind": data.measurement_kind.value,
             "timestamp_position": data.timestamp_position,
+            "site_timezone": data.site_timezone,
             "coverage_bounds_available": (
                 data.coverage_start is not None and data.coverage_end is not None
             ),

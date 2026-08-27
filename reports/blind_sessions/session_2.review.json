@@ -1,0 +1,349 @@
+{
+  "schema_version": 1,
+  "session_id": "blind_session_2",
+  "ground_truth_accessed": false,
+  "quantitative_method": "Puissance intégrée sur les intervalles nominaux d'une heure. Les résidus sont recalculés avec la baseline publique calibrée sur le passé et contrôlant production, état actif, famille produit et degrés-jours. Les kWh cités sont des écarts observé moins attendu, jamais des économies récupérables.",
+  "cases": [
+    {
+      "case_name": "normal_scheduled",
+      "hypotheses": [
+        {
+          "hypothesis_id": "NS-H01",
+          "candidate_event_id": null,
+          "type": "structured_unexplained_deviation",
+          "start": "2025-09-01T00:00:00+02:00",
+          "end": "2025-11-29T23:00:00+01:00",
+          "hypothesis": "Une anomalie énergétique structurée et matériellement positive apparaît après la période de référence de septembre.",
+          "observation": "Après normalisation, le résidu moyen vaut -0,008 kW en octobre et -0,168 kW en novembre. Aucun point ne dépasse +4 kW après le 1er octobre et aucun événement automatique n'est présent.",
+          "quantitative_evidence": {
+            "baseline_validation_rmse_kw": 1.113613,
+            "baseline_validation_r_squared": 0.995144,
+            "october_mean_residual_kw": -0.007712,
+            "november_mean_residual_kw": -0.168067,
+            "post_reference_rows_above_4_kw": 0
+          },
+          "alternative_explanations": [
+            "Fluctuations aléatoires autour de la baseline.",
+            "Effets de production ou de météo déjà représentés dans le modèle.",
+            "Écarts ponctuels trop faibles pour former un événement robuste."
+          ],
+          "best_reason_false": "Les résidus restent centrés près de zéro, la baseline valide explique 99,5 % de la variance et aucun signal temporel structuré n'émerge.",
+          "decision": "REJETE",
+          "confidence": "elevee",
+          "follow_up_requests": []
+        }
+      ],
+      "questions_to_client": [],
+      "summary": "Aucune anomalie structurée n'est retenue. Le profil reste compatible avec la baseline production-produit-météo et aucune économie n'est quantifiée."
+    },
+    {
+      "case_name": "progressive_drift",
+      "hypotheses": [
+        {
+          "hypothesis_id": "PD-H01",
+          "candidate_event_id": "C003",
+          "type": "progressive_drift",
+          "start": "2025-10-15T00:00:00+02:00",
+          "end": "2025-11-06T00:00:00+01:00",
+          "hypothesis": "Une dérive positive progressive et temporaire subsiste après contrôle de la production, du produit et de la météo.",
+          "observation": "Sur 22 moyennes journalières inactives du 15 octobre au 5 novembre, la pente est de +0,513 kW/jour avec R²=0,995. Le résidu inactif moyen passe de 4,086 kW sur les cinq premiers jours à 12,830 kW sur les cinq derniers, puis revient à -0,081 kW du 8 au 15 novembre.",
+          "quantitative_evidence": {
+            "daily_inactive_points": 22,
+            "slope_kw_per_day": 0.512748,
+            "trend_r_squared": 0.994664,
+            "window_hours": 529,
+            "window_net_residual_energy_kwh": 4471.631821,
+            "first_five_days_mean_residual_kw": 4.085611,
+            "last_five_days_mean_residual_kw": 12.830329,
+            "post_window_mean_residual_kw": -0.081124
+          },
+          "alternative_explanations": [
+            "Dérive d'étalonnage du compteur.",
+            "Variable de procédé non mesurée évoluant régulièrement sur la période.",
+            "Effet saisonnier imparfaitement représenté malgré les degrés-jours."
+          ],
+          "best_reason_false": "Une covariable opérationnelle absente ou une dérive de mesure pourrait produire le même résidu sans dégradation énergétique intrinsèque.",
+          "decision": "CONFIRME",
+          "confidence": "elevee",
+          "follow_up_requests": []
+        },
+        {
+          "hypothesis_id": "PD-H02",
+          "candidate_event_id": "C001",
+          "type": "night_anomaly_distinct",
+          "start": "2025-10-27T00:00:00+01:00",
+          "end": "2025-11-08T00:00:00+01:00",
+          "hypothesis": "Le signal nocturne C001 constitue une anomalie distincte de la dérive générale.",
+          "observation": "Dans la fenêtre C001, le résidu moyen nocturne est 12,108 kW, contre 12,098 kW en régime inactif, 11,953 kW en régime actif et 12,042 kW tous horaires. Le signal n'est donc pas spécifique à la nuit.",
+          "quantitative_evidence": {
+            "night_mean_residual_kw": 12.108044,
+            "inactive_mean_residual_kw": 12.09766,
+            "active_mean_residual_kw": 11.953037,
+            "all_hours_mean_residual_kw": 12.042422
+          },
+          "alternative_explanations": [
+            "La dérive générale C003 traverse aussi les nuits.",
+            "Un changement commun à tous les régimes plutôt qu'un comportement nocturne."
+          ],
+          "best_reason_false": "L'amplitude est la même de jour, de nuit, en production et hors production ; conserver C001 séparément doublerait une partie de C003.",
+          "decision": "REJETE",
+          "confidence": "elevee",
+          "follow_up_requests": []
+        },
+        {
+          "hypothesis_id": "PD-H03",
+          "candidate_event_id": "C002",
+          "type": "weekend_anomaly_distinct",
+          "start": "2025-10-18T00:00:00+02:00",
+          "end": "2025-11-03T00:00:00+01:00",
+          "hypothesis": "Le signal week-end C002 constitue une anomalie distincte de la dérive générale.",
+          "observation": "Dans la fenêtre C002, le résidu moyen du week-end entre 08:00 et 18:00 est 8,454 kW, contre 8,453 kW tous horaires, 8,468 kW en régime inactif et 8,414 kW en régime actif.",
+          "quantitative_evidence": {
+            "weekend_day_mean_residual_kw": 8.453744,
+            "all_hours_mean_residual_kw": 8.452844,
+            "inactive_mean_residual_kw": 8.468219,
+            "active_mean_residual_kw": 8.414408
+          },
+          "alternative_explanations": [
+            "La dérive C003 est visible le week-end comme en semaine.",
+            "Un facteur temporel commun au site."
+          ],
+          "best_reason_false": "Le niveau week-end est indiscernable du niveau général et la fenêtre est incluse dans C003 ; l'additionner créerait un double comptage.",
+          "decision": "REJETE",
+          "confidence": "elevee",
+          "follow_up_requests": []
+        }
+      ],
+      "questions_to_client": [],
+      "summary": "Une dérive temporaire fortement linéaire est confirmée comme observation quantitative. Les vues nuit et week-end sont rejetées comme événements distincts. La cause physique et la récupérabilité ne sont pas affirmées."
+    },
+    {
+      "case_name": "legitimate_point_maintenance",
+      "hypotheses": [
+        {
+          "hypothesis_id": "PM-H01",
+          "candidate_event_id": "C001",
+          "type": "unexplained_point_spike",
+          "start": "2025-10-15T09:00:00+02:00",
+          "end": "2025-10-15T12:00:00+02:00",
+          "hypothesis": "Le pic C001 est un événement inexpliqué à retenir comme opportunité énergétique.",
+          "observation": "Les trois heures cumulent 422,579 kWh observés contre 168,020 kWh attendus, soit un résidu mesuré de 254,559 kWh. Les 36 heures comparables ont un résidu moyen de -0,004 kW, mais l'intake déclare exactement sur cette fenêtre un essai de réception planifié.",
+          "quantitative_evidence": {
+            "event_hours": 3,
+            "observed_energy_kwh": 422.578995,
+            "expected_energy_kwh": 168.019862,
+            "net_residual_energy_kwh": 254.559133,
+            "event_mean_residual_kw": 84.853044,
+            "matched_control_hours": 36,
+            "matched_control_mean_residual_kw": -0.004271
+          },
+          "alternative_explanations": [
+            "Essai de réception planifié déclaré dans l'intake.",
+            "Erreur de mesure ponctuelle.",
+            "Charge exceptionnelle nécessaire au procédé plutôt qu'économie récupérable."
+          ],
+          "best_reason_false": "La maintenance déclarée coïncide exactement avec le début et la fin du pic et fournit une explication opérationnelle directe.",
+          "decision": "REJETE",
+          "confidence": "elevee",
+          "follow_up_requests": []
+        }
+      ],
+      "questions_to_client": [],
+      "summary": "Le pic physique est réel, mais l'hypothèse d'une anomalie inexpliquée ou d'une économie est rejetée puisqu'il coïncide exactement avec l'essai planifié déclaré."
+    },
+    {
+      "case_name": "weather_variation",
+      "hypotheses": [
+        {
+          "hypothesis_id": "WV-H01",
+          "candidate_event_id": null,
+          "type": "unexplained_efficiency_change",
+          "start": "2025-09-01T00:00:00+02:00",
+          "end": "2025-11-29T23:00:00+01:00",
+          "hypothesis": "Les différences mensuelles de consommation signalent une dérive d'efficacité non expliquée.",
+          "observation": "La puissance moyenne brute passe de 33,838 kW en septembre à 29,303 kW en octobre puis 27,324 kW en novembre, tandis que la température moyenne passe de 20,31 °C à 13,99 °C puis 7,46 °C. Après normalisation, les résidus mensuels moyens sont -0,029, -0,148 et -0,041 kW.",
+          "quantitative_evidence": {
+            "no_weather_validation_rmse_kw": 8.388845,
+            "degree_day_validation_rmse_kw": 1.076243,
+            "degree_day_validation_r_squared": 0.996663,
+            "september_mean_residual_kw": -0.028569,
+            "october_mean_residual_kw": -0.147639,
+            "november_mean_residual_kw": -0.040895,
+            "post_reference_rows_above_4_kw": 0
+          },
+          "alternative_explanations": [
+            "Variation de charge thermique liée aux températures extérieures.",
+            "Variation de production et de mix produit.",
+            "Bruit résiduel autour de la baseline."
+          ],
+          "best_reason_false": "L'ajout des degrés-jours réduit la RMSE de validation de 8,389 à 1,076 kW et laisse tous les mois centrés près de zéro.",
+          "decision": "REJETE",
+          "confidence": "elevee",
+          "follow_up_requests": []
+        }
+      ],
+      "questions_to_client": [],
+      "summary": "Les écarts mensuels bruts sont compatibles avec la relation météo validée hors échantillon. Aucune anomalie résiduelle ni économie n'est retenue."
+    },
+    {
+      "case_name": "legitimate_night_shift",
+      "hypotheses": [
+        {
+          "hypothesis_id": "LN-H01",
+          "candidate_event_id": null,
+          "type": "unexplained_night_load",
+          "start": "2025-10-06T00:00:00+02:00",
+          "end": "2025-10-21T00:00:00+02:00",
+          "hypothesis": "La hausse nocturne du 6 au 21 octobre est une charge hors activité inexpliquée.",
+          "observation": "Durant ces nuits, 77 heures sont actives et totalisent 924,560 unités de production ; hors période, aucune heure nocturne n'est active. Sur les 120 heures nocturnes de la période, 3590,378 kWh sont observés contre 3587,774 kWh attendus, soit 2,604 kWh de résidu net.",
+          "quantitative_evidence": {
+            "known_period_night_hours": 120,
+            "known_period_night_active_hours": 77,
+            "known_period_night_production": 924.559525,
+            "known_period_night_observed_energy_kwh": 3590.377762,
+            "known_period_night_expected_energy_kwh": 3587.77405,
+            "known_period_night_net_residual_energy_kwh": 2.603712,
+            "active_night_mean_residual_kw": -0.119256,
+            "outside_period_active_night_hours": 0
+          },
+          "alternative_explanations": [
+            "Équipe de nuit temporaire autorisée, déclarée dans l'intake.",
+            "Production nocturne légitime mesurée.",
+            "Effet météo déjà pris en compte par la baseline."
+          ],
+          "best_reason_false": "La production nocturne mesurée et le changement métier déclaré expliquent la puissance, tandis que la baseline laisse un résidu quasi nul.",
+          "decision": "REJETE",
+          "confidence": "elevee",
+          "follow_up_requests": []
+        }
+      ],
+      "questions_to_client": [],
+      "summary": "L'activité nocturne est temporaire, autorisée et accompagnée de production. Elle n'est pas retenue comme anomalie ni comme économie potentielle."
+    },
+    {
+      "case_name": "short_cycling_unknown",
+      "hypotheses": [
+        {
+          "hypothesis_id": "SC-H01",
+          "candidate_event_id": "C001",
+          "type": "cyclic_off_production_load",
+          "start": "2025-10-16T00:00:00+02:00",
+          "end": "2025-10-26T00:00:00+02:00",
+          "hypothesis": "Une charge cyclique temporaire, limitée aux heures sans production, est présente du 16 au 25 octobre inclus.",
+          "observation": "Les 85 heures dépassant +4 kW sont toutes inactives et toutes situées sur une heure paire. Les 163 heures inactives cumulent un résidu net de 2201,732 kWh, tandis que les 77 heures actives ont un résidu moyen de 0,066 kW.",
+          "quantitative_evidence": {
+            "window_hours": 240,
+            "inactive_hours": 163,
+            "active_hours": 77,
+            "hours_above_4_kw": 85,
+            "above_4_kw_inactive_hours": 85,
+            "above_4_kw_even_clock_hours": 85,
+            "inactive_net_residual_energy_kwh": 2201.731532,
+            "active_mean_residual_kw": 0.066088
+          },
+          "alternative_explanations": [
+            "Programmation cyclique légitime d'un équipement auxiliaire.",
+            "Essai temporaire non déclaré.",
+            "Commande ou défaut provoquant des démarrages cycliques hors production."
+          ],
+          "best_reason_false": "Un horaire ou essai temporaire légitime non renseigné pourrait produire cette alternance sans constituer une anomalie opérationnelle.",
+          "decision": "CONFIRME",
+          "confidence": "elevee",
+          "follow_up_requests": []
+        },
+        {
+          "hypothesis_id": "SC-H02",
+          "candidate_event_id": "C002",
+          "type": "weekend_anomaly_distinct",
+          "start": "2025-10-18T00:00:00+02:00",
+          "end": "2025-10-26T00:00:00+02:00",
+          "hypothesis": "C002 représente une anomalie week-end distincte du régime cyclique hors production.",
+          "observation": "Le résidu week-end entre 08:00 et 18:00 atteint 13,150 kW, mais les dépassements suivent la même alternance aux heures paires les jours ouvrés et la nuit. La fenêtre C002 est incluse dans C001.",
+          "quantitative_evidence": {
+            "weekend_day_hours": 30,
+            "weekend_day_mean_residual_kw": 13.149895,
+            "weekend_day_net_residual_energy_kwh": 394.496858,
+            "all_event_high_rows_follow_even_hour_pattern": 85
+          },
+          "alternative_explanations": [
+            "Manifestation week-end du même équipement cyclique.",
+            "Charge auxiliaire indépendante mais parfaitement synchronisée."
+          ],
+          "best_reason_false": "Aucune frontière ni signature ne sépare C002 du régime cyclique confirmé ; le conserver séparément doublerait une partie de la même énergie.",
+          "decision": "REJETE",
+          "confidence": "elevee",
+          "follow_up_requests": []
+        },
+        {
+          "hypothesis_id": "SC-H03",
+          "candidate_event_id": "C003",
+          "type": "progressive_drift",
+          "start": "2025-10-04T00:00:00+02:00",
+          "end": "2025-10-26T00:00:00+02:00",
+          "hypothesis": "C003 représente une dérive progressive de la charge inactive.",
+          "observation": "Le résidu inactif journalier vaut 0,160 kW le 15 octobre, saute à 14,364 kW le 16, reste entre 12,894 et 14,364 kW jusqu'au 25, puis retombe à 0,160 kW le 26. Il s'agit d'un palier cyclique, pas d'une hausse graduelle.",
+          "quantitative_evidence": {
+            "inactive_residual_kw_2025_10_15": 0.16045,
+            "inactive_residual_kw_2025_10_16": 14.364138,
+            "plateau_min_kw_2025_10_16_to_25": 12.893693,
+            "plateau_max_kw_2025_10_16_to_25": 14.364138,
+            "inactive_residual_kw_2025_10_26": 0.159569
+          },
+          "alternative_explanations": [
+            "Palier temporaire cyclique plutôt que dérive.",
+            "Artefact de l'agrégation journalière d'une alternance horaire."
+          ],
+          "best_reason_false": "La série présente deux ruptures nettes et un plateau ; la pente candidate provient du lissage de ce changement de régime.",
+          "decision": "REJETE",
+          "confidence": "elevee",
+          "follow_up_requests": []
+        },
+        {
+          "hypothesis_id": "SC-H04",
+          "candidate_event_id": null,
+          "type": "physical_cause_short_cycling",
+          "start": "2025-10-16T00:00:00+02:00",
+          "end": "2025-10-26T00:00:00+02:00",
+          "hypothesis": "Le régime observé provient du cyclage anormal d'un équipement et sa surconsommation est récupérable.",
+          "observation": "Le compteur atelier montre une alternance horaire régulière hors production, mais aucune télémétrie machine, commande, alarme ou justification opérationnelle n'est disponible.",
+          "quantitative_evidence": {
+            "source_resolution_minutes": 60,
+            "hours_above_4_kw": 85,
+            "all_high_hours_even_and_inactive": true
+          },
+          "alternative_explanations": [
+            "Programmation cyclique légitime.",
+            "Essai temporaire autorisé non documenté dans l'intake.",
+            "Cyclage anormal d'un compresseur, d'une pompe, d'une ventilation ou d'un autre auxiliaire."
+          ],
+          "best_reason_false": "La résolution horaire et le compteur agrégé ne démontrent ni un cycle physique sous-horaire, ni l'équipement responsable, ni l'évitabilité de la charge.",
+          "decision": "INSUFFISAMMENT_ETAYE",
+          "confidence": "faible",
+          "follow_up_requests": [
+            {
+              "request_id": "SC-Q01",
+              "request_type": "donnee_complementaire",
+              "ask_client": "Consulter les journaux d'exploitation ou de supervision du 16 au 25 octobre et indiquer quel équipement auxiliaire changeait d'état aux heures paires hors production, ainsi que le caractère planifié ou non de cette séquence.",
+              "why_useful": "La signature horaire est certaine mais les données compteur agrégées ne permettent pas d'identifier l'équipement ni de juger si son fonctionnement était nécessaire.",
+              "information_value": "élevée : la réponse départage une séquence planifiée légitime d'un défaut de commande et conditionne toute recommandation ou estimation de part récupérable.",
+              "hypotheses_distinguished": [
+                "programmation cyclique légitime d'un auxiliaire",
+                "essai temporaire autorisé non documenté dans l'intake",
+                "commande ou dysfonctionnement causant des démarrages inutiles hors production"
+              ],
+              "responsible_role": "responsable de maintenance ou automaticien du site",
+              "client_effort": "Recherche ciblée sur dix jours dans les historiques existants et réponse courte avec le nom de l'équipement et le motif.",
+              "effort_level": "faible",
+              "expected_if_true": "Si une commande cyclique non souhaitée est en cause, les historiques montreront des changements d'état réguliers aux heures paires sans ordre de production ni essai autorisé associé.",
+              "priority": 1
+            }
+          ]
+        }
+      ],
+      "questions_to_client": [
+        "Consulter les journaux d'exploitation ou de supervision du 16 au 25 octobre et indiquer quel équipement auxiliaire changeait d'état aux heures paires hors production, ainsi que le caractère planifié ou non de cette séquence."
+      ],
+      "summary": "Le comportement cyclique hors production est confirmé et quantifié, mais sa cause physique et sa part récupérable restent non établies. Les signaux week-end et dérive sont des vues chevauchantes du même événement, pas des opportunités additionnelles."
+    }
+  ]
+}

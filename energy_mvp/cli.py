@@ -54,6 +54,10 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--site-timezone",
+        help="Fuseau IANA des heures locales sans décalage (exemple: Europe/Paris)",
+    )
+    parser.add_argument(
         "--price-per-kwh", "--default-tariff", dest="default_tariff", type=float,
         help="Tarif par kWh si absent des donnees",
     )
@@ -84,6 +88,7 @@ def main(argv: list[str] | None = None) -> int:
             energy_unit=args.energy_unit,
             power_unit=args.power_unit,
             timestamp_position=args.timestamp_position,
+            site_timezone=args.site_timezone,
         )
         result = analyze(
             loaded,

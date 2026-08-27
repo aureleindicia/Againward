@@ -107,10 +107,12 @@
           "request_type": "question_metier",
           "ask_client": "Demander au responsable de site quels equipements ou utilites devaient rester actifs entre 00:00 et 05:00 pendant les 15 nuits concernees.",
           "why_useful": "Une liste courte des usages nocturnes permet de distinguer un besoin de procede d'un equipement reste actif par habitude ou erreur de consigne.",
+          "information_value": "elevee: la reponse peut faire passer la piste de reservee a rejetee ou a test terrain.",
           "hypotheses_distinguished": [
             "charge nocturne necessaire au procede",
             "charge nocturne non requise ou consigne incorrecte"
           ],
+          "responsible_role": "responsable de site",
           "client_effort": "Entretien de 10 minutes, sans mesure ni arret d'equipement.",
           "effort_level": "tres_faible",
           "expected_if_true": "Si la charge est non requise, aucun usage nocturne obligatoire ne sera identifie pour expliquer le palier observe.",
@@ -205,10 +207,12 @@
           "request_type": "question_metier",
           "ask_client": "Verifier dans le planning si maintenance, nettoyage ou production non comptabilisee avait lieu pendant les quatre jours de week-end identifies.",
           "why_useful": "Le planning existant suffit a tester l'explication operationnelle la plus probable avant toute visite ou instrumentation.",
+          "information_value": "elevee: le planning peut expliquer completement les quatre occurrences sans nouvelle mesure.",
           "hypotheses_distinguished": [
             "activite de week-end legitime mais absente de la production",
             "charge de week-end sans activite planifiee"
           ],
+          "responsible_role": "responsable de production ou maintenance",
           "client_effort": "Lecture du planning et reponse oui/non, environ 5 minutes.",
           "effort_level": "tres_faible",
           "expected_if_true": "Si la charge est anormale, le planning ne montrera ni maintenance, ni nettoyage, ni production pendant ces quatre jours.",
@@ -294,10 +298,12 @@
           "request_type": "question_metier",
           "ask_client": "Demander ce qui s'est passe le jour et pendant les deux heures exactes du pic: demarrage, essai, incident, maintenance ou aucune operation connue.",
           "why_useful": "Le journal ou la memoire de l'operateur permet de separer un evenement normal et necessaire d'un incident ou d'une valeur capteur douteuse.",
+          "information_value": "moyenne: la reponse peut classer le pic comme operation legitime, incident ou mesure douteuse.",
           "hypotheses_distinguished": [
             "operation ponctuelle legitime",
             "incident energetique ou mesure capteur erronee"
           ],
+          "responsible_role": "operateur present ou responsable de production",
           "client_effort": "Question de 5 minutes a l'operateur; aucun test terrain demande.",
           "effort_level": "tres_faible",
           "expected_if_true": "Si le pic correspond a un incident energetique, l'operateur signalera un fonctionnement inhabituel plutot qu'un demarrage planifie.",
@@ -741,6 +747,371 @@
         "temperature_falsification"
       ],
       "related_hypotheses": []
+    }
+  ],
+  "recommendations": [
+    {
+      "recommendation_id": "R-H01",
+      "finding_id": "H01",
+      "measured_anomaly": "Hausse nocturne bornee du residu de puissance.",
+      "observed_impact": {
+        "period": "2026-01-25/2026-02-09",
+        "excess_energy_kwh": 2152.8031705611065,
+        "associated_cost": 376.7405548481936,
+        "quantitative_source": "reports/demo_quantitative_results.json#hypotheses.H01.excess_energy_kwh"
+      },
+      "confidence": {
+        "level": "medium",
+        "basis": [
+          "Comparer les nuits a la reference et a la periode posterieure.",
+          "Verifier production, recurrence et temperature.",
+          "Quantifier l'energie au-dessus du residu nocturne de reference."
+        ]
+      },
+      "plausible_causes": [
+        {
+          "rank": 1,
+          "cause": "utilité nocturne nécessaire",
+          "evidence_status": "untested"
+        },
+        {
+          "rank": 2,
+          "cause": "consigne ou équipement maintenu sans besoin",
+          "evidence_status": "untested"
+        }
+      ],
+      "physical_cause_status": "plausible_not_proven",
+      "action_status": "verification_only",
+      "next_verification": {
+        "request_id": "H01-Q1",
+        "request_type": "question_metier",
+        "ask_client": "Demander au responsable de site quels equipements ou utilites devaient rester actifs entre 00:00 et 05:00 pendant les 15 nuits concernees.",
+        "why_useful": "Une liste courte des usages nocturnes permet de distinguer un besoin de procede d'un equipement reste actif par habitude ou erreur de consigne.",
+        "information_value": "elevee: la reponse peut faire passer la piste de reservee a rejetee ou a test terrain.",
+        "hypotheses_distinguished": [
+          "charge nocturne necessaire au procede",
+          "charge nocturne non requise ou consigne incorrecte"
+        ],
+        "responsible_role": "responsable de site",
+        "client_effort": "Entretien de 10 minutes, sans mesure ni arret d'equipement.",
+        "effort_level": "tres_faible",
+        "expected_if_true": "Si la charge est non requise, aucun usage nocturne obligatoire ne sera identifie pour expliquer le palier observe.",
+        "priority": 1
+      },
+      "owner_role": "responsable de site",
+      "verification_effort": "Entretien de 10 minutes, sans mesure ni arret d'equipement.",
+      "expected_if_hypothesis_true": "Si la charge est non requise, aucun usage nocturne obligatoire ne sera identifie pour expliquer le palier observe.",
+      "post_action_measurement": {
+        "metric": "puissance moyenne ou énergie sur la même fenêtre comparable",
+        "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
+        "evaluation_window": "au moins trois occurrences comparables après intervention",
+        "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+      },
+      "recoverable_saving": null
+    },
+    {
+      "recommendation_id": "R-H02",
+      "finding_id": "H02",
+      "measured_anomaly": "Charge de jour sur quatre jours de week-end consecutifs.",
+      "observed_impact": {
+        "period": "2026-02-19/2026-03-06",
+        "excess_energy_kwh": 877.3323759108002,
+        "associated_cost": 153.53316578439004,
+        "quantitative_source": "reports/demo_quantitative_results.json#hypotheses.H02.excess_energy_kwh"
+      },
+      "confidence": {
+        "level": "medium",
+        "basis": [
+          "Comparer aux week-ends anterieurs et posterieurs a heures egales.",
+          "Verifier production, recurrence et temperature."
+        ]
+      },
+      "plausible_causes": [
+        {
+          "rank": 1,
+          "cause": "maintenance ou nettoyage",
+          "evidence_status": "untested"
+        },
+        {
+          "rank": 2,
+          "cause": "charge de week-end non planifiée",
+          "evidence_status": "untested"
+        }
+      ],
+      "physical_cause_status": "plausible_not_proven",
+      "action_status": "verification_only",
+      "next_verification": {
+        "request_id": "H02-Q1",
+        "request_type": "question_metier",
+        "ask_client": "Verifier dans le planning si maintenance, nettoyage ou production non comptabilisee avait lieu pendant les quatre jours de week-end identifies.",
+        "why_useful": "Le planning existant suffit a tester l'explication operationnelle la plus probable avant toute visite ou instrumentation.",
+        "information_value": "elevee: le planning peut expliquer completement les quatre occurrences sans nouvelle mesure.",
+        "hypotheses_distinguished": [
+          "activite de week-end legitime mais absente de la production",
+          "charge de week-end sans activite planifiee"
+        ],
+        "responsible_role": "responsable de production ou maintenance",
+        "client_effort": "Lecture du planning et reponse oui/non, environ 5 minutes.",
+        "effort_level": "tres_faible",
+        "expected_if_true": "Si la charge est anormale, le planning ne montrera ni maintenance, ni nettoyage, ni production pendant ces quatre jours.",
+        "priority": 1
+      },
+      "owner_role": "responsable de production ou maintenance",
+      "verification_effort": "Lecture du planning et reponse oui/non, environ 5 minutes.",
+      "expected_if_hypothesis_true": "Si la charge est anormale, le planning ne montrera ni maintenance, ni nettoyage, ni production pendant ces quatre jours.",
+      "post_action_measurement": {
+        "metric": "puissance moyenne ou énergie sur la même fenêtre comparable",
+        "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
+        "evaluation_window": "au moins trois occurrences comparables après intervention",
+        "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+      },
+      "recoverable_saving": null
+    },
+    {
+      "recommendation_id": "R-H03",
+      "finding_id": "H03",
+      "measured_anomaly": "Huit quarts d'heure consecutifs depassent la baseline de plus de 80 kW.",
+      "observed_impact": {
+        "period": "2026-02-24T10:00/2026-02-24T12:00",
+        "excess_energy_kwh": 239.21077097621992,
+        "associated_cost": 41.861884920838484,
+        "quantitative_source": "reports/demo_quantitative_results.json#hypotheses.H03.excess_energy_kwh"
+      },
+      "confidence": {
+        "level": "low",
+        "basis": [
+          "Regrouper les points en evenement.",
+          "Comparer production, temperature et mardis a heures egales.",
+          "Rechercher la recurrence."
+        ]
+      },
+      "plausible_causes": [
+        {
+          "rank": 1,
+          "cause": "opération ponctuelle légitime",
+          "evidence_status": "untested"
+        },
+        {
+          "rank": 2,
+          "cause": "incident ou mesure capteur erronée",
+          "evidence_status": "untested"
+        }
+      ],
+      "physical_cause_status": "plausible_not_proven",
+      "action_status": "verification_only",
+      "next_verification": {
+        "request_id": "H03-Q1",
+        "request_type": "question_metier",
+        "ask_client": "Demander ce qui s'est passe le jour et pendant les deux heures exactes du pic: demarrage, essai, incident, maintenance ou aucune operation connue.",
+        "why_useful": "Le journal ou la memoire de l'operateur permet de separer un evenement normal et necessaire d'un incident ou d'une valeur capteur douteuse.",
+        "information_value": "moyenne: la reponse peut classer le pic comme operation legitime, incident ou mesure douteuse.",
+        "hypotheses_distinguished": [
+          "operation ponctuelle legitime",
+          "incident energetique ou mesure capteur erronee"
+        ],
+        "responsible_role": "operateur present ou responsable de production",
+        "client_effort": "Question de 5 minutes a l'operateur; aucun test terrain demande.",
+        "effort_level": "tres_faible",
+        "expected_if_true": "Si le pic correspond a un incident energetique, l'operateur signalera un fonctionnement inhabituel plutot qu'un demarrage planifie.",
+        "priority": 1
+      },
+      "owner_role": "opérateur présent",
+      "verification_effort": "Question de 5 minutes a l'operateur; aucun test terrain demande.",
+      "expected_if_hypothesis_true": "Si le pic correspond a un incident energetique, l'operateur signalera un fonctionnement inhabituel plutot qu'un demarrage planifie.",
+      "post_action_measurement": {
+        "metric": "puissance moyenne ou énergie sur la même fenêtre comparable",
+        "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
+        "evaluation_window": "au moins trois occurrences comparables après intervention",
+        "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+      },
+      "recoverable_saving": null
+    },
+    {
+      "recommendation_id": "R-H04",
+      "finding_id": "H04",
+      "measured_anomaly": "Le residu actif augmente sans hausse equivalente du residu inactif.",
+      "observed_impact": {
+        "period": "2026-03-16/2026-03-31",
+        "excess_energy_kwh": 2123.718826793546,
+        "associated_cost": 371.6507946888706,
+        "quantitative_source": "reports/demo_quantitative_results.json#hypotheses.H04.excess_after_fixed_drift_removal_kwh"
+      },
+      "confidence": {
+        "level": "high",
+        "basis": [
+          "Controler production, temperature, activite et mix produit.",
+          "Retrancher le residu inactif journalier pour isoler la derive fixe.",
+          "Verifier la recurrence sur chaque jour de production."
+        ]
+      },
+      "plausible_causes": [
+        {
+          "rank": 1,
+          "cause": "dégradation du procédé",
+          "evidence_status": "untested"
+        },
+        {
+          "rank": 2,
+          "cause": "recette, cadence ou qualité non mesurée",
+          "evidence_status": "untested"
+        }
+      ],
+      "physical_cause_status": "plausible_not_proven",
+      "action_status": "verification_only",
+      "next_verification": {
+        "request_id": "H04-Q1",
+        "request_type": "donnee_complementaire",
+        "ask_client": "Comparer le journal de production et les changements de recette, cadence ou réglage pendant les 11 jours concernés avec les 15 jours précédents.",
+        "why_useful": "Le journal peut séparer une contrainte de procédé non mesurée d'une dégradation énergétique réelle à production comparable.",
+        "information_value": "élevée: la réponse peut confirmer ou déclasser l'interprétation d'efficacité.",
+        "hypotheses_distinguished": [
+          "dégradation énergétique du procédé",
+          "changement légitime de recette ou cadence"
+        ],
+        "responsible_role": "responsable de production",
+        "client_effort": "20 à 30 minutes sur les journaux existants",
+        "effort_level": "faible",
+        "expected_if_true": "Si l'efficacité s'est réellement dégradée, aucun changement de recette, cadence ou exigence qualité suffisant ne coïncidera avec les 11 jours.",
+        "priority": 1
+      },
+      "owner_role": "responsable de production",
+      "verification_effort": "20 à 30 minutes sur les journaux existants",
+      "expected_if_hypothesis_true": "Si l'efficacité s'est réellement dégradée, aucun changement de recette, cadence ou exigence qualité suffisant ne coïncidera avec les 11 jours.",
+      "post_action_measurement": {
+        "metric": "puissance moyenne ou énergie sur la même fenêtre comparable",
+        "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
+        "evaluation_window": "au moins trois occurrences comparables après intervention",
+        "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+      },
+      "recoverable_saving": null
+    },
+    {
+      "recommendation_id": "R-H05",
+      "finding_id": "H05",
+      "measured_anomaly": "Le residu inactif augmente progressivement pendant trente jours.",
+      "observed_impact": {
+        "period": "2026-03-06/2026-04-05",
+        "excess_energy_kwh": 4232.2716136391,
+        "associated_cost": 740.6475323868425,
+        "quantitative_source": "reports/demo_quantitative_results.json#hypotheses.H05.excess_energy_kwh"
+      },
+      "confidence": {
+        "level": "high",
+        "basis": [
+          "Mesurer la pente sur les seules periodes inactives.",
+          "Comparer la pente a celle impliquee par la temperature.",
+          "Verifier la qualite d'ajustement et quantifier par jour."
+        ]
+      },
+      "plausible_causes": [
+        {
+          "rank": 1,
+          "cause": "fuite d'air comprimé",
+          "evidence_status": "untested"
+        },
+        {
+          "rank": 2,
+          "cause": "dérive de régulation",
+          "evidence_status": "untested"
+        },
+        {
+          "rank": 3,
+          "cause": "autre auxiliaire fixe",
+          "evidence_status": "untested"
+        }
+      ],
+      "physical_cause_status": "plausible_not_proven",
+      "action_status": "verification_only",
+      "next_verification": {
+        "request_id": "H05-Q1",
+        "request_type": "test_terrain_simple",
+        "ask_client": "Lors d'un prochain arrêt autorisé, relever pendant 30 minutes la pression réseau et le nombre de démarrages compresseur sans ouvrir de vanne ni modifier de sécurité.",
+        "why_useful": "Un maintien de pression accompagné de cycles compresseur permet de prioriser une fuite ou un auxiliaire pneumatique avant une campagne de mesure plus coûteuse.",
+        "information_value": "moyenne: le test cible une cause plausible mais n'explique pas tous les auxiliaires.",
+        "hypotheses_distinguished": [
+          "dérive du réseau d'air comprimé",
+          "autre charge fixe ou dérive de régulation"
+        ],
+        "responsible_role": "responsable maintenance",
+        "client_effort": "30 minutes pendant un arrêt déjà planifié",
+        "effort_level": "faible",
+        "expected_if_true": "Si l'air comprimé contribue à la dérive, le compresseur cyclera ou la pression baissera mesurablement sans demande de production.",
+        "priority": 1
+      },
+      "owner_role": "responsable maintenance",
+      "verification_effort": "30 minutes pendant un arrêt déjà planifié",
+      "expected_if_hypothesis_true": "Si l'air comprimé contribue à la dérive, le compresseur cyclera ou la pression baissera mesurablement sans demande de production.",
+      "post_action_measurement": {
+        "metric": "puissance moyenne ou énergie sur la même fenêtre comparable",
+        "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
+        "evaluation_window": "au moins trois occurrences comparables après intervention",
+        "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+      },
+      "recoverable_saving": null
+    },
+    {
+      "recommendation_id": "R-H06",
+      "finding_id": "H06",
+      "measured_anomaly": "Apres la derive, un niveau residuel inactif reste durablement eleve.",
+      "observed_impact": {
+        "period": "2026-04-05/2026-05-05",
+        "excess_energy_kwh": 5979.003893536332,
+        "associated_cost": 1046.325681368858,
+        "quantitative_source": "reports/demo_quantitative_results.json#hypotheses.H06.excess_energy_kwh"
+      },
+      "confidence": {
+        "level": "high",
+        "basis": [
+          "Comparer trente jours a la reference inactive.",
+          "Verifier stabilite, recurrence et temperature.",
+          "Limiter la quantification a la periode observee."
+        ]
+      },
+      "plausible_causes": [
+        {
+          "rank": 1,
+          "cause": "nouveau besoin légitime",
+          "evidence_status": "untested"
+        },
+        {
+          "rank": 2,
+          "cause": "consigne modifiée",
+          "evidence_status": "untested"
+        },
+        {
+          "rank": 3,
+          "cause": "auxiliaire maintenu actif",
+          "evidence_status": "untested"
+        }
+      ],
+      "physical_cause_status": "plausible_not_proven",
+      "action_status": "verification_only",
+      "next_verification": {
+        "request_id": "H06-Q1",
+        "request_type": "question_metier",
+        "ask_client": "Lister les équipements, consignes, travaux ou exigences d'exploitation ajoutés ou modifiés autour du début exact du nouveau palier.",
+        "why_useful": "Un changement daté peut expliquer le palier permanent et éviter d'accuser à tort une panne.",
+        "information_value": "élevée: une modification concordante peut rendre la hausse légitime ou cibler un test.",
+        "hypotheses_distinguished": [
+          "nouveau besoin permanent légitime",
+          "équipement ou consigne resté actif inutilement"
+        ],
+        "responsible_role": "responsable de site avec maintenance",
+        "client_effort": "entretien de 15 minutes et consultation du journal de travaux",
+        "effort_level": "tres_faible",
+        "expected_if_true": "Si le palier est involontaire, aucun nouveau besoin permanent suffisant ne sera documenté à sa date d'apparition.",
+        "priority": 1
+      },
+      "owner_role": "responsable de site avec maintenance",
+      "verification_effort": "entretien de 15 minutes et consultation du journal de travaux",
+      "expected_if_hypothesis_true": "Si le palier est involontaire, aucun nouveau besoin permanent suffisant ne sera documenté à sa date d'apparition.",
+      "post_action_measurement": {
+        "metric": "puissance moyenne ou énergie sur la même fenêtre comparable",
+        "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
+        "evaluation_window": "au moins trois occurrences comparables après intervention",
+        "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+      },
+      "recoverable_saving": null
     }
   ],
   "final_review": {

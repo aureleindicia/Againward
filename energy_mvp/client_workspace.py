@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .intake import intake_template
+
 
 WORKSPACE_DIRECTORIES = ("input", "processed", "scratch", "outputs")
 
@@ -49,12 +51,34 @@ def create_client_workspace(
     (target / "workspace.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
+    (target / "intake.json").write_text(
+        json.dumps(intake_template(), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (target / "questions.json").write_text(
+        json.dumps({"schema_version": 1, "questions": [], "responses": []}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (target / "human_review.json").write_text(
+        json.dumps({
+            "schema_version": 1,
+            "status": "not_reviewed",
+            "reviewer_role": None,
+            "reviewed_at_utc": None,
+            "approved_for_delivery": False,
+            "reservations": [],
+        }, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
     (target / "README.md").write_text(
         "# Workspace d'analyse\n\n"
-        "1. Placer une copie locale des donnees brutes dans `input/`.\n"
-        "2. Conserver toute transformation tracee dans `processed/`.\n"
-        "3. Utiliser `scratch/` pour les tests ad hoc de Codex.\n"
-        "4. Ecrire les JSON, graphiques et rapports dans `outputs/`.\n\n"
+        "1. Completer `intake.json` avec le client.\n"
+        "2. Placer une copie locale des donnees brutes dans `input/`.\n"
+        "3. Lancer `python investigate.py input/<fichier> --output-dir processed/`.\n"
+        "4. Conserver les questions/reponses dans `questions.json`.\n"
+        "5. Utiliser `scratch/` pour les tests ad hoc de Codex.\n"
+        "6. Ecrire les JSON, graphiques et rapports dans `outputs/`.\n"
+        "7. Faire completer `human_review.json` avant toute livraison.\n\n"
         "Aucun signal automatique n'est une opportunite confirmee. Les donnees brutes "
         "ne doivent jamais etre modifiees en place.\n",
         encoding="utf-8",

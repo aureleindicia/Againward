@@ -8,6 +8,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from statistics import median
 from typing import Any
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .models import DataQuality, LoadedData, MeasurementKind, Reading
 from .units import convert_energy_to_kwh, convert_power_to_kw
@@ -148,6 +149,32 @@ def _timestamp_has_timezone(value: Any) -> bool:
         return value.tzinfo is not None and value.utcoffset() is not None
     text = str(value or "").strip()
     return text.endswith("Z") or bool(re.search(r"[+-]\d{2}:?\d{2}$", text))
+
+
+def _localize_site_timestamp(
+    timestamp: datetime, zone: ZoneInfo
+) -> tuple[datetime, datetime]:
+    """Convertit une heure locale naïve en UTC, sans deviner les heures DST ambiguës."""
+
+    candidates: set[datetime] = set()
+    for fold in (0, 1):
+        aware = timestamp.replace(tzinfo=zone, fold=fold)
+        utc = aware.astimezone(timezone.utc)
+        if utc.astimezone(zone).replace(tzinfo=None) == timestamp:
+            candidates.add(utc.replace(tzinfo=None))
+    if not candidates:
+        raise DataError(
+            f"Heure locale inexistante lors du changement d'heure: {timestamp.isoformat()}. "
+            "Corrigez le timestamp ou fournissez un décalage UTC explicite."
+        )
+    if len(candidates) > 1:
+        raise DataError(
+            f"Heure locale ambiguë lors du changement d'heure: {timestamp.isoformat()}. "
+            "Ajoutez le décalage UTC explicite (+02:00 ou +01:00) à la source."
+        )
+    utc_timestamp = next(iter(candidates))
+    local_aware = utc_timestamp.replace(tzinfo=timezone.utc).astimezone(zone)
+    return utc_timestamp, local_aware
 
 
 def _record_optional_quality(
@@ -429,12 +456,19 @@ def load_data(
     energy_unit: str | None = None,
     power_unit: str | None = None,
     timestamp_position: str = "auto",
+    site_timezone: str | None = None,
 ) -> LoadedData:
     source = Path(path).expanduser()
     if not source.is_file():
         raise DataError(f"Fichier introuvable: {source}")
     if timestamp_position not in {"auto", "start", "end"}:
         raise DataError("timestamp_position doit valoir auto, start ou end.")
+    site_zone: ZoneInfo | None = None
+    if site_timezone:
+        try:
+            site_zone = ZoneInfo(site_timezone)
+        except ZoneInfoNotFoundError as exc:
+            raise DataError(f"Fuseau horaire IANA inconnu: {site_timezone}.") from exc
     suffix = source.suffix.lower()
     if suffix == ".csv":
         headers, rows = _read_csv(source)
@@ -520,8 +554,23 @@ def load_data(
             quality.invalid_timestamp_rows += 1
             discarded += 1
             continue
-        if _timestamp_has_timezone(raw_timestamp):
+        has_explicit_timezone = _timestamp_has_timezone(raw_timestamp)
+        if has_explicit_timezone:
             quality.timezone_normalized_rows += 1
+            local_timestamp = (
+                timestamp.replace(tzinfo=timezone.utc)
+                .astimezone(site_zone)
+                if site_zone is not None
+                else timestamp
+            )
+        elif site_zone is not None:
+            try:
+                timestamp, local_timestamp = _localize_site_timestamp(timestamp, site_zone)
+            except DataError as exc:
+                raise DataError(f"Ligne {row_number}: {exc}") from exc
+            quality.naive_timezone_localized_rows += 1
+        else:
+            local_timestamp = timestamp
         if measurement is None:
             quality.missing_measurement_rows += 1
             discarded += 1
@@ -623,6 +672,7 @@ def load_data(
                 tariff_per_kwh=tariff,
                 power_kw=power,
                 source_row=row_number,
+                local_timestamp=local_timestamp,
             )
         )
     if not parsed:
@@ -680,6 +730,7 @@ def load_data(
                     interval_hours=(
                         current.timestamp - previous.timestamp
                     ).total_seconds() / 3600.0,
+                    local_timestamp=current.local_timestamp,
                 )
             )
         if not converted:
@@ -769,6 +820,11 @@ def load_data(
         quality.processing_log.append(
             f"{quality.timezone_normalized_rows} timestamp(s) avec fuseau converti(s) en UTC."
         )
+    if quality.naive_timezone_localized_rows:
+        quality.processing_log.append(
+            f"{quality.naive_timezone_localized_rows} timestamp(s) naïf(s) interprété(s) dans "
+            f"{site_timezone} puis converti(s) en UTC; l'heure locale est conservée pour les profils."
+        )
     for column, count in sorted(quality.missing_values_by_column.items()):
         quality.processing_log.append(
             f"{count} valeur(s) contextuelle(s) manquante(s) dans {column}."
@@ -808,4 +864,5 @@ def load_data(
         coverage_start=coverage_start,
         coverage_end=coverage_end,
         coverage_bounds_method=coverage_bounds_method,
+        site_timezone=site_timezone,
     )

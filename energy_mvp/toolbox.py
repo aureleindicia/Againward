@@ -41,6 +41,7 @@ def inspect_dataset(data: LoadedData) -> dict[str, Any]:
         "coverage_start": data.coverage_start.isoformat() if data.coverage_start else None,
         "coverage_end": data.coverage_end.isoformat() if data.coverage_end else None,
         "timestamp_position": data.timestamp_position,
+        "site_timezone": data.site_timezone,
         "coverage_bounds_method": data.coverage_bounds_method,
         "measurement_kind": data.measurement_kind.value,
         "source_units": dict(data.source_units),
@@ -55,6 +56,7 @@ def inspect_dataset(data: LoadedData) -> dict[str, Any]:
             "conflicting_duplicates": data.quality.conflicting_duplicates,
             "out_of_order_rows": data.quality.out_of_order_rows,
             "timezone_normalized_rows": data.quality.timezone_normalized_rows,
+            "naive_timezone_localized_rows": data.quality.naive_timezone_localized_rows,
             "missing_values_by_column": data.quality.missing_values_by_column,
             "invalid_values_by_column": data.quality.invalid_values_by_column,
             "detected_frequencies_minutes": data.quality.detected_frequencies_minutes,
@@ -98,6 +100,91 @@ def summarize_readings(readings: Sequence[Reading]) -> dict[str, float | int | N
     }
 
 
+def _regime_value(reading: Reading, field: str) -> str:
+    if field == "production_active":
+        return _activity_key(reading)
+    if field == "shift":
+        return reading.shift or "unknown"
+    if field == "product_type":
+        return reading.product_type or "unknown"
+    if field == "month":
+        return reading.operational_timestamp.strftime("%m")
+    if field == "season":
+        month = reading.operational_timestamp.month
+        return (
+            "winter" if month in {12, 1, 2}
+            else "spring" if month in {3, 4, 5}
+            else "summer" if month in {6, 7, 8}
+            else "autumn"
+        )
+    raise ValueError(f"Champ de régime inconnu: {field}.")
+
+
+def summarize_operating_regimes(
+    readings: Sequence[Reading],
+    *,
+    fields: Sequence[str] = ("production_active", "shift", "product_type"),
+) -> list[dict[str, Any]]:
+    """Décrit des régimes déclarés; ne décide pas lesquels sont normaux ou anormaux."""
+
+    if not fields:
+        raise ValueError("Au moins un champ de régime est requis.")
+    groups: dict[tuple[str, ...], list[Reading]] = defaultdict(list)
+    for reading in readings:
+        groups[tuple(_regime_value(reading, field) for field in fields)].append(reading)
+    output = []
+    for key, items in sorted(groups.items()):
+        summary = summarize_readings(items)
+        output.append({
+            "regime": dict(zip(fields, key)),
+            **summary,
+            "share_of_rows": len(items) / len(readings) if readings else 0.0,
+            "decision": None,
+        })
+    return output
+
+
+def fit_regime_baselines(
+    readings: Sequence[Reading],
+    *,
+    regime_fields: Sequence[str],
+    predictors: Sequence[str] = ("production",),
+    calibration_fraction: float = 0.7,
+) -> dict[str, Any]:
+    """Ajuste séparément des baselines temporelles dans chaque régime observable."""
+
+    if not regime_fields:
+        raise ValueError("Au moins un champ de régime est requis.")
+    groups: dict[tuple[str, ...], list[Reading]] = defaultdict(list)
+    for reading in readings:
+        key = tuple(_regime_value(reading, field) for field in regime_fields)
+        groups[key].append(reading)
+    models = []
+    unavailable = []
+    for key, items in sorted(groups.items()):
+        regime = dict(zip(regime_fields, key))
+        try:
+            model = fit_linear_baseline(
+                items,
+                predictors=predictors,
+                calibration_fraction=calibration_fraction,
+            )
+        except ValueError as exc:
+            unavailable.append({"regime": regime, "rows": len(items), "reason": str(exc)})
+            continue
+        models.append({"regime": regime, "rows": len(items), "baseline": model})
+    if not models:
+        raise ValueError("Aucune baseline de régime n'a pu être ajustée.")
+    return {
+        "kind": "regime_linear_baselines",
+        "regime_fields": list(regime_fields),
+        "predictors": list(predictors),
+        "models": models,
+        "unavailable_regimes": unavailable,
+        "decision": None,
+    }
+
+
 def compare_groups(
     readings: Sequence[Reading],
     first_filter: Callable[[Reading], bool],
@@ -131,10 +218,11 @@ def daily_profile(
 ) -> list[dict[str, float | int | str | None]]:
     buckets: dict[tuple[int, int], list[Reading]] = defaultdict(list)
     for reading in readings:
-        is_weekday = reading.timestamp.weekday() < 5
+        operational = reading.operational_timestamp
+        is_weekday = operational.weekday() < 5
         if weekdays_only is not None and is_weekday != weekdays_only:
             continue
-        buckets[(reading.timestamp.hour, reading.timestamp.minute)].append(reading)
+        buckets[(operational.hour, operational.minute)].append(reading)
     profile = []
     for (hour, minute), items in sorted(buckets.items()):
         summary = summarize_readings(items)
@@ -225,6 +313,26 @@ def _predictor_value(reading: Reading, name: str) -> float | None:
         return reading.production
     if name == "outside_temperature_c":
         return reading.outside_temperature_c
+    if name == "heating_degree_c":
+        return (
+            max(18.0 - reading.outside_temperature_c, 0.0)
+            if reading.outside_temperature_c is not None else None
+        )
+    if name == "cooling_degree_c":
+        return (
+            max(reading.outside_temperature_c - 18.0, 0.0)
+            if reading.outside_temperature_c is not None else None
+        )
+    if name == "heating_degree_10_c":
+        return (
+            max(10.0 - reading.outside_temperature_c, 0.0)
+            if reading.outside_temperature_c is not None else None
+        )
+    if name == "cooling_degree_20_c":
+        return (
+            max(reading.outside_temperature_c - 20.0, 0.0)
+            if reading.outside_temperature_c is not None else None
+        )
     if name == "production_active":
         return float(reading.production_active) if reading.production_active is not None else None
     if name == "product_type_b":
@@ -347,9 +455,10 @@ def fit_activity_baseline(
 
 def _time_slot_key(reading: Reading, *, include_weekday: bool) -> str:
     activity = _activity_key(reading)
-    clock = f"{reading.timestamp.hour:02d}:{reading.timestamp.minute:02d}"
+    operational = reading.operational_timestamp
+    clock = f"{operational.hour:02d}:{operational.minute:02d}"
     return (
-        f"{reading.timestamp.weekday()}|{clock}|{activity}"
+        f"{operational.weekday()}|{clock}|{activity}"
         if include_weekday
         else f"{clock}|{activity}"
     )

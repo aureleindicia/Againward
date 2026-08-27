@@ -62,8 +62,10 @@ def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
                                 "si le site etait ferme et quelles utilites devaient obligatoirement rester actives."),
                     why_useful=("Cette reponse indique si l'energie correspond a un arret reel, a une "
                                 "activite non renseignee ou a des besoins incompressibles connus."),
+                    information_value="elevee: la reponse determine si les mois sont comparables a une fermeture reelle.",
                     hypotheses_distinguished=("charge potentiellement evitable pendant fermeture",
                                               "charge legitime ou production manquante dans le fichier"),
+                    responsible_role="responsable du site",
                     client_effort="Environ 10 minutes avec le calendrier d'exploitation.",
                     effort_level="tres_faible",
                     expected_if_true=("Si une charge evitable existe, le client confirmera une fermeture complete "
@@ -120,8 +122,10 @@ def build_review(quantitative: dict[str, Any]) -> dict[str, Any]:
                                 "horaires sensiblement differents d'un mois actif habituel, et lequel."),
                     why_useful=("Ces trois facteurs simples peuvent expliquer le ratio mensuel sans "
                                 "degradation energetique et evitent une collecte instrumentee prematuree."),
+                    information_value="elevee: un changement operationnel documente peut expliquer le ratio sans instrumentation.",
                     hypotheses_distinguished=("degradation reelle de l'efficacite en octobre",
                                               "effet normal du mix produit, des jours ouvres ou des horaires"),
+                    responsible_role="responsable de production",
                     client_effort="Environ 10 a 15 minutes avec le responsable de production.",
                     effort_level="tres_faible",
                     expected_if_true=("Si la degradation est reelle, aucun changement operationnel important ne "
@@ -155,7 +159,9 @@ def render_markdown(review: dict[str, Any], quantitative: dict[str, Any]) -> str
             f"### {hypothesis_id} — prochaine verification minimale", "",
             f"- A demander : {request['ask_client']}",
             f"- Pourquoi : {request['why_useful']}",
+            f"- Valeur informationnelle : {request['information_value']}",
             "- Hypotheses departagees : " + " / ".join(request["hypotheses_distinguished"]) + ".",
+            f"- Responsable pressenti : {request['responsible_role']}.",
             f"- Effort client : {request['client_effort']} ({request['effort_level']}).",
             f"- Attendu si l'hypothese est vraie : {request['expected_if_true']}",
             "- Cause physique : non etablie avec les donnees disponibles.", "",

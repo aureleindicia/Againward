@@ -14,14 +14,66 @@ from energy_mvp.toolbox import (
     fit_activity_baseline,
     fit_linear_baseline,
     fit_rolling_median_baseline,
+    fit_regime_baselines,
     fit_time_baseline,
     group_residual_events,
     measure_linear_drift,
+    summarize_operating_regimes,
     union_excess_energy,
 )
 
 
 class ToolboxTests(unittest.TestCase):
+    def test_operating_regimes_separate_shift_product_and_season_without_deciding(self) -> None:
+        readings = [
+            Reading(
+                timestamp=datetime(2026, 1, 1) + timedelta(hours=index),
+                energy_kwh=10.0 if index % 2 else 20.0,
+                power_kw=10.0 if index % 2 else 20.0,
+                production=float(index % 5 + 1),
+                production_active=True,
+                shift="night" if index % 2 else "day",
+                product_type="B" if index % 2 else "A",
+                interval_hours=1.0,
+            )
+            for index in range(40)
+        ]
+
+        regimes = summarize_operating_regimes(
+            readings, fields=("shift", "product_type", "season")
+        )
+
+        self.assertEqual(len(regimes), 2)
+        self.assertEqual(sum(item["share_of_rows"] for item in regimes), 1.0)
+        self.assertTrue(all(item["decision"] is None for item in regimes))
+
+    def test_regime_baselines_keep_separate_temporal_validation(self) -> None:
+        start = datetime(2026, 1, 1)
+        readings = []
+        for index in range(160):
+            shift = "day" if index % 2 == 0 else "night"
+            production = float(index % 11 + 1)
+            power = (10.0 if shift == "day" else 30.0) + 2.0 * production
+            readings.append(Reading(
+                timestamp=start + timedelta(hours=index),
+                energy_kwh=power,
+                power_kw=power,
+                production=production,
+                shift=shift,
+                interval_hours=1.0,
+            ))
+
+        result = fit_regime_baselines(
+            readings, regime_fields=("shift",), predictors=("production",)
+        )
+
+        self.assertEqual(len(result["models"]), 2)
+        self.assertTrue(all(
+            item["baseline"]["calibration_end"] < item["baseline"]["validation_start"]
+            for item in result["models"]
+        ))
+        self.assertIsNone(result["decision"])
+
     def test_production_baseline_uses_past_for_calibration_and_future_for_validation(self) -> None:
         start = datetime(2026, 1, 1)
         readings = []

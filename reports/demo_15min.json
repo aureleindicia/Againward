@@ -123,6 +123,7 @@
     "energy_mode": "interval",
     "measurement_kind": "energy_per_interval",
     "timestamp_position": "start",
+    "site_timezone": null,
     "coverage_bounds_available": true,
     "coverage_bounds_method": "inferred_nominal_interval",
     "columns": {
@@ -159,6 +160,7 @@
       "conflicting_duplicates": 0,
       "out_of_order_rows": 0,
       "timezone_normalized_rows": 0,
+      "naive_timezone_localized_rows": 0,
       "missing_values_by_column": {},
       "invalid_values_by_column": {},
       "inferred_frequency_minutes": 15.0,

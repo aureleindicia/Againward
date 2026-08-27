@@ -27,6 +27,13 @@ class Reading:
     power_kw: float | None = None
     source_row: int = 0
     interval_hours: float | None = None
+    local_timestamp: datetime | None = None
+
+    @property
+    def operational_timestamp(self) -> datetime:
+        """Horloge locale du site pour les profils; UTC interne à défaut."""
+
+        return self.local_timestamp or self.timestamp
 
 
 @dataclass(slots=True)
@@ -41,6 +48,7 @@ class DataQuality:
     conflicting_duplicates: int = 0
     out_of_order_rows: int = 0
     timezone_normalized_rows: int = 0
+    naive_timezone_localized_rows: int = 0
     missing_values_by_column: dict[str, int] = field(default_factory=dict)
     invalid_values_by_column: dict[str, int] = field(default_factory=dict)
     inferred_frequency_minutes: float | None = None
@@ -67,6 +75,7 @@ class LoadedData:
     coverage_start: datetime | None = None
     coverage_end: datetime | None = None
     coverage_bounds_method: str = "unavailable"
+    site_timezone: str | None = None
 
 
 @dataclass(slots=True)

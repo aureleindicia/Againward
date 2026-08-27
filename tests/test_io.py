@@ -254,6 +254,58 @@ class LoadDataTests(unittest.TestCase):
         self.assertEqual(loaded.readings[0].timestamp.hour, 22)
         self.assertTrue(any("converti" in item for item in loaded.quality.processing_log))
 
+    def test_naive_site_time_is_stored_as_utc_but_keeps_operational_clock(self) -> None:
+        path = self.csv_file(
+            "timestamp,energy_kwh\n"
+            "2026-01-01 00:00,5\n"
+            "2026-01-01 00:15,5\n"
+        )
+
+        loaded = load_data(path, site_timezone="Europe/Paris")
+
+        self.assertEqual(loaded.readings[0].timestamp, datetime(2025, 12, 31, 23, 0))
+        self.assertEqual(
+            loaded.readings[0].operational_timestamp.replace(tzinfo=None),
+            datetime(2026, 1, 1, 0, 0),
+        )
+        self.assertEqual(loaded.site_timezone, "Europe/Paris")
+        self.assertEqual(loaded.quality.naive_timezone_localized_rows, 2)
+
+    def test_nonexistent_spring_time_is_rejected_instead_of_shifted_silently(self) -> None:
+        path = self.csv_file("timestamp,energy_kwh\n2026-03-29 02:30,5\n")
+
+        with self.assertRaisesRegex(DataError, "Heure locale inexistante"):
+            load_data(path, site_timezone="Europe/Paris", interval_minutes=15)
+
+    def test_ambiguous_fall_time_requires_explicit_offset(self) -> None:
+        path = self.csv_file("timestamp,energy_kwh\n2026-10-25 02:30,5\n")
+
+        with self.assertRaisesRegex(DataError, "Heure locale ambiguë"):
+            load_data(path, site_timezone="Europe/Paris", interval_minutes=15)
+
+    def test_explicit_fall_offsets_distinguish_both_local_occurrences(self) -> None:
+        path = self.csv_file(
+            "timestamp,energy_kwh\n"
+            "2026-10-25T02:30:00+02:00,5\n"
+            "2026-10-25T02:30:00+01:00,5\n"
+        )
+
+        loaded = load_data(path, site_timezone="Europe/Paris", interval_minutes=60)
+
+        self.assertEqual(len(loaded.readings), 2)
+        self.assertEqual(
+            (loaded.readings[1].timestamp - loaded.readings[0].timestamp).total_seconds(),
+            3600,
+        )
+        self.assertEqual(
+            loaded.readings[0].operational_timestamp.replace(tzinfo=None),
+            loaded.readings[1].operational_timestamp.replace(tzinfo=None),
+        )
+        self.assertNotEqual(
+            loaded.readings[0].operational_timestamp.utcoffset(),
+            loaded.readings[1].operational_timestamp.utcoffset(),
+        )
+
     def test_missing_and_invalid_context_values_are_counted_without_losing_energy(self) -> None:
         path = self.csv_file(
             "timestamp,energy_kwh,production,outside_temperature_c\n"

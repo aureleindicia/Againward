@@ -15,7 +15,9 @@ Toutes les energies retournees sont en `kWh` et toutes les puissances en `kW`.
 - Hypotheses : le chargement et la normalisation ont deja ete effectues.
 - Limitations : ne juge pas si les variables disponibles suffisent a une conclusion metier.
 - Convention temporelle : expose les timestamps bruts, les bornes de couverture et leur methode
-  (`explicit_interval`, `inferred_nominal_interval` ou differences d'index cumulatif).
+  (`explicit_interval`, `inferred_nominal_interval` ou differences d'index cumulatif), ainsi que
+  le fuseau local déclaré. L'ordre et les durées utilisent UTC ; les profils utilisent l'horloge
+  locale conservée dans chaque `Reading`.
 - Exemple : `inspect_dataset(load_data("examples/demo_15min.csv"))`.
 
 ## `extract_period(readings, start, end)`
@@ -35,6 +37,24 @@ Toutes les energies retournees sont en `kWh` et toutes les puissances en `kW`.
 - Hypotheses : l'intensite exige une production complete et strictement positive.
 - Limitations : une moyenne globale peut masquer les horaires et les produits.
 - Exemple : `summarize_readings(data.readings)`.
+
+## Régimes d'exploitation et saisonnalité
+
+`summarize_operating_regimes()` sépare les distributions par activité, shift, type produit,
+mois ou saison. `fit_regime_baselines()` ajuste ensuite une baseline production/température
+distincte dans chaque groupe et conserve pour chacune une calibration passée et une validation
+future.
+
+- Objectif : éviter qu'un fonctionnement 24/7, un poste de nuit ou un mix produit soit traité
+  comme une seule population artificielle.
+- Entrée : lectures et champs de régime choisis par Codex.
+- Sortie : résumés ou modèles par régime, groupes insuffisants explicitement listés,
+  `decision=None`.
+- Hypothèses : les colonnes de régime sont fiables et chaque sous-groupe contient assez de passé.
+- Limitations : le découpage ne découvre pas une cause et peut sur-segmenter ; Codex doit comparer
+  sa stabilité et sa réalité métier.
+- Exemple : `fit_regime_baselines(readings, regime_fields=("shift", "product_type"),
+  predictors=("production", "cooling_degree_c"))`.
 
 ## `compare_groups(readings, first_filter, second_filter)`
 
@@ -67,7 +87,8 @@ Toutes les energies retournees sont en `kWh` et toutes les puissances en `kW`.
 
 - Objectif : ajuster une baseline interpretable puissance-production-temperature.
 - Entree : lectures, noms de predicteurs parmi `production`, `outside_temperature_c`,
-  `production_active`, `product_type_b`, `production_product_b`.
+  `production_active`, `product_type_b`, `production_product_b`, `heating_degree_c`,
+  `cooling_degree_c`, `heating_degree_10_c`, `cooling_degree_20_c`.
 - Sortie : coefficients, periodes et metriques MAE/RMSE/R2/MAPE de calibration et validation.
 - Hypotheses : relation approximativement lineaire et donnees completes.
 - Limitations : MAPE vaut `None` en presence de cible nulle ; une bonne correlation ne prouve
@@ -145,6 +166,19 @@ horaire. `fit_rolling_median_baseline()` ne consulte que les lignes anterieures 
 - Limitations : aucun cout de pointe, plage tarifaire ou contrat complexe.
 - Exemple : `calculate_cost(1000, 0.175) == 175`.
 
+## `calculate_tariff_cost(readings, plan)`
+
+- Objectif : calculer séparément charges d'énergie par plages horaires et facturation mensuelle
+  de puissance.
+- Entrée : lectures et `TariffPlan` avec prix par défaut, plages semaine/nuit éventuellement
+  traversant minuit et coût mensuel par kW.
+- Sortie : ventilation mensuelle, couverture tarifaire, coût énergie, coût de pointe et total
+  uniquement si toute l'énergie est tarifée.
+- Hypothèses : les horaires locaux du site et le contrat ont été correctement saisis.
+- Limitations : ne traite pas taxes, dépassements contractuels complexes ni marchés dynamiques ;
+  `recoverable_saving` reste toujours `None`.
+- Exemple : construire le plan avec `tariff_plan_from_dict(intake["cost"])`.
+
 ## `annualize_effect(...)`
 
 - Objectif : projeter un effet recurrent sans presenter automatiquement la surconsommation
@@ -174,12 +208,16 @@ horaire. `fit_rolling_median_baseline()` ne consulte que les lignes anterieures 
 
 - Objectif : produire automatiquement des points de depart nuit, week-end, pic, efficacite,
   derive et changement de niveau.
-- Entree : un `LoadedData` haute frequence avec production, activite, temperature et type produit.
+- Entree : un `LoadedData` haute frequence ; production, activite, temperature et type produit
+  sont facultatifs et activent seulement les familles compatibles.
 - Sortie : evenements marques `candidate_signal`, baseline et seuils utilises.
-- Hypotheses : les premiers jours forment une reference exploitable.
-- Limitations : aucune sortie n'est une opportunite confirmee ; le profil bruite produit encore
-  des faux positifs que Codex doit examiner. Les predicteurs sont choisis selon leur couverture ;
-  les familles incompatibles avec le contexte disponible sont listees comme desactivees.
+- Hypotheses : au moins trente jours, fréquence connue d'au plus une heure et première période
+  exploitable comme référence strictement passée.
+- Limitations : aucune sortie n'est une opportunite confirmee. Les predicteurs sont choisis selon
+  leur couverture et une validation temporelle parcimonieuse ; un réajustement robuste peut retirer
+  une petite minorité d'outliers de référence et le trace explicitement. Les familles incompatibles
+  avec le contexte disponible sont listees comme desactivees. Le benchmark aveugle reste la mesure
+  de généralisation autoritaire, pas la seule démo.
 - Exemple : `detect_candidate_events(load_data("examples/demo_15min.csv"))`.
 
 ## Graphiques PNG
@@ -236,3 +274,20 @@ realiste ne permet d'etablir une cause physique, le journal conserve expliciteme
   pertinence metier de la question.
 - Exemple : demander si un nettoyage etait planifie durant quatre week-ends anormaux avant de
   proposer une mesure machine ou un test d'arret.
+
+## Cycle de dossier client
+
+`prepare_investigation()` crée le paquet quantitatif générique. `publish_minimum_questions()`
+extrait uniquement la prochaine demande de chaque piste incertaine ou cause non prouvée.
+`record_client_answers()` consigne la réponse, son auteur et sa preuve sans autoriser une
+réécriture. `evaluate_delivery_gate()` contrôle l'investigation, les huit axes de review
+adversariale, le rapport et l'approbation humaine.
+
+- Objectif : rendre les itérations Codex/client traçables sans transformer Python en analyste.
+- Entrée : dossier préparé, journal Codex, réponses client et review humaine.
+- Sortie : `questions.json`, trace appendue et `delivery_gate.json`.
+- Hypothèses : Codex a produit les hypothèses et tests ; Python ne vérifie que leur contrat et les
+  garde-fous de livraison.
+- Limitations : une validation de schéma ne prouve pas à elle seule la pertinence énergétique ; la
+  review humaine reste obligatoire.
+- Exemple : `python manage_investigation.py check workspaces/usine_01/processed`.

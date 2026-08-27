@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "scope": "questions produites par trois sessions Codex aveugles v2 sur short_cycling_unknown",
+  "assessment_method": "revue postérieure du contrat et de la formulation par la session Codex principale",
+  "independent_domain_expert_review": false,
+  "criteria": [
+    "directement liée à l'incertitude observée",
+    "départage au moins deux hypothèses crédibles",
+    "effort réaliste pour une petite entreprise",
+    "test sûr et non technique ou donnée existante",
+    "résultat attendu mesurable",
+    "information minimale avant instrumentation plus lourde"
+  ],
+  "sessions": [
+    {
+      "session_id": "blind_session_1",
+      "request_type": "test_terrain_simple",
+      "effort_level": "modere",
+      "criteria_met": 5,
+      "criteria_total": 6,
+      "reservation": "Le relevé de quatre heures est réaliste mais moins minimal que le contrôle de deux heures ou la consultation préalable de journaux existants."
+    },
+    {
+      "session_id": "blind_session_2",
+      "request_type": "donnee_complementaire",
+      "effort_level": "faible",
+      "criteria_met": 6,
+      "criteria_total": 6,
+      "reservation": null
+    },
+    {
+      "session_id": "blind_session_3",
+      "request_type": "test_terrain_simple",
+      "effort_level": "faible",
+      "criteria_met": 6,
+      "criteria_total": 6,
+      "reservation": null
+    }
+  ],
+  "aggregate": {
+    "requests_reviewed": 3,
+    "low_or_very_low_effort": 2,
+    "moderate_effort": 1,
+    "measurable_expected_result": 3,
+    "potentially_verifiable": 3,
+    "mean_criteria_share": 0.9444444444444444
+  },
+  "limitations": [
+    "Cette évaluation n'est pas une validation par un ingénieur énergie indépendant.",
+    "Le générateur connaît le comportement électrique mais ne définit volontairement aucun équipement physique responsable.",
+    "La qualité de la réponse future du client et la réussite effective du test terrain ne sont pas encore mesurées."
+  ]
+}

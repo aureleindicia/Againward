@@ -17,7 +17,9 @@ class InformationRequest:
     request_type: str
     ask_client: str
     why_useful: str
+    information_value: str
     hypotheses_distinguished: tuple[str, ...]
+    responsible_role: str
     client_effort: str
     effort_level: str
     expected_if_true: str
@@ -28,6 +30,8 @@ class InformationRequest:
             "request_id": self.request_id,
             "ask_client": self.ask_client,
             "why_useful": self.why_useful,
+            "information_value": self.information_value,
+            "responsible_role": self.responsible_role,
             "client_effort": self.client_effort,
             "expected_if_true": self.expected_if_true,
         }
@@ -80,7 +84,9 @@ def validate_follow_up_logic(hypotheses: Iterable[dict[str, Any]]) -> None:
                 request_type=payload["request_type"],
                 ask_client=payload["ask_client"],
                 why_useful=payload["why_useful"],
+                information_value=payload["information_value"],
                 hypotheses_distinguished=tuple(payload["hypotheses_distinguished"]),
+                responsible_role=payload["responsible_role"],
                 client_effort=payload["client_effort"],
                 effort_level=payload["effort_level"],
                 expected_if_true=payload["expected_if_true"],
