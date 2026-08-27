@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "prepared_at": "2026-08-28",
+  "phase": "PRE_SCORING_ONLY",
+  "scoring_performed": false,
+  "ranking_performed": false,
+  "contact_messages_prepared": false,
+  "contacts_sent": 0,
+  "counts": {
+    "CANDIDATE": 5,
+    "REJECTED": 2,
+    "UNCERTAIN": 3
+  },
+  "deduplication_actions": 0,
+  "opposition_entries_checked": 0
+}
