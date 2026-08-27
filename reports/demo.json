@@ -1,0 +1,131 @@
+{
+  "source": "examples/sample_energy.csv",
+  "start": "2026-01-01T00:00:00",
+  "end": "2026-12-01T00:00:00",
+  "input_rows": 12,
+  "valid_rows": 12,
+  "discarded_rows": 0,
+  "total_energy_kwh": 611850.0,
+  "total_cost": 107073.75,
+  "total_production": 101500.0,
+  "energy_intensity": 6.028078817733991,
+  "off_production_kwh": 41100.0,
+  "off_production_share": 0.06717332679578328,
+  "peak_power_kw": 198.0,
+  "average_power_kw": 118.5,
+  "anomaly_count": 0,
+  "monthly": [
+    {
+      "month": "2026-01",
+      "energy_kwh": 12500.0,
+      "cost": 2187.5,
+      "production": 0.0,
+      "intensity": null
+    },
+    {
+      "month": "2026-02",
+      "energy_kwh": 58200.0,
+      "cost": 10185.0,
+      "production": 10400.0,
+      "intensity": 5.596153846153846
+    },
+    {
+      "month": "2026-03",
+      "energy_kwh": 61750.0,
+      "cost": 10806.25,
+      "production": 11100.0,
+      "intensity": 5.563063063063063
+    },
+    {
+      "month": "2026-04",
+      "energy_kwh": 59400.0,
+      "cost": 10395.0,
+      "production": 10950.0,
+      "intensity": 5.424657534246576
+    },
+    {
+      "month": "2026-05",
+      "energy_kwh": 63200.0,
+      "cost": 11060.0,
+      "production": 11300.0,
+      "intensity": 5.592920353982301
+    },
+    {
+      "month": "2026-06",
+      "energy_kwh": 14800.0,
+      "cost": 2590.0,
+      "production": 0.0,
+      "intensity": null
+    },
+    {
+      "month": "2026-07",
+      "energy_kwh": 65500.0,
+      "cost": 11462.5,
+      "production": 11600.0,
+      "intensity": 5.646551724137931
+    },
+    {
+      "month": "2026-08",
+      "energy_kwh": 13800.0,
+      "cost": 2415.0,
+      "production": 0.0,
+      "intensity": null
+    },
+    {
+      "month": "2026-09",
+      "energy_kwh": 67400.0,
+      "cost": 11795.0,
+      "production": 11800.0,
+      "intensity": 5.711864406779661
+    },
+    {
+      "month": "2026-10",
+      "energy_kwh": 70100.0,
+      "cost": 12267.5,
+      "production": 12050.0,
+      "intensity": 5.817427385892116
+    },
+    {
+      "month": "2026-11",
+      "energy_kwh": 64800.0,
+      "cost": 11340.0,
+      "production": 11500.0,
+      "intensity": 5.6347826086956525
+    },
+    {
+      "month": "2026-12",
+      "energy_kwh": 60400.0,
+      "cost": 10570.0,
+      "production": 10800.0,
+      "intensity": 5.592592592592593
+    }
+  ],
+  "findings": [
+    {
+      "level": "faible",
+      "title": "Consommation hors production limitee",
+      "detail": "6.7% de l'energie est consommee sur des lignes ou la production est <= 0. Verifier les veilles, les utilites et les arrets planifies.",
+      "estimated_saving_kwh": null,
+      "estimated_saving_cost": null
+    },
+    {
+      "level": "moyen",
+      "title": "Pointe de puissance notable",
+      "detail": "La pointe (198.0 kW) atteint au moins 150 % de la puissance moyenne. Examiner le demarrage simultane des equipements.",
+      "estimated_saving_kwh": null,
+      "estimated_saving_cost": null
+    }
+  ],
+  "warnings": [],
+  "metadata": {
+    "energy_mode": "interval",
+    "columns": {
+      "date": "date",
+      "energy": "consommation_kwh",
+      "production": "production",
+      "tariff": "tarif_kwh",
+      "power": "puissance_kw"
+    },
+    "tariff_coverage": 12
+  }
+}

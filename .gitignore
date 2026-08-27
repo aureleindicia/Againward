@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+
+client_data/
+scratch/
+workspaces/*/input/
+workspaces/*/processed/
+workspaces/*/scratch/
+workspaces/*/outputs/
+workspaces/*/README.md
+workspaces/*/workspace.json
+workspace/*/input/
+workspace/*/processed/
+workspace/*/outputs/

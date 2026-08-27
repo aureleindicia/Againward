@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pre-diagnostic energetique</title><style>
+body{font-family:system-ui,sans-serif;max-width:900px;margin:auto;padding:20px;color:#17202a;line-height:1.55}
+h1{color:#123c69}h2{margin-top:2rem;border-bottom:1px solid #ccd6dd;padding-bottom:.3rem}
+h3{color:#236192}p,li{font-size:1rem}code{background:#eef2f5;padding:.1rem .25rem}
+figure{margin:1.25rem 0}img{max-width:100%;height:auto;border:1px solid #d8dee4}figcaption{font-size:.9rem;color:#52606d}
+@media(max-width:600px){body{padding:12px}h1{font-size:1.55rem}h2{font-size:1.25rem}}
+</style></head><body><h1>Pre-diagnostic energetique agentique — demonstration</h1>
+<h2>1. Resume executif</h2>
+<p>Trois comportements sont confirmes par les donnees : une derive progressive de la charge fixe, une baisse temporaire d&#x27;efficacite a production comparable et un nouveau niveau de charge inactive persistant. Trois autres signaux (nuit, week-end et pic ponctuel) meritent une verification operationnelle.</p>
+<p>Les kWh ci-dessous sont des surconsommations observees par rapport a une baseline, pas des economies garanties. Aucun total portefeuille ni projection annuelle n&#x27;est publie, car certaines fenetres se chevauchent et la part recuperable est inconnue.</p>
+<h2>2. Donnees analysees</h2>
+<ul>
+<li>Periode : 2026-01-05T00:00:00 -&gt; 2026-05-04T23:45:00.</li>
+<li>Mesures valides : 11515 quarts d&#x27;heure.</li>
+<li>Energie totale : 153 411,4 kWh.</li>
+<li>Production : 143 191,6 unites.</li>
+<li>Variables de controle : production active, temperature exterieure, shift et type produit.</li>
+</ul>
+<h2>3. Qualite des donnees</h2>
+<p>Couverture estimee : 99,957 %. Le chargeur a trace 1 timestamp invalide, 1 mesure manquante, 1 valeur impossible et 1 doublon strict. Les quatre trous sont localises ; ils ne coincident pas avec les longues tendances conservees.</p>
+<h2>4. Profil energetique</h2>
+<p>La consommation hors production atteint 41 708,1 kWh (27,2 %). Elle inclut une charge de base legitime et ne constitue pas en bloc une economie.</p>
+<figure><img src="charts/power_timeseries.png" alt="Puissance dans le temps" loading="lazy"><figcaption>Puissance dans le temps</figcaption></figure>
+<figure><img src="charts/observed_expected.png" alt="Puissance observee et attendue" loading="lazy"><figcaption>Puissance observee et attendue</figcaption></figure>
+<figure><img src="charts/daily_residual.png" alt="Residu quotidien moyen" loading="lazy"><figcaption>Residu quotidien moyen</figcaption></figure>
+<figure><img src="charts/production_power.png" alt="Relation production-puissance" loading="lazy"><figcaption>Relation production-puissance</figcaption></figure>
+<h2>5. Baseline</h2>
+<p>La baseline retenue utilise production, temperature, activite, type produit B et interaction production-produit. Elle est calibree sur le passe puis validee sur la periode suivante.</p>
+<ul>
+<li>Validation MAE : 1,237 kW.</li>
+<li>Validation RMSE : 1,558 kW.</li>
+<li>Validation R2 : 0,9968.</li>
+</ul>
+<h2>6. Investigations realisees</h2>
+<p>H01 a H06 ont suivi observation -&gt; hypothese -&gt; test -&gt; contre-hypothese -&gt; nouveau test -&gt; quantification -&gt; decision. H07 et H08 ont ete explicitement rejetes pour confusion et double comptage. Le detail complet se trouve dans `reports/investigation.json`.</p>
+<h2>7. Opportunites confirmees</h2>
+<h3>#1 — H06 : nouveau niveau de charge inactive</h3>
+<p>5 979,0 kWh sur la periode, soit 1 046,33 EUR au tarif de 0,175 EUR/kWh.</p>
+<p>Le residu inactif moyen reste a 8,30 kW sur 30/30 jours. La temperature n&#x27;en explique que 0,168 kW.</p>
+<p>Ce que les donnees demontrent : un changement durable de niveau existe hors production.</p>
+<p>Ce qu&#x27;elles ne demontrent pas : l&#x27;equipement responsable ni la part arretable.</p>
+<p>A verifier : nouvelles utilites, consignes, fuites, ventilation, pompes ou maintien en temperature.</p>
+<h3>#2 — H05 : derive progressive de charge fixe</h3>
+<p>4 232,3 kWh sur la periode, soit 740,65 EUR au tarif de 0,175 EUR/kWh.</p>
+<p>Pente inactive : 0,414 kW/j (R2 0,992). La pente imputable a la temperature est 0,0015 kW/j.</p>
+<p>Ce que les donnees demontrent : la charge fixe se degrade progressivement, y compris a production nulle.</p>
+<p>A verifier : encrassement, fuite croissante, derive de regulation et auxiliaire restant charge.</p>
+<h3>#3 — H04 : baisse temporaire d&#x27;efficacite</h3>
+<p>2 123,7 kWh sur la periode, soit 371,65 EUR au tarif de 0,175 EUR/kWh.</p>
+<p>Apres retrait de la derive fixe, l&#x27;ecart actif passe de 0,11 a 12,18 kW, sur 11/11 jours. Production et mix produit sont comparables.</p>
+<p>Ce que les donnees demontrent : davantage de puissance est necessaire pour une production comparable.</p>
+<p>Ce qu&#x27;elles ne demontrent pas : la cause mecanique exacte.</p>
+<h2>8. Efficacite energetique</h2>
+<p>Le signal mensuel d&#x27;intensite n&#x27;est pas conserve comme opportunite autonome : mai ne contient que quatre jours et le ratio recouvre H04-H06. L&#x27;analyse a production comparable est plus solide.</p>
+<h2>9. Impact economique</h2>
+<p>Les couts ci-dessus portent uniquement sur les periodes observees. La review de chevauchement trouve 1 119,1 kWh sur des timestamps communs ; H04 retranche H05, mais aucun total global n&#x27;est affiche sans allocation causale. Aucune annualisation n&#x27;est effectuee.</p>
+<h2>10. Opportunites necessitant verification</h2>
+<ul>
+<li>H01 nuit : 2 152,8 kWh sur la periode, soit 376,74 EUR au tarif de 0,175 EUR/kWh. Recurrence 15/15 jours, production nulle.</li>
+<li>H02 week-end : 877,3 kWh sur la periode, soit 153,53 EUR au tarif de 0,175 EUR/kWh. Recurrence 4/4 jours, production nulle.</li>
+<li>H03 pic ponctuel : 239,2 kWh sur la periode, soit 41,86 EUR au tarif de 0,175 EUR/kWh. Un seul evenement de deux heures ; pas d&#x27;annualisation.</li>
+</ul>
+<h2>11. Hypotheses rejetees importantes</h2>
+<ul>
+<li>H07 : l&#x27;intensite de mai n&#x27;est ni comparable ni independante.</li>
+<li>H08 : le signal de pointe et H03 couvrent exactement les memes huit points ; les additionner doublerait 239,2 kWh.</li>
+</ul>
+<h2>12. Recommandations</h2>
+<ul>
+<li>Rechercher d&#x27;abord le changement de charge inactive apparu en fin de periode.</li>
+<li>Examiner les tendances de pression, debit, consignes et cycles des utilites pendant H05.</li>
+<li>Comparer journaux de production, produits et etats machine pendant H04.</li>
+<li>Identifier les equipements actifs pendant H01 et les quatre jours H02.</li>
+<li>Rapprocher H03 du journal d&#x27;exploitation avant toute action.</li>
+</ul>
+<h2>13. Limites</h2>
+<p>Dataset synthetique, quatre mois, tarif simple, aucune mesure par equipement et aucune preuve de causalite physique. Les surconsommations ne sont pas des economies garanties.</p>
+<h2>14. Methodologie</h2>
+<p>Validation et normalisation deterministes, baseline passee-&gt;future, residualisation, comparaisons contextuelles, recherche d&#x27;explications alternatives, quantification Python, review adversariale Codex et controle des chevauchements.</p></body></html>

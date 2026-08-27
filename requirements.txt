@@ -1,0 +1,2 @@
+# Necessaire uniquement pour les fichiers .xlsx. Les fichiers .csv utilisent la bibliotheque standard.
+openpyxl>=3.1,<4

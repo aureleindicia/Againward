@@ -1,0 +1,36 @@
+{
+  "environment": "Android/Termux/Python standard library",
+  "cases": [
+    {
+      "rows": 10000,
+      "file_size_bytes": 250033,
+      "generation_seconds": 0.04858123091980815,
+      "load_seconds": 0.19136392301879823,
+      "analysis_seconds": 0.07764461601618677,
+      "rows_per_second_loading": 52256.453788406456,
+      "peak_process_rss_mb": 55.796875,
+      "verified_total_energy_kwh": 2500.0
+    },
+    {
+      "rows": 100000,
+      "file_size_bytes": 2500033,
+      "generation_seconds": 0.48229453805834055,
+      "load_seconds": 1.8281258470378816,
+      "analysis_seconds": 0.8251422310713679,
+      "rows_per_second_loading": 54700.82935593867,
+      "peak_process_rss_mb": 83.0390625,
+      "verified_total_energy_kwh": 25000.0
+    },
+    {
+      "rows": 500000,
+      "file_size_bytes": 12500033,
+      "generation_seconds": 2.3917939229868352,
+      "load_seconds": 9.64907146198675,
+      "analysis_seconds": 3.987661154009402,
+      "rows_per_second_loading": 51818.45755519461,
+      "peak_process_rss_mb": 307.125,
+      "verified_total_energy_kwh": 125000.0
+    }
+  ],
+  "interpretation": "Conserver la stack standard-library tant que temps et memoire restent acceptables ; ne migrer vers Polars ou DuckDB qu'apres un besoin observe."
+}
