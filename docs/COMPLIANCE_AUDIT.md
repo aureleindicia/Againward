@@ -71,7 +71,7 @@ Cet audit distingue une preuve reproductible d'une intention architecturale. Les
 | 47 | PROUVE | Vide, mesure unique, production nulle, constante, sans anomalie, anomalie massive, sans tarif, mensuel et irregularite sont explicites. |
 | 48 | PROUVE | Energie, cout, hors-production, exces, chevauchement et economies eventuelles sont bornes; une economie ne peut depasser energie ou cout totaux couverts. |
 
-## Exigences 49 a 65 — demonstration, exploitation et trajectoire
+## Exigences 49 a 66 — demonstration, exploitation et trajectoire
 
 | # | Statut | Preuve actuelle ou ecart restant |
 |---:|---|---|
@@ -86,18 +86,21 @@ Cet audit distingue une preuve reproductible d'une intention architecturale. Les
 | 57 | PROUVE | `create_workspace.py` cree l'isolation input/processed/scratch/outputs et refuse tout ecrasement. |
 | 58 | PROUVE | Aucun SaaS, React, paiement, cloud, microservice ou base vectorielle. |
 | 59 | PROUVE | Benchmarks 10k/100k/500k; 500k reste acceptable sans Polars/DuckDB. |
-| 60 | PROUVE | Depot local `main` initialise; etat complet verifie enregistre par le commit `755ab91`. |
+| 60 | PROUVE | Depot local `main` initialise; tests avant/apres changements et quatre commits coherents verifies. |
 | 61 | PROUVE | Travail autonome, sans secret ni action externe. |
 | 62 | PROUVE | Sequence complete prouvee sur donnees 15 minutes et mensuelles; le workspace formalise l'accueil d'un nouveau fichier sans automatiser le raisonnement. |
 | 63 | PROUVE | Les signaux automatiques restent candidats et la selection H01-H08 apporte une valeur distincte. |
 | 64 | PROUVE | Python est la seule source des nombres; la review ne modifie pas les valeurs. |
-| 65 | PROUVE | Les sept etapes immediates ont ete executees au moins sur le scenario de demonstration. |
+| 65 | PROUVE | Les dix etapes immediates ont ete executees: audit, correction, demo, toolbox, investigation, ground truth, critique et nouvelle iteration. |
+| 66 | PROUVE | La boucle permanente a ete appliquee jusqu'aux tests, review, refutation, corrections et commits; aucune fiabilite n'est deduite du seul fait que le code s execute. |
 
-## Prochaines preuves prioritaires
+## Extensions ulterieures hors du perimetre MVP valide
 
-1. Ajouter des comparaisons multi-compteurs lorsque des donnees adaptees existent.
-2. Formaliser davantage les criteres de severite sans automatiser la decision analytique.
-3. Continuer avec des commits cibles, chacun precede et suivi par les tests pertinents.
+- Comparaisons multi-compteurs lorsque de telles donnees seront disponibles.
+- Tarifs complexes, seulement lorsqu'un besoin client concret le justifiera.
+- Nouveaux outils ad hoc generalises apres validation sur de futures investigations.
+
+Ces extensions ne sont pas necessaires a la sequence agentique locale demandee et ne doivent pas etre implementees prematurement.
 
 Les performances multi-scenarios actuelles sont : 90 vrais positifs, 2 faux positifs,
 0 faux negatif, precision 0,9783, rappel 1,0000 et F1 0,9890. Ces valeurs sont une preuve de
