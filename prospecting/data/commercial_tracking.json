@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-28",
+  "default_status": "NOT_CONTACTED",
+  "prospects": [
+    {"prospect_id": "FR-BSA-001", "discovered_at": "2026-08-28", "last_verified_at": "2026-08-28", "previous_score": null, "current_score": 74, "score_change_reason": "premier scoring argumenté", "commercial_status": "NOT_CONTACTED", "contacted": false, "response": null, "refusal": null, "do_not_contact": false},
+    {"prospect_id": "FR-AGRONOVAE-002", "discovered_at": "2026-08-28", "last_verified_at": "2026-08-28", "previous_score": null, "current_score": 71, "score_change_reason": "premier scoring argumenté", "commercial_status": "NOT_CONTACTED", "contacted": false, "response": null, "refusal": null, "do_not_contact": false},
+    {"prospect_id": "FR-BISCPROV-003", "discovered_at": "2026-08-28", "last_verified_at": "2026-08-28", "previous_score": null, "current_score": 55, "score_change_reason": "premier scoring argumenté", "commercial_status": "ENRICH_BEFORE_CONTACT", "contacted": false, "response": null, "refusal": null, "do_not_contact": false},
+    {"prospect_id": "FR-TAGLAB-004", "discovered_at": "2026-08-28", "last_verified_at": "2026-08-28", "previous_score": null, "current_score": 71, "score_change_reason": "premier scoring argumenté", "commercial_status": "NOT_CONTACTED", "contacted": false, "response": null, "refusal": null, "do_not_contact": false},
+    {"prospect_id": "FR-MECAFORGING-005", "discovered_at": "2026-08-28", "last_verified_at": "2026-08-28", "previous_score": null, "current_score": 67, "score_change_reason": "premier scoring argumenté", "commercial_status": "NOT_CONTACTED", "contacted": false, "response": null, "refusal": null, "do_not_contact": false},
+    {"prospect_id": "FR-GILLET-006", "discovered_at": "2026-08-28", "last_verified_at": "2026-08-28", "previous_score": null, "current_score": 78, "score_change_reason": "premier scoring argumenté", "commercial_status": "NOT_CONTACTED", "contacted": false, "response": null, "refusal": null, "do_not_contact": false},
+    {"prospect_id": "FR-BOMIE-007", "discovered_at": "2026-08-28", "last_verified_at": "2026-08-28", "previous_score": null, "current_score": 59, "score_change_reason": "premier scoring argumenté", "commercial_status": "ENRICH_BEFORE_CONTACT", "contacted": false, "response": null, "refusal": null, "do_not_contact": false},
+    {"prospect_id": "FR-MORELLON-008", "discovered_at": "2026-08-28", "last_verified_at": "2026-08-28", "previous_score": null, "current_score": 75, "score_change_reason": "premier scoring argumenté", "commercial_status": "NOT_CONTACTED", "contacted": false, "response": null, "refusal": null, "do_not_contact": false},
+    {"prospect_id": "FR-DAUPHIBLANC-009", "discovered_at": "2026-08-28", "last_verified_at": "2026-08-28", "previous_score": null, "current_score": 68, "score_change_reason": "premier scoring ; rejet maintenu par critère de taille multi-sites", "commercial_status": "REJECTED", "contacted": false, "response": null, "refusal": null, "do_not_contact": false},
+    {"prospect_id": "FR-BREWEN-010", "discovered_at": "2026-08-28", "last_verified_at": "2026-08-28", "previous_score": null, "current_score": 53, "score_change_reason": "premier scoring ; rejet maintenu par économie de mission", "commercial_status": "REJECTED", "contacted": false, "response": null, "refusal": null, "do_not_contact": false}
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "prepared_at": "2026-08-28",
+  "purpose": "angles de prise de contact, sans message rédigé ni envoi",
+  "contacting_authorized": false,
+  "contacts_sent": 0,
+  "portfolio_reason": "Tester cinq contextes : fonderie, changement avant/après, blanchisserie PME, agroalimentaire thermique et froid saisonnier.",
+  "prospects": [
+    {
+      "prospect_id": "FR-GILLET-006",
+      "selection_reason": "Procédé de fonderie explicitement documenté et taille compatible avec un pilote PME.",
+      "approach_angle": "Investigation des profils de fusion et des consommations hors campagne, sans prétendre connaître la cause avant les données.",
+      "ideal_role": "direction industrielle, responsable production ou maintenance",
+      "public_personalization_fact": "Fonderie d'alliages d'aluminium et cuivreux, usinage et finition au sein d'une SCOP à Albi.",
+      "pilot_proposal": "Analyser un compteur de site sur une période couvrant plusieurs campagnes de fusion, le rapprocher du planning de fusion, éliminer les variations normales et proposer une vérification terrain ciblée si un écart persiste.",
+      "first_qualification_question": "Un export horodaté du compteur et un calendrier simple des périodes de fusion sont-ils disponibles ?"
+    },
+    {
+      "prospect_id": "FR-MORELLON-008",
+      "selection_reason": "Extension et nouveaux équipements en 2026 : cas naturel pour mesurer un changement de performance.",
+      "approach_angle": "Comparer objectivement la baseline avant et après mise en service, puis suivre l'effet d'une éventuelle correction.",
+      "ideal_role": "direction de site, responsable production ou maintenance",
+      "public_personalization_fact": "Extension annoncée de 1 300 m² et nouveau matériel de lavage et convoyage en 2026.",
+      "pilot_proposal": "Comparer quelques semaines avant et après la mise en service, à activité comparable, sans attribuer automatiquement un écart aux nouveaux équipements.",
+      "first_qualification_question": "Des courbes de charge antérieures et postérieures à la mise en service ainsi que la date de celle-ci existent-elles ?"
+    },
+    {
+      "prospect_id": "FR-BSA-001",
+      "selection_reason": "Site industriel de 2 000 m², environ 20 salariés et activité de blanchisserie répétitive.",
+      "approach_angle": "Détecter les dérives et charges hors périodes utiles, quantifier leur coût puis cibler une vérification simple.",
+      "ideal_role": "direction du site, exploitation ou maintenance",
+      "public_personalization_fact": "L'entreprise cite publiquement la réduction des consommations d'eau et d'énergie parmi ses engagements.",
+      "pilot_proposal": "Étudier 8 à 12 semaines du compteur principal avec les horaires, distinguer charge incompressible et excès potentiel, puis mesurer l'effet après action.",
+      "first_qualification_question": "Le portail du compteur permet-il un export de puissance ou d'énergie au pas de 10 à 30 minutes ?"
+    },
+    {
+      "prospect_id": "FR-AGRONOVAE-002",
+      "selection_reason": "Transformation de fruits à une échelle documentée, adaptée à la comparaison de productions similaires.",
+      "approach_angle": "Séparer les variations expliquées par la production des dérives indépendantes du volume fabriqué.",
+      "ideal_role": "direction industrielle, production ou maintenance",
+      "public_personalization_fact": "L'entreprise fabrique à Peyruis des produits finis et semi-finis à base de fruits ; un document 2021 mentionne 2 000 tonnes annuelles de confiture.",
+      "pilot_proposal": "Rapprocher l'historique énergie d'un calendrier simple de production, tester plusieurs baselines et ne conserver que les écarts résistants aux contre-explications.",
+      "first_qualification_question": "Un export compteur et un relevé des jours ou lots de production peuvent-ils être fournis sur la même période ?"
+    },
+    {
+      "prospect_id": "FR-TAGLAB-004",
+      "selection_reason": "Cas froid différent des procédés thermiques et extension d'atelier documentée.",
+      "approach_angle": "Distinguer saisonnalité normale, niveau de production et dérive du froid ou de la charge de base.",
+      "ideal_role": "responsable de site, production, froid ou maintenance",
+      "public_personalization_fact": "Taglab fabrique des glaces à Saint-Malo dans un atelier agrandi, pour la marque Glaces Moustache.",
+      "pilot_proposal": "Comparer périodes forte et faible activité, contrôler l'effet température/production si disponible, puis suivre une correction éventuelle.",
+      "first_qualification_question": "Le compteur du site ou du froid fournit-il un historique couvrant des semaines de forte et faible activité ?"
+    }
+  ]
+}

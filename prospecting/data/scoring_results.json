@@ -1,0 +1,729 @@
+{
+  "schema_version": 1,
+  "scored_at": "2026-08-28",
+  "method": {
+    "scale": "0 à 5 par dimension, puis somme pondérée sur 100",
+    "weights": {
+      "energy_potential": 20,
+      "optimization_potential": 18,
+      "probable_data_quality": 12,
+      "economic_value_potential": 15,
+      "commercial_accessibility": 12,
+      "absence_internal_energy_expertise": 8,
+      "energy_analyzer_fit": 15
+    },
+    "display_rule": "arrondi à l'entier ; des écarts de 1 à 3 points ne sont pas significatifs",
+    "priority_rules": {
+      "PRIORITY_A": "72 à 100 sans critère d'exclusion",
+      "PRIORITY_B": "65 à 71 sans critère d'exclusion",
+      "PRIORITY_C": "0 à 64 sans critère d'exclusion ; enrichir avant contact",
+      "REJECTED": "critère d'exclusion factuel, quel que soit le score brut"
+    }
+  },
+  "counts": {
+    "PRIORITY_A": 3,
+    "PRIORITY_B": 3,
+    "PRIORITY_C": 2,
+    "REJECTED": 2
+  },
+  "prospects": [
+    {
+      "prospect_id": "FR-GILLET-006",
+      "name": "Nouvelle Fonderie Gillet Industries",
+      "sector": "fonderie de métaux légers et usinage",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 77.6,
+      "score_display": 78,
+      "priority": "PRIORITY_A",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 5,
+          "rationale": "Fonderie d'alliages d'aluminium et cuivreux : procédé thermique industriel explicitement documenté."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Fusion, usinage et finition offrent des profils distincts et des comparaisons de campagnes ou d'arrêts."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Un site de fonderie peut avoir des mesures, mais aucun sous-comptage ou export n'est démontré."
+        },
+        "economic_value_potential": {
+          "rating": 4,
+          "rationale": "L'intensité probable du procédé et la taille de 20 à 49 salariés rendent une dérive potentiellement coûteuse."
+        },
+        "commercial_accessibility": {
+          "rating": 4,
+          "rationale": "PME mono-site et structure coopérative identifiée, potentiellement plus directe qu'un grand groupe."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 3,
+          "rationale": "Aucune fonction énergie visible, sans preuve de son absence."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Très bon potentiel d'analyse, à condition de contextualiser les campagnes de fusion pour éviter les faux positifs."
+        }
+      },
+      "positive_signals": [
+        "procédé énergétique explicite",
+        "taille dans l'ICP",
+        "site et organisation identifiés",
+        "potentiel économique plausible"
+      ],
+      "negative_signals": [
+        "type de fours inconnu",
+        "aucune donnée temporelle confirmée",
+        "production indispensable à l'interprétation"
+      ],
+      "uncertainties": [
+        "énergie des fours",
+        "campagnes de fusion",
+        "compteurs",
+        "fonction exploitation"
+      ],
+      "minimal_qualification": {
+        "ask": "Pouvez-vous associer un export horodaté du compteur à un calendrier simple des jours ou heures de fusion ?",
+        "why": "Sans calendrier de fusion, un cycle normal de four pourrait être classé à tort comme anomalie.",
+        "hypotheses_separated": [
+          "surconsommation à production comparable",
+          "écart normal expliqué par les campagnes de fusion"
+        ],
+        "client_effort": "faible à moyen : export compteur et planning de fusion existant",
+        "expected_if_true": "comparaison de campagnes similaires et des consommations hors fusion"
+      },
+      "judgment": "Meilleur candidat du lot sur le papier, mais encore prospect de recherche et non prospect qualifié tant que données et contexte ne sont pas confirmés.",
+      "source_ids_used": [
+        "GIL-1",
+        "GIL-2",
+        "GIL-3"
+      ]
+    },
+    {
+      "prospect_id": "FR-MORELLON-008",
+      "name": "Blanchisserie Morellon",
+      "sector": "blanchisserie industrielle",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 74.8,
+      "score_display": 75,
+      "priority": "PRIORITY_A",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Blanchisserie industrielle et deux ateliers historiquement documentés rendent l'enjeu plausible."
+        },
+        "optimization_potential": {
+          "rating": 5,
+          "rationale": "Extension et nouveaux équipements en 2026 créent un cas concret de changement de baseline et de mesure avant/après."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "L'investissement récent peut favoriser le suivi, mais aucun export n'est confirmé."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "4,5 M€ de chiffre d'affaires indiquent une mission plausible, sans facture énergétique ni effectif actuel."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Entreprise identifiée, mais actionnariat familial et autonomie du site restent à clarifier."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 3,
+          "rationale": "Aucune fonction énergie n'est visible, sans preuve de son absence."
+        },
+        "energy_analyzer_fit": {
+          "rating": 5,
+          "rationale": "Procédé répétitif et changement récent correspondent particulièrement bien à la détection de dérive et au suivi après correction."
+        }
+      },
+      "positive_signals": [
+        "extension 2026",
+        "nouveaux équipements",
+        "activité répétitive",
+        "taille économique plausible"
+      ],
+      "negative_signals": [
+        "horaires disponibles seulement en source de 2015",
+        "effectif et autonomie inconnus",
+        "aucune donnée confirmée"
+      ],
+      "uncertainties": [
+        "horaires actuels",
+        "mise en service des équipements",
+        "données avant et après changement",
+        "décideur local"
+      ],
+      "minimal_qualification": {
+        "ask": "Existe-t-il des courbes de charge couvrant quelques semaines avant et après la mise en service de l'extension ou des nouveaux équipements, avec les dates de mise en service ?",
+        "why": "C'est la donnée minimale pour mesurer objectivement si la baseline a changé, sans attribuer automatiquement le changement à une cause physique.",
+        "hypotheses_separated": [
+          "changement énergétique persistant lié dans le temps à la mise en service",
+          "absence de changement mesurable ou variation expliquée par l'activité"
+        ],
+        "client_effort": "faible à moyen : deux exports et une date de mise en service",
+        "expected_if_true": "rupture ou stabilité de baseline quantifiable sur des périodes comparables"
+      },
+      "judgment": "Très bon cas d'usage commercial grâce au changement récent, mais la donnée avant/après doit exister.",
+      "source_ids_used": [
+        "MOR-1",
+        "MOR-2"
+      ]
+    },
+    {
+      "prospect_id": "FR-BSA-001",
+      "name": "Blanchisserie Sainte Anne (BSA)",
+      "sector": "blanchisserie industrielle professionnelle",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 73.6,
+      "score_display": 74,
+      "priority": "PRIORITY_A",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Blanchisserie industrielle et site de 2 000 m² : procédés thermiques, lavage et séchage plausiblement significatifs, sans facture publique."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Procédé répétitif et engagement public sur l'énergie favorables à la recherche de dérives et de charges hors activité."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Un site industriel rend une courbe de charge plausible, mais aucun export ni granularité n'est confirmé."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Taille compatible avec une mission PME, mais ni dépense énergétique ni volume de linge ne sont connus."
+        },
+        "commercial_accessibility": {
+          "rating": 4,
+          "rationale": "Environ 20 salariés et un site identifié suggèrent une chaîne de décision courte."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 3,
+          "rationale": "Aucune fonction énergie n'est visible, mais son absence réelle ne peut pas être affirmée."
+        },
+        "energy_analyzer_fit": {
+          "rating": 5,
+          "rationale": "Cycles répétitifs, périodes actives/inactives et suivi après correction correspondent directement à l'investigation sur données."
+        }
+      },
+      "positive_signals": [
+        "site industriel identifié",
+        "taille PME accessible",
+        "activité répétitive",
+        "engagement énergie public"
+      ],
+      "negative_signals": [
+        "aucune preuve de données temporelles",
+        "aucun volume ou coût énergétique public"
+      ],
+      "uncertainties": [
+        "énergies et compteurs disponibles",
+        "horaires",
+        "périmètre de décision"
+      ],
+      "minimal_qualification": {
+        "ask": "Le site peut-il exporter au moins 8 semaines de puissance ou d'énergie horodatée du compteur principal, idéalement au pas de 10 à 30 minutes, avec l'unité ?",
+        "why": "C'est le minimum pour distinguer un profil répétitif exploitable d'une simple facture mensuelle.",
+        "hypotheses_separated": [
+          "dérives et charges hors activité mesurables",
+          "données trop grossières pour cette offre"
+        ],
+        "client_effort": "faible : vérifier le portail fournisseur ou demander un export au fournisseur",
+        "expected_if_true": "un fichier régulier permettant de comparer cycles, arrêts et changements de niveau"
+      },
+      "judgment": "Bon candidat de premier contact, sous réserve de confirmer immédiatement l'accès aux données temporelles.",
+      "source_ids_used": [
+        "BSA-1"
+      ]
+    },
+    {
+      "prospect_id": "FR-AGRONOVAE-002",
+      "name": "Agro'Novae Industrie / Comtes de Provence",
+      "sector": "transformation et conservation de fruits",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 71.2,
+      "score_display": 71,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Transformation de fruits et production de confitures à échelle industrielle rendent les usages thermiques et auxiliaires crédibles."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Une production par lots peut permettre de comparer des cycles et des périodes comparables, mais les équipements restent inconnus."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "La taille du site rend des données possibles ; aucune courbe de charge n'est toutefois documentée."
+        },
+        "economic_value_potential": {
+          "rating": 4,
+          "rationale": "Les volumes et le chiffre d'affaires historiques indiquent une activité assez importante pour qu'une perte persistante soit matérielle."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "PME identifiable, mais aucun rôle production ou maintenance n'a encore été trouvé."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 3,
+          "rationale": "Aucune expertise énergie interne n'est visible ; l'information est seulement absente."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Le suivi de cycles, de baselines et d'intensité de production est pertinent si production et horaires sont disponibles."
+        }
+      },
+      "positive_signals": [
+        "site de production identifié",
+        "20 à 49 salariés",
+        "volume industriel documenté",
+        "procédé thermique plausible"
+      ],
+      "negative_signals": [
+        "donnée de volume datant de 2021",
+        "équipements et courbes inconnus"
+      ],
+      "uncertainties": [
+        "cuisson et réfrigération réelles",
+        "horaires",
+        "données de production associables à l'énergie"
+      ],
+      "minimal_qualification": {
+        "ask": "Existe-t-il un export horodaté du compteur du site et un relevé simple des jours ou lots de production sur la même période ?",
+        "why": "La production varie probablement ; sans contexte de production, une hausse normale pourrait être prise pour une dérive.",
+        "hypotheses_separated": [
+          "écarts énergétiques indépendants du volume produit",
+          "variations expliquées par la production"
+        ],
+        "client_effort": "faible à moyen : deux exports existants, sans installation de capteur",
+        "expected_if_true": "comparaison déterministe de jours ou lots similaires"
+      },
+      "judgment": "Candidat intéressant, mais légèrement moins prêt que les priorités A car le contexte opérationnel indispensable n'est pas confirmé.",
+      "source_ids_used": [
+        "AGN-1",
+        "AGN-2",
+        "AGN-3"
+      ]
+    },
+    {
+      "prospect_id": "FR-TAGLAB-004",
+      "name": "Taglab",
+      "sector": "fabrication de glaces premium",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 71.2,
+      "score_display": 71,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Fabrication de glaces et atelier de taille significative impliquent plausiblement du froid et de la production."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Froid, saisonnalité et extension offrent des axes de dérive, de baseline et de comparaison avant/après."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Site récent ou agrandi, mais aucun compteur ni export n'est confirmé."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Une trentaine de salariés et 1 200 à 1 500 m² sont compatibles avec une mission, sans dépense connue."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "PME identifiable, mais l'ouverture du capital et l'absence de rôle site identifié ajoutent une incertitude."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 3,
+          "rationale": "Aucune fonction énergie n'est observée ; elle peut néanmoins exister."
+        },
+        "energy_analyzer_fit": {
+          "rating": 5,
+          "rationale": "Le froid continu, les cycles de fabrication et la saisonnalité sont très adaptés aux baselines temporelles et au suivi."
+        }
+      },
+      "positive_signals": [
+        "atelier de production identifié",
+        "taille PME",
+        "froid plausible",
+        "extension récente documentée"
+      ],
+      "negative_signals": [
+        "aucune consommation publique",
+        "écart de description de surface à clarifier"
+      ],
+      "uncertainties": [
+        "périmètre de froid",
+        "saisonnalité",
+        "granularité compteur",
+        "interlocuteur site"
+      ],
+      "minimal_qualification": {
+        "ask": "Le compteur du site ou du groupe froid fournit-il un historique horodaté couvrant au moins une période de production et une période plus calme ?",
+        "why": "Il faut séparer une variation saisonnière normale d'une dérive persistante du froid.",
+        "hypotheses_separated": [
+          "baseline saisonnière comparable et dérives détectables",
+          "variation uniquement liée au volume ou à la saison"
+        ],
+        "client_effort": "faible : export existant et indication des semaines de forte/faible activité",
+        "expected_if_true": "deux périodes comparables avec une granularité suffisante"
+      },
+      "judgment": "Bon candidat de diversification froid, mais pas priorité A tant que l'accès à la donnée n'est pas confirmé.",
+      "source_ids_used": [
+        "TAG-1",
+        "TAG-2",
+        "TAG-3"
+      ]
+    },
+    {
+      "prospect_id": "FR-DAUPHIBLANC-009",
+      "name": "Dauphiblanc",
+      "sector": "blanchisserie industrielle",
+      "prequalification_status": "REJECTED",
+      "score_exact": 68.0,
+      "score_display": 68,
+      "priority": "REJECTED",
+      "score_confidence": "high",
+      "eligibility_gate": "Hors cohorte initiale : environ 400 collaborateurs et trois sites de production.",
+      "dimensions": {
+        "energy_potential": {
+          "rating": 5,
+          "rationale": "22 700 tonnes de linge sur trois sites impliquent un enjeu énergétique potentiellement élevé."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Les procédés répétitifs et multi-sites offrent des comparaisons, mais augmentent la complexité."
+        },
+        "probable_data_quality": {
+          "rating": 3,
+          "rationale": "Cette échelle rend un suivi plausible, sans preuve publique du système de mesure."
+        },
+        "economic_value_potential": {
+          "rating": 5,
+          "rationale": "L'échelle publiée rend toute dérive persistante potentiellement matérielle."
+        },
+        "commercial_accessibility": {
+          "rating": 1,
+          "rationale": "Trois sites et 400 collaborateurs éloignent le prospect du décideur PME directement accessible."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 0,
+          "rationale": "À cette échelle, il serait imprudent de supposer l'absence d'expertise interne ou de prestataires."
+        },
+        "energy_analyzer_fit": {
+          "rating": 3,
+          "rationale": "Compatible techniquement mais trop complexe pour valider le premier modèle commercial."
+        }
+      },
+      "positive_signals": [
+        "enjeu énergétique potentiellement élevé",
+        "activité et volumes explicites"
+      ],
+      "negative_signals": [
+        "hors taille ICP",
+        "multi-sites",
+        "expertise interne probable ou inconnue",
+        "vente plus complexe"
+      ],
+      "uncertainties": [
+        "autonomie par site",
+        "équipe énergie",
+        "périmètres de comptage"
+      ],
+      "minimal_qualification": null,
+      "judgment": "Score technique élevé mais rejet commercial maintenu ; à reconsidérer seulement après preuve sur PME et offre adaptée aux groupes.",
+      "source_ids_used": [
+        "DAU-1"
+      ]
+    },
+    {
+      "prospect_id": "FR-MECAFORGING-005",
+      "name": "Meca Forging",
+      "sector": "frappe à froid et fabrication de pièces métalliques",
+      "prequalification_status": "UNCERTAIN",
+      "score_exact": 67.2,
+      "score_display": 67,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Presses de 220 tonnes, roulage robotisé et grande capacité indiquent une charge industrielle réelle."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Production en série et extension récente permettent d'étudier cycles, arrêts et changement de baseline."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Le site industriel peut disposer de mesures, mais aucun compteur ou pas de temps n'est public."
+        },
+        "economic_value_potential": {
+          "rating": 4,
+          "rationale": "Capacité de 40 millions de pièces et équipements lourds rendent l'enjeu potentiellement matériel."
+        },
+        "commercial_accessibility": {
+          "rating": 2,
+          "rationale": "La structure de groupe rend l'autonomie locale et l'accès au décideur incertains."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Une organisation industrielle de groupe peut déjà disposer de compétences ou contrats énergie."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Les cycles machines sont adaptés si les horaires ou compteurs permettent de les contextualiser."
+        }
+      },
+      "positive_signals": [
+        "équipements précisément documentés",
+        "production en série",
+        "extension récente",
+        "taille locale compatible"
+      ],
+      "negative_signals": [
+        "autonomie locale inconnue",
+        "expertise groupe possible",
+        "aucune preuve de donnée"
+      ],
+      "uncertainties": [
+        "décideur local",
+        "périmètre compteur",
+        "horaires",
+        "déjà suivi par le groupe"
+      ],
+      "minimal_qualification": {
+        "ask": "Le site décide-t-il localement de ses actions énergie et peut-il exporter la courbe du compteur principal ou d'un atelier ?",
+        "why": "Le principal risque n'est pas le procédé mais l'absence d'autonomie ou un suivi déjà centralisé.",
+        "hypotheses_separated": [
+          "pilote local actionnable",
+          "décision ou expertise déjà portée par le groupe"
+        ],
+        "client_effort": "très faible : confirmation organisationnelle et disponibilité d'un export",
+        "expected_if_true": "un responsable local peut fournir et agir sur un périmètre de mesure défini"
+      },
+      "judgment": "Techniquement intéressant, commercialement moins accessible ; priorité B et non A.",
+      "source_ids_used": [
+        "MFG-1"
+      ]
+    },
+    {
+      "prospect_id": "FR-BOMIE-007",
+      "name": "Bo&Mie",
+      "sector": "boulangerie-pâtisserie avec laboratoire central",
+      "prequalification_status": "UNCERTAIN",
+      "score_exact": 58.8,
+      "score_display": 59,
+      "priority": "PRIORITY_C",
+      "score_confidence": "low",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 3,
+          "rationale": "Un laboratoire central suggère cuisson et froid, mais ni équipements ni taille actuelle ne sont établis."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Les horaires de boulangerie et l'alimentation de plusieurs boutiques peuvent produire un profil répétitif exploitable."
+        },
+        "probable_data_quality": {
+          "rating": 1,
+          "rationale": "Aucun compteur, export, surface ou périmètre du laboratoire n'est documenté."
+        },
+        "economic_value_potential": {
+          "rating": 2,
+          "rationale": "L'échelle économique du laboratoire reste trop peu connue."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Organisation identifiable, mais ni taille actuelle ni fonction cible ne sont sourcées."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 3,
+          "rationale": "Aucune expertise n'est visible, sans preuve positive d'absence."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Le modèle de laboratoire central est cohérent avec l'analyse horaire si un compteur dédié existe."
+        }
+      },
+      "positive_signals": [
+        "laboratoire central documenté",
+        "production potentiellement répétitive",
+        "plusieurs points de vente alimentés"
+      ],
+      "negative_signals": [
+        "taille actuelle inconnue",
+        "équipements et compteur non documentés"
+      ],
+      "uncertainties": [
+        "surface du laboratoire",
+        "niveau de consommation",
+        "compteur dédié",
+        "horaires"
+      ],
+      "minimal_qualification": {
+        "ask": "Le laboratoire central possède-t-il un compteur identifiable séparé des boutiques et exportable ?",
+        "why": "Un compteur agrégé avec plusieurs points de vente rendrait les causes impossibles à isoler.",
+        "hypotheses_separated": [
+          "profil du laboratoire analysable",
+          "signal trop agrégé pour guider une vérification"
+        ],
+        "client_effort": "très faible : vérification d'une facture ou du portail fournisseur",
+        "expected_if_true": "un point de livraison ou sous-compteur correspondant au laboratoire"
+      },
+      "judgment": "Intéressant conceptuellement, mais preuves insuffisantes pour prospecter avant enrichissement.",
+      "source_ids_used": [
+        "BOM-1",
+        "BOM-2"
+      ]
+    },
+    {
+      "prospect_id": "FR-BISCPROV-003",
+      "name": "Biscuiterie de Provence",
+      "sector": "biscuiterie, chocolaterie et confiserie",
+      "prequalification_status": "UNCERTAIN",
+      "score_exact": 55.2,
+      "score_display": 55,
+      "priority": "PRIORITY_C",
+      "score_confidence": "low",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 3,
+          "rationale": "L'activité alimentaire manufacturière peut consommer de l'énergie, mais aucun procédé précis n'est sourcé."
+        },
+        "optimization_potential": {
+          "rating": 3,
+          "rationale": "La répétition est plausible sans être documentée par horaires, volumes ou équipements."
+        },
+        "probable_data_quality": {
+          "rating": 1,
+          "rationale": "Aucun compteur, export ou système de suivi n'est mentionné."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "L'effectif est dans l'ICP, mais l'échelle de production et la dépense énergétique sont inconnues."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "PME localisée, sans fonction cible identifiée."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 3,
+          "rationale": "Aucune expertise n'est visible, ce qui ne prouve pas son absence."
+        },
+        "energy_analyzer_fit": {
+          "rating": 3,
+          "rationale": "Compatibilité possible, encore fondée surtout sur le secteur."
+        }
+      },
+      "positive_signals": [
+        "taille dans l'ICP",
+        "site manufacturier identifié"
+      ],
+      "negative_signals": [
+        "aucun équipement ou volume public",
+        "compatibilité trop largement inférée du secteur"
+      ],
+      "uncertainties": [
+        "procédé dominant",
+        "répétitivité",
+        "niveau de consommation",
+        "données disponibles"
+      ],
+      "minimal_qualification": {
+        "ask": "Quel est le principal procédé énergétique du site (cuisson, froid, air comprimé ou autre) et dispose-t-il d'un compteur exportable ?",
+        "why": "Une seule réponse permet de vérifier que le dossier repose sur un usage réel et mesurable, pas seulement sur l'étiquette biscuiterie.",
+        "hypotheses_separated": [
+          "procédé répétitif adapté à l'analyse",
+          "activité trop peu instrumentée ou peu énergétique"
+        ],
+        "client_effort": "très faible : réponse métier et vérification du portail de comptage",
+        "expected_if_true": "un procédé clairement nommé et un historique horodaté disponible"
+      },
+      "judgment": "Pas assez étayé pour un contact prioritaire ; enrichir d'abord.",
+      "source_ids_used": [
+        "BPR-1",
+        "BPR-2"
+      ]
+    },
+    {
+      "prospect_id": "FR-BREWEN-010",
+      "name": "Brewen",
+      "sector": "microbrasserie artisanale",
+      "prequalification_status": "REJECTED",
+      "score_exact": 53.2,
+      "score_display": 53,
+      "priority": "REJECTED",
+      "score_confidence": "high",
+      "eligibility_gate": "Équipe publique de deux personnes : économie de mission probablement disproportionnée pour l'offre initiale.",
+      "dimensions": {
+        "energy_potential": {
+          "rating": 2,
+          "rationale": "Le brassage comporte des usages thermiques et du froid, mais l'échelle de production est inconnue et la structure est très petite."
+        },
+        "optimization_potential": {
+          "rating": 3,
+          "rationale": "Les brassins sont répétitifs, sans garantie d'un volume suffisant."
+        },
+        "probable_data_quality": {
+          "rating": 1,
+          "rationale": "Aucun suivi ni export n'est documenté."
+        },
+        "economic_value_potential": {
+          "rating": 1,
+          "rationale": "Deux personnes rendent difficile d'absorber le coût d'une investigation approfondie."
+        },
+        "commercial_accessibility": {
+          "rating": 5,
+          "rationale": "La très petite équipe rend le décideur probablement direct."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 5,
+          "rationale": "Une fonction énergie dédiée est très improbable à cette taille."
+        },
+        "energy_analyzer_fit": {
+          "rating": 3,
+          "rationale": "Les cycles peuvent être analysables, mais la valeur économique et l'instrumentation limitent l'adéquation."
+        }
+      },
+      "positive_signals": [
+        "procédé sur site",
+        "cycles de brassage possibles",
+        "accès probable au dirigeant"
+      ],
+      "negative_signals": [
+        "équipe de deux personnes",
+        "volume et budget inconnus",
+        "aucune donnée confirmée"
+      ],
+      "uncertainties": [
+        "volume annuel",
+        "dépense énergétique",
+        "instrumentation"
+      ],
+      "minimal_qualification": null,
+      "judgment": "Rejeté pour l'offre initiale : l'accessibilité ne compense pas le risque économique de la mission.",
+      "source_ids_used": [
+        "BRE-1"
+      ]
+    }
+  ],
+  "contacting_performed": false
+}
