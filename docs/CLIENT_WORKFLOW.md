@@ -14,6 +14,11 @@ Cette prestation ne constitue pas un audit énergétique réglementaire.
 
 ## 1. Créer et renseigner le dossier
 
+Avant de créer un espace client ou de demander un fichier, envoyer la fiche
+[`CLIENT_DATA_FEASIBILITY_REQUEST.md`](CLIENT_DATA_FEASIBILITY_REQUEST.md). Elle permet au client
+de confirmer l'existence d'un export et son périmètre sans fabriquer de données manuellement. Les
+critères de cette fiche correspondent aux contrôles d'intake ci-dessous.
+
 ```sh
 python create_workspace.py usine_01
 ```

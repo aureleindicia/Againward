@@ -86,6 +86,8 @@ python manage_investigation.py check workspaces/usine_01/processed
 
 Le détail des formats et du passage humain est dans
 [`docs/CLIENT_WORKFLOW.md`](docs/CLIENT_WORKFLOW.md).
+La fiche simple à transmettre avant un pilote est
+[`docs/CLIENT_DATA_FEASIBILITY_REQUEST.md`](docs/CLIENT_DATA_FEASIBILITY_REQUEST.md).
 
 ```sh
 python analyze.py donnees.csv \
