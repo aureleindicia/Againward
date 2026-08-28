@@ -168,6 +168,7 @@ def _valid_response(case_id: str, decision: str) -> dict:
             "preconditions": [],
             "risks": [],
             "stop_conditions": [],
+
             "expected_result": "Preserve a comparable reference period.",
         },
         "validation": {
@@ -224,6 +225,13 @@ def test_prepare_exposes_only_initial_pack_and_committed_engine(tmp_path: Path) 
     context = json.loads((participant / "run_context.json").read_text(encoding="utf-8"))
     assert context["ground_truth_available"] is False
     assert context["previous_run_outputs_available"] is False
+    assert (participant / "protocol" / "requests.schema.json").is_file()
+    assert (participant / "protocol" / "response.schema.json").is_file()
+    assert (participant / "protocol" / "requests.template.json").is_file()
+    assert (participant / "protocol" / "response.template.json").is_file()
+    accessible = set(context["accessible_files"])
+    assert "protocol/requests.schema.json" in accessible
+    assert "protocol/response.template.json" in accessible
 
 
 def test_followup_requires_a_specific_matching_request_and_reveals_only_one_item(tmp_path: Path) -> None:

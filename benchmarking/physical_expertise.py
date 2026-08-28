@@ -959,6 +959,7 @@ def prepare_run(
         participant / "initial_client_pack",
         participant / "revealed",
         participant / "scratch",
+        participant / "protocol",
         participant / "output",
         participant / "engine",
         private,
@@ -975,6 +976,21 @@ def prepare_run(
     for record in initial_records:
         path = participant / "initial_client_pack" / record["path"]
         accessible_files.append(_participant_record(path, participant))
+    protocol_root = Path(__file__).resolve().parents[1] / "benchmarks" / "physical_expertise"
+    protocol_sources = {
+        "requests.schema.json": protocol_root / "schemas" / "requests.schema.json",
+        "response.schema.json": protocol_root / "schemas" / "response.schema.json",
+        "requests.template.json": protocol_root / "templates" / "requests.template.json",
+        "response.template.json": protocol_root / "templates" / "response.template.json",
+    }
+    for destination_name, source in protocol_sources.items():
+        if source.is_symlink() or not source.is_file():
+            raise BenchmarkIntegrityError(f"Ressource de protocole absente ou invalide: {source}.")
+        destination = participant / "protocol" / destination_name
+        shutil.copyfile(source, destination)
+        os.chmod(destination, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+        accessible_files.append(_participant_record(destination, participant))
+
 
     instructions = """# Physical Expertise Benchmark — participant workspace
 
@@ -994,6 +1010,10 @@ Absolute rules:
 - do not modify the system or toolbox during a HOLDOUT run;
 - do not self-assess expertise and do not attempt to anticipate the score;
 - for CONTROLLED_OPEN_BOOK, use no internet or references outside `allowed_references`.
+
+The exact request and response contracts are available in `protocol/`; use their templates
+as the starting point and do not add fields that are absent from the schemas.
+
 
 The engine snapshot and authorized evidence are sealed and will be verified at finalization.
 """

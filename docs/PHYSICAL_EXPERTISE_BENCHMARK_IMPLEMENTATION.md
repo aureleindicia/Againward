@@ -95,7 +95,9 @@ python run_physical_benchmark.py prepare \
 L'opérateur remet uniquement le dossier
 `runs/case_opaque_id_run_001/participant_workspace/` au participant. Celui-ci peut lire
 `initial_client_pack/`, le snapshot `engine/`, `RUN_INSTRUCTIONS.md` et
-`run_context.json`. Il écrit ses expériences dans `scratch/` et sa réponse finale dans
+`run_context.json`. Les schémas et templates exacts des demandes et de la réponse sont
+copiés dans `protocol/` et inclus dans le manifeste des fichiers accessibles. Le
+participant écrit ses expériences dans `scratch/` et sa réponse finale dans
 `output/response.json`.
 
 Le snapshot du moteur vient exclusivement du commit associé au tag. Les répertoires
