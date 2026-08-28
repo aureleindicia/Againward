@@ -10,6 +10,11 @@ import benchmarking.physical_expertise as benchmark
 from benchmarking.physical_expertise import (
     BenchmarkError,
     BenchmarkIntegrityError,
+    apply_blind_oracle_review,
+    evaluate_oracle_matcher_fixture,
+    list_pending_blind_oracle_reviews,
+    oracle_match_decision,
+    validate_blind_oracle_review,
     finalize_run,
     prepare_run,
     reveal_followups,
@@ -404,3 +409,285 @@ def test_reproduction_log_contains_exact_run_inputs(tmp_path: Path) -> None:
     ):
         assert reproduction[field] == manifest[field]
     assert verify_run_integrity(run)["status"] == "valid"
+
+
+def _borderline_maintenance_request(request_id: str) -> dict:
+    return _request(
+        request_id,
+        concept="maintenance records",
+        question="Could you provide maintenance information?",
+    )
+
+
+def test_semantic_matcher_handles_paraphrase_accents_abbreviations_and_order() -> None:
+    corpus = json.loads(
+        (REPOSITORY / "tests" / "fixtures" / "oracle_matcher_independent_v1.json")
+        .read_text(encoding="utf-8")
+    )
+    result = evaluate_oracle_matcher_fixture(corpus)
+
+    assert result["fixtures"] == 22
+    assert result["true_positives"] == 12
+    assert result["false_positives"] == 0
+    assert result["true_negatives"] == 9
+    assert result["false_negatives"] == 1
+    assert result["pending_blind_review"] == 2
+    assert result["precision"] == 1.0
+    assert result["recall"] == pytest.approx(12 / 13, abs=1e-6)
+
+
+def test_matcher_decision_is_independent_of_private_response_and_payload_fields() -> None:
+    request = _request(
+        "request_safe_projection",
+        concept="shipment timetable",
+        question="Could the dispatcher share the timetable for shipments?",
+    )
+    metadata = {
+        "oracle_id": "item_projection",
+        "accepted_concepts": ["delivery schedule"],
+        "question_terms": ["delivery", "schedule"],
+        "minimum_term_matches": 2,
+    }
+    first = {
+        **metadata,
+        "response": "SECRET_ANSWER_ONE",
+        "availability": "available",
+        "payload_files": ["payloads/payload_001.txt"],
+        "cost": 1,
+        "responder_role": "manager",
+    }
+    second = {
+        **metadata,
+        "response": "COMPLETELY_DIFFERENT_SECRET",
+        "availability": "unavailable",
+        "payload_files": [],
+        "cost": 5,
+        "responder_role": "different role",
+    }
+
+    assert oracle_match_decision(request, [first]) == oracle_match_decision(request, [second])
+    rendered = json.dumps(oracle_match_decision(request, [first]))
+    assert "SECRET" not in rendered and "payload" not in rendered
+
+
+def test_vague_or_false_friend_request_does_not_reveal_exact_declared_concept() -> None:
+    entry = {
+        "oracle_id": "item_guard",
+        "accepted_concepts": ["equipment schedule"],
+        "question_terms": ["equipment", "schedule"],
+        "minimum_term_matches": 2,
+    }
+    vague = _request(
+        "request_guard",
+        concept="equipment schedule",
+        question="Any details?",
+    )
+    decision = oracle_match_decision(vague, [entry])
+    assert decision["status"] == "NO_MATCH"
+    assert decision["selected_oracle_id"] is None
+
+
+def test_competing_semantic_candidates_require_blind_review() -> None:
+    request = _request(
+        "request_ambiguous",
+        concept="supplier records",
+        question="Please provide the supplier records.",
+    )
+    entries = [
+        {
+            "oracle_id": identifier,
+            "accepted_concepts": ["supplier records"],
+            "question_terms": ["supplier", "records"],
+            "minimum_term_matches": 2,
+        }
+        for identifier in ("item_candidate_a", "item_candidate_b")
+    ]
+    decision = oracle_match_decision(request, entries)
+    assert decision["status"] == "PENDING_BLIND_ORACLE_REVIEW"
+    assert decision["selected_oracle_id"] is None
+    assert len(decision["candidates"]) == 2
+
+
+def test_blind_review_packet_excludes_answer_and_reveals_only_after_independent_decision(tmp_path: Path) -> None:
+    case, run = _prepare(tmp_path)
+    requests = tmp_path / "borderline.json"
+    _write_json(requests, {
+        "schema_version": 1,
+        "requests": [_borderline_maintenance_request("request_pending")],
+    })
+    first = reveal_followups(run, case, requests)
+    assert first["results"][0] == {
+        "request_id": "request_pending",
+        "status": "PENDING_BLIND_ORACLE_REVIEW",
+        "matched": False,
+        "reason": "independent_review_required",
+    }
+    assert "item_002" not in json.dumps(first)
+    participant = run / "participant_workspace"
+    visible = "\n".join(
+        path.read_text(encoding="utf-8", errors="ignore")
+        for path in participant.rglob("*") if path.is_file()
+    )
+    assert "private future note" not in visible
+    pending = list_pending_blind_oracle_reviews(run)
+    packet = pending["pending_reviews"][0]
+    serialized_packet = json.dumps(packet)
+    assert "private future note" not in serialized_packet
+    assert "The maintenance history is attached" not in serialized_packet
+    assert "payload_002" not in serialized_packet
+    assert packet["candidates"] == [{
+        "oracle_id": "item_002",
+        "abstract_information_types": ["maintenance history"],
+    }]
+
+    decision = {
+        "schema_version": 1,
+        "review_id": packet["review_id"],
+        "reviewer_id": "independent_reviewer_001",
+        "reviewer_independent": True,
+        "decision": "MATCH",
+        "oracle_id": "item_002",
+        "justification": "The request explicitly asks for the available maintenance record category.",
+    }
+    validate_blind_oracle_review(decision)
+    participant_decision = participant / "output" / "forbidden_review.json"
+    _write_json(participant_decision, decision)
+    with pytest.raises(BenchmarkIntegrityError, match="participant"):
+        apply_blind_oracle_review(run, case, participant_decision)
+
+    decision_path = tmp_path / "independent_review.json"
+    _write_json(decision_path, decision)
+    resolved = apply_blind_oracle_review(run, case, decision_path)
+    assert resolved["status"] == "MATCHED"
+    response = participant / "revealed" / "cycle_001" / "item_002" / "response.json"
+    assert response.is_file()
+    assert "maintenance history" in response.read_text(encoding="utf-8").lower()
+    manifest = run_manifest_for(run)
+    assert manifest["pending_blind_oracle_reviews"] == []
+    assert manifest["blind_oracle_review_history"][0]["decision"] == "MATCH"
+    assert verify_event_log(run / "private_run" / "events.jsonl")["events"] == 3
+
+
+def test_unresolved_blind_review_blocks_probe_cycle_and_finalization(tmp_path: Path) -> None:
+    case, run = _prepare(tmp_path)
+    request_path = tmp_path / "pending.json"
+    _write_json(request_path, {
+        "schema_version": 1,
+        "requests": [_borderline_maintenance_request("request_pending_2")],
+    })
+    reveal_followups(run, case, request_path)
+    second = tmp_path / "second.json"
+    _write_json(second, {
+        "schema_version": 1,
+        "requests": [_request(
+            "request_probe",
+            concept="equipment schedule",
+            question="Can the manager provide the equipment schedule?",
+        )],
+    })
+    with pytest.raises(BenchmarkError, match="revue aveugle"):
+        reveal_followups(run, case, second)
+    response_path = run / "participant_workspace" / "output" / "response.json"
+    _write_json(response_path, _valid_response("case_900", "INSUFFICIENT_INFORMATION"))
+    with pytest.raises(BenchmarkError, match="revues aveugles"):
+        finalize_run(run, response_path, repository=REPOSITORY)
+
+
+def test_blind_review_private_records_are_integrity_protected(tmp_path: Path) -> None:
+    case, run = _prepare(tmp_path)
+    request_path = tmp_path / "pending_integrity.json"
+    _write_json(request_path, {
+        "schema_version": 1,
+        "requests": [_borderline_maintenance_request("request_integrity")],
+    })
+    reveal_followups(run, case, request_path)
+    packet = list_pending_blind_oracle_reviews(run)["pending_reviews"][0]
+    decision_path = tmp_path / "integrity_review.json"
+    _write_json(decision_path, {
+        "schema_version": 1,
+        "review_id": packet["review_id"],
+        "reviewer_id": "independent_reviewer_003",
+        "reviewer_independent": True,
+        "decision": "NO_MATCH",
+        "oracle_id": None,
+        "justification": "The request remains too broad for an unambiguous category match.",
+    })
+    apply_blind_oracle_review(run, case, decision_path)
+    manifest = run_manifest_for(run)
+    decision_copy = (
+        run / "private_run" /
+        manifest["blind_oracle_review_history"][0]["decision_path"]
+    )
+    original = decision_copy.read_text(encoding="utf-8")
+    decision_copy.chmod(0o600)
+    decision_copy.write_text(original.replace("too broad", "tampered"), encoding="utf-8")
+
+    with pytest.raises(BenchmarkIntegrityError, match="décision aveugle modifiée"):
+        verify_run_integrity(run)
+
+
+def test_pending_blind_review_packet_is_integrity_protected(tmp_path: Path) -> None:
+    case, run = _prepare(tmp_path)
+    request_path = tmp_path / "pending_packet_integrity.json"
+    _write_json(request_path, {
+        "schema_version": 1,
+        "requests": [_borderline_maintenance_request("request_packet_integrity")],
+    })
+    reveal_followups(run, case, request_path)
+    manifest = run_manifest_for(run)
+    packet_path = run / "private_run" / manifest["pending_blind_oracle_reviews"][0]["packet_path"]
+    packet_path.write_text("{}\n", encoding="utf-8")
+
+    with pytest.raises(BenchmarkIntegrityError, match="Paquet de revue aveugle modifié"):
+        verify_run_integrity(run)
+
+
+def test_blind_review_no_match_reveals_nothing_and_is_reproducible(tmp_path: Path) -> None:
+    case, run = _prepare(tmp_path)
+    request_path = tmp_path / "pending_no_match.json"
+    _write_json(request_path, {
+        "schema_version": 1,
+        "requests": [_borderline_maintenance_request("request_pending_no_match")],
+    })
+    reveal_followups(run, case, request_path)
+    packet = list_pending_blind_oracle_reviews(run)["pending_reviews"][0]
+    invalid = {
+        "schema_version": 1,
+        "review_id": packet["review_id"],
+        "reviewer_id": "independent_reviewer_002",
+        "reviewer_independent": True,
+        "decision": "MATCH",
+        "oracle_id": "item_999",
+        "justification": "Invalid candidate used to test the guard.",
+    }
+    invalid_path = tmp_path / "invalid_review.json"
+    _write_json(invalid_path, invalid)
+    with pytest.raises(BenchmarkIntegrityError, match="hors candidats"):
+        apply_blind_oracle_review(run, case, invalid_path)
+
+    decision = {
+        "schema_version": 1,
+        "review_id": packet["review_id"],
+        "reviewer_id": "independent_reviewer_002",
+        "reviewer_independent": True,
+        "decision": "NO_MATCH",
+        "oracle_id": None,
+        "justification": "The abstract category is not sufficiently identified by the request.",
+    }
+    decision_path = tmp_path / "no_match_review.json"
+    _write_json(decision_path, decision)
+    result = apply_blind_oracle_review(run, case, decision_path)
+    assert result["status"] == "NO_MATCH"
+    participant = run / "participant_workspace"
+    assert not (participant / "revealed" / "cycle_001" / "item_002").exists()
+    public = json.loads(
+        (participant / "revealed" / "cycle_001" / "request_results.json")
+        .read_text(encoding="utf-8")
+    )
+    assert public["results"][0]["reason"] == "independent_blind_review_no_match"
+    assert "item_002" not in json.dumps(public)
+    manifest = run_manifest_for(run)
+    history = manifest["blind_oracle_review_history"][0]
+    assert history["decision"] == "NO_MATCH"
+    assert history["selected_oracle_id"] is None
+    assert history["decision_sha256"] == benchmark.sha256_file(decision_path)

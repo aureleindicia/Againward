@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://energy-analyzer.local/schemas/blind-oracle-review-v1.json",
+  "title": "Independent blind oracle review decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "review_id",
+    "reviewer_id",
+    "reviewer_independent",
+    "decision",
+    "oracle_id",
+    "justification"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "review_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{2,79}$"
+    },
+    "reviewer_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{2,79}$"
+    },
+    "reviewer_independent": {"const": true},
+    "decision": {"enum": ["MATCH", "NO_MATCH"]},
+    "oracle_id": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{2,79}$"
+        }
+      ]
+    },
+    "justification": {"type": "string", "minLength": 1}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"decision": {"const": "NO_MATCH"}}},
+      "then": {"properties": {"oracle_id": {"type": "null"}}}
+    },
+    {
+      "if": {"properties": {"decision": {"const": "MATCH"}}},
+      "then": {
+        "properties": {"oracle_id": {"type": "string"}}
+      }
+    }
+  ]
+}

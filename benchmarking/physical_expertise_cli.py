@@ -8,6 +8,9 @@ from typing import Any, Sequence
 
 from .physical_expertise import (
     DEFAULT_BASELINE_TAG,
+    apply_blind_oracle_review,
+    evaluate_oracle_matcher_fixture,
+    list_pending_blind_oracle_reviews,
     BenchmarkError,
     finalize_run,
     prepare_run,
@@ -42,6 +45,22 @@ def build_parser() -> argparse.ArgumentParser:
     prepare = commands.add_parser("prepare", help="Préparer un run aveugle neuf.")
     prepare.add_argument("case_directory")
     prepare.add_argument("runs_directory")
+    pending_review = commands.add_parser(
+        "pending-reviews",
+        help="Lister les paquets de revue aveugle (opérateur indépendant uniquement).",
+    )
+    pending_review.add_argument("run_directory")
+
+    review = commands.add_parser(
+        "review-oracle",
+        help="Appliquer une décision de revue aveugle indépendante.",
+    )
+    review.add_argument("run_directory")
+    review.add_argument("case_directory")
+    review.add_argument("decision_json")
+
+    matcher = commands.add_parser("evaluate-matcher", help="Évaluer le matcher sur un corpus synthétique.")
+    matcher.add_argument("fixture_json")
     prepare.add_argument("--repository", default=".")
     prepare.add_argument("--system-ref", default=DEFAULT_BASELINE_TAG)
     prepare.add_argument("--run-id")
@@ -84,6 +103,18 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "initial_files": len(validated["initial_manifest"]),
                 "ground_truth_read": False,
             })
+        elif arguments.command == "pending-reviews":
+            _print(list_pending_blind_oracle_reviews(arguments.run_directory))
+        elif arguments.command == "review-oracle":
+            _print(apply_blind_oracle_review(
+                arguments.run_directory,
+                arguments.case_directory,
+                arguments.decision_json,
+            ))
+        elif arguments.command == "evaluate-matcher":
+            _print(evaluate_oracle_matcher_fixture(
+                _read_json(arguments.fixture_json)
+            ))
         elif arguments.command == "prepare":
             run = prepare_run(
                 arguments.case_directory,

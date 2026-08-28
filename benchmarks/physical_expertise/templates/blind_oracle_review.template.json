@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "review_id": "review_opaque_id",
+  "reviewer_id": "independent_reviewer_id",
+  "reviewer_independent": true,
+  "decision": "NO_MATCH",
+  "oracle_id": null,
+  "justification": "The request does not identify one available information category unambiguously."
+}

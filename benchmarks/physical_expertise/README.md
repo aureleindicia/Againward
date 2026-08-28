@@ -3,10 +3,20 @@
 Ce dossier contient uniquement l'infrastructure, les schémas et les emplacements vides du
 benchmark. Il ne contient aucun vrai cas DEV ou HOLDOUT et aucun score.
 
-- `schemas/` : contrats JSON versionnés ;
+- `schemas/` : contrats JSON versionnés, dont la décision de revue oracle aveugle ;
 - `templates/` : exemples structurels sans réponse correcte ;
+- le matcher `semantic-v2` distingue match automatique, non-match et
+  `PENDING_BLIND_ORACLE_REVIEW` ;
 - `cases/DEV/` et `cases/HOLDOUT/` : emplacements vides, à alimenter indépendamment ;
 - `runs/` : sortie locale ignorée par Git.
 
 La procédure détaillée et les frontières de confiance sont documentées dans
 `docs/PHYSICAL_EXPERTISE_BENCHMARK_IMPLEMENTATION.md`.
+
+Le corpus synthétique indépendant du matcher se trouve dans
+`tests/fixtures/oracle_matcher_independent_v1.json`. Pour reproduire ses métriques :
+
+```bash
+python run_physical_benchmark.py evaluate-matcher \
+  tests/fixtures/oracle_matcher_independent_v1.json
+```

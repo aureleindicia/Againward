@@ -21,8 +21,11 @@ vit dans `benchmarking/` et ne fait pas partie du moteur `energy_mvp/`.
 - copie sélective d'un snapshot Git du moteur ;
 - espaces distincts `participant_workspace/` et `private_run/` ;
 - cycles de questions limités et oracle à coût 0/1/2/3/5 ;
-- appariement exigeant un concept déclaré et des termes suffisamment ciblés ;
-- non-révélation en cas de demande vague, absence de correspondance ou égalité ambiguë ;
+- matcher `semantic-v2` fondé sur une normalisation Unicode, des concepts canonisés,
+  des variantes lexicales, paraphrases simples et abréviations génériques ;
+- seuils explicites séparant match automatique, non-match et
+  `PENDING_BLIND_ORACLE_REVIEW` ;
+- non-révélation en cas de demande vague, absence de correspondance ou revue en attente ;
 - journal JSONL chaîné par SHA-256 ;
 - empreintes du pack initial, de l'oracle, de la vérité, du moteur et de chaque fichier
   rendu accessible ;
@@ -116,11 +119,42 @@ python run_physical_benchmark.py ask \
   /chemin/de/la/demande.json
 ```
 
-Le runner ouvre l'oracle en privé, sélectionne au plus une entrée non encore révélée par
-demande, puis copie uniquement sa réponse et ses payloads dans
-`participant_workspace/revealed/cycle_NNN/`. Une demande vague, non correspondante ou
-ambiguë donne une réponse de non-correspondance et ne révèle aucun payload. Une donnée
-indisponible est révélée comme `availability: unavailable`, ce qui est un résultat normal.
+Le runner ouvre l'oracle en privé, mais projette chaque entrée vers quatre champs seulement
+pour décider du match : identifiant opaque, concepts acceptés, termes de question et nombre
+minimal de termes. La réponse, sa disponibilité, son coût, le rôle du répondant et les
+payloads sont exclus du calcul. Un match automatique exige un score d'au moins `0.82` et
+une marge d'au moins `0.12` sur le second candidat. Une demande avec un score inférieur à
+`0.58` reste un non-match. La zone intermédiaire ou une concurrence trop proche produit
+`PENDING_BLIND_ORACLE_REVIEW` sans révéler de candidat au participant.
+
+Pour une revue en attente, un opérateur indépendant peut obtenir le paquet privé :
+
+```bash
+python run_physical_benchmark.py pending-reviews \
+  /chemin/prive/runs/case_opaque_id_run_001
+```
+
+Ce paquet contient uniquement la demande, des identifiants neutres et les catégories
+abstraites d'information déclarées par l'auteur du cas. Il ne contient ni réponse, ni
+payload, ni disponibilité, ni coût, ni ground truth. L'opérateur enregistre une décision
+conforme à `schemas/blind_oracle_review.schema.json`, puis l'applique :
+
+```bash
+python run_physical_benchmark.py review-oracle \
+  /chemin/prive/runs/case_opaque_id_run_001 \
+  /chemin/prive/case_opaque_id \
+  /chemin/prive/review_decision.json
+```
+
+Le participant ne peut pas fournir le fichier de décision depuis son workspace. Une revue
+non résolue bloque le cycle suivant et la finalisation, ce qui empêche le sondage répété de
+l'oracle. Les décisions, identités de reviewer, justifications, empreintes et événements
+sont journalisés. La séparation réelle entre reviewer et participant reste une
+responsabilité de l'opérateur et des permissions OS.
+
+Après match automatique ou revue `MATCH`, le runner copie uniquement la réponse reconnue et
+ses payloads dans `participant_workspace/revealed/cycle_NNN/`. Une donnée indisponible est
+révélée comme `availability: unavailable`, ce qui est un résultat normal.
 
 La commande privée et le chemin du cas ne doivent pas être exécutés dans un terminal ou
 un agent auquel le participant a accès. Cette séparation opérationnelle est une
@@ -230,7 +264,9 @@ humaine ou une isolation OS/conteneur :
 - déclaration et contrôle effectif du modèle, du niveau de raisonnement et des références
   externes ;
 - remise à zéro de la session entre runs ;
-- décision humaine lorsqu'une demande libre ne correspond pas sans ambiguïté à l'oracle ;
+- revue aveugle indépendante des demandes en zone d'incertitude ; le participant ne doit
+  jamais être son propre reviewer, et l'opérateur ne doit consulter ni réponse ni payload
+  avant de décider ;
 - notation aveugle par experts, arbitrage des désaccords et évaluation des risques ;
 - constat terrain pour les cas historiques/prospectifs et comparaison avant/après ;
 - analyse statistique finale, intervalles de confiance et comparaison humaine.
@@ -238,3 +274,21 @@ humaine ou une isolation OS/conteneur :
 Les engagements SHA-256 prouvent qu'un contenu n'a pas changé ; ils ne prouvent pas que
 le contenu était impartial, réaliste ou correctement étiqueté. Cette validité doit venir
 de la conception indépendante des cas et du panel d'experts.
+
+## Validation indépendante du matcher
+
+Le corpus `tests/fixtures/oracle_matcher_independent_v1.json` ne reprend aucun cas DEV.
+Il couvre correspondances exactes, paraphrases, synonymes, accents et pluriels, ordre des
+mots, formulations courtes et longues, abréviations, faux amis, requêtes vaguement liées,
+hors sujet et ambiguïtés. Il s'exécute avec :
+
+```bash
+python run_physical_benchmark.py evaluate-matcher \
+  tests/fixtures/oracle_matcher_independent_v1.json
+```
+
+La sortie sépare vrais positifs, faux positifs, vrais négatifs, faux négatifs et revues
+aveugles en attente, puis calcule précision et rappel automatiques. Un cas positif envoyé
+en revue est compté comme faux négatif automatique : le rapport doit donc présenter
+séparément la performance automatique et celle obtenue après revue indépendante, sans
+transformer l'abstention du matcher en réussite artificielle.

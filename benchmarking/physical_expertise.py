@@ -40,6 +40,17 @@ INTERVENTIONS = {
     "TECHNICIAN_INTERVENTION",
 }
 ORACLE_AVAILABILITY = {"available", "unavailable"}
+ORACLE_MATCHER_VERSION = "semantic-v2"
+ORACLE_MATCH_STATUSES = {
+    "MATCHED",
+    "NO_MATCH",
+    "PENDING_BLIND_ORACLE_REVIEW",
+}
+BLIND_REVIEW_DECISIONS = {"MATCH", "NO_MATCH"}
+ORACLE_AUTO_MATCH_THRESHOLD = 0.82
+ORACLE_BLIND_REVIEW_THRESHOLD = 0.58
+ORACLE_AUTO_MATCH_MIN_MARGIN = 0.12
+ORACLE_MAX_REVIEW_CANDIDATES = 3
 ENGINE_PATHS = (
     "energy_mvp",
     "analyze.py",
@@ -79,6 +90,113 @@ SCORE_COMPONENT_MAXIMA = {
     "safety_continuity": 15,
     "before_after_validation": 10,
     "economics_causality_double_counting": 5,
+}
+
+
+# Lexique générique et bilingue limité aux catégories de demandes d'information.
+# Il ne contient aucun identifiant de cas, aucune réponse oracle et aucune cause cachée.
+_SEMANTIC_GROUPS = {
+    "schedule": {
+        "agenda", "calendar", "calendrier", "horaire", "horaires", "planning",
+        "program", "programme", "programmee", "programmees", "programmes",
+        "programmation", "roster", "schedule", "scheduled", "timetable",
+    },
+    "equipment": {
+        "appareil", "appareils", "device", "devices", "equipement", "equipements",
+        "equipment", "installation", "installations", "machine", "machines",
+    },
+    "maintenance": {
+        "entretien", "intervention", "interventions", "maintenance", "repair",
+        "repairs", "reparation", "reparations", "service", "servicing", "upkeep",
+    },
+    "record": {
+        "archive", "archives", "carnet", "carnets", "history", "historique",
+        "historiques", "journal", "journaux", "log", "logs", "record", "records",
+    },
+    "measurement": {
+        "measure", "measurement", "measurements", "mesure", "mesurer", "mesures",
+        "reading", "readings", "releve", "relever", "releves",
+    },
+    "check": {
+        "check", "checking", "control", "controle", "controler", "inspection",
+        "inspecter", "validate", "validation", "verification", "verify", "verifier",
+    },
+    "observation": {
+        "observe", "observer", "observation", "observations", "survey", "walkdown",
+    },
+    "test": {"essai", "essais", "test", "testing", "tests"},
+    "meter": {
+        "compteur", "compteurs", "gauge", "meter", "meters", "sensor", "sensors",
+        "sonde", "sondes",
+    },
+    "temperature": {"temp", "temperature", "temperatures"},
+    "outdoor": {
+        "dehors", "exterior", "exterieure", "exterieur", "external", "outdoor", "outside",
+    },
+    "weather": {"climate", "climat", "meteo", "meteorological", "weather"},
+    "setpoint": {
+        "consigne", "consignes", "setpoint", "setpoints", "target", "targets",
+    },
+    "runtime": {
+        "duration", "duree", "durees", "operatingtime", "runtime", "runtimes",
+    },
+    "status": {
+        "etat", "etats", "state", "states", "status", "statuses",
+    },
+    "command": {
+        "command", "commande", "commandes", "commands", "controlsignal", "ordre", "ordres",
+    },
+    "pressure": {"pression", "pressions", "pressure", "pressures"},
+    "flow": {"debit", "debits", "flow", "flows", "flowrate"},
+    "power": {"kw", "power", "puissance", "puissances"},
+    "energy": {"energie", "energy", "kwh"},
+    "current": {
+        "amperage", "ampere", "amperes", "current", "courant", "courants",
+    },
+    "speed": {
+        "frequency", "frequence", "frequences", "rpm", "speed", "vitesse", "vitesses",
+    },
+    "alarm": {"alarm", "alarme", "alarmes", "alarms", "fault", "faults"},
+    "cleaning": {
+        "cleaning", "lavage", "nettoyage", "nettoyages", "wash", "washing",
+    },
+    "sanitation": {
+        "desinfection", "hygiene", "sanitaire", "sanitation", "sanitization",
+    },
+    "humidity": {
+        "humidite", "humidity", "moisture", "wetness",
+    },
+    "valve": {
+        "damper", "dampers", "registre", "registres", "valve", "valves", "vanne", "vannes",
+    },
+    "heating": {"chaud", "chauffage", "heat", "heating"},
+    "cooling": {"climatisation", "cold", "cooling", "froid", "refroidissement"},
+    "ventilation": {"airflow", "aeration", "ventilation"},
+    "delivery": {"delivery", "dispatch", "expedition", "shipment", "shipments"},
+    "supplier": {"fournisseur", "fournisseurs", "supplier", "suppliers", "vendor", "vendors"},
+}
+
+_SEMANTIC_CANONICAL = {
+    variant: canonical
+    for canonical, variants in _SEMANTIC_GROUPS.items()
+    for variant in variants | {canonical}
+}
+
+_TOKEN_EXPANSIONS = {
+    "bms": ("building", "management", "system"),
+    "gtb": ("building", "management", "system"),
+    "hvac": ("heating", "ventilation", "air", "conditioning"),
+    "cvc": ("heating", "ventilation", "air", "conditioning"),
+    "vfd": ("variable", "frequency", "drive"),
+    "vsd": ("variable", "frequency", "drive"),
+}
+
+_MATCH_STOPWORDS = {
+    "a", "afin", "and", "au", "aux", "avec", "can", "could", "d", "de", "des",
+    "do", "du", "elle", "en", "est", "et", "for", "from", "il", "in", "la", "le",
+    "les", "of", "on", "ou", "par", "peut", "peuvent", "please", "pour", "provide",
+    "pouvez", "quelle", "quelles", "quel", "quels", "sur", "the", "this", "to", "un",
+    "une", "vous", "what", "which", "with",
 }
 
 
@@ -472,6 +590,37 @@ def validate_request_batch(payload: dict[str, Any]) -> None:
         identifiers.add(request["request_id"])
 
 
+def _stem_unmapped_token(token: str) -> str:
+    if len(token) > 5 and token.endswith("ies"):
+        return token[:-3] + "y"
+    if len(token) > 4 and token.endswith("ed"):
+        return token[:-2]
+    if len(token) > 4 and token.endswith("s") and not token.endswith("ss"):
+        return token[:-1]
+    return token
+
+
+def _semantic_tokens(value: str) -> frozenset[str]:
+    tokens: set[str] = set()
+    for raw in _normalise_text(value).split():
+        if raw in _MATCH_STOPWORDS:
+            continue
+        expanded = _TOKEN_EXPANSIONS.get(raw, (raw,))
+        for item in expanded:
+            if item in _MATCH_STOPWORDS:
+                continue
+            stemmed = _stem_unmapped_token(item)
+            canonical = _SEMANTIC_CANONICAL.get(item) or _SEMANTIC_CANONICAL.get(stemmed)
+            tokens.add(canonical or stemmed)
+    return frozenset(tokens)
+
+
+def _token_coverage(required: frozenset[str], evidence: frozenset[str]) -> float:
+    if not required:
+        return 0.0
+    return len(required & evidence) / len(required)
+
+
 def _request_is_vague(request: dict[str, Any]) -> bool:
     normalized = _normalise_text(request["question"])
     vague = {
@@ -481,22 +630,203 @@ def _request_is_vague(request: dict[str, Any]) -> bool:
         "des donnees complementaires",
         "plus d informations",
     }
-    return normalized in vague or len(normalized.split()) < 5
+    if normalized in vague:
+        return True
+    question_tokens = _semantic_tokens(request["question"])
+    declared_tokens = frozenset().union(
+        *(_semantic_tokens(item) for item in request["requested_concepts"])
+    )
+    return len(question_tokens) <= 1 and len(declared_tokens) <= 1
 
 
-def _oracle_match_score(request: dict[str, Any], entry: dict[str, Any]) -> int | None:
+def _safe_oracle_descriptor(entry: Mapping[str, Any]) -> dict[str, Any]:
+    """Projection autorisée pour le matching; exclut réponse, disponibilité et payloads."""
+
+    return {
+        "oracle_id": entry["oracle_id"],
+        "accepted_concepts": list(entry["accepted_concepts"]),
+        "question_terms": list(entry["question_terms"]),
+        "minimum_term_matches": int(entry.get("minimum_term_matches", 1)),
+    }
+
+
+def _oracle_candidate_score(
+    request: Mapping[str, Any], descriptor: Mapping[str, Any]
+) -> dict[str, Any]:
+    question_tokens = _semantic_tokens(str(request["question"]))
+    declared_tokens = frozenset().union(
+        *(_semantic_tokens(str(item)) for item in request["requested_concepts"])
+    )
+    request_evidence = question_tokens | declared_tokens
+    accepted_token_sets = [
+        _semantic_tokens(str(item)) for item in descriptor["accepted_concepts"]
+    ]
+    concept_coverage = max(
+        (_token_coverage(tokens, request_evidence) for tokens in accepted_token_sets),
+        default=0.0,
+    )
+
+    term_coverages = [
+        _token_coverage(_semantic_tokens(str(term)), question_tokens)
+        for term in descriptor["question_terms"]
+    ]
+    term_matches = sum(coverage >= 0.75 for coverage in term_coverages)
+    minimum = int(descriptor["minimum_term_matches"])
+    minimum_ratio = min(1.0, term_matches / minimum)
+    term_ratio = term_matches / len(term_coverages) if term_coverages else 0.0
+    specificity = min(1.0, len(question_tokens) / 4.0)
+    score = (
+        0.55 * concept_coverage
+        + 0.30 * minimum_ratio
+        + 0.10 * term_ratio
+        + 0.05 * specificity
+    )
+    auto_eligible = concept_coverage >= 0.75 and term_matches >= minimum
+    review_eligible = (
+        concept_coverage >= 0.50
+        and term_matches >= max(1, minimum - 1)
+        and score >= ORACLE_BLIND_REVIEW_THRESHOLD
+    )
+    return {
+        "oracle_id": descriptor["oracle_id"],
+        "score": round(score, 6),
+        "concept_coverage": round(concept_coverage, 6),
+        "term_matches": term_matches,
+        "required_term_matches": minimum,
+        "term_ratio": round(term_ratio, 6),
+        "auto_eligible": auto_eligible,
+        "review_eligible": review_eligible,
+    }
+
+
+def oracle_match_decision(
+    request: dict[str, Any], entries: Sequence[Mapping[str, Any]]
+) -> dict[str, Any]:
+    """Décide sans jamais consulter une réponse ou un payload oracle."""
+
     if _request_is_vague(request):
-        return None
-    requested = {_normalise_text(item) for item in request["requested_concepts"]}
-    accepted = {_normalise_text(item) for item in entry["accepted_concepts"]}
-    concept_matches = requested & accepted
-    if not concept_matches:
-        return None
-    question = _normalise_text(request["question"])
-    term_matches = sum(_normalise_text(term) in question for term in entry["question_terms"])
-    if term_matches < entry.get("minimum_term_matches", 1):
-        return None
-    return 10 * len(concept_matches) + term_matches
+        return {
+            "matcher_version": ORACLE_MATCHER_VERSION,
+            "status": "NO_MATCH",
+            "reason": "generic_or_underspecified_request",
+            "selected_oracle_id": None,
+            "candidates": [],
+        }
+    descriptors = [_safe_oracle_descriptor(entry) for entry in entries]
+    candidates = [
+        _oracle_candidate_score(request, descriptor) for descriptor in descriptors
+    ]
+    candidates = [item for item in candidates if item["review_eligible"]]
+    candidates.sort(key=lambda item: (-float(item["score"]), str(item["oracle_id"])))
+    if not candidates:
+        return {
+            "matcher_version": ORACLE_MATCHER_VERSION,
+            "status": "NO_MATCH",
+            "reason": "insufficient_concept_or_term_evidence",
+            "selected_oracle_id": None,
+            "candidates": [],
+        }
+    best = candidates[0]
+    runner_up_score = float(candidates[1]["score"]) if len(candidates) > 1 else 0.0
+    margin = float(best["score"]) - runner_up_score
+    if (
+        best["auto_eligible"]
+        and float(best["score"]) >= ORACLE_AUTO_MATCH_THRESHOLD
+        and (len(candidates) == 1 or margin >= ORACLE_AUTO_MATCH_MIN_MARGIN)
+    ):
+        return {
+            "matcher_version": ORACLE_MATCHER_VERSION,
+            "status": "MATCHED",
+            "reason": "semantic_concept_and_terms_sufficient",
+            "selected_oracle_id": best["oracle_id"],
+            "candidates": [best],
+            "margin": round(margin, 6),
+        }
+    review_candidates = [
+        item for item in candidates
+        if float(item["score"]) >= max(
+            ORACLE_BLIND_REVIEW_THRESHOLD, float(best["score"]) - 0.15
+        )
+    ][:ORACLE_MAX_REVIEW_CANDIDATES]
+    return {
+        "matcher_version": ORACLE_MATCHER_VERSION,
+        "status": "PENDING_BLIND_ORACLE_REVIEW",
+        "reason": "borderline_or_competing_semantic_candidates",
+        "selected_oracle_id": None,
+        "candidates": review_candidates,
+        "margin": round(margin, 6),
+    }
+
+
+def evaluate_oracle_matcher_fixture(payload: Mapping[str, Any]) -> dict[str, Any]:
+    cases = payload.get("cases")
+    catalog = payload.get("entries", [])
+    if not isinstance(catalog, list):
+        raise BenchmarkError("Le catalogue matcher doit être une liste.")
+    catalog_by_id = {
+        str(entry["oracle_id"]): entry
+        for entry in catalog
+        if isinstance(entry, dict) and isinstance(entry.get("oracle_id"), str)
+    }
+    if not isinstance(cases, list) or not cases:
+        raise BenchmarkError("Le corpus matcher doit contenir une liste cases non vide.")
+    true_positives = false_positives = true_negatives = false_negatives = 0
+    pending = 0
+    outcomes: list[dict[str, Any]] = []
+    for case in cases:
+        if not isinstance(case, dict):
+            raise BenchmarkError("Chaque fixture matcher doit être un objet.")
+        request = case.get("request")
+        entries = case.get("entries")
+        if entries is None:
+            entry_ids = case.get("entry_ids")
+            if not isinstance(entry_ids, list) or any(
+                not isinstance(item, str) or item not in catalog_by_id for item in entry_ids
+            ):
+                raise BenchmarkError("Fixture matcher: entry_ids invalides.")
+            entries = [catalog_by_id[item] for item in entry_ids]
+        expected = case.get("expected_oracle_id")
+        if not isinstance(request, dict) or not isinstance(entries, list):
+            raise BenchmarkError("Fixture matcher incomplète.")
+        if expected is not None and not isinstance(expected, str):
+            raise BenchmarkError("expected_oracle_id doit être une chaîne ou null.")
+        decision = oracle_match_decision(request, entries)
+        predicted = decision["selected_oracle_id"] if decision["status"] == "MATCHED" else None
+        if decision["status"] == "PENDING_BLIND_ORACLE_REVIEW":
+            pending += 1
+        if expected is None:
+            if predicted is None:
+                true_negatives += 1
+            else:
+                false_positives += 1
+        elif predicted == expected:
+            true_positives += 1
+        else:
+            false_negatives += 1
+            if predicted is not None:
+                false_positives += 1
+        outcomes.append({
+            "fixture_id": case.get("fixture_id"),
+            "expected_oracle_id": expected,
+            "status": decision["status"],
+            "selected_oracle_id": predicted,
+        })
+    precision_denominator = true_positives + false_positives
+    recall_denominator = true_positives + false_negatives
+    precision = true_positives / precision_denominator if precision_denominator else 1.0
+    recall = true_positives / recall_denominator if recall_denominator else 1.0
+    return {
+        "matcher_version": ORACLE_MATCHER_VERSION,
+        "fixtures": len(cases),
+        "true_positives": true_positives,
+        "false_positives": false_positives,
+        "true_negatives": true_negatives,
+        "false_negatives": false_negatives,
+        "pending_blind_review": pending,
+        "precision": round(precision, 6),
+        "recall": round(recall, 6),
+        "outcomes": outcomes,
+    }
 
 
 def _event_hash(event: dict[str, Any]) -> str:
@@ -572,6 +902,11 @@ def _write_participant_context(participant: Path, manifest: dict[str, Any]) -> N
         "accessible_files": accessible,
         "distinct_requests_so_far": len(manifest["distinct_request_ids"]),
         "oracle_cost_so_far": manifest["oracle_cost_total"],
+        "oracle_matcher_version": manifest.get("oracle_matcher_version", "exact-v1"),
+        "pending_blind_oracle_reviews": len(
+            manifest.get("pending_blind_oracle_reviews", [])
+        ),
+        "blind_oracle_reviews_completed": len(manifest.get("blind_oracle_review_history", [])),
         "previous_run_outputs_available": False,
         "ground_truth_available": False,
         "scoring_available": False,
@@ -701,6 +1036,17 @@ The engine snapshot and authorized evidence are sealed and will be verified at f
         "distinct_request_ids": [],
         "revealed_oracle_ids": [],
         "oracle_cost_total": 0,
+        "oracle_matcher_version": ORACLE_MATCHER_VERSION,
+        "oracle_matcher_config": {
+            "auto_match_threshold": ORACLE_AUTO_MATCH_THRESHOLD,
+            "blind_review_threshold": ORACLE_BLIND_REVIEW_THRESHOLD,
+            "auto_match_min_margin": ORACLE_AUTO_MATCH_MIN_MARGIN,
+            "max_review_candidates": ORACLE_MAX_REVIEW_CANDIDATES,
+        },
+        "pending_blind_oracle_reviews": [],
+        "blind_oracle_review_history": [],
+        "automatic_match_count": 0,
+        "automatic_no_match_count": 0,
         "response": None,
         "previous_run_outputs_copied": False,
         "ground_truth_read_by_runner": False,
@@ -714,6 +1060,8 @@ The engine snapshot and authorized evidence are sealed and will be verified at f
             "internet_allowed", "allowed_references", "initial_pack_commitment_sha256",
             "oracle_commitment_sha256", "ground_truth_commitment_sha256",
             "engine_commitment_sha256",
+            "oracle_matcher_version",
+            "oracle_matcher_config",
         )
     }
     reproduction["initial_accessible_files"] = list(accessible_files)
@@ -729,6 +1077,169 @@ The engine snapshot and authorized evidence are sealed and will be verified at f
     })
     _write_participant_context(participant, manifest)
     return run_root
+
+
+def _upsert_accessible_record(
+    manifest: dict[str, Any], path: Path, participant: Path
+) -> None:
+    record = _participant_record(path, participant)
+    for index, existing in enumerate(manifest["accessible_files"]):
+        if existing["participant_path"] == record["participant_path"]:
+            manifest["accessible_files"][index] = record
+            return
+    manifest["accessible_files"].append(record)
+
+
+def _reveal_selected_entry(
+    *,
+    participant: Path,
+    manifest: dict[str, Any],
+    case_root: Path,
+    cycle_directory: Path,
+    request_id: str,
+    selected: Mapping[str, Any],
+    match_source: str,
+) -> dict[str, Any]:
+    oracle_id = str(selected["oracle_id"])
+    destination = cycle_directory / oracle_id
+    destination.mkdir(parents=True, exist_ok=False)
+    payload_destinations: list[str] = []
+    if selected["availability"] == "available":
+        for index, relative in enumerate(selected.get("payload_files", []), start=1):
+            source = case_root / "followup_oracle" / str(relative)
+            _assert_within(source, case_root / "followup_oracle", label="Payload oracle")
+            if source.is_symlink() or not source.is_file():
+                raise BenchmarkIntegrityError(f"Payload oracle invalide: {relative}.")
+            suffix = source.suffix if re.fullmatch(r"\.[A-Za-z0-9]{1,10}", source.suffix) else ""
+            target = destination / f"payload_{index:03d}{suffix}"
+            shutil.copyfile(source, target)
+            os.chmod(target, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+            payload_destinations.append(target.relative_to(participant).as_posix())
+            _upsert_accessible_record(manifest, target, participant)
+    response = {
+        "schema_version": SCHEMA_VERSION,
+        "request_id": request_id,
+        "availability": selected["availability"],
+        "response": selected["response"],
+        "responder_role": selected["responder_role"],
+        "oracle_cost": selected["cost"],
+        "payload_files": payload_destinations,
+    }
+    response_path = destination / "response.json"
+    _write_json(response_path, response)
+    os.chmod(response_path, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+    _upsert_accessible_record(manifest, response_path, participant)
+    return {
+        "request_id": request_id,
+        "status": "MATCHED",
+        "matched": True,
+        "match_source": match_source,
+        "availability": selected["availability"],
+        "oracle_cost": selected["cost"],
+        "revealed_response": response_path.relative_to(participant).as_posix(),
+        "payload_files": payload_destinations,
+    }
+
+
+def _create_blind_review_packet(
+    *,
+    private: Path,
+    manifest: dict[str, Any],
+    cycle: int,
+    request: Mapping[str, Any],
+    decision: Mapping[str, Any],
+    entries: Sequence[Mapping[str, Any]],
+) -> str:
+    review_id = f"review_{uuid.uuid4().hex[:16]}"
+    entry_by_id = {str(entry["oracle_id"]): entry for entry in entries}
+    candidate_ids = [str(item["oracle_id"]) for item in decision["candidates"]]
+    packet = {
+        "schema_version": SCHEMA_VERSION,
+        "review_id": review_id,
+        "run_id": manifest["run_id"],
+        "cycle": cycle,
+        "request_id": request["request_id"],
+        "participant_request": {
+            "question": request["question"],
+            "requested_concepts": list(request["requested_concepts"]),
+            "why": request["why"],
+            "hypotheses_distinguished": list(request["hypotheses_distinguished"]),
+        },
+        "candidates": [
+            {
+                "oracle_id": oracle_id,
+                "abstract_information_types": list(
+                    entry_by_id[oracle_id]["accepted_concepts"]
+                ),
+            }
+            for oracle_id in candidate_ids
+        ],
+        "review_question": (
+            "Cette demande correspond-elle à exactement une catégorie d'information "
+            "disponible, sans consulter la réponse ou ses payloads ?"
+        ),
+        "matcher_version": ORACLE_MATCHER_VERSION,
+        "created_at_utc": _utc_now(),
+    }
+    packet_path = private / "blind_reviews" / "pending" / f"{review_id}.json"
+    _write_json(packet_path, packet)
+    manifest["pending_blind_oracle_reviews"].append({
+        "review_id": review_id,
+        "cycle": cycle,
+        "request_id": request["request_id"],
+        "candidate_oracle_ids": candidate_ids,
+        "packet_path": packet_path.relative_to(private).as_posix(),
+        "packet_sha256": sha256_file(packet_path),
+        "created_at_utc": packet["created_at_utc"],
+    })
+    return review_id
+
+
+def list_pending_blind_oracle_reviews(
+    run_directory: str | Path,
+) -> dict[str, Any]:
+    """Sortie privée réservée à un opérateur indépendant, jamais au participant."""
+
+    _, _, private = _run_roots(run_directory)
+    manifest = _read_json(private / "run_manifest.json")
+    reviews = []
+    for pending in manifest.get("pending_blind_oracle_reviews", []):
+        packet = _read_json(private / pending["packet_path"])
+        if sha256_file(private / pending["packet_path"]) != pending["packet_sha256"]:
+            raise BenchmarkIntegrityError("Paquet de revue aveugle modifié.")
+        reviews.append(packet)
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "run_id": manifest["run_id"],
+        "pending_reviews": reviews,
+        "operator_only": True,
+    }
+
+
+def validate_blind_oracle_review(payload: Mapping[str, Any]) -> None:
+    _require_exact_keys(
+        payload,
+        {
+            "schema_version", "review_id", "reviewer_id", "reviewer_independent",
+            "decision", "oracle_id", "justification",
+        },
+        label="Décision de revue aveugle",
+    )
+    if payload.get("schema_version") != SCHEMA_VERSION:
+        raise BenchmarkError("Version de revue aveugle inconnue.")
+    _validate_opaque_identifier(payload.get("review_id"), field="review_id")
+    _validate_opaque_identifier(payload.get("reviewer_id"), field="reviewer_id")
+    if payload.get("reviewer_independent") is not True:
+        raise BenchmarkError("La revue doit être effectuée par un opérateur indépendant.")
+    if payload.get("decision") not in BLIND_REVIEW_DECISIONS:
+        raise BenchmarkError("Décision de revue aveugle inconnue.")
+    if not isinstance(payload.get("justification"), str) or not payload["justification"].strip():
+        raise BenchmarkError("La justification de revue est obligatoire.")
+    oracle_id = payload.get("oracle_id")
+    if payload["decision"] == "MATCH":
+        _validate_opaque_identifier(oracle_id, field="oracle_id")
+    elif oracle_id is not None:
+        raise BenchmarkError("oracle_id doit être null pour une décision NO_MATCH.")
 
 
 def reveal_followups(
@@ -751,6 +1262,8 @@ def reveal_followups(
         raise BenchmarkIntegrityError("L'oracle a changé depuis la préparation du run.")
     if manifest["status"] not in {"prepared", "questions_revealed"}:
         raise BenchmarkError("Ce run n'accepte plus de cycle de questions.")
+    if manifest.get("pending_blind_oracle_reviews"):
+        raise BenchmarkError("Une revue aveugle doit être résolue avant un nouveau cycle.")
     cycle = len(manifest["question_cycles"]) + 1
     if cycle > manifest["max_question_cycles"]:
         raise BenchmarkError("Nombre maximal de cycles de questions atteint.")
@@ -772,94 +1285,77 @@ def reveal_followups(
     newly_revealed: list[str] = []
     cycle_cost = 0
     entries = [entry for entry in oracle["entries"] if entry["oracle_id"] not in revealed_ids]
+    private_match_records: list[dict[str, Any]] = []
     for request in requests["requests"]:
-        scores = [
-            (_oracle_match_score(request, entry), entry)
-            for entry in entries
-        ]
-        matching = [(score, entry) for score, entry in scores if score is not None]
-        matching.sort(key=lambda item: (-int(item[0]), item[1]["oracle_id"]))
-        selected = None
-        reason = "no_sufficiently_targeted_followup"
-        if matching:
-            best_score = matching[0][0]
-            tied = [entry for score, entry in matching if score == best_score]
-            if len(tied) == 1:
-                selected = tied[0]
-            else:
-                reason = "ambiguous_oracle_match_no_reveal"
-        if selected is None:
-            results.append({
+        decision = oracle_match_decision(request, entries)
+        status = decision["status"]
+        review_id = None
+        if status == "MATCHED":
+            oracle_id = str(decision["selected_oracle_id"])
+            selected = next(entry for entry in entries if entry["oracle_id"] == oracle_id)
+            result = _reveal_selected_entry(
+                participant=participant,
+                manifest=manifest,
+                case_root=case_root,
+                cycle_directory=cycle_directory,
+                request_id=request["request_id"],
+                selected=selected,
+                match_source="automatic_semantic_match",
+            )
+            newly_revealed.append(oracle_id)
+            revealed_ids.add(oracle_id)
+            entries = [entry for entry in entries if entry["oracle_id"] != oracle_id]
+            cycle_cost += int(selected["cost"])
+            manifest["automatic_match_count"] += 1
+        elif status == "PENDING_BLIND_ORACLE_REVIEW":
+            review_id = _create_blind_review_packet(
+                private=private,
+                manifest=manifest,
+                cycle=cycle,
+                request=request,
+                decision=decision,
+                entries=entries,
+            )
+            result = {
                 "request_id": request["request_id"],
+                "status": "PENDING_BLIND_ORACLE_REVIEW",
                 "matched": False,
-                "reason": reason,
-            })
-            continue
-        oracle_id = selected["oracle_id"]
-        destination = cycle_directory / oracle_id
-        destination.mkdir(parents=True, exist_ok=False)
-        payload_destinations: list[str] = []
-        if selected["availability"] == "available":
-            for index, relative in enumerate(selected.get("payload_files", []), start=1):
-                source = case_root / "followup_oracle" / relative
-                _assert_within(source, case_root / "followup_oracle", label="Payload oracle")
-                if source.is_symlink() or not source.is_file():
-                    raise BenchmarkIntegrityError(f"Payload oracle invalide: {relative}.")
-                suffix = source.suffix if re.fullmatch(r"\.[A-Za-z0-9]{1,10}", source.suffix) else ""
-                target = destination / f"payload_{index:03d}{suffix}"
-                shutil.copyfile(source, target)
-                os.chmod(target, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
-                payload_destinations.append(target.relative_to(participant).as_posix())
-                manifest["accessible_files"].append(_participant_record(target, participant))
-        response = {
-            "schema_version": SCHEMA_VERSION,
+                "reason": "independent_review_required",
+            }
+        else:
+            result = {
+                "request_id": request["request_id"],
+                "status": "NO_MATCH",
+                "matched": False,
+                "reason": "no_sufficient_match",
+            }
+            manifest["automatic_no_match_count"] += 1
+        results.append(result)
+        private_match_records.append({
             "request_id": request["request_id"],
-            "availability": selected["availability"],
-            "response": selected["response"],
-            "responder_role": selected["responder_role"],
-            "oracle_cost": selected["cost"],
-            "payload_files": payload_destinations,
-        }
-        response_path = destination / "response.json"
-        _write_json(response_path, response)
-        os.chmod(response_path, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
-        manifest["accessible_files"].append(_participant_record(response_path, participant))
-        newly_revealed.append(oracle_id)
-        revealed_ids.add(oracle_id)
-        entries = [entry for entry in entries if entry["oracle_id"] != oracle_id]
-        cycle_cost += selected["cost"]
-        results.append({
-            "request_id": request["request_id"],
-            "matched": True,
-            "availability": selected["availability"],
-            "oracle_cost": selected["cost"],
-            "revealed_response": response_path.relative_to(participant).as_posix(),
-            "payload_files": payload_destinations,
+            "request_sha256": sha256_bytes(_canonical_json(request)),
+            "status": status,
+            "matched": result["matched"],
+            "matcher_reason": decision["reason"],
+            "matcher_candidates": decision["candidates"],
+            "review_id": review_id,
         })
 
     public_result = {
         "schema_version": SCHEMA_VERSION,
         "cycle": cycle,
+        "matcher_version": ORACLE_MATCHER_VERSION,
         "results": results,
         "cycle_oracle_cost": cycle_cost,
     }
-    _write_json(cycle_directory / "request_results.json", public_result)
-    manifest["accessible_files"].append(
-        _participant_record(cycle_directory / "request_results.json", participant)
-    )
-    request_records = [
-        {
-            "request_id": request["request_id"],
-            "request_sha256": sha256_bytes(_canonical_json(request)),
-            "matched": next(item["matched"] for item in results if item["request_id"] == request["request_id"]),
-        }
-        for request in requests["requests"]
-    ]
+    public_path = cycle_directory / "request_results.json"
+    _write_json(public_path, public_result)
+    _upsert_accessible_record(manifest, public_path, participant)
     manifest["question_cycles"].append({
         "cycle": cycle,
         "requests_sha256": requests_sha256,
         "private_requests_path": private_request_relative,
-        "requests": request_records,
+        "requests": private_match_records,
         "revealed_oracle_ids": newly_revealed,
         "oracle_cost": cycle_cost,
         "completed_at_utc": _utc_now(),
@@ -871,14 +1367,157 @@ def reveal_followups(
     _write_json(manifest_path, manifest)
     _append_event(private, "reveal_followups", {
         "cycle": cycle,
+        "matcher_version": ORACLE_MATCHER_VERSION,
         "requests_sha256": requests_sha256,
         "private_requests_path": private_request_relative,
-        "request_results": request_records,
+        "request_results": private_match_records,
         "revealed_oracle_ids": newly_revealed,
         "oracle_cost": cycle_cost,
+        "ground_truth_read": False,
+        "oracle_payload_read_for_matching": False,
     })
     _write_participant_context(participant, manifest)
     return public_result
+
+
+def apply_blind_oracle_review(
+    run_directory: str | Path,
+    case_directory: str | Path,
+    decision_path: str | Path,
+) -> dict[str, Any]:
+    run_root, participant, private = _run_roots(run_directory)
+    decision_target = Path(decision_path).resolve()
+    if decision_target == participant or participant in decision_target.parents:
+        raise BenchmarkIntegrityError("La décision de revue ne peut pas venir du participant.")
+    decision = _read_json(decision_target)
+    validate_blind_oracle_review(decision)
+    manifest_path = private / "run_manifest.json"
+    manifest = _read_json(manifest_path)
+    pending = next(
+        (
+            item for item in manifest.get("pending_blind_oracle_reviews", [])
+            if item["review_id"] == decision["review_id"]
+        ),
+        None,
+    )
+    if pending is None:
+        raise BenchmarkError("Revue aveugle absente ou déjà résolue.")
+    packet_path = private / pending["packet_path"]
+    if sha256_file(packet_path) != pending["packet_sha256"]:
+        raise BenchmarkIntegrityError("Paquet de revue aveugle modifié.")
+    case_root = Path(case_directory).resolve()
+    if case_root == run_root or case_root in run_root.parents or run_root in case_root.parents:
+        raise BenchmarkIntegrityError("Le cas privé et le run doivent rester séparés.")
+    validated = validate_case_directory(case_root)
+    case = validated["manifest"]
+    oracle = validated["oracle"]
+    if manifest["case_id"] != case["case_id"]:
+        raise BenchmarkIntegrityError("Le run ne correspond pas au cas fourni.")
+    if manifest["oracle_commitment_sha256"] != case["oracle_commitment_sha256"]:
+        raise BenchmarkIntegrityError("L'oracle a changé depuis la préparation du run.")
+
+    cycle = int(pending["cycle"])
+    request_id = str(pending["request_id"])
+    public_path = participant / "revealed" / f"cycle_{cycle:03d}" / "request_results.json"
+    public_result = _read_json(public_path)
+    public_item = next(item for item in public_result["results"] if item["request_id"] == request_id)
+    revealed_id = None
+    cost = 0
+    if decision["decision"] == "MATCH":
+        oracle_id = str(decision["oracle_id"])
+        if oracle_id not in pending["candidate_oracle_ids"]:
+            raise BenchmarkIntegrityError("La revue tente de sélectionner une entrée hors candidats.")
+        if oracle_id in manifest["revealed_oracle_ids"]:
+            raise BenchmarkError("Cette entrée oracle est déjà révélée.")
+        selected = next(
+            (entry for entry in oracle["entries"] if entry["oracle_id"] == oracle_id),
+            None,
+        )
+        if selected is None:
+            raise BenchmarkIntegrityError("Entrée oracle revue absente.")
+        replacement = _reveal_selected_entry(
+            participant=participant,
+            manifest=manifest,
+            case_root=case_root,
+            cycle_directory=public_path.parent,
+            request_id=request_id,
+            selected=selected,
+            match_source="independent_blind_review",
+        )
+        public_item.clear()
+        public_item.update(replacement)
+        revealed_id = oracle_id
+        cost = int(selected["cost"])
+        manifest["revealed_oracle_ids"].append(oracle_id)
+        manifest["oracle_cost_total"] += cost
+    else:
+        public_item.clear()
+        public_item.update({
+            "request_id": request_id,
+            "status": "NO_MATCH",
+            "matched": False,
+            "reason": "independent_blind_review_no_match",
+        })
+    public_result["cycle_oracle_cost"] = int(public_result["cycle_oracle_cost"]) + cost
+    _write_json(public_path, public_result)
+    _upsert_accessible_record(manifest, public_path, participant)
+
+    cycle_record = next(item for item in manifest["question_cycles"] if item["cycle"] == cycle)
+    request_record = next(item for item in cycle_record["requests"] if item["request_id"] == request_id)
+    request_record["status"] = "MATCHED" if revealed_id else "NO_MATCH"
+    request_record["matched"] = bool(revealed_id)
+    request_record["blind_review_decision"] = decision["decision"]
+    request_record["blind_reviewer_id"] = decision["reviewer_id"]
+    cycle_record["oracle_cost"] = int(cycle_record["oracle_cost"]) + cost
+    if revealed_id:
+        cycle_record["revealed_oracle_ids"].append(revealed_id)
+    manifest["pending_blind_oracle_reviews"] = [
+        item for item in manifest["pending_blind_oracle_reviews"]
+        if item["review_id"] != decision["review_id"]
+    ]
+    decision_copy = private / "blind_reviews" / "decisions" / f"{decision['review_id']}.json"
+    decision_copy.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(decision_target, decision_copy)
+    os.chmod(decision_copy, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+    decision_hash = sha256_file(decision_copy)
+    resolved_at = _utc_now()
+    base_history = {
+        "review_id": decision["review_id"],
+        "request_id": request_id,
+        "cycle": cycle,
+        "reviewer_id": decision["reviewer_id"],
+        "decision": decision["decision"],
+        "selected_oracle_id": revealed_id,
+        "decision_sha256": decision_hash,
+        "decision_path": decision_copy.relative_to(private).as_posix(),
+        "packet_sha256": pending["packet_sha256"],
+        "packet_path": pending["packet_path"],
+        "resolved_at_utc": resolved_at,
+    }
+    resolved_path = private / "blind_reviews" / "resolved" / f"{decision['review_id']}.json"
+    _write_json(resolved_path, {**base_history, "justification": decision["justification"]})
+    history = {
+        **base_history,
+        "resolved_record_path": resolved_path.relative_to(private).as_posix(),
+        "resolved_record_sha256": sha256_file(resolved_path),
+    }
+    manifest["blind_oracle_review_history"].append(history)
+    _write_json(manifest_path, manifest)
+    _append_event(private, "resolve_blind_oracle_review", {
+        **history,
+        "oracle_cost": cost,
+        "ground_truth_read": False,
+        "oracle_payload_read_by_reviewer": False,
+    })
+    _write_participant_context(participant, manifest)
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "review_id": decision["review_id"],
+        "request_id": request_id,
+        "status": "MATCHED" if revealed_id else "NO_MATCH",
+        "matched": bool(revealed_id),
+        "oracle_cost": cost,
+    }
 
 
 def _require_string(payload: Mapping[str, Any], field: str, *, allow_empty: bool = False) -> str:
@@ -1051,6 +1690,49 @@ def _scan_participant_paths(participant: Path) -> None:
             raise BenchmarkIntegrityError(f"Lien symbolique interdit dans le run: {path}.")
 
 
+def _verify_blind_review_records(private: Path, manifest: Mapping[str, Any]) -> None:
+    for pending in manifest.get("pending_blind_oracle_reviews", []):
+        packet_path = _assert_within(
+            private / pending["packet_path"], private, label="Paquet de revue"
+        )
+        if packet_path.is_symlink() or not packet_path.is_file():
+            raise BenchmarkIntegrityError("Paquet de revue aveugle absent.")
+        if sha256_file(packet_path) != pending["packet_sha256"]:
+            raise BenchmarkIntegrityError("Paquet de revue aveugle modifié.")
+        packet = _read_json(packet_path)
+        if packet.get("review_id") != pending["review_id"]:
+            raise BenchmarkIntegrityError("Identifiant de paquet de revue incohérent.")
+    for history in manifest.get("blind_oracle_review_history", []):
+        protected = (
+            ("packet_path", "packet_sha256", "paquet"),
+            ("decision_path", "decision_sha256", "décision"),
+            ("resolved_record_path", "resolved_record_sha256", "résolution"),
+        )
+        for path_field, hash_field, label in protected:
+            target = _assert_within(
+                private / history[path_field], private, label=f"Trace de {label}"
+            )
+            if target.is_symlink() or not target.is_file():
+                raise BenchmarkIntegrityError(f"Trace de {label} aveugle absente.")
+            if sha256_file(target) != history[hash_field]:
+                raise BenchmarkIntegrityError(f"Trace de {label} aveugle modifiée.")
+        decision = _read_json(private / history["decision_path"])
+        validate_blind_oracle_review(decision)
+        if (
+            decision["review_id"] != history["review_id"]
+            or decision["reviewer_id"] != history["reviewer_id"]
+            or decision["decision"] != history["decision"]
+        ):
+            raise BenchmarkIntegrityError("Décision de revue incohérente avec le manifeste.")
+        resolved = _read_json(private / history["resolved_record_path"])
+        if (
+            resolved.get("review_id") != history["review_id"]
+            or resolved.get("decision") != history["decision"]
+            or resolved.get("selected_oracle_id") != history["selected_oracle_id"]
+        ):
+            raise BenchmarkIntegrityError("Résolution aveugle incohérente avec le manifeste.")
+
+
 def verify_run_integrity(
     run_directory: str | Path,
     *,
@@ -1061,6 +1743,7 @@ def verify_run_integrity(
     _scan_participant_paths(participant)
     _verify_engine(participant, manifest)
     _verify_records(participant, manifest["accessible_files"])
+    _verify_blind_review_records(private, manifest)
     log = verify_event_log(private / "events.jsonl")
     if manifest["stage"] == "HOLDOUT":
         repository_root = Path(
@@ -1088,6 +1771,8 @@ def finalize_run(
     manifest_path = private / "run_manifest.json"
     manifest = _read_json(manifest_path)
     response_target = Path(response_path)
+    if manifest.get("pending_blind_oracle_reviews"):
+        raise BenchmarkError("Toutes les revues aveugles doivent être résolues avant finalisation.")
     _assert_within(response_target, participant / "output", label="Réponse finale")
     if response_target.resolve() != (participant / "output" / "response.json").resolve():
         raise BenchmarkIntegrityError("La réponse finale doit être output/response.json.")
@@ -1132,6 +1817,19 @@ def finalize_run(
         "distinct_requests": len(manifest["distinct_request_ids"]),
         "oracle_cost_total": manifest["oracle_cost_total"],
         "duration_seconds": duration_seconds,
+        "oracle_matcher_version": manifest.get("oracle_matcher_version", "exact-v1"),
+        "followups_revealed": len(manifest["revealed_oracle_ids"]),
+        "automatic_matches": manifest.get("automatic_match_count", 0),
+        "automatic_no_matches": manifest.get("automatic_no_match_count", 0),
+        "blind_reviews": len(manifest.get("blind_oracle_review_history", [])),
+        "blind_review_matches": sum(
+            item.get("decision") == "MATCH"
+            for item in manifest.get("blind_oracle_review_history", [])
+        ),
+        "final_no_matches": sum(
+            request.get("status") == "NO_MATCH"
+            for cycle in manifest["question_cycles"] for request in cycle["requests"]
+        ),
         "critical_fail_assessed": False,
         "score_available_to_participant": False,
         "integrity": integrity,
