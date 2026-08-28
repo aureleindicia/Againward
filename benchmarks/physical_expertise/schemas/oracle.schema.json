@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://energy-analyzer.local/schemas/physical-expertise-oracle-v1.json",
+  "title": "Physical Expertise Benchmark follow-up oracle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "case_id", "entries"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "case_id": {"type": "string"},
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "oracle_id", "accepted_concepts", "question_terms", "minimum_term_matches",
+          "availability", "cost", "response", "responder_role", "payload_files"
+        ],
+        "properties": {
+          "oracle_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{2,79}$"},
+          "accepted_concepts": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "question_terms": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "minimum_term_matches": {"type": "integer", "minimum": 1},
+          "availability": {"enum": ["available", "unavailable"]},
+          "cost": {"enum": [0, 1, 2, 3, 5]},
+          "response": {"type": "string", "minLength": 1},
+          "responder_role": {"type": "string", "minLength": 1},
+          "payload_files": {
+            "type": "array",
+            "items": {"type": "string", "pattern": "^payloads/payload_[0-9]{3}(\\.[A-Za-z0-9]{1,10})?$"},
+            "uniqueItems": true
+          }
+        }
+      }
+    }
+  }
+}

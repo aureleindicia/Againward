@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "requests": [
+    {
+      "request_id": "request_001",
+      "question": "Question précise à poser au client ?",
+      "requested_concepts": ["neutral_concept_key"],
+      "best_responder": "fonction client pertinente",
+      "why": "utilité exacte de l'information",
+      "hypotheses_distinguished": ["hypothèse A", "hypothèse B"],
+      "expected_effort": "moins de 15 minutes"
+    }
+  ]
+}

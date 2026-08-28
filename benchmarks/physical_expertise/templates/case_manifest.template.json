@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "case_id": "case_opaque_id",
+  "case_revision": 1,
+  "stage": "DEV",
+  "track": "CONTROLLED_OPEN_BOOK",
+  "difficulty": "D1",
+  "truth_level": "SYNTHETIC",
+  "sector": "sector_label",
+  "initial_pack_commitment_sha256": "REPLACE_WITH_SHA256",
+  "oracle_commitment_sha256": "REPLACE_WITH_SHA256",
+  "ground_truth_commitment_sha256": "REPLACE_WITH_SHA256",
+  "max_question_cycles": 3,
+  "efficiency_penalty_after_requests": 5,
+  "allowed_references": []
+}

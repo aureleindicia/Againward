@@ -17,3 +17,11 @@ workspaces/*/human_review.json
 workspace/*/input/
 workspace/*/processed/
 workspace/*/outputs/
+
+# Physical expertise benchmark: private cases and run artefacts never enter Git.
+benchmarks/physical_expertise/cases/DEV/*
+!benchmarks/physical_expertise/cases/DEV/.gitkeep
+benchmarks/physical_expertise/cases/HOLDOUT/*
+!benchmarks/physical_expertise/cases/HOLDOUT/.gitkeep
+benchmarks/physical_expertise/runs/*
+!benchmarks/physical_expertise/runs/.gitkeep
