@@ -159,3 +159,17 @@ ne doit pas convertir cette impossibilité en faible confiance sur une cause dev
 - aucune règle ne choisit une cause à la place de Codex ;
 - aucun identifiant, timestamp, valeur, machine ou réponse DEV n'entre dans le moteur ;
 - le tag, le commit, les runs et les rapports V1 restent inchangés.
+
+
+## Garde-fou d agenticite ajoute pendant le goal
+
+Candidate V2 automatise les operations necessaires au raisonnement, jamais le
+raisonnement lui-meme. La knowledge layer reste une documentation ouverte : Codex peut
+proposer une cause, une variable ou un protocole qui n y figure pas. Les calculateurs
+retournent mesures, comparaisons, hypotheses de calcul, limites et metadonnees ; ils ne
+choisissent ni cause, ni question, ni intervention, ni decision finale. Tout ordre de
+valeur d information est consultatif, derogeable ou ignorable.
+
+La revue adversariale finale inclura un AGENTICITY AUDIT repondant explicitement aux
+cinq questions demandees. Une hausse de score obtenue par remplacement de Codex par des
+regles sera traitee comme une regression architecturale.

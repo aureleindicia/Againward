@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "family": "hvac",
+  "label": "CVC et bâtiments productifs",
+  "energy_chain": [
+    "électricité ou énergie thermique",
+    "production chaud/froid, ventilateurs, pompes, vannes et registres",
+    "chauffage, refroidissement, air neuf et circulation d'air",
+    "température, humidité, qualité d'air et conditions de travail ou procédé"
+  ],
+  "variables": {
+    "energy_input": ["énergie CVC", "puissance", "temps de marche", "énergie chauffage et refroidissement séparées"],
+    "demand": ["occupation", "production", "besoin d'air neuf", "charges internes", "conditions intérieures requises"],
+    "command": ["horaire", "consigne", "ordre vanne", "ordre registre", "demande chauffage/refroidissement"],
+    "feedback": ["température intérieure", "CO2 ou qualité d'air", "position réelle vanne/registre", "état réel ventilateur", "température soufflage"],
+    "environment": ["température extérieure", "humidité", "rayonnement", "vent"],
+    "process_output": ["confort", "température zone", "qualité d'air", "pression ou conditions de zone"]
+  },
+  "degradation_mechanisms": [
+    {
+      "mechanism": "simultanéité chauffage-refroidissement ou séquence conflictuelle",
+      "predictions": ["demandes ou états réels chaud et froid concomitants", "énergie accrue à conditions comparables"],
+      "discriminators": ["commandes et feedback chaud/froid", "températures soufflage/zone", "positions réelles des vannes"]
+    },
+    {
+      "mechanism": "registre, vanne ou actionneur ne suivant pas la commande",
+      "predictions": ["commande cohérente mais position ou température résultante incohérente", "service ou énergie persistant hors ordre"],
+      "discriminators": ["commande et position réelle", "température amont/aval", "course contrôlée par technicien"]
+    },
+    {
+      "mechanism": "horaire, relance ou consigne modifiés",
+      "predictions": ["commandes datées et énergie suivant la nouvelle fenêtre", "service pouvant être nécessaire ou excessif"],
+      "discriminators": ["historique de configuration", "états réels", "température/qualité d'air à l'heure d'occupation"]
+    },
+    {
+      "mechanism": "air neuf, filtre ou échange dégradé",
+      "predictions": ["débit/pression, position registre ou récupération changés", "besoin réglementaire à distinguer du rendement"],
+      "discriminators": ["débit air neuf", "pression différentielle", "températures de récupération", "CO2/occupation"]
+    }
+  ],
+  "legitimate_service_changes": [
+    "occupation ou horaires accrus",
+    "nouveau besoin de ventilation ou qualité d'air",
+    "météo plus sévère",
+    "nouvelle consigne qualité ou procédé",
+    "préchauffage nécessaire à une heure d'arrivée avancée"
+  ],
+  "diagnostic_paths": [
+    {
+      "observation_class": "énergie météo-normalisée en hausse",
+      "mechanisms": ["occupation ou service accru", "horaire/consigne", "simultanéité chaud-froid", "actionneur ou échange dégradé", "charge non CVC"],
+      "predictions": ["une demande légitime suit occupation, air neuf ou conditions requises", "une séquence conflictuelle exige commandes et états simultanés", "une programmation correcte ne prouve pas la position physique"],
+      "discriminating_measurements": ["occupation-air neuf-qualité d'air", "commandes et feedback vannes/registres", "températures zone/soufflage et énergie séparée"] ,
+      "interpretation_limits": ["météo et compteur général ne prouvent pas une cause CVC", "un résidu matinal peut être un préchauffage utile"]
+    },
+    {
+      "observation_class": "marche avant occupation ou après fermeture",
+      "mechanisms": ["relance optimale nécessaire", "horaire trop large", "horloge ou changement d'heure", "actionneur restant ouvert", "besoin procédé hors occupation"],
+      "predictions": ["une relance nécessaire atteint juste les conditions au début", "une marge excessive atteint trop tôt puis maintient", "une discordance commande-feedback révèle un état physique différent"],
+      "discriminating_measurements": ["température et qualité d'air à l'arrivée", "commande/position/état réel", "essai progressif réversible avec météo comparable"] ,
+      "interpretation_limits": ["ne pas couper ventilation, antigel ou conditionnement procédé sans autorisation"]
+    }
+  ],
+  "field_tests": [
+    {
+      "test": "export court commandes et feedback avec températures, occupation et météo",
+      "effort": "faible si GTB disponible",
+      "expected_interpretation": "sépare planning, état réel, service et séquence"
+    },
+    {
+      "test": "décalage d'un seul pas de relance sur zone non critique",
+      "effort": "modéré avec automaticien et responsable bâtiment",
+      "expected_interpretation": "teste la marge sans supprimer brutalement le service"
+    }
+  ],
+  "safety": [
+    "ne pas réduire ventilation réglementaire, antigel ou conditions de zone critique",
+    "sauvegarder les réglages et confier les changements à un automaticien ou mainteneur compétent",
+    "arrêter si température, humidité, CO2, pression de zone, alarme ou procédé sort des limites"
+  ]
+}

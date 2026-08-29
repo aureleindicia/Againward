@@ -40,7 +40,7 @@ INTERVENTIONS = {
     "TECHNICIAN_INTERVENTION",
 }
 ORACLE_AVAILABILITY = {"available", "unavailable"}
-ORACLE_MATCHER_VERSION = "semantic-v2"
+ORACLE_MATCHER_VERSION = "semantic-v3-blind-fallback"
 ORACLE_MATCH_STATUSES = {
     "MATCHED",
     "NO_MATCH",
@@ -51,6 +51,7 @@ ORACLE_AUTO_MATCH_THRESHOLD = 0.82
 ORACLE_BLIND_REVIEW_THRESHOLD = 0.58
 ORACLE_AUTO_MATCH_MIN_MARGIN = 0.12
 ORACLE_MAX_REVIEW_CANDIDATES = 3
+ORACLE_MAX_FALLBACK_REVIEW_CANDIDATES = 8
 ENGINE_PATHS = (
     "energy_mvp",
     "analyze.py",
@@ -59,7 +60,9 @@ ENGINE_PATHS = (
     "create_workspace.py",
     "requirements.txt",
     "docs/ANALYSIS_TOOLS.md",
+    "docs/PHYSICAL_DIAGNOSTICS.md",
     "docs/POSITIONING.md",
+    "knowledge/physical_diagnostics",
 )
 FORBIDDEN_PARTICIPANT_PARTS = {
     "ground_truth",
@@ -626,9 +629,17 @@ def _request_is_vague(request: dict[str, Any]) -> bool:
     vague = {
         "plus de donnees",
         "envoyez plus de donnees",
+        "envoyez plus de donnees maintenant",
         "davantage de donnees",
         "des donnees complementaires",
         "plus d informations",
+        "more data",
+        "send more data",
+        "send more data now",
+        "please send more data",
+        "please send more data now",
+        "additional data",
+        "additional information",
     }
     if normalized in vague:
         return True
@@ -637,6 +648,52 @@ def _request_is_vague(request: dict[str, Any]) -> bool:
         *(_semantic_tokens(item) for item in request["requested_concepts"])
     )
     return len(question_tokens) <= 1 and len(declared_tokens) <= 1
+
+
+_PHYSICAL_REQUEST_TOKENS = frozenset({
+    "measurement", "check", "test", "meter",
+    "temperature", "weather", "setpoint", "runtime", "status",
+    "command", "pressure", "flow", "power", "energy", "current",
+    "speed", "alarm", "humidity", "valve", "heating", "cooling",
+    "ventilation", "maintenance", "equipment", "schedule", "sanitation",
+    "production", "process", "vibration", "torque", "recipe",
+    "occupancy", "feedback", "position", "cycle", "duration",
+})
+
+
+def _request_is_structured_physical_discriminator(request: Mapping[str, Any]) -> bool:
+    question = request.get("question")
+    why = request.get("why")
+    concepts = request.get("requested_concepts")
+    hypotheses = request.get("hypotheses_distinguished")
+    effort = request.get("expected_effort")
+    if (
+        not isinstance(question, str)
+        or not isinstance(why, str)
+        or not isinstance(effort, str)
+        or not isinstance(concepts, list)
+        or not concepts
+        or not isinstance(hypotheses, list)
+        or len(hypotheses) < 2
+    ):
+        return False
+    question_tokens = _semantic_tokens(question)
+    why_tokens = _semantic_tokens(why)
+    concept_tokens = frozenset().union(
+        *(_semantic_tokens(str(item)) for item in concepts)
+    )
+    hypothesis_tokens = [_semantic_tokens(str(item)) for item in hypotheses]
+    distinct_hypotheses = len({tuple(sorted(tokens)) for tokens in hypothesis_tokens}) >= 2
+    evidence = question_tokens | why_tokens | concept_tokens
+    physically_relevant = bool(evidence & _PHYSICAL_REQUEST_TOKENS)
+    return (
+        len(question_tokens) >= 3
+        and len(why_tokens) >= 3
+        and len(concept_tokens) >= 1
+        and bool(effort.strip())
+        and distinct_hypotheses
+        and physically_relevant
+    )
 
 
 def _safe_oracle_descriptor(entry: Mapping[str, Any]) -> dict[str, Any]:
@@ -700,9 +757,12 @@ def _oracle_candidate_score(
 
 
 def oracle_match_decision(
-    request: dict[str, Any], entries: Sequence[Mapping[str, Any]]
+    request: dict[str, Any],
+    entries: Sequence[Mapping[str, Any]],
+    *,
+    answered_entries: Sequence[Mapping[str, Any]] = (),
 ) -> dict[str, Any]:
-    """Décide sans jamais consulter une réponse ou un payload oracle."""
+    """Decide without answer payloads; structured physical misses require blind review."""
 
     if _request_is_vague(request):
         return {
@@ -712,49 +772,89 @@ def oracle_match_decision(
             "selected_oracle_id": None,
             "candidates": [],
         }
+
+    answered_candidates = [
+        _oracle_candidate_score(request, _safe_oracle_descriptor(entry))
+        for entry in answered_entries
+    ]
+    answered_candidates.sort(key=lambda item: (-float(item["score"]), str(item["oracle_id"])))
+    if answered_candidates:
+        answered_best = answered_candidates[0]
+        if (
+            answered_best["auto_eligible"]
+            and float(answered_best["score"]) >= ORACLE_AUTO_MATCH_THRESHOLD
+        ):
+            return {
+                "matcher_version": ORACLE_MATCHER_VERSION,
+                "status": "NO_MATCH",
+                "reason": "already_answered",
+                "selected_oracle_id": None,
+                "candidates": [],
+            }
+
     descriptors = [_safe_oracle_descriptor(entry) for entry in entries]
-    candidates = [
+    all_candidates = [
         _oracle_candidate_score(request, descriptor) for descriptor in descriptors
     ]
-    candidates = [item for item in candidates if item["review_eligible"]]
-    candidates.sort(key=lambda item: (-float(item["score"]), str(item["oracle_id"])))
-    if not candidates:
+    eligible = [item for item in all_candidates if item["review_eligible"]]
+    eligible.sort(key=lambda item: (-float(item["score"]), str(item["oracle_id"])))
+
+    if eligible:
+        best = eligible[0]
+        runner_up_score = float(eligible[1]["score"]) if len(eligible) > 1 else 0.0
+        margin = float(best["score"]) - runner_up_score
+        if (
+            best["auto_eligible"]
+            and float(best["score"]) >= ORACLE_AUTO_MATCH_THRESHOLD
+            and (len(eligible) == 1 or margin >= ORACLE_AUTO_MATCH_MIN_MARGIN)
+        ):
+            return {
+                "matcher_version": ORACLE_MATCHER_VERSION,
+                "status": "MATCHED",
+                "reason": "semantic_concept_and_terms_sufficient",
+                "selected_oracle_id": best["oracle_id"],
+                "candidates": [best],
+                "margin": round(margin, 6),
+            }
+        review_candidates = [
+            item for item in eligible
+            if float(item["score"]) >= max(
+                ORACLE_BLIND_REVIEW_THRESHOLD, float(best["score"]) - 0.15
+            )
+        ][:ORACLE_MAX_REVIEW_CANDIDATES]
         return {
             "matcher_version": ORACLE_MATCHER_VERSION,
-            "status": "NO_MATCH",
-            "reason": "insufficient_concept_or_term_evidence",
+            "status": "PENDING_BLIND_ORACLE_REVIEW",
+            "reason": "borderline_or_competing_semantic_candidates",
             "selected_oracle_id": None,
-            "candidates": [],
-        }
-    best = candidates[0]
-    runner_up_score = float(candidates[1]["score"]) if len(candidates) > 1 else 0.0
-    margin = float(best["score"]) - runner_up_score
-    if (
-        best["auto_eligible"]
-        and float(best["score"]) >= ORACLE_AUTO_MATCH_THRESHOLD
-        and (len(candidates) == 1 or margin >= ORACLE_AUTO_MATCH_MIN_MARGIN)
-    ):
-        return {
-            "matcher_version": ORACLE_MATCHER_VERSION,
-            "status": "MATCHED",
-            "reason": "semantic_concept_and_terms_sufficient",
-            "selected_oracle_id": best["oracle_id"],
-            "candidates": [best],
+            "candidates": review_candidates,
             "margin": round(margin, 6),
         }
-    review_candidates = [
-        item for item in candidates
-        if float(item["score"]) >= max(
-            ORACLE_BLIND_REVIEW_THRESHOLD, float(best["score"]) - 0.15
-        )
-    ][:ORACLE_MAX_REVIEW_CANDIDATES]
+
+    if _request_is_structured_physical_discriminator(request) and all_candidates:
+        fallback_candidates = sorted(
+            all_candidates,
+            key=lambda item: (-float(item["score"]), str(item["oracle_id"])),
+        )[:ORACLE_MAX_FALLBACK_REVIEW_CANDIDATES]
+        fallback_candidates = [
+            {**item, "fallback_blind_review": True}
+            for item in fallback_candidates
+        ]
+        return {
+            "matcher_version": ORACLE_MATCHER_VERSION,
+            "status": "PENDING_BLIND_ORACLE_REVIEW",
+            "reason": "structured_physical_request_needs_blind_review",
+            "selected_oracle_id": None,
+            "candidates": fallback_candidates,
+            "margin": None,
+        }
+
     return {
         "matcher_version": ORACLE_MATCHER_VERSION,
-        "status": "PENDING_BLIND_ORACLE_REVIEW",
-        "reason": "borderline_or_competing_semantic_candidates",
+        "status": "NO_MATCH",
+        "reason": "clearly_off_topic_or_non_discriminating",
         "selected_oracle_id": None,
-        "candidates": review_candidates,
-        "margin": round(margin, 6),
+        "candidates": [],
     }
 
 
@@ -1015,6 +1115,13 @@ The exact request and response contracts are available in `protocol/`; use their
 as the starting point and do not add fields that are absent from the schemas.
 
 
+If engine/docs/PHYSICAL_DIAGNOSTICS.md is present, use it as an open, non-exhaustive
+reasoning reference. The knowledge files do not choose causes. For each important open
+investigation, keep an internal physical differential in scratch/physical_differential.json
+covering the energy chain, service demand, command versus actual feedback, competing
+mechanisms, predictions and discriminating measurements. This is a review contract, not
+a fixed sequence: you may use an unlisted cause, tool, variable or investigation protocol.
+
 The engine snapshot and authorized evidence are sealed and will be verified at finalization.
 """
     (participant / "RUN_INSTRUCTIONS.md").write_text(instructions, encoding="utf-8")
@@ -1062,6 +1169,7 @@ The engine snapshot and authorized evidence are sealed and will be verified at f
             "blind_review_threshold": ORACLE_BLIND_REVIEW_THRESHOLD,
             "auto_match_min_margin": ORACLE_AUTO_MATCH_MIN_MARGIN,
             "max_review_candidates": ORACLE_MAX_REVIEW_CANDIDATES,
+            "max_fallback_review_candidates": ORACLE_MAX_FALLBACK_REVIEW_CANDIDATES,
         },
         "pending_blind_oracle_reviews": [],
         "blind_oracle_review_history": [],
@@ -1305,9 +1413,14 @@ def reveal_followups(
     newly_revealed: list[str] = []
     cycle_cost = 0
     entries = [entry for entry in oracle["entries"] if entry["oracle_id"] not in revealed_ids]
+    answered_entries = [
+        entry for entry in oracle["entries"] if entry["oracle_id"] in revealed_ids
+    ]
     private_match_records: list[dict[str, Any]] = []
     for request in requests["requests"]:
-        decision = oracle_match_decision(request, entries)
+        decision = oracle_match_decision(
+            request, entries, answered_entries=answered_entries
+        )
         status = decision["status"]
         review_id = None
         if status == "MATCHED":
@@ -1325,6 +1438,7 @@ def reveal_followups(
             newly_revealed.append(oracle_id)
             revealed_ids.add(oracle_id)
             entries = [entry for entry in entries if entry["oracle_id"] != oracle_id]
+            answered_entries.append(selected)
             cycle_cost += int(selected["cost"])
             manifest["automatic_match_count"] += 1
         elif status == "PENDING_BLIND_ORACLE_REVIEW":

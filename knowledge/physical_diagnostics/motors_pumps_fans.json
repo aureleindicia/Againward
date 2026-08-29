@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "family": "motors_pumps_fans",
+  "label": "Moteurs, pompes et ventilateurs",
+  "energy_chain": [
+    "électricité",
+    "moteur, entraînement, pompe ou ventilateur",
+    "vitesse, couple, débit, pression ou mouvement",
+    "service procédé, ventilation, transfert ou production"
+  ],
+  "variables": {
+    "energy_input": ["puissance active", "courants de phase", "énergie", "facteur de puissance"],
+    "demand": ["débit requis", "pression ou hauteur", "couple procédé", "durée de service"],
+    "command": ["ordre marche", "consigne vitesse", "consigne pression ou débit", "position demandée vanne/registre"],
+    "feedback": ["vitesse réelle", "état marche", "position réelle", "débit", "pression", "couple ou courant"],
+    "environment": ["température", "densité du fluide", "niveau d'aspiration", "encrassement ambiant"],
+    "process_output": ["volume transféré", "débit d'air", "pression utile", "cadence ou qualité procédé"]
+  },
+  "degradation_mechanisms": [
+    {
+      "mechanism": "résistance mécanique, roulement, alignement ou transmission dégradés",
+      "predictions": ["vibration, température ou courant changés à charge comparable", "signature mécanique localisée"],
+      "discriminators": ["vibration et température palier", "courant, vitesse et service à régime comparable", "inspection accouplement/transmission"]
+    },
+    {
+      "mechanism": "restriction, filtre ou réseau hydraulique/aéraulique modifié",
+      "predictions": ["pression différentielle, débit et point de fonctionnement changés", "puissance dépendante du type de réseau et de régulation"],
+      "discriminators": ["débit et pression différentielle", "position réelle vanne/registre", "fréquence variateur"]
+    },
+    {
+      "mechanism": "commande, variateur ou duty cycle modifiés",
+      "predictions": ["vitesse, horaire ou état réel changés", "service pouvant être légitime ou excessif"],
+      "discriminators": ["commande et vitesse réelle", "heures de marche", "service procédé produit"]
+    }
+  ],
+  "legitimate_service_changes": [
+    "débit ou pression réellement accru",
+    "nouvelle cadence ou charge mécanique",
+    "ventilation réglementaire ou sécurité",
+    "nouveau produit ou niveau de cuve",
+    "allongement de durée utile du procédé"
+  ],
+  "diagnostic_paths": [
+    {
+      "observation_class": "puissance moteur en hausse pendant le service",
+      "mechanisms": ["charge utile accrue", "restriction ou point de fonctionnement changé", "résistance mécanique", "commande/vitesse modifiée"],
+      "predictions": ["une charge utile suit débit, pression, couple ou sortie procédé", "un défaut mécanique produit des observables mécaniques", "une commande doit être comparée à la vitesse et au service réels"],
+      "discriminating_measurements": ["débit-pression-vitesse-puissance", "vibration-température-courant", "sortie procédé à régime apparié"],
+      "interpretation_limits": ["le courant seul ne sépare pas charge utile et résistance", "les lois d'affinité ne s'appliquent pas aveuglément à tous les réseaux"]
+    },
+    {
+      "observation_class": "marche hors procédé ou durée accrue",
+      "mechanisms": ["besoin de circulation ou sécurité", "programme obsolète", "feedback ou actionneur bloqué", "activité procédé mal décrite"],
+      "predictions": ["un besoin légitime produit une grandeur de service utile", "un actionneur bloqué peut rester actif commande à zéro"],
+      "discriminating_measurements": ["commande versus courant/vitesse réels", "débit/pression ou mouvement utile", "journal procédé"],
+      "interpretation_limits": ["ne pas arrêter ventilation, pompage ou aération sans contrainte procédé"]
+    }
+  ],
+  "field_tests": [
+    {
+      "test": "relevé synchronisé puissance, vitesse, débit, pression et sortie procédé",
+      "effort": "faible à modéré selon capteurs existants",
+      "expected_interpretation": "sépare service demandé, point de fonctionnement et énergie spécifique"
+    },
+    {
+      "test": "tendance vibration et température à charge appariée",
+      "effort": "faible avec technicien de maintenance",
+      "expected_interpretation": "teste une piste mécanique sans l'inférer de l'énergie seule"
+    }
+  ],
+  "safety": [
+    "mesures électriques, vibrations près de pièces tournantes et consignation par personnes habilitées",
+    "ne jamais réduire débit ou vitesse sans limites de procédé, qualité, ventilation et refroidissement",
+    "arrêter en cas de vibration, échauffement, cavitation, alarme ou perte de service"
+  ]
+}

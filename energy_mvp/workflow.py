@@ -12,6 +12,7 @@ from .analysis import analyze
 from .intake import assess_intake, intake_template
 from .io import load_data
 from .positioning import positioning_payload
+from .physical_diagnostics import physical_differential_template, physical_reasoning_contract
 from .signals import detect_candidate_events
 from .tariffs import calculate_tariff_cost, tariff_plan_from_dict
 from .toolbox import inspect_dataset
@@ -49,6 +50,8 @@ def _brief(state: dict[str, Any]) -> str:
         "## Garde-fous", "",
         "- Ne jamais ouvrir ni demander de fichier de ground truth.",
         "- Les événements automatiques sont uniquement des signaux candidats.",
+        "- Python ne choisit jamais une cause, une question, une intervention ou une décision.",
+        "- Les fiches knowledge/physical_diagnostics sont des références non exhaustives.",
         "- Python calcule; Codex choisit les tests, interprète, critique et conclut.",
         "- Ne pas quantifier une économie récupérable sans preuve opérationnelle.", "",
         "## État initial", "",
@@ -88,7 +91,7 @@ def prepare_investigation(
     output.mkdir(parents=True, exist_ok=True)
     protected_outputs = (
         "investigation_state.json", "trace.json", "questions.json", "human_review.json",
-        "prepared_analysis.json", "candidate_signals.json",
+        "prepared_analysis.json", "candidate_signals.json", "physical_differential_template.json",
     )
     existing_outputs = [name for name in protected_outputs if (output / name).exists()]
     if existing_outputs:
@@ -169,7 +172,9 @@ def prepare_investigation(
         "separation_of_responsibilities": {
             "python": "normalisation, calculs, signaux candidats et preuves numériques",
             "codex": "choix des analyses, hypothèses, falsification, décisions et synthèse",
+            "knowledge": "référence non exhaustive de mécanismes, variables, tests, limites et risques",
         },
+        "physical_reasoning_contract": physical_reasoning_contract(),
         "required_artifacts_before_delivery": [
             "investigation.json",
             "review.json",
@@ -211,6 +216,7 @@ def prepare_investigation(
         "hypotheses": [],
         "recommendations": [],
     })
+    _write_json(output / "physical_differential_template.json", physical_differential_template())
     _write_json(output / "review_template.json", {
         "schema_version": 1,
         "ground_truth_used": False,
@@ -241,7 +247,7 @@ def prepare_investigation(
             "output_files": [
                 "intake.json", "intake_assessment.json", "prepared_analysis.json",
                 "candidate_signals.json", "investigation_state.json", "questions.json",
-                "human_review.json", "investigation_template.json", "review_template.json",
+                "human_review.json", "investigation_template.json", "physical_differential_template.json", "review_template.json",
                 "answers_template.json", "ANALYST_BRIEF.md",
             ] + (["tariff_cost.json"] if tariff_cost is not None else []),
         }],

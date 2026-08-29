@@ -291,3 +291,67 @@ adversariale, le rapport et l'approbation humaine.
 - Limitations : une validation de schéma ne prouve pas à elle seule la pertinence énergétique ; la
   review humaine reste obligatoire.
 - Exemple : `python manage_investigation.py check workspaces/usine_01/processed`.
+
+
+## Outils physiques Candidate V2
+
+Les fonctions de energy_mvp.physical_tools retournent uniquement des mesures,
+comparaisons, hypotheses et limites. Toutes portent decision=None ; Codex choisit si et
+pourquoi elles sont pertinentes.
+
+### compare_specific_energy et matched_operating_regime_comparison
+
+- Objectif : comparer l energie par unite de service et des paires dont le service est proche.
+- Entree : energie, grandeur de service et tolerance choisie par Codex.
+- Sortie : intensites, ecarts, paires retenues et limites.
+- Hypotheses : la grandeur decrit le service utile et les confondeurs sont examines.
+- Limitations : aucune localisation de cause ni comparabilite imposee par le code.
+
+### normalized_before_after
+
+- Objectif : mesurer l ecart apres intervention face a une baseline prealablement figee.
+- Entree : puissances observees et attendues, avec durees.
+- Sortie : energie residuelle signee, positive et negative.
+- Limitations : une baisse renforce une hypothese sans prouver seule son mecanisme.
+
+### command_feedback_comparison et duty_cycle
+
+- Objectif : quantifier commande versus feedback physique et temps de marche.
+- Sortie : quatre quadrants, heures de discordance, taux de marche et demarrages.
+- Hypothese : le feedback est independant de la commande.
+- Limitations : delai, override, securite et capteur peuvent expliquer une discordance.
+
+### degree_hours
+
+- Objectif : integrer chauffage ou refroidissement par rapport a une base choisie.
+- Sortie : degre-heures.
+- Limitation : la base doit etre justifiee et ne remplace pas une baseline validee.
+
+### pressure_decay
+
+- Objectif : mesurer une chute de pression et, seulement avec volume isole connu,
+  estimer un volume d air libre.
+- Sortie : bar/min et estimation m3/min avec hypotheses.
+- Limitations : isolement, absence de demande legitime et stabilite thermique requis ;
+  manoeuvres par un technicien competent.
+
+### sensible_heat_energy et heat_recovery_balance
+
+- Objectif : calculer chaleur sensible et bilan de recuperation.
+- Sortie : kWh utiles, energie d entree conditionnelle et ecart chaud/froid.
+- Limitations : pas de chaleur latente ni de cause automatique ; mesures synchronisees.
+
+### fan_pump_affinity_scenario
+
+- Objectif : produire un scenario ideal de lois d affinite.
+- Sortie : rapports debit, pression et puissance avec avertissements.
+- Limitations : aucune recommandation de vitesse ; application interdite sans verifier
+  reseau, charge statique, rendement, securite et contraintes procede.
+
+## References physiques
+
+load_physical_knowledge charge les fiches non exhaustives dans
+knowledge/physical_diagnostics. validate_physical_differential verifie seulement que
+Codex documente mecanisme, preuves, predictions, discriminant, falsificateur et securite.
+rank_discriminating_measurements donne un ordre consultatif derogeable ou ignorable et
+ne publie aucune question. Une cause ou un protocole absent reste autorise.

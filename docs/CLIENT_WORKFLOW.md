@@ -135,3 +135,16 @@ python manage_investigation.py check workspaces/usine_01/processed
 
 `delivery_gate.json` contient le statut, les blocages et l'empreinte des quatre livrables. Un code
 de sortie `3` signifie que le dossier n'est pas livrable ; ce n'est pas une erreur de calcul.
+
+
+## Contrat physique Candidate V2
+
+Pour chaque piste physique importante, utiliser aussi physical_differential_template.json
+et docs/PHYSICAL_DIAGNOSTICS.md. Codex explicite la chaine
+energie-equipment-service-sortie, examine la demande de service avant de conclure a une
+degradation d efficacite, distingue commande et etat reel, puis decrit pour les causes
+concurrentes leurs predictions et la mesure qui les separe.
+
+Ce canevas n impose aucun ordre. Codex peut utiliser une cause, une variable, un outil ou
+un protocole absent des fiches. Python ne choisit ni cause, ni question, ni intervention,
+ni decision finale.

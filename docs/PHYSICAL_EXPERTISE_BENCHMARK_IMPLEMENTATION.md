@@ -21,11 +21,13 @@ vit dans `benchmarking/` et ne fait pas partie du moteur `energy_mvp/`.
 - copie sélective d'un snapshot Git du moteur ;
 - espaces distincts `participant_workspace/` et `private_run/` ;
 - cycles de questions limités et oracle à coût 0/1/2/3/5 ;
-- matcher `semantic-v2` fondé sur une normalisation Unicode, des concepts canonisés,
-  des variantes lexicales, paraphrases simples et abréviations génériques ;
-- seuils explicites séparant match automatique, non-match et
-  `PENDING_BLIND_ORACLE_REVIEW` ;
-- non-révélation en cas de demande vague, absence de correspondance ou revue en attente ;
+- matcher `semantic-v3-blind-fallback` fondé sur une normalisation Unicode, des concepts
+  canonisés, des variantes lexicales, paraphrases simples et abréviations génériques ;
+- seuils explicites séparant match automatique et revue aveugle ; une demande structurée,
+  discriminante et physiquement pertinente sous les seuils est routée vers
+  `PENDING_BLIND_ORACLE_REVIEW` au lieu d'être rejetée par le matcher ;
+- non-révélation en cas de demande vague, hors sujet, non discriminante, déjà répondue ou
+  revue en attente ;
 - journal JSONL chaîné par SHA-256 ;
 - empreintes du pack initial, de l'oracle, de la vérité, du moteur et de chaque fichier
   rendu accessible ;
@@ -124,10 +126,14 @@ python run_physical_benchmark.py ask \
 Le runner ouvre l'oracle en privé, mais projette chaque entrée vers quatre champs seulement
 pour décider du match : identifiant opaque, concepts acceptés, termes de question et nombre
 minimal de termes. La réponse, sa disponibilité, son coût, le rôle du répondant et les
-payloads sont exclus du calcul. Un match automatique exige un score d'au moins `0.82` et
-une marge d'au moins `0.12` sur le second candidat. Une demande avec un score inférieur à
-`0.58` reste un non-match. La zone intermédiaire ou une concurrence trop proche produit
-`PENDING_BLIND_ORACLE_REVIEW` sans révéler de candidat au participant.
+payloads sont exclus du calcul. Un match automatique exige un score d'au moins `0.82` et une marge d'au moins
+`0.12` sur le second candidat. La zone intermédiaire ou une concurrence trop proche
+produit `PENDING_BLIND_ORACLE_REVIEW`. Une demande sous le seuil lexical `0.58` produit
+également cet état si son contenu complet nomme une mesure ou observation physique, son
+utilité, deux hypothèses distinctes et un effort réaliste. Le matcher automatique ne peut
+alors plus être le juge final d'un apparent non-match. Seules les demandes clairement
+vagues, hors sujet, non discriminantes ou déjà répondues restent automatiquement
+`NO_MATCH`. Aucun de ces états ne révèle de candidat au participant.
 
 Pour une revue en attente, un opérateur indépendant peut obtenir le paquet privé :
 

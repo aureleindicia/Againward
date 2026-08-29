@@ -699,3 +699,132 @@ def test_blind_review_no_match_reveals_nothing_and_is_reproducible(tmp_path: Pat
     assert history["decision"] == "NO_MATCH"
     assert history["selected_oracle_id"] is None
     assert history["decision_sha256"] == benchmark.sha256_file(decision_path)
+
+
+
+def test_candidate_v2_structured_physical_no_lexical_match_requires_blind_review() -> None:
+    request = _request(
+        "request_direct_physics",
+        concept="bearing vibration trend",
+        question="Can maintenance measure bearing vibration during loaded and unloaded operation?",
+    )
+    entries = [{
+        "oracle_id": "item_process_observation",
+        "accepted_concepts": ["process observation record"],
+        "question_terms": ["process", "observation"],
+        "minimum_term_matches": 2,
+    }]
+
+    decision = oracle_match_decision(request, entries)
+
+    assert decision["status"] == "PENDING_BLIND_ORACLE_REVIEW"
+    assert decision["reason"] == "structured_physical_request_needs_blind_review"
+    assert decision["selected_oracle_id"] is None
+    assert decision["candidates"][0]["oracle_id"] == "item_process_observation"
+    assert decision["candidates"][0]["fallback_blind_review"] is True
+
+
+def test_candidate_v2_structured_but_off_topic_request_is_automatic_no_match() -> None:
+    request = _request(
+        "request_off_topic",
+        concept="cafeteria menu preference",
+        question="Can human resources survey cafeteria menu preferences next Tuesday?",
+    )
+    request["why"] = "This separates vegetarian preference from dessert preference in the survey."
+    entries = [{
+        "oracle_id": "item_equipment_schedule",
+        "accepted_concepts": ["equipment schedule"],
+        "question_terms": ["equipment", "schedule"],
+        "minimum_term_matches": 2,
+    }]
+
+    decision = oracle_match_decision(request, entries)
+
+    assert decision["status"] == "NO_MATCH"
+    assert decision["reason"] == "clearly_off_topic_or_non_discriminating"
+    assert decision["candidates"] == []
+
+
+def test_candidate_v2_answered_entry_is_not_revealed_twice() -> None:
+    request = _request(
+        "request_answered",
+        concept="equipment schedule",
+        question="Can the site manager provide the equipment schedule?",
+    )
+    entry = {
+        "oracle_id": "item_equipment_schedule",
+        "accepted_concepts": ["equipment schedule"],
+        "question_terms": ["equipment", "schedule"],
+        "minimum_term_matches": 2,
+    }
+
+    decision = oracle_match_decision(request, [], answered_entries=[entry])
+
+    assert decision == {
+        "matcher_version": benchmark.ORACLE_MATCHER_VERSION,
+        "status": "NO_MATCH",
+        "reason": "already_answered",
+        "selected_oracle_id": None,
+        "candidates": [],
+    }
+
+
+def test_candidate_v2_same_cycle_duplicate_question_reveals_once(tmp_path: Path) -> None:
+    case, run = _prepare(tmp_path)
+    requests = tmp_path / "duplicate_requests.json"
+    _write_json(requests, {
+        "schema_version": 1,
+        "requests": [
+            _request(
+                "request_schedule_first",
+                concept="equipment schedule",
+                question="Can the site manager provide the equipment schedule?",
+            ),
+            _request(
+                "request_schedule_repeat",
+                concept="equipment schedule",
+                question="Can the site manager provide the equipment schedule?",
+            ),
+        ],
+    })
+
+    result = reveal_followups(run, case, requests)
+
+    assert [item["status"] for item in result["results"]] == ["MATCHED", "NO_MATCH"]
+    assert result["cycle_oracle_cost"] == 1
+    manifest = run_manifest_for(run)
+    assert manifest["revealed_oracle_ids"] == ["item_001"]
+    assert manifest["question_cycles"][0]["requests"][1]["matcher_reason"] == "already_answered"
+    assert result["results"][1]["reason"] == "no_sufficient_match"
+
+
+def test_candidate_v2_fallback_packet_is_minimal_and_does_not_auto_reveal(tmp_path: Path) -> None:
+    case, run = _prepare(tmp_path)
+    request_path = tmp_path / "physical_fallback.json"
+    _write_json(request_path, {
+        "schema_version": 1,
+        "requests": [_request(
+            "request_bearing_measurement",
+            concept="bearing vibration trend",
+            question="Can maintenance measure bearing vibration during loaded and unloaded operation?",
+        )],
+    })
+
+    public = reveal_followups(run, case, request_path)
+
+    assert public["results"][0]["status"] == "PENDING_BLIND_ORACLE_REVIEW"
+    assert public["cycle_oracle_cost"] == 0
+    assert "item_" not in json.dumps(public)
+    packet = list_pending_blind_oracle_reviews(run)["pending_reviews"][0]
+    serialized = json.dumps(packet)
+    assert packet["review_question"].startswith("Cette demande correspond-elle")
+    assert len(packet["candidates"]) == 3
+    assert set(packet["candidates"][0]) == {"oracle_id", "abstract_information_types"}
+    assert "The equipment schedule is attached" not in serialized
+    assert "The maintenance history is attached" not in serialized
+    assert "private future note" not in serialized
+    assert "payload_" not in serialized
+    assert not any(
+        path.is_file()
+        for path in (run / "participant_workspace" / "revealed" / "cycle_001").glob("item_*")
+    )

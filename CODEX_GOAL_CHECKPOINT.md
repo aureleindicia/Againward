@@ -50,3 +50,52 @@ la knowledge layer auditable et les outils déterministes à forte valeur géné
 - exécuter une seule campagne DEV V2, avec `a17` exclu des agrégats ;
 - produire les deux rapports finaux et la revue adversariale ;
 - vérifier les empreintes, commits et l'intégrité de V1.
+
+
+## Contrainte d architecture ajoutee
+
+Le code Candidate V2 ne doit produire ni cause, ni question, ni intervention, ni decision
+analytique. Codex reste l enqueteur principal ; Python mesure ; les fiches physiques sont
+des references non exhaustives. La revue finale doit inclure un AGENTICITY AUDIT et
+considerer comme regression toute amelioration DEV obtenue par un moteur a regles.
+
+
+## Checkpoint phase 2 — couche physique et oracle V3
+
+### Phase terminée
+
+- couche de raisonnement physique générique et non décisionnelle pour six familles ;
+- knowledge layer locale, structurée et non exhaustive ;
+- calculateurs Python physiques retournant mesures/limites sans cause ni action ;
+- canevas Physical Differential, chaîne énergétique, demande de service et commande/feedback ;
+- matcher `semantic-v3-blind-fallback` : un apparent non-match structuré et physiquement
+  pertinent passe en revue aveugle ; demandes vagues, hors sujet, non discriminantes ou
+  déjà répondues seulement en `NO_MATCH` automatique ;
+- protection contre une double révélation dans un même cycle ;
+- tests synthétiques de principes, d'agenticité, d'anti-hardcoding et d'oracle ajoutés.
+
+### Fichiers modifiés
+
+- `energy_mvp/physical_diagnostics.py`, `energy_mvp/physical_tools.py`,
+  `energy_mvp/workflow.py`, `energy_mvp/__init__.py` ;
+- `knowledge/physical_diagnostics/` (six familles et README) ;
+- `docs/PHYSICAL_DIAGNOSTICS.md`, `docs/ANALYSIS_TOOLS.md`,
+  `docs/CLIENT_WORKFLOW.md`, `docs/PHYSICAL_EXPERTISE_BENCHMARK_IMPLEMENTATION.md` ;
+- `benchmarking/physical_expertise.py` ;
+- tests Candidate V2 et oracle ;
+- `reports/CANDIDATE_V2_DIAGNOSTIC_PLAN.md`.
+
+### Tests
+
+- ciblés Candidate V2/oracle/workflow : **51 passed, 1 deselected** ;
+- suite presque complète : **170 passed, 1 deselected** ;
+- le test HOLDOUT temporairement exclu exige que les nouveaux chemins moteur soient
+  d'abord commités, ce qui est précisément le prochain checkpoint.
+- corpus oracle indépendant historique : précision **1.0**, rappel automatique **0.923077**,
+  2 cas routés en revue aveugle, 0 faux positif automatique.
+
+### Prochaine action
+
+Créer un commit propre de cette implémentation, exécuter la suite complète y compris la
+protection HOLDOUT, corriger uniquement les défauts génériques éventuels, puis figer et
+taguer Candidate V2 avant l'unique rerun DEV.
