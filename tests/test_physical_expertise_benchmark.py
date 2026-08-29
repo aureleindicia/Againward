@@ -29,7 +29,7 @@ from benchmarking.physical_expertise import (
 
 
 REPOSITORY = Path(__file__).resolve().parents[1]
-BASELINE = "expert-benchmark-baseline-v1"
+TEST_SYSTEM_REF = "HEAD"
 
 
 def _write_json(path: Path, payload: dict) -> None:
@@ -122,7 +122,7 @@ def _prepare(tmp_path: Path, *, stage: str = "DEV", run_id: str = "run_001", run
         tmp_path / "runs",
         run_id=run_id,
         repository=REPOSITORY,
-        system_ref=BASELINE,
+        system_ref=TEST_SYSTEM_REF,
         model="test-model-exact",
         reasoning_effort="test-reasoning-exact",
         run_index=run_index,
@@ -327,7 +327,7 @@ def test_holdout_refuses_an_untracked_engine_extension(tmp_path: Path) -> None:
             tmp_path / "runs",
             run_id="run_untracked",
             repository=repository_copy,
-            system_ref=BASELINE,
+            system_ref=TEST_SYSTEM_REF,
             model="test-model-exact",
             reasoning_effort="test-reasoning-exact",
         )
@@ -343,8 +343,8 @@ def test_final_response_must_be_inside_output(tmp_path: Path) -> None:
 
 def test_multiple_runs_are_independent_and_reproducible(tmp_path: Path) -> None:
     case = _make_case(tmp_path)
-    run_a = prepare_run(case, tmp_path / "runs", run_id="run_101", repository=REPOSITORY, system_ref=BASELINE, model="model-x", reasoning_effort="high", run_index=1)
-    run_b = prepare_run(case, tmp_path / "runs", run_id="run_102", repository=REPOSITORY, system_ref=BASELINE, model="model-x", reasoning_effort="high", run_index=2)
+    run_a = prepare_run(case, tmp_path / "runs", run_id="run_101", repository=REPOSITORY, system_ref=TEST_SYSTEM_REF, model="model-x", reasoning_effort="high", run_index=1)
+    run_b = prepare_run(case, tmp_path / "runs", run_id="run_102", repository=REPOSITORY, system_ref=TEST_SYSTEM_REF, model="model-x", reasoning_effort="high", run_index=2)
     manifest_a = run_manifest_for(run_a)
     manifest_b = run_manifest_for(run_b)
 
