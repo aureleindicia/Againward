@@ -99,3 +99,42 @@ considerer comme regression toute amelioration DEV obtenue par un moteur a regle
 Créer un commit propre de cette implémentation, exécuter la suite complète y compris la
 protection HOLDOUT, corriger uniquement les défauts génériques éventuels, puis figer et
 taguer Candidate V2 avant l'unique rerun DEV.
+
+## Checkpoint phase 3 — Candidate V2 gelée et campagne DEV démarrée
+
+### Version gelée
+
+- tag analytique : `expert-benchmark-candidate-v2` ;
+- commit analytique : `7acc43fc00007af87c459fd60cc89d972515c59a` ;
+- empreinte moteur Candidate V2, 42 fichiers :
+  `dd2211e2ea0ad26b49c6ec8399dc362282b8be633ae9a3a244908c8bdac53cdd` ;
+- baseline V1 toujours inchangée : tag `expert-benchmark-baseline-v1`, commit
+  `6ba8ebbdefac68caa3b2debb24f9b141472f0a9d`, empreinte
+  `e7261871cd3ff7203bf5cf6bb986bc2102bec00f9c63f63319ead7430084613a`.
+
+### Tests avant campagne
+
+- suite complète : **171 passed** ;
+- tests benchmark/oracle : **29 passed** ;
+- corpus indépendant du matcher : précision automatique **1.0**, rappel automatique
+  **0.923077**, 0 faux positif, 2 routes vers revue aveugle.
+
+### Campagne DEV
+
+- racine privée de campagne :
+  `/data/data/com.termux/files/usr/tmp/energy-dev-candidate-v2-7acc43f` ;
+- 17 runs valides préparés avec `gpt-5.6-sol`, raisonnement `high` ;
+- `case_a17` non préparé et marqué `EXCLUDED_PENDING_CASE_VALIDATION` ;
+- `case_b42` terminé et scellé avec intégrité valide : décision
+  `INSUFFICIENT_INFORMATION`, 2 demandes, 1 follow-up, coût oracle 2, une revue aveugle
+  indépendante ;
+- `case_c08` et `case_d31` ont été interrompus avant sortie par la limite d'usage Codex ;
+  leurs sessions restent identifiées et seront reprises sans modifier le moteur ni le
+  protocole après remise à zéro annoncée à 20:12.
+
+### Incident et prochaine action
+
+L'incident est externe à l'infrastructure et n'a révélé aucune donnée privée. Ne pas
+changer de modèle ou de niveau de raisonnement au milieu de la campagne. Reprendre `c08`
+et `d31`, poursuivre les 14 autres cas, résoudre chaque revue aveugle dans une session
+indépendante, puis sceller/vérifier tous les runs avant les rapports.
