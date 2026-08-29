@@ -138,3 +138,35 @@ L'incident est externe à l'infrastructure et n'a révélé aucune donnée priv�
 changer de modèle ou de niveau de raisonnement au milieu de la campagne. Reprendre `c08`
 et `d31`, poursuivre les 14 autres cas, résoudre chaque revue aveugle dans une session
 indépendante, puis sceller/vérifier tous les runs avant les rapports.
+
+## Checkpoint phase 4 — campagne partiellement exécutée, quota externe épuisé
+
+### Runs scellés et vérifiés
+
+- `b42` : `INSUFFICIENT_INFORMATION`, 2 cycles, 2 demandes, 1 follow-up, coût oracle 2,
+  1 revue aveugle `MATCH` ;
+- `c08` : `INSUFFICIENT_INFORMATION`, 2 cycles, 2 demandes, 0 follow-up, coût oracle 0,
+  2 revues aveugles `NO_MATCH` ; durée murale contaminée par la première interruption de
+  quota, donc non interprétable comme durée analytique ;
+- `d31` : `CAUSE_PROBABLE`, 3 cycles, 3 demandes, 2 follow-ups, coût oracle 2,
+  2 revues aveugles `MATCH`, 1 non-match automatique.
+
+Les trois runs ont une empreinte moteur identique à Candidate V2 et `verify` valide leurs
+journaux. Les décisions sont non scorées et aucune ground truth n'a été consultée.
+
+### Blocage courant
+
+Les nouvelles sessions `e55` et `f63` ont atteint le quota Codex avant toute demande ou
+réponse finale. Elles ont seulement des artefacts de scratch participant et peuvent être
+reprises à leurs identifiants d'origine ; elles ne doivent pas être considérées terminées.
+Le CLI annonce une disponibilité le **3 septembre 2026 à 20:11**. Aucun changement de
+moteur, modèle, raisonnement, prompt participant ou protocole n'est effectué au milieu de
+campagne.
+
+### Décision nécessaire avant reprise
+
+Pour préserver une comparaison expérimentale cohérente, choisir explicitement l'une des
+options suivantes : attendre/reprendre `gpt-5.6-sol` high après le quota ; ou abandonner
+la campagne Candidate V2 actuelle, la conserver comme incident non scoré, et relancer les
+17 cas depuis zéro avec un nouveau modèle/niveau de raisonnement déclaré. Un mélange de
+modèles ou de niveaux de raisonnement dans les 17 cas invaliderait l'agrégat.
