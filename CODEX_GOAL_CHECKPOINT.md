@@ -170,3 +170,31 @@ options suivantes : attendre/reprendre `gpt-5.6-sol` high après le quota ; ou a
 la campagne Candidate V2 actuelle, la conserver comme incident non scoré, et relancer les
 17 cas depuis zéro avec un nouveau modèle/niveau de raisonnement déclaré. Un mélange de
 modèles ou de niveaux de raisonnement dans les 17 cas invaliderait l'agrégat.
+
+## Checkpoint phase 5 — campagne Sol abandonnée, campagne Terra autorisée
+
+### Décision expérimentale
+
+Le changement de plan a été explicitement autorisé. La campagne partielle
+`gpt-5.6-sol` est donc **interrompue et non scorée**. Elle est conservée sans
+suppression ni modification à
+`/data/data/com.termux/files/usr/tmp/energy-dev-candidate-v2-7acc43f` comme
+archive/sanity-check séparé : ses trois runs scellés (`b42`, `c08`, `d31`) ne
+seront jamais agrégés avec la nouvelle campagne.
+
+La nouvelle campagne s'appelle **`CANDIDATE_V2_DEV_TERRA`**. Elle utilisera
+17 sessions participantes fraîches avec `gpt-5.6-terra`, effort de raisonnement
+`high`, le même tag Candidate V2, le même oracle et le même protocole. `a17`
+reste explicitement exclu : `EXCLUDED_PENDING_CASE_VALIDATION`.
+
+### Précondition vérifiée
+
+Une sonde Codex éphémère, hors campagne et sans accès aux cas, a démarré avec
+succès le 29 août 2026 : `gpt-5.6-terra`, effort `high`, réponse
+`TERRA_QUOTA_READY`. Le quota Terra est donc disponible au démarrage. Aucun
+run Terra n'a encore été créé à ce checkpoint.
+
+### Prochaine action
+
+Créer le manifeste public de `CANDIDATE_V2_DEV_TERRA`, préparer les 17
+workspaces participants isolés et les exécuter sans changer le moteur.
