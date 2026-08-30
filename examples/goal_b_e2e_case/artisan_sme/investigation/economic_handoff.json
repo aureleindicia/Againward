@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "purpose": "Contexte pour raisonnement opérationnel-économique Codex, pas une recommandation automatique.",
+  "technical_findings": [
+    {
+      "finding_id": "FIND-EXCESS-01",
+      "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+      "technical_confidence": "MEDIUM",
+      "provenance": "investigation/structured_findings.json"
+    }
+  ],
+  "economic_inputs": [
+    {
+      "input_id": "ECON-TARIFF-01",
+      "kind": "electricity_tariff",
+      "value": 0.2,
+      "unit": "EUR/kWh",
+      "provenance": "DOCUMENT_EXTRACTED",
+      "source": {
+        "artifact": "facture_tarif.txt"
+      },
+      "confidence": "MEDIUM"
+    },
+    {
+      "input_id": "ECON-CAPEX-01",
+      "kind": "replacement_quote",
+      "value": 12000,
+      "unit": "EUR",
+      "provenance": "DOCUMENT_EXTRACTED",
+      "source": {
+        "artifact": "supplier_quote.txt"
+      },
+      "confidence": "LOW"
+    }
+  ],
+  "constraints": [
+    {
+      "constraint_id": "CONS-PROD-01",
+      "category": "PRODUCTION",
+      "description": "Le système ne peut pas être indisponible pendant la préparation/livraison du matin.",
+      "source_status": "EXPLICIT",
+      "source_ref": "planning_ouverture.txt",
+      "hard": true,
+      "material": true,
+      "affected_action_ids": [
+        "ACT-INSPECT-01",
+        "ACT-REPLACE-01"
+      ],
+      "unresolved_uncertainty": null
+    }
+  ],
+  "unresolved_blockers": [
+    {
+      "dataset_id": "DS-005-01",
+      "issue": "measurement_unit",
+      "reason": "unlabeled non-negative measurement supports competing kW/kWh interpretations",
+      "blocking_for": "quantitative_energy_interpretation"
+    }
+  ],
+  "available_context_roles": {
+    "ENERGY_INTERVAL_SERIES": [
+      "DS-001-01",
+      "DS-005-01"
+    ],
+    "PRODUCTION": [
+      "DS-007-01"
+    ],
+    "TARIFF": [
+      "ART-002-251d135464e3"
+    ],
+    "IRRELEVANT": [
+      "ART-003-d0b9bab96790"
+    ],
+    "MAINTENANCE": [
+      "ART-004-43d20cf28b1c"
+    ],
+    "SCHEDULE": [
+      "ART-006-e33f7742896f"
+    ],
+    "TEXT_NOTE": [
+      "ART-008-15faaa97fb90"
+    ]
+  },
+  "codex_must_decide": [
+    "candidate actions",
+    "material constraints",
+    "relationships",
+    "evidence worth buying",
+    "decision",
+    "priority",
+    "validation"
+  ],
+  "python_can_calculate": [
+    "scenario table",
+    "time-aligned tariff impact",
+    "payback when meaningful",
+    "declared portfolio arithmetic"
+  ]
+}

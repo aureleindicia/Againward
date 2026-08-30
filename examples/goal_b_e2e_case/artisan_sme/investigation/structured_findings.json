@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-08-30T08:20:55.915654+00:00",
+  "findings": [
+    {
+      "finding_id": "FIND-EXCESS-01",
+      "observation": "Excès récurrent avant préparation observé dans la série synthétique.",
+      "time_context_window": "05:00–06:00, deux jours comparables",
+      "quantitative_evidence": {
+        "excess_energy_kwh": 6.0,
+        "source": "DS-001"
+      },
+      "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+      "possible_explanations": [
+        "dérive technique",
+        "préparation opérationnelle non documentée"
+      ],
+      "current_leading_explanation": null,
+      "counter_explanations": [
+        "horaire exceptionnel"
+      ],
+      "missing_material_information": [
+        "statut opérationnel de la préparation précoce"
+      ],
+      "client_question": null,
+      "technical_evidence_request": "Inspection ciblée pendant visite planifiée.",
+      "confidence": "MEDIUM",
+      "provenance": [
+        "evidence/dataset_provenance.json"
+      ],
+      "recommended_next_analytical_step": "Comparer périodes comparables après inspection.",
+      "predictive_degradation_note": null
+    }
+  ],
+  "no_finding": null,
+  "decision_source": "Codex investigation; deterministic pipeline did not decide findings."
+}

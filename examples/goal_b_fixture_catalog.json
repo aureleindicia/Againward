@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "purpose": "Fixtures synthétiques de contrats Goal B. Les décisions indiquent le raisonnement attendu d'un participant, jamais une règle du moteur.",
+  "fixtures": [
+    {"fixture_id": "B-A", "theme": "fuite hors horaires confirmée, réparation faible coût", "expected_agent_decision": "ACT_NOW"},
+    {"fixture_id": "B-B", "theme": "intervention coûteuse, cause physique concurrente, test ciblé faible coût", "expected_agent_decision": "INVESTIGATE_FIRST"},
+    {"fixture_id": "B-C", "theme": "inefficacité réelle mais bénéfice trivial devant coût", "expected_agent_decision": "NO_ECONOMIC_CASE"},
+    {"fixture_id": "B-D", "theme": "déplacement tarifaire incompatible avec fraîcheur et production", "expected_agent_decision": "OPERATIONALLY_NOT_JUSTIFIED"},
+    {"fixture_id": "B-E", "theme": "charge obligatoire de sécurité, hygiène ou qualité", "expected_agent_decision": "DO_NOTHING"},
+    {"fixture_id": "B-F", "theme": "deux actions sur le même excès énergétique", "expected_agent_decision": "INSUFFICIENT_FOR_ECONOMIC_DECISION"},
+    {"fixture_id": "B-G", "theme": "réparation contre remplacement", "expected_agent_decision": "INVESTIGATE_FIRST"},
+    {"fixture_id": "B-H", "theme": "intervention intéressante à coordonner avec arrêt planifié", "expected_agent_decision": "DEFER"},
+    {"fixture_id": "B-I", "theme": "tarif inconnu susceptible d'inverser le cas", "expected_agent_decision": "INSUFFICIENT_FOR_ECONOMIC_DECISION"},
+    {"fixture_id": "B-J", "theme": "aucun gaspillage matériel dans l'investigation technique", "expected_agent_decision": "DO_NOTHING"},
+    {"fixture_id": "B-K", "theme": "essai réversible peu coûteux avant CAPEX", "expected_agent_decision": "INVESTIGATE_FIRST"},
+    {"fixture_id": "B-L", "theme": "production changeante et baseline normalisée nécessaire", "expected_agent_decision": "MONITOR"},
+    {"fixture_id": "B-M", "theme": "rétrofit avec maintenance incrémentale significative", "expected_agent_decision": "NO_ECONOMIC_CASE"},
+    {"fixture_id": "B-N", "theme": "coût récurrent supérieur au gain énergie", "expected_agent_decision": "NO_ECONOMIC_CASE"},
+    {"fixture_id": "B-O", "theme": "économie SME sparse avec facture, horaires et note maintenance", "expected_agent_decision": "MONITOR"}
+  ]
+}

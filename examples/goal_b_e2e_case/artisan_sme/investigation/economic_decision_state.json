@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-08-30T08:20:55.917444+00:00",
+  "status": "economic_reasoning_recorded",
+  "technical_finding_refs": [
+    {
+      "finding_id": "FIND-EXCESS-01",
+      "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+      "technical_confidence": "MEDIUM",
+      "provenance": "investigation/structured_findings.json"
+    }
+  ],
+  "economic_inputs": [
+    {
+      "input_id": "ECON-TARIFF-01",
+      "kind": "electricity_tariff",
+      "value": 0.2,
+      "unit": "EUR/kWh",
+      "provenance": "DOCUMENT_EXTRACTED",
+      "source": {
+        "artifact": "facture_tarif.txt"
+      },
+      "confidence": "MEDIUM"
+    },
+    {
+      "input_id": "ECON-CAPEX-01",
+      "kind": "replacement_quote",
+      "value": 12000,
+      "unit": "EUR",
+      "provenance": "DOCUMENT_EXTRACTED",
+      "source": {
+        "artifact": "supplier_quote.txt"
+      },
+      "confidence": "LOW"
+    }
+  ],
+  "operational_constraints": [
+    {
+      "constraint_id": "CONS-PROD-01",
+      "category": "PRODUCTION",
+      "description": "Le système ne peut pas être indisponible pendant la préparation/livraison du matin.",
+      "source_status": "EXPLICIT",
+      "source_ref": "planning_ouverture.txt",
+      "hard": true,
+      "material": true,
+      "affected_action_ids": [
+        "ACT-INSPECT-01",
+        "ACT-REPLACE-01"
+      ],
+      "unresolved_uncertainty": null
+    }
+  ],
+  "candidate_actions": [
+    {
+      "action_id": "ACT-INSPECT-01",
+      "finding_ids": [
+        "FIND-EXCESS-01"
+      ],
+      "title": "Inspection ciblée pendant visite planifiée",
+      "description": "Option structurée par Codex dans un cas synthétique.",
+      "action_type": "diagnostic",
+      "technical_rationale": "Excès énergétique mesuré; cause physique encore non départagée.",
+      "operational_rationale": "Doit respecter la fenêtre de maintenance et la production du matin.",
+      "implementation_scope": "Système thermique concerné.",
+      "requires_professional_validation": true,
+      "assumptions": [
+        "Cause physique non confirmée."
+      ],
+      "constraints": [
+        "CONS-PROD-01"
+      ],
+      "dependencies": [],
+      "alternatives": [],
+      "reversibility": "REVERSIBLE",
+      "validation_plan": {
+        "metric": "kWh par lot de production comparable",
+        "expected_direction": "baisse si la cause est confirmée",
+        "comparison_window": "quatre semaines avant/après",
+        "confounders": "mix produit, météo, volume",
+        "minimum_evidence": "baisse persistante après correction, normalisée par production"
+      }
+    },
+    {
+      "action_id": "ACT-REPLACE-01",
+      "finding_ids": [
+        "FIND-EXCESS-01"
+      ],
+      "title": "Remplacement après confirmation",
+      "description": "Option structurée par Codex dans un cas synthétique.",
+      "action_type": "replacement",
+      "technical_rationale": "Excès énergétique mesuré; cause physique encore non départagée.",
+      "operational_rationale": "Doit respecter la fenêtre de maintenance et la production du matin.",
+      "implementation_scope": "Système thermique concerné.",
+      "requires_professional_validation": true,
+      "assumptions": [
+        "Cause physique non confirmée."
+      ],
+      "constraints": [
+        "CONS-PROD-01"
+      ],
+      "dependencies": [],
+      "alternatives": [],
+      "reversibility": "IRREVERSIBLE",
+      "validation_plan": {
+        "metric": "kWh par lot de production comparable",
+        "expected_direction": "baisse si la cause est confirmée",
+        "comparison_window": "quatre semaines avant/après",
+        "confounders": "mix produit, météo, volume",
+        "minimum_evidence": "baisse persistante après correction, normalisée par production"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "relationship_id": "REL-SEQ-01",
+      "type": "SEQUENTIAL",
+      "action_a": "ACT-INSPECT-01",
+      "action_b": "ACT-REPLACE-01",
+      "rationale": "La décision de remplacement dépend du résultat de l'inspection.",
+      "sequence": [
+        "ACT-INSPECT-01",
+        "ACT-REPLACE-01"
+      ]
+    }
+  ],
+  "scenario_calculations": {
+    "ACT-REPLACE-01": {
+      "schema_version": 1,
+      "currency": "EUR",
+      "effect_id": "EFF-EXCESS-01",
+      "baseline": "créneau pré-ouverture de référence",
+      "scenarios": {
+        "LOW": {
+          "annual_energy_saving_kwh": 4000.0,
+          "tariff_per_kwh": 0.18,
+          "gross_annual_energy_cost_avoided": 720.0,
+          "incremental_recurring_cost": 0.0,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 720.0,
+          "intervention_cost": 9000.0,
+          "simple_payback_years": 12.5,
+          "payback_status": "meaningful"
+        },
+        "BASE": {
+          "annual_energy_saving_kwh": 7000.0,
+          "tariff_per_kwh": 0.2,
+          "gross_annual_energy_cost_avoided": 1400.0,
+          "incremental_recurring_cost": 0.0,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 1400.0,
+          "intervention_cost": 12000.0,
+          "simple_payback_years": 8.571428571428571,
+          "payback_status": "meaningful"
+        },
+        "HIGH": {
+          "annual_energy_saving_kwh": 10000.0,
+          "tariff_per_kwh": 0.23,
+          "gross_annual_energy_cost_avoided": 2300.0,
+          "incremental_recurring_cost": 0.0,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 2300.0,
+          "intervention_cost": 15000.0,
+          "simple_payback_years": 6.521739130434782,
+          "payback_status": "meaningful"
+        }
+      },
+      "calculation_notes": []
+    }
+  },
+  "decisions": [
+    {
+      "decision_id": "DEC-E2E-01",
+      "decision": "INVESTIGATE_FIRST",
+      "action_ids": [
+        "ACT-INSPECT-01"
+      ],
+      "reason": "Le gain potentiel justifie un contrôle peu coûteux, mais la cause ne justifie pas encore un remplacement.",
+      "priority_reasoning": "Préserver la production, limiter le risque CAPEX et départager une cause technique d'un horaire légitime.",
+      "technical_confidence": "MEDIUM",
+      "economic_importance": "HIGH",
+      "evidence_acquisition": {
+        "what_it_resolves": "dérive technique versus préparation opérationnelle",
+        "decision_that_can_change": "engager ou non un remplacement",
+        "cost_or_burden": "inspection ciblée pendant maintenance prévue",
+        "why_worth_it": "évite un CAPEX élevé si la charge est légitime"
+      },
+      "constraint_assessments": [
+        {
+          "constraint_id": "CONS-PROD-01",
+          "disposition": "MITIGATED",
+          "rationale": "Inspection seulement pendant une visite de maintenance hors préparation."
+        }
+      ]
+    }
+  ],
+  "economic_requests": [
+    {
+      "request_id": "ECO-REQ-01",
+      "request_type": "REQUEST_QUOTE",
+      "client_question": "Avez-vous un devis récent ou un remplacement déjà planifié pour cet équipement ?",
+      "internal_reason": "Le coût/timing peut modifier la comparaison après inspection.",
+      "target_role": "dirigeant",
+      "decision_impact": "Planifier, remplacer ou conserver l'équipement.",
+      "expected_effort": "Envoyer un document existant si disponible.",
+      "importance": "NON_BLOCKING"
+    }
+  ],
+  "unresolved_blockers": [
+    {
+      "dataset_id": "DS-005-01",
+      "issue": "measurement_unit",
+      "reason": "unlabeled non-negative measurement supports competing kW/kWh interpretations",
+      "blocking_for": "quantitative_energy_interpretation"
+    }
+  ],
+  "provenance_context": {
+    "canonical_case": "derived/canonical_case.json",
+    "dataset_provenance": "evidence/dataset_provenance.json"
+  },
+  "history": [
+    {
+      "at_utc": "2026-08-30T08:20:55.917476+00:00",
+      "action": "economic_state_initialized"
+    },
+    {
+      "at_utc": "2026-08-30T08:20:55.918594+00:00",
+      "action": "economic_packet_persisted",
+      "action_ids": [
+        "ACT-INSPECT-01",
+        "ACT-REPLACE-01"
+      ],
+      "decision": "INVESTIGATE_FIRST"
+    }
+  ],
+  "ground_truth_used": false,
+  "deterministic_recommendation_engine": false
+}
