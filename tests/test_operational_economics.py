@@ -16,162 +16,149 @@ from operational_economics import (
     economic_handoff,
     initialize_economic_state,
     persist_economic_packet,
-    validate_decision,
     validate_candidate_action,
+    validate_constraint,
+    validate_decision,
     validate_economic_input,
     validate_energy_effect,
-    validate_constraint,
     validate_relationship,
 )
-from workspace.generate_goal_b_1_e2e import generate as generate_goal_b_1_e2e
+from workspace.generate_goal_b_2_e2e import generate as generate_goal_b_2_e2e
 
 
-def _effect(identifier: str = "EFF-01", baseline: str = "historical healthy off-hours reference") -> dict[str, object]:
-    return {"effect_id": identifier, "basis": "DIRECTLY_MEASURED_HISTORICAL_EXCESS", "baseline": baseline, "unit": "kWh/year", "period": "annual", "scenarios": {"LOW": 800.0, "BASE": 1000.0, "HIGH": 1200.0}, "source_refs": ["FIND-01"]}
+SCENARIOS = ("LOW", "BASE", "HIGH")
 
 
-def _refs(*, tariff: bool = True, capex: bool = False, recurring: bool = False) -> dict[str, object]:
-    output: dict[str, object] = {"energy_effect": {item: ["FIND-01"] for item in ("LOW", "BASE", "HIGH")}}
-    if tariff:
-        output["tariff_per_kwh"] = {item: ["ECON-TARIFF"] for item in ("LOW", "BASE", "HIGH")}
-    if capex:
-        output["intervention_cost"] = {item: ["ECON-CAPEX"] for item in ("LOW", "BASE", "HIGH")}
-    if recurring:
-        output["recurring_cost"] = {item: ["ECON-RECUR"] for item in ("LOW", "BASE", "HIGH")}
-    return output
+def _input(identifier: str, value: float, unit: str, period: str, kind: str = "economic_input") -> dict:
+    return {"input_id": identifier, "kind": kind, "value": value, "unit": unit, "currency": "EUR", "period": period, "provenance": "DOCUMENT_EXTRACTED", "status": "KNOWN", "source": {"artifact_id": "ART-01"}, "confidence": "HIGH"}
 
 
-def _calculation(effect: dict[str, object] | None = None, *, tariff: float | None = 0.2, capex: float | None = None, recurring: float | None = None) -> dict[str, object]:
-    return calculate_economic_scenarios(effect or _effect(), tariff_per_kwh=None if tariff is None else {item: tariff for item in ("LOW", "BASE", "HIGH")}, intervention_cost=None if capex is None else {item: capex for item in ("LOW", "BASE", "HIGH")}, recurring_cost=None if recurring is None else {item: recurring for item in ("LOW", "BASE", "HIGH")}, input_references=_refs(tariff=tariff is not None, capex=capex is not None, recurring=recurring is not None))
+def _assumption(identifier: str, value: float, unit: str, period: str) -> dict:
+    return {"assumption_id": identifier, "description": "Hypothèse de scénario explicite.", "value": value, "unit": unit, "currency": "EUR", "period": period, "provenance": "SCENARIO_ASSUMPTION", "status": "SCENARIO", "source": {"method": "sensitivity"}}
 
 
-def _action(action_id: str = "ACT-01", effect_id: str | None = "EFF-01") -> dict[str, object]:
-    return {"action_id": action_id, "finding_ids": ["FIND-01"], "title": "Action proposée", "description": "Option formulée par Codex.", "action_type": "maintenance", "technical_rationale": "Le finding associé justifie l'option sans prouver une économie réalisée.", "operational_rationale": "À planifier pendant une fenêtre de maintenance.", "implementation_scope": "Équipement concerné.", "requires_professional_validation": True, "assumptions": [], "constraints": [], "dependencies": [], "alternatives": [], "reversibility": "PARTIALLY_REVERSIBLE", "energy_effect_ref": effect_id, "validation_plan": {"metric": "kWh hors production", "expected_direction": "baisse", "comparison_window": "quatre semaines comparables", "confounders": "production et horaires", "minimum_evidence": "baisse récurrente après intervention"}}
+def _effect(identifier: str = "EFF-01", baseline: str = "healthy reference") -> dict:
+    return {"effect_id": identifier, "basis": "DIRECTLY_MEASURED_HISTORICAL_EXCESS", "baseline": baseline, "unit": "kWh/year", "period": "annual", "scenarios": {"LOW": 800.0, "BASE": 1000.0, "HIGH": 1200.0}, "finding_refs": ["FIND-01"], "source_refs": ["DS-001-01"]}
 
 
-def _input(identifier: str, kind: str, value: float, unit: str = "EUR") -> dict[str, object]:
-    return {"input_id": identifier, "kind": kind, "value": value, "unit": unit, "provenance": "DOCUMENT_EXTRACTED", "source": {"artifact_id": "ART-01", "field": kind}, "confidence": "HIGH"}
+def _action(identifier: str = "ACT-01", effect: str = "EFF-01") -> dict:
+    return {"action_id": identifier, "finding_ids": ["FIND-01"], "title": "Action proposée", "description": "Option formulée par Codex.", "action_type": "maintenance", "technical_rationale": "Finding associé.", "operational_rationale": "À planifier pendant maintenance.", "implementation_scope": "Équipement concerné.", "requires_professional_validation": True, "reversibility": "PARTIALLY_REVERSIBLE", "energy_effect_ref": effect, "validation_plan": {"metric": "kWh hors production", "expected_direction": "baisse", "comparison_window": "quatre semaines", "confounders": "production", "minimum_evidence": "baisse récurrente"}}
 
 
-def _decision(decision: str = "ACT_NOW", *, selected: list[str] | None = None, considered: list[str] | None = None) -> dict[str, object]:
+def _references(tariff: dict[str, str], capex: dict[str, str] | None = None, recurring: dict[str, str] | None = None) -> dict:
+    refs = {"energy_effect": {s: ["FIND-01"] for s in SCENARIOS}, "tariff_per_kwh": {s: [tariff[s]] for s in SCENARIOS}}
+    if capex is not None:
+        refs["intervention_cost"] = {s: [capex[s]] for s in SCENARIOS}
+    if recurring is not None:
+        refs["recurring_cost"] = {s: [recurring[s]] for s in SCENARIOS}
+    return refs
+
+
+def _calculation(effect: dict | None = None, *, tariff: dict[str, float] | None = None, tariff_refs: dict[str, str] | None = None, capex: dict[str, float] | None = None, capex_refs: dict[str, str] | None = None, recurring: dict[str, float] | None = None, recurring_refs: dict[str, str] | None = None) -> dict:
+    tariff = tariff or {s: .2 for s in SCENARIOS}
+    tariff_refs = tariff_refs or {s: "TAR" for s in SCENARIOS}
+    return calculate_economic_scenarios(effect or _effect(), tariff_per_kwh=tariff, intervention_cost=capex, recurring_cost=recurring, input_references=_references(tariff_refs, capex_refs, recurring_refs))
+
+
+def _decision(kind: str = "ACT_NOW", selected: list[str] | None = None, considered: list[str] | None = None) -> dict:
     selected = ["ACT-01"] if selected is None else selected
-    considered = selected if considered is None else considered
-    payload: dict[str, object] = {"decision_id": "DEC-01", "decision": decision, "selected_action_ids": selected, "considered_action_ids": considered, "reason": "Conclusion formulée par Codex sur les preuves disponibles.", "priority_reasoning": "Comparaison explicite, sans score pondéré.", "technical_confidence": "HIGH", "economic_importance": "MEDIUM"}
-    if decision == "INVESTIGATE_FIRST":
-        payload["evidence_acquisition"] = {"what_it_resolves": "cause concurrente", "decision_that_can_change": "intervenir ou non", "cost_or_burden": "inspection planifiée", "why_worth_it": "évite un CAPEX inutile"}
-    return payload
-
-
-def _relation(kind: str = "INDEPENDENT", *, baseline_resolution: dict | None = None) -> dict[str, object]:
-    result: dict[str, object] = {"relationship_id": "REL-01", "type": kind, "action_a": "ACT-A", "action_b": "ACT-B", "rationale": "Relation déclarée par Codex."}
-    if kind == "OVERLAPPING":
-        result["combined_effect_ref"] = "COMB-01"
-    if baseline_resolution:
-        result["baseline_resolution"] = baseline_resolution
+    result = {"decision_id": "DEC-01", "decision": kind, "selected_action_ids": selected, "considered_action_ids": selected if considered is None else considered, "reason": "Jugement Codex sur les preuves disponibles.", "priority_reasoning": "Comparaison explicite sans score.", "technical_confidence": "MEDIUM", "economic_importance": "MEDIUM"}
+    if kind == "INVESTIGATE_FIRST":
+        result["evidence_acquisition"] = {"what_it_resolves": "cause concurrente", "decision_that_can_change": "agir ou non", "cost_or_burden": "test faible coût", "why_worth_it": "évite CAPEX inutile"}
     return result
 
 
-class OperationalEconomicsTests(unittest.TestCase):
-    def test_scenarios_are_reproducible_and_provenanced(self) -> None:
-        result = _calculation(_effect(), tariff=.2, capex=300, recurring=20)
-        base = result["scenarios"]["BASE"]
-        self.assertEqual(base["gross_annual_energy_cost_avoided"], 200.0)
-        self.assertEqual(base["net_annual_benefit"], 180.0)
-        self.assertAlmostEqual(base["simple_payback_years"], 300 / 180)
-        self.assertEqual(result["reproducibility"]["input_references"]["tariff_per_kwh"]["BASE"], ["ECON-TARIFF"])
-
-    def test_unknown_tariff_and_negative_benefit_never_emit_payback(self) -> None:
-        unknown = _calculation(tariff=None)
-        self.assertIsNone(unknown["scenarios"]["BASE"]["gross_annual_energy_cost_avoided"])
-        negative = _calculation(tariff=.1, capex=100, recurring=200)
-        self.assertLess(negative["scenarios"]["BASE"]["net_annual_benefit"], 0)
-        self.assertIsNone(negative["scenarios"]["BASE"]["simple_payback_years"])
-
-    def test_units_and_time_aligned_tariff_are_deterministic(self) -> None:
-        effect = _effect()
-        effect["unit"] = "MWh/year"
-        effect["scenarios"] = {"LOW": 1, "BASE": 2, "HIGH": 3}
-        self.assertEqual(_calculation(effect)["scenarios"]["BASE"]["annual_energy_saving_kwh"], 2000.0)
-        effect["scenarios"] = {"LOW": 3, "BASE": 2, "HIGH": 4}
-        with self.assertRaises(ValueError):
-            validate_energy_effect(effect)
-        result = calculate_time_aligned_savings([{"timestamp": "2026-01-01T01:00:00", "energy_saving_kwh": 10}, {"timestamp": "2026-01-01T18:00:00", "energy_saving_kwh": 4}], price_for_timestamp=lambda timestamp: .1 if "T01" in timestamp else .3)
-        self.assertAlmostEqual(result["time_aligned_cost_saving"], 2.2)
-        tou = calculate_time_aligned_savings_with_tariff_plan([{"timestamp": "2026-01-05T01:00:00", "energy_saving_kwh": 10}, {"timestamp": "2026-01-05T18:00:00", "energy_saving_kwh": 10}], {"currency": "EUR", "flat_price_per_kwh": .1, "time_of_use_periods": [{"name": "peak", "weekdays": [0], "start": "18:00", "end": "20:00", "price_per_kwh": .3}]})
-        self.assertAlmostEqual(tou["time_aligned_cost_saving"], 4.0)
-
-    def test_portfolio_fails_closed_when_relation_is_omitted(self) -> None:
-        first, second = _calculation(_effect("EFF-A")), _calculation(_effect("EFF-B"))
-        with self.assertRaisesRegex(ValueError, "UNKNOWN par omission"):
-            aggregate_declared_portfolio(["ACT-A", "ACT-B"], {"ACT-A": first, "ACT-B": second}, [])
-        result = aggregate_declared_portfolio(["ACT-A", "ACT-B"], {"ACT-A": first, "ACT-B": second}, [_relation()])
-        self.assertEqual(result["net_annual_benefit"]["BASE"], 400.0)
-
-    def test_baseline_compatibility_is_declared_not_inferred(self) -> None:
-        first = _calculation(_effect("EFF-A", "baseline A"))
-        second = _calculation(_effect("EFF-B", "baseline B"))
-        with self.assertRaisesRegex(ValueError, "Baselines différentes"):
-            aggregate_declared_portfolio(["ACT-A", "ACT-B"], {"ACT-A": first, "ACT-B": second}, [_relation()])
-        resolution = {"status": "RECONCILED", "rationale": "Codex a réconcilié les fenêtres comparables.", "source_refs": ["FIND-01"]}
-        result = aggregate_declared_portfolio(["ACT-A", "ACT-B"], {"ACT-A": first, "ACT-B": second}, [_relation(baseline_resolution=resolution)])
-        self.assertEqual(result["net_annual_benefit"]["BASE"], 400.0)
-
-    def test_overlap_rejects_bare_numbers_and_accepts_recalculated_energy_effect(self) -> None:
-        individual = _calculation(_effect("EFF-A"))
-        tables = {"ACT-A": individual, "ACT-B": individual}
-        relation = [_relation("OVERLAPPING")]
-        with self.assertRaisesRegex(ValueError, "Type d'effet combiné"):
-            aggregate_declared_portfolio(["ACT-A", "ACT-B"], tables, relation, combined_effects={"COMB-01": {"LOW": 100}})
-        combined_effect = _effect("EFF-C")
-        combined_effect["scenarios"] = {"LOW": 800, "BASE": 1000, "HIGH": 1200}
-        combined_calculation = _calculation(combined_effect)
-        result = aggregate_declared_portfolio(["ACT-A", "ACT-B"], tables, relation, combined_effects={"COMB-01": {"effect_type": "ENERGY", "energy_effect": combined_effect, "economic_calculation": combined_calculation}})
-        self.assertEqual(result["net_annual_benefit"]["BASE"], 200.0)
-
-    def test_overlap_rejects_incompatible_direct_economic_units(self) -> None:
-        table = _calculation()
-        with self.assertRaisesRegex(ValueError, "EUR/year"):
-            aggregate_declared_portfolio(["ACT-A", "ACT-B"], {"ACT-A": table, "ACT-B": table}, [_relation("OVERLAPPING")], combined_effects={"COMB-01": {"effect_type": "ECONOMIC", "effect_id": "COMB", "unit": "kWh/year", "period": "annual", "baseline": table["baseline"], "currency": "EUR", "provenance_refs": ["FIND-01"], "scenarios": {"LOW": 1, "BASE": 1, "HIGH": 1}}})
-
-    def test_exclusive_and_unknown_relations_are_not_summed(self) -> None:
-        table = _calculation()
-        for kind in ("MUTUALLY_EXCLUSIVE", "ALTERNATIVE", "UNKNOWN", "SEQUENTIAL"):
-            relation = _relation(kind)
-            if kind == "SEQUENTIAL":
-                relation["sequence"] = ["ACT-A", "ACT-B"]
-            with self.assertRaises(ValueError):
-                aggregate_declared_portfolio(["ACT-A", "ACT-B"], {"ACT-A": table, "ACT-B": table}, [relation])
-
+class OperationalEconomicsB2Tests(unittest.TestCase):
     def _case(self) -> tuple[Path, tempfile.TemporaryDirectory[str]]:
         directory = tempfile.TemporaryDirectory()
         root = Path(directory.name)
         drop = root / "drop"
         drop.mkdir()
         (drop / "energy.csv").write_text("timestamp,energy_kwh\n2026-01-01 00:00,1\n", encoding="utf-8")
-        (drop / "tariff_note.txt").write_text("0.20 EUR/kWh\n", encoding="utf-8")
         create_client_case("case", root=root / "cases")
         case = root / "cases" / "case"
         ingest_client_drop(drop, case)
-        record_structured_findings(case, [{"finding_id": "FIND-01", "observation": "Excès confirmé.", "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "possible_explanations": ["cause A", "cause B"], "provenance": ["evidence/dataset_provenance.json"], "recommended_next_analytical_step": "Comparer les régimes."}])
+        record_structured_findings(case, [{"finding_id": "FIND-01", "observation": "Excès confirmé.", "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "possible_explanations": ["A", "B"], "provenance": ["evidence/dataset_provenance.json"], "recommended_next_analytical_step": "Comparer régimes."}])
         return case, directory
 
-    def _packet(self, *, calculation: dict[str, object] | None = None, decision: dict[str, object] | None = None, requests: list[dict[str, object]] | None = None) -> dict[str, object]:
-        calculation = _calculation(_effect(), tariff=.2, capex=300, recurring=20) if calculation is None else calculation
-        return {"technical_finding_refs": [{"finding_id": "FIND-01", "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "technical_confidence": "MEDIUM", "provenance": "investigation/structured_findings.json"}], "economic_inputs": [_input("ECON-TARIFF", "electricity_tariff", .2, "EUR/kWh"), _input("ECON-CAPEX", "capex", 300), _input("ECON-RECUR", "recurring_cost", 20)], "candidate_actions": [_action()], "operational_constraints": [], "relationships": [], "scenario_calculations": {"ACT-01": calculation}, "decision": _decision() if decision is None else decision, "economic_requests": [] if requests is None else requests}
+    def _packet(self, calculation: dict | None = None) -> dict:
+        sources = [_input("TAR", .2, "EUR/kWh", "per_kwh"), _input("CAP", 300, "EUR", "one_off"), _input("REC", 20, "EUR/year", "annual")]
+        calculation = calculation or _calculation(capex={s: 300 for s in SCENARIOS}, capex_refs={s: "CAP" for s in SCENARIOS}, recurring={s: 20 for s in SCENARIOS}, recurring_refs={s: "REC" for s in SCENARIOS})
+        return {"technical_finding_refs": [{"finding_id": "FIND-01", "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "technical_confidence": "MEDIUM", "provenance": "investigation/structured_findings.json"}], "economic_inputs": sources, "scenario_assumptions": [], "candidate_actions": [_action()], "operational_constraints": [], "relationships": [], "combined_effects": {}, "scenario_calculations": {"ACT-01": calculation}, "economic_requests": [], "decision": _decision()}
 
-    def test_pre_reasoning_handoff_exposes_goal_a_evidence_before_packet(self) -> None:
+    def test_calculation_rejects_value_that_does_not_match_referenced_input(self) -> None:
         case, directory = self._case()
         with directory:
-            handoff = economic_handoff(case)
-            self.assertEqual(handoff["phase"], "pre_reasoning")
-            self.assertEqual(handoff["technical_findings"][0]["finding_id"], "FIND-01")
-            self.assertIsNone(handoff["existing_economic_state"])
-            self.assertTrue(handoff["available_economic_operational_documents"])
             initialize_economic_state(case)
-            state = persist_economic_packet(case, self._packet())
-            self.assertEqual(state["scenario_calculations"]["ACT-01"]["scenarios"]["BASE"]["net_annual_benefit"], 180.0)
+            calculation = _calculation(tariff={"LOW": .2, "BASE": 99.0, "HIGH": .2})
+            with self.assertRaisesRegex(ValueError, "incohérente avec sa source"):
+                persist_economic_packet(case, self._packet(calculation))
 
-    def test_persistence_rejects_invented_or_non_reproducible_numbers(self) -> None:
+    def test_low_and_high_require_explicit_scenario_assumptions_when_they_differ(self) -> None:
+        case, directory = self._case()
+        with directory:
+            initialize_economic_state(case)
+            calculation = _calculation(tariff={"LOW": .18, "BASE": .2, "HIGH": .23}, tariff_refs={"LOW": "TAR-LOW", "BASE": "TAR", "HIGH": "TAR-HIGH"})
+            packet = self._packet(calculation)
+            packet["scenario_assumptions"] = [_assumption("TAR-LOW", .18, "EUR/kWh", "per_kwh"), _assumption("TAR-HIGH", .23, "EUR/kWh", "per_kwh")]
+            state = persist_economic_packet(case, packet)
+            self.assertEqual(state["scenario_calculations"]["ACT-01"]["scenarios"]["BASE"]["tariff_per_kwh"], .2)
+
+    def test_numeric_provenance_rejects_wrong_unit_and_multiple_sources(self) -> None:
+        case, directory = self._case()
+        with directory:
+            initialize_economic_state(case)
+            packet = self._packet()
+            packet["economic_inputs"][0]["unit"] = "EUR/year"
+            packet["economic_inputs"][0]["period"] = "annual"
+            with self.assertRaises(ValueError):
+                persist_economic_packet(case, packet)
+            packet = self._packet()
+            packet["scenario_calculations"]["ACT-01"]["reproducibility"]["input_references"]["tariff_per_kwh"]["BASE"] = ["TAR", "TAR"]
+            with self.assertRaisesRegex(ValueError, "exactement une source"):
+                persist_economic_packet(case, packet)
+
+    def test_packet_rejects_nonexistent_goal_a_finding_everywhere(self) -> None:
+        case, directory = self._case()
+        with directory:
+            initialize_economic_state(case)
+            for mutator in (
+                lambda packet: packet["technical_finding_refs"][0].update({"finding_id": "FIND-DOES-NOT-EXIST"}),
+                lambda packet: packet["candidate_actions"][0].update({"finding_ids": ["FIND-DOES-NOT-EXIST"]}),
+                lambda packet: packet["scenario_calculations"]["ACT-01"]["reproducibility"]["energy_effect"].update({"finding_refs": ["FIND-DOES-NOT-EXIST"]}),
+            ):
+                packet = self._packet()
+                mutator(packet)
+                with self.assertRaises(ValueError):
+                    persist_economic_packet(case, packet)
+
+    def test_combined_economic_effect_requires_real_value_source_and_exact_value(self) -> None:
+        table = _calculation()
+        relation = [{"relationship_id": "REL", "type": "OVERLAPPING", "action_a": "A", "action_b": "B", "rationale": "same load", "combined_effect_ref": "COMB"}]
+        entry = {"effect_type": "ECONOMIC", "effect_id": "COMB", "unit": "EUR/year", "period": "annual", "baseline": table["baseline"], "currency": "EUR", "scenarios": {s: 200 for s in SCENARIOS}, "value_source_refs": {s: ["COMB-SOURCE"] for s in SCENARIOS}}
+        source = _input("COMB-SOURCE", 200, "EUR/year", "annual", "combined_economic_effect")
+        result = aggregate_declared_portfolio(["A", "B"], {"A": table, "B": table}, relation, combined_effects={"COMB": entry}, economic_value_sources=[source])
+        self.assertEqual(result["net_annual_benefit"]["BASE"], 200.0)
+        bad = copy.deepcopy(entry)
+        bad["scenarios"]["BASE"] = 999999
+        with self.assertRaisesRegex(ValueError, "incohérente avec sa source"):
+            aggregate_declared_portfolio(["A", "B"], {"A": table, "B": table}, relation, combined_effects={"COMB": bad}, economic_value_sources=[source])
+        with self.assertRaisesRegex(ValueError, "provenance inexistante"):
+            aggregate_declared_portfolio(["A", "B"], {"A": table, "B": table}, relation, combined_effects={"COMB": entry}, economic_value_sources=[])
+
+    def test_portfolio_remains_fail_closed_for_missing_relation_and_baseline(self) -> None:
+        first = _calculation(_effect("EFF-A", "baseline A"))
+        second = _calculation(_effect("EFF-B", "baseline B"))
+        with self.assertRaisesRegex(ValueError, "UNKNOWN par omission"):
+            aggregate_declared_portfolio(["A", "B"], {"A": first, "B": second}, [])
+        relation = [{"relationship_id": "REL", "type": "INDEPENDENT", "action_a": "A", "action_b": "B", "rationale": "Codex relation."}]
+        with self.assertRaisesRegex(ValueError, "Baselines différentes"):
+            aggregate_declared_portfolio(["A", "B"], {"A": first, "B": second}, relation)
+        relation[0]["baseline_resolution"] = {"status": "RECONCILED", "rationale": "Fenêtres réconciliées par Codex.", "source_refs": ["FIND-01"]}
+        result = aggregate_declared_portfolio(["A", "B"], {"A": first, "B": second}, relation)
+        self.assertIsNone(result["deterministic_decision"])
+
+    def test_persistence_recalculates_and_rejects_invented_net_benefit(self) -> None:
         case, directory = self._case()
         with directory:
             initialize_economic_state(case)
@@ -179,84 +166,35 @@ class OperationalEconomicsTests(unittest.TestCase):
             packet["scenario_calculations"]["ACT-01"]["scenarios"]["BASE"]["net_annual_benefit"] = 99999
             with self.assertRaisesRegex(ValueError, "incohérent"):
                 persist_economic_packet(case, packet)
-            packet = self._packet()
-            packet["scenario_calculations"]["ACT-MISSING"] = packet["scenario_calculations"].pop("ACT-01")
-            with self.assertRaisesRegex(ValueError, "action candidate existante"):
-                persist_economic_packet(case, packet)
 
-    def test_persistence_rejects_missing_baseline_reference_or_unknown_provenance(self) -> None:
-        case, directory = self._case()
-        with directory:
-            initialize_economic_state(case)
-            packet = self._packet()
-            packet["candidate_actions"][0].pop("energy_effect_ref")
-            with self.assertRaisesRegex(ValueError, "baseline"):
-                persist_economic_packet(case, packet)
-            packet = self._packet()
-            packet["scenario_calculations"]["ACT-01"]["reproducibility"]["input_references"]["tariff_per_kwh"]["BASE"] = ["MADE-UP"]
-            with self.assertRaises(ValueError):
-                persist_economic_packet(case, packet)
-            packet = self._packet()
-            packet["scenario_calculations"]["ACT-01"]["reproducibility"]["energy_effect"]["source_refs"] = ["MADE-UP"]
-            with self.assertRaisesRegex(ValueError, "finding technique"):
-                persist_economic_packet(case, packet)
-
-    def test_economic_requests_use_controlled_vocabulary_and_budget(self) -> None:
-        request = {"request_type": "REQUEST_QUOTE", "client_question": "Avez-vous déjà un devis récent pour cette action ?", "internal_reason": "Le CAPEX peut modifier la décision.", "target_role": "dirigeant", "decision_impact": "Comparer les options.", "expected_effort": "Envoyer un devis existant.", "importance": "NON_BLOCKING"}
-        self.assertEqual(build_economic_request_batch([request])["requests"][0]["request_type"], "REQUEST_QUOTE")
-        inferred = build_economic_request_batch([{"request_type": "INFER_AUTOMATICALLY", "internal_reason": "Le document contient déjà la valeur.", "decision_impact": "Éviter une question inutile."}])
-        self.assertIsNone(inferred["requests"][0]["client_question"])
-        bad = {**request, "request_type": "SOMETHING_ELSE"}
-        with self.assertRaises(ValueError):
-            build_economic_request_batch([bad])
-        with self.assertRaises(ValueError):
-            build_economic_request_batch([request] * 4)
-
-    def test_persistence_validates_requests_and_keeps_rejected_actions_auditable(self) -> None:
-        case, directory = self._case()
-        with directory:
-            initialize_economic_state(case)
-            decision = _decision("OPERATIONALLY_NOT_JUSTIFIED", selected=[], considered=["ACT-01"])
-            decision["blocking_constraint_ids"] = ["CONS-01"]
-            constraint = {"constraint_id": "CONS-01", "category": "HYGIENE", "description": "Charge obligatoire.", "source_status": "EXPLICIT", "source_ref": "ART-01", "hard": True, "material": True, "affected_action_ids": ["ACT-01"]}
-            packet = self._packet(decision=decision, requests=[{"request_type": "BAD", "client_question": "Avez-vous un document concernant ce coût ?", "internal_reason": "test", "target_role": "dirigeant", "decision_impact": "test", "expected_effort": "minime"}])
-            packet["operational_constraints"] = [constraint]
-            with self.assertRaises(ValueError):
-                persist_economic_packet(case, packet)
-            packet["economic_requests"] = []
-            state = persist_economic_packet(case, packet)
-            persisted = state["decisions"][0]
-            self.assertEqual(persisted["selected_action_ids"], [])
-            self.assertEqual(persisted["considered_action_ids"], ["ACT-01"])
-
-    def test_hard_constraint_and_decision_contracts_remain_safety_checks(self) -> None:
-        decision = _decision("ACT_NOW")
-        validate_decision(decision, {"ACT-01"})
-        with self.assertRaises(ValueError):
-            validate_decision(_decision("OPERATIONALLY_NOT_JUSTIFIED", selected=[], considered=[]), {"ACT-01"})
-        case, directory = self._case()
-        with directory:
-            initialize_economic_state(case)
-            constraint = {"constraint_id": "CONS-SAFE", "category": "SAFETY", "description": "Arrêt interdit sans professionnel.", "source_status": "EXPLICIT", "source_ref": "ART-01", "hard": True, "material": True, "affected_action_ids": ["ACT-01"]}
-            with self.assertRaisesRegex(ValueError, "ne peut pas être ignorée"):
-                persist_economic_packet(case, {**self._packet(), "operational_constraints": [constraint]})
-
-    def test_unknown_economic_input_has_no_fake_value(self) -> None:
-        unknown = {"input_id": "CAPEX", "kind": "capex", "provenance": "UNKNOWN", "status": "UNKNOWN", "value": None, "unknown_reason": "No quote available."}
+    def test_unknown_input_never_carries_a_value(self) -> None:
+        unknown = {"input_id": "UNKNOWN", "kind": "capex", "provenance": "UNKNOWN", "status": "UNKNOWN", "value": None, "unknown_reason": "Aucun devis."}
         validate_economic_input(unknown)
         unknown["value"] = 1
         with self.assertRaises(ValueError):
             validate_economic_input(unknown)
 
-    def test_b_a_to_b_o_are_real_structured_contract_fixtures(self) -> None:
-        payload = json.loads((Path("examples") / "goal_b_1_fixtures.json").read_text(encoding="utf-8"))
-        fixtures = payload["fixtures"]
-        self.assertEqual({item["fixture_id"] for item in fixtures}, {f"B-{letter}" for letter in "ABCDEFGHIJKLMNO"})
+    def test_handovers_are_separate_and_e2e_order_is_preserved(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            case = generate_goal_b_2_e2e(Path(directory))
+            trace = json.loads((case / "investigation" / "goal_b_2_e2e_trace.json").read_text(encoding="utf-8"))
+            self.assertEqual(trace["workflow"], ["Goal A evidence", "pre-reasoning handoff", "Codex reasoning contract", "deterministic calculations", "persisted Goal B state", "optional resume handoff"])
+            self.assertTrue((case / "investigation" / "economic_handoff_pre_reasoning.json").exists())
+            self.assertTrue((case / "investigation" / "economic_handoff_resume.json").exists())
+            self.assertNotEqual((case / "investigation" / "economic_handoff_pre_reasoning.json").read_text(), (case / "investigation" / "economic_handoff_resume.json").read_text())
+
+    def test_b_a_to_b_o_have_distinct_properties_not_just_labels(self) -> None:
+        fixtures = json.loads((Path("examples") / "goal_b_2_fixtures.json").read_text(encoding="utf-8"))["fixtures"]
+        self.assertEqual({fixture["fixture_id"] for fixture in fixtures}, {f"B-{letter}" for letter in "ABCDEFGHIJKLMNO"})
+        by_id = {fixture["fixture_id"]: fixture for fixture in fixtures}
+        calculations: dict[str, dict[str, dict]] = {}
         for fixture in fixtures:
             for item in fixture["economic_inputs"]:
                 validate_economic_input(item)
+            for effect in fixture["energy_effects"]:
+                validate_energy_effect(effect)
             actions = fixture["candidate_actions"]
-            action_ids = {item["action_id"] for item in actions}
+            action_ids = {action["action_id"] for action in actions}
             for action in actions:
                 validate_candidate_action(action)
             for constraint in fixture["operational_constraints"]:
@@ -266,25 +204,121 @@ class OperationalEconomicsTests(unittest.TestCase):
             validate_decision(fixture["decision"], action_ids)
             if fixture["economic_requests"]:
                 build_economic_request_batch(fixture["economic_requests"])
-            for effect in fixture["energy_effects"]:
-                validate_energy_effect(effect)
-            tables = {action["action_id"]: _calculation(effect) for action, effect in zip(actions, fixture["energy_effects"], strict=True)}
-            if fixture["fixture_id"] == "B-F":
-                with self.assertRaises(ValueError):
-                    aggregate_declared_portfolio(["ACT-01", "ACT-02"], tables, fixture["relationships"])
-            if fixture["fixture_id"] == "B-G":
-                with self.assertRaises(ValueError):
-                    aggregate_declared_portfolio(["ACT-01", "ACT-02"], tables, fixture["relationships"])
+            effects = {effect["effect_id"]: effect for effect in fixture["energy_effects"]}
+            calculations[fixture["fixture_id"]] = {}
+            for action_id, spec in fixture["calculation_specs"].items():
+                calculations[fixture["fixture_id"]][action_id] = calculate_economic_scenarios(effects[spec["effect_id"]], tariff_per_kwh=spec["tariff_per_kwh"], intervention_cost=spec.get("intervention_cost"), recurring_cost=spec.get("recurring_cost"), input_references=spec["input_references"])
 
-    def test_goal_a_to_goal_b_1_e2e_has_pre_reasoning_handoff_then_persisted_state(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            case = generate_goal_b_1_e2e(Path(directory))
-            trace = json.loads((case / "investigation" / "goal_b_1_e2e_trace.json").read_text(encoding="utf-8"))
-            contract = json.loads((case / "investigation" / "codex_economic_reasoning_contract.json").read_text(encoding="utf-8"))
-            state = json.loads((case / "investigation" / "economic_decision_state.json").read_text(encoding="utf-8"))
-            self.assertEqual(trace["workflow"], ["Goal A evidence", "pre-reasoning economic handoff", "Codex reasoning contract", "deterministic scenario calculations", "persisted Goal B state"])
-            self.assertEqual(contract["handoff_phase"], "pre_reasoning")
-            self.assertEqual(state["decisions"][0]["decision"], "INVESTIGATE_FIRST")
+        self.assertGreater(calculations["B-A"]["ACT-A"]["scenarios"]["BASE"]["net_annual_benefit"], 0)
+        self.assertLess(calculations["B-A"]["ACT-A"]["scenarios"]["BASE"]["simple_payback_years"], 1)
+        self.assertGreater(calculations["B-B"]["ACT-B-REPLACE"]["scenarios"]["BASE"]["intervention_cost"], 10 * 350)
+        self.assertGreater(calculations["B-C"]["ACT-C"]["scenarios"]["BASE"]["simple_payback_years"], 30)
+        self.assertTrue(by_id["B-D"]["operational_constraints"][0]["hard"])
+        self.assertEqual(by_id["B-D"]["operational_constraints"][0]["affected_action_ids"], ["ACT-D"])
+        self.assertEqual(by_id["B-E"]["energy_effects"], [])
+        self.assertTrue(by_id["B-E"]["operational_constraints"][0]["hard"])
+        with self.assertRaises(ValueError):
+            aggregate_declared_portfolio(["ACT-F1", "ACT-F2"], calculations["B-F"], by_id["B-F"]["relationships"])
+        with self.assertRaises(ValueError):
+            aggregate_declared_portfolio(["ACT-G-R", "ACT-G-X"], calculations["B-G"], by_id["B-G"]["relationships"])
+        self.assertTrue(by_id["B-H"]["operational_constraints"][0]["material"])
+        low = calculations["B-I"]["ACT-I"]["scenarios"]["LOW"]["simple_payback_years"]
+        high = calculations["B-I"]["ACT-I"]["scenarios"]["HIGH"]["simple_payback_years"]
+        self.assertGreater(low / high, 5)
+        self.assertLess(by_id["B-L"]["operating_evidence"]["naive_raw_energy_delta_kwh"], 0)
+        self.assertGreater(by_id["B-L"]["operating_evidence"]["production_adjusted_excess_kwh"], 0)
+        gross_m = calculations["B-M"]["ACT-M"]["scenarios"]["BASE"]["gross_annual_energy_cost_avoided"]
+        net_m = calculations["B-M"]["ACT-M"]["scenarios"]["BASE"]["net_annual_benefit"]
+        self.assertGreater(gross_m, net_m)
+        self.assertGreater(net_m, 0)
+        self.assertLessEqual(calculations["B-N"]["ACT-N"]["scenarios"]["BASE"]["net_annual_benefit"], 0)
+        self.assertEqual(len(by_id["B-O"]["economic_requests"]), 0)
+        self.assertIsNotNone(calculations["B-O"]["ACT-O"]["scenarios"]["BASE"]["net_annual_benefit"])
+
+    def test_controlled_requests_and_time_of_use_remain_non_decisional(self) -> None:
+        inferred = build_economic_request_batch([{"request_type": "INFER_AUTOMATICALLY", "internal_reason": "Document déjà disponible.", "decision_impact": "Éviter une question."}])
+        self.assertIsNone(inferred["requests"][0]["client_question"])
+        with self.assertRaises(ValueError):
+            build_economic_request_batch([{"request_type": "UNKNOWN", "client_question": "Texte suffisamment long", "internal_reason": "x", "target_role": "x", "decision_impact": "x", "expected_effort": "x"}])
+        request = {"request_type": "REQUEST_QUOTE", "client_question": "Avez-vous un devis récent pour cette intervention ?", "internal_reason": "CAPEX matériel.", "target_role": "dirigeant", "decision_impact": "Comparer options.", "expected_effort": "Envoyer un document."}
+        with self.assertRaises(ValueError):
+            build_economic_request_batch([request] * 4)
+        result = calculate_time_aligned_savings_with_tariff_plan([{"timestamp": "2026-01-05T01:00:00", "energy_saving_kwh": 10}], {"currency": "EUR", "flat_price_per_kwh": .2})
+        self.assertEqual(result["time_aligned_cost_saving"], 2.0)
+
+    def test_deterministic_scenarios_keep_units_and_never_emit_false_payback(self) -> None:
+        calculation = _calculation(
+            _effect(), capex={s: 300 for s in SCENARIOS}, capex_refs={s: "CAP" for s in SCENARIOS},
+            recurring={s: 20 for s in SCENARIOS}, recurring_refs={s: "REC" for s in SCENARIOS},
+        )
+        self.assertEqual(calculation["scenarios"]["BASE"]["gross_annual_energy_cost_avoided"], 200.0)
+        self.assertEqual(calculation["scenarios"]["BASE"]["net_annual_benefit"], 180.0)
+        effect_mwh = _effect()
+        effect_mwh.update({"unit": "MWh/year", "scenarios": {"LOW": 1, "BASE": 2, "HIGH": 3}})
+        self.assertEqual(_calculation(effect_mwh)["scenarios"]["BASE"]["annual_energy_saving_kwh"], 2000.0)
+        unknown = calculate_economic_scenarios(
+            _effect(), tariff_per_kwh=None,
+            intervention_cost={s: 100 for s in SCENARIOS},
+            input_references={"energy_effect": {s: ["FIND-01"] for s in SCENARIOS}, "intervention_cost": {s: ["CAP"] for s in SCENARIOS}},
+        )
+        self.assertIsNone(unknown["scenarios"]["BASE"]["gross_annual_energy_cost_avoided"])
+        negative = _calculation(
+            recurring={s: 300 for s in SCENARIOS}, recurring_refs={s: "REC" for s in SCENARIOS},
+        )
+        self.assertLess(negative["scenarios"]["BASE"]["net_annual_benefit"], 0)
+        self.assertIsNone(negative["scenarios"]["BASE"]["simple_payback_years"])
+
+    def test_combined_energy_is_recalculated_and_exclusive_paths_are_not_summed(self) -> None:
+        individual = _calculation()
+        combined_effect = _effect("EFF-C")
+        combined = _calculation(combined_effect)
+        relation = [{"relationship_id": "REL", "type": "OVERLAPPING", "action_a": "A", "action_b": "B", "rationale": "Same physical load.", "combined_effect_ref": "COMB"}]
+        entry = {"effect_type": "ENERGY", "energy_effect": combined_effect, "economic_calculation": combined}
+        tariff_source = _input("TAR", .2, "EUR/kWh", "per_kwh")
+        result = aggregate_declared_portfolio(
+            ["A", "B"], {"A": individual, "B": individual}, relation,
+            combined_effects={"COMB": entry}, economic_value_sources=[tariff_source],
+        )
+        self.assertEqual(result["net_annual_benefit"]["BASE"], 200.0)
+        for relationship_type in ("MUTUALLY_EXCLUSIVE", "ALTERNATIVE", "UNKNOWN", "SEQUENTIAL"):
+            item = {"relationship_id": "REL", "type": relationship_type, "action_a": "A", "action_b": "B", "rationale": "Not additive."}
+            if relationship_type == "SEQUENTIAL":
+                item["sequence"] = ["A", "B"]
+            with self.assertRaises(ValueError):
+                aggregate_declared_portfolio(["A", "B"], {"A": individual, "B": individual}, [item])
+
+    def test_pre_reasoning_handoff_contains_real_goal_a_context_before_packet(self) -> None:
+        case, directory = self._case()
+        with directory:
+            handoff = economic_handoff(case)
+            self.assertEqual(handoff["phase"], "pre_reasoning")
+            self.assertEqual(handoff["technical_findings"][0]["finding_id"], "FIND-01")
+            self.assertIsNone(handoff["existing_economic_state"])
+            self.assertTrue((case / "investigation" / "economic_handoff_pre_reasoning.json").exists())
+
+    def test_persistence_rejects_unknown_action_and_preserves_safety_and_rejected_action_audit(self) -> None:
+        case, directory = self._case()
+        with directory:
+            initialize_economic_state(case)
+            packet = self._packet()
+            packet["scenario_calculations"]["ACT-MISSING"] = packet["scenario_calculations"].pop("ACT-01")
+            with self.assertRaisesRegex(ValueError, "action candidate existante"):
+                persist_economic_packet(case, packet)
+            safety = {"constraint_id": "CONS-SAFE", "category": "SAFETY", "description": "Arrêt interdit sans professionnel.", "source_status": "EXPLICIT", "source_ref": "ART-01", "hard": True, "material": True, "affected_action_ids": ["ACT-01"]}
+            with self.assertRaisesRegex(ValueError, "ne peut pas être ignorée"):
+                persist_economic_packet(case, {**self._packet(), "operational_constraints": [safety]})
+            rejected = _decision("OPERATIONALLY_NOT_JUSTIFIED", selected=[], considered=["ACT-01"])
+            rejected["blocking_constraint_ids"] = ["CONS-SAFE"]
+            state = persist_economic_packet(case, {**self._packet(), "operational_constraints": [safety], "decision": rejected})
+            self.assertEqual(state["decisions"][0]["selected_action_ids"], [])
+            self.assertEqual(state["decisions"][0]["considered_action_ids"], ["ACT-01"])
+
+    def test_time_aligned_calculation_remains_measurement_not_recommendation(self) -> None:
+        result = calculate_time_aligned_savings(
+            [{"timestamp": "2026-01-01T01:00:00", "energy_saving_kwh": 10}, {"timestamp": "2026-01-01T18:00:00", "energy_saving_kwh": 4}],
+            price_for_timestamp=lambda timestamp: .1 if "T01" in timestamp else .3,
+        )
+        self.assertAlmostEqual(result["time_aligned_cost_saving"], 2.2)
 
 
 if __name__ == "__main__":

@@ -43,3 +43,12 @@ reproduits par `calculate_economic_scenarios`. Chaque valeur matérielle cite
 des `EconomicInput`, une hypothèse de scénario explicitement persistée, ou la
 preuve de l'effet énergie. Un nombre de bénéfice, de coût ou de payback soumis
 par l'agent ne peut donc pas devenir une vérité quantitative sans recalcul.
+
+## B.2 : artefacts de handoff séparés
+
+Le handoff initial est écrit dans
+`investigation/economic_handoff_pre_reasoning.json`. Après persistance d'un
+packet, le contexte de reprise est écrit séparément dans
+`investigation/economic_handoff_resume.json`. Le premier n'est donc jamais
+écrasé par le second, ce qui préserve l'audit de l'information disponible avant
+le raisonnement économique.

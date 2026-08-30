@@ -7,6 +7,7 @@ références et la reproductibilité des nombres avant persistance.
 from __future__ import annotations
 
 import json
+from math import isclose
 from datetime import datetime, timezone
 from itertools import combinations
 from pathlib import Path
@@ -25,6 +26,12 @@ REQUEST_TYPES = {"INFER_AUTOMATICALLY", "ASK_CLIENT", "REQUEST_EXISTING_DOCUMENT
 ENERGY_UNITS = {"kWh/year", "MWh/year"}
 ECONOMIC_UNITS = {"EUR/year"}
 BASELINE_RESOLUTION_STATUSES = {"COMPATIBLE_DECLARED", "RECONCILED"}
+ECONOMIC_COMPONENTS = {
+    "tariff_per_kwh": ("/kWh", "per_kwh"),
+    "intervention_cost": ("", "one_off"),
+    "recurring_cost": ("/year", "annual"),
+    "other_annual_benefit": ("/year", "annual"),
+}
 
 
 def _now() -> str:
@@ -91,17 +98,28 @@ def validate_economic_input(payload: dict[str, Any]) -> None:
         _require_text(payload, ("unknown_reason",), "Input économique UNKNOWN")
     else:
         _non_negative(payload.get("value"), "Valeur économique")
-        _require_text(payload, ("unit",), "Input économique")
+        _require_text(payload, ("unit", "currency"), "Input économique")
         if not isinstance(payload.get("source"), dict):
             raise ValueError("Une donnée économique connue exige une provenance structurée.")
+        if not str(payload["unit"]).startswith(str(payload["currency"])):
+            raise ValueError("L'unité économique doit être cohérente avec sa devise.")
+        if "/year" in payload["unit"] and payload.get("period") != "annual":
+            raise ValueError("Une valeur annuelle exige period=annual.")
+        if "/kWh" in payload["unit"] and payload.get("period") != "per_kwh":
+            raise ValueError("Un tarif exige period=per_kwh.")
+        if payload["unit"] == payload["currency"] and payload.get("period") != "one_off":
+            raise ValueError("Un coût ponctuel exige period=one_off.")
     if payload.get("confidence") and payload["confidence"] not in CONFIDENCE_LEVELS:
         raise ValueError("Niveau de confiance économique inconnu.")
 
 
 def validate_scenario_assumption(payload: dict[str, Any]) -> None:
-    _require_text(payload, ("assumption_id", "description", "provenance"), "Hypothèse de scénario")
-    if payload["provenance"] != "SCENARIO_ASSUMPTION" or not isinstance(payload.get("source"), dict):
-        raise ValueError("Une hypothèse de scénario exige SCENARIO_ASSUMPTION et une provenance structurée.")
+    _require_text(payload, ("assumption_id", "description", "provenance", "unit", "currency", "period"), "Hypothèse de scénario")
+    if payload["provenance"] != "SCENARIO_ASSUMPTION" or payload.get("status") != "SCENARIO" or not isinstance(payload.get("source"), dict):
+        raise ValueError("Une hypothèse de scénario exige SCENARIO_ASSUMPTION, status=SCENARIO et une provenance structurée.")
+    _non_negative(payload.get("value"), "Valeur d'hypothèse de scénario")
+    if not str(payload["unit"]).startswith(str(payload["currency"])):
+        raise ValueError("L'unité de l'hypothèse doit être cohérente avec sa devise.")
 
 
 def validate_energy_effect(payload: dict[str, Any]) -> None:
@@ -116,6 +134,34 @@ def validate_energy_effect(payload: dict[str, Any]) -> None:
         raise ValueError("Les scénarios énergie doivent respecter LOW ≤ BASE ≤ HIGH.")
     if not isinstance(payload.get("source_refs"), list) or not payload["source_refs"]:
         raise ValueError("Un effet énergie doit référencer une preuve ou une hypothèse explicite.")
+    if not isinstance(payload.get("finding_refs"), list) or not payload["finding_refs"]:
+        raise ValueError("Un effet énergie doit référencer au moins un finding Goal A.")
+
+
+def _value_source_index(inputs: list[dict[str, Any]], assumptions: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    records: dict[str, dict[str, Any]] = {}
+    for item in inputs:
+        validate_economic_input(item)
+        identifier = item["input_id"]
+        if identifier in records:
+            raise ValueError("Identifiants de sources économiques dupliqués.")
+        records[identifier] = item
+    for item in assumptions:
+        validate_scenario_assumption(item)
+        identifier = item["assumption_id"]
+        if identifier in records:
+            raise ValueError("Identifiants de sources économiques dupliqués.")
+        records[identifier] = item
+    return records
+
+
+def _validate_component_source(value: float, source: dict[str, Any], component: str, currency: str, scenario: str) -> None:
+    suffix, period = ECONOMIC_COMPONENTS[component]
+    expected_unit = f"{currency}{suffix}"
+    if source.get("status", "KNOWN") == "UNKNOWN" or source.get("unit") != expected_unit or source.get("currency") != currency or source.get("period") != period:
+        raise ValueError(f"Source {component}/{scenario} incompatible (valeur, unité, devise ou période).")
+    if not isclose(float(source.get("value")), float(value), rel_tol=0.0, abs_tol=1e-12):
+        raise ValueError(f"Valeur {component}/{scenario} incohérente avec sa source économique déclarée.")
 
 
 def validate_constraint(payload: dict[str, Any]) -> None:
@@ -241,15 +287,24 @@ def _verify_deterministic_calculation(calculation: dict[str, Any]) -> None:
         raise ValueError("Calcul économique soumis incohérent avec sa reproduction déterministe.")
 
 
-def _validate_calculation_provenance(calculation: dict[str, Any], *, allowed_input_ids: set[str], allowed_assumption_ids: set[str], allowed_energy_refs: set[str]) -> None:
+def _validate_calculation_provenance(calculation: dict[str, Any], *, value_sources: dict[str, dict[str, Any]], allowed_energy_refs: set[str]) -> None:
     _verify_deterministic_calculation(calculation)
     references = calculation["reproducibility"]["input_references"]
-    refs = {ref for mapping in references.values() for values in mapping.values() for ref in values}
-    if refs - (allowed_input_ids | allowed_assumption_ids | allowed_energy_refs):
-        raise ValueError("Calcul économique référence une provenance absente du packet ou de l'effet énergie.")
-    for component, mapping in references.items():
-        if component != "energy_effect" and any(ref not in allowed_input_ids | allowed_assumption_ids for values in mapping.values() for ref in values):
-            raise ValueError("Une valeur économique doit référencer un EconomicInput ou une hypothèse persistée.")
+    energy_refs = {ref for values in references["energy_effect"].values() for ref in values}
+    if energy_refs - allowed_energy_refs:
+        raise ValueError("Calcul économique référence une preuve énergétique absente du cas Goal A.")
+    values = calculation["reproducibility"]["input_values"]
+    for component, scenario_values in values.items():
+        if scenario_values is None:
+            continue
+        mapping = references.get(component)
+        if not isinstance(mapping, dict):
+            raise ValueError(f"Provenance {component} absente.")
+        for scenario in SCENARIOS:
+            refs = mapping.get(scenario)
+            if not isinstance(refs, list) or len(refs) != 1 or refs[0] not in value_sources:
+                raise ValueError(f"Chaque valeur {component}/{scenario} doit référencer exactement une source économique existante.")
+            _validate_component_source(float(scenario_values[scenario]), value_sources[refs[0]], component, calculation["currency"], scenario)
 
 
 def calculate_time_aligned_savings(timed_savings: Iterable[dict[str, Any]], *, price_for_timestamp: callable) -> dict[str, Any]:
@@ -288,7 +343,7 @@ def _baseline_is_resolved(left: dict[str, Any], right: dict[str, Any], relation:
     return left["baseline"] == right["baseline"] or relation.get("baseline_resolution", {}).get("status") in BASELINE_RESOLUTION_STATUSES
 
 
-def _combined_table(entry: dict[str, Any]) -> dict[str, Any]:
+def _combined_table(entry: dict[str, Any], value_sources: dict[str, dict[str, Any]]) -> dict[str, Any]:
     if not isinstance(entry, dict):
         raise ValueError("Un effet combiné doit être un objet typé, jamais un nombre nu.")
     if entry.get("effect_type") == "ENERGY":
@@ -299,24 +354,32 @@ def _combined_table(entry: dict[str, Any]) -> dict[str, Any]:
         _verify_deterministic_calculation(calculation)
         if calculation.get("effect_id") != effect["effect_id"] or calculation.get("baseline") != effect["baseline"]:
             raise ValueError("L'effet énergie combiné et son calcul ne correspondent pas.")
+        _validate_calculation_provenance(calculation, value_sources=value_sources, allowed_energy_refs=set(effect["finding_refs"]) | set(effect["source_refs"]))
         return calculation
     if entry.get("effect_type") == "ECONOMIC":
         _require_text(entry, ("effect_id", "unit", "period", "baseline", "currency"), "Effet économique combiné")
         if entry["unit"] not in ECONOMIC_UNITS or entry["period"] != "annual":
             raise ValueError("Un effet économique combiné doit expliciter EUR/year et une période annualisée.")
-        if not isinstance(entry.get("provenance_refs"), list) or not entry["provenance_refs"]:
-            raise ValueError("Un effet économique combiné direct exige une provenance explicite.")
         scenarios = _scenario_values(entry.get("scenarios"), "Effet économique combiné")
         assert scenarios is not None
+        references = entry.get("value_source_refs")
+        if not isinstance(references, dict) or set(references) != set(SCENARIOS):
+            raise ValueError("Un effet économique combiné direct exige une source de valeur par scénario.")
+        for scenario in SCENARIOS:
+            refs = references[scenario]
+            if not isinstance(refs, list) or len(refs) != 1 or refs[0] not in value_sources:
+                raise ValueError("Un effet économique combiné direct référence une provenance inexistante.")
+            _validate_component_source(scenarios[scenario], value_sources[refs[0]], "other_annual_benefit", entry["currency"], scenario)
         return {"currency": entry["currency"], "baseline": entry["baseline"], "scenarios": {scenario: {"net_annual_benefit": scenarios[scenario]} for scenario in SCENARIOS}}
     raise ValueError("Type d'effet combiné invalide; ENERGY ou ECONOMIC explicite requis.")
 
 
-def aggregate_declared_portfolio(selected_action_ids: list[str], scenario_tables: dict[str, dict[str, Any]], relationships: list[dict[str, Any]], *, combined_effects: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
+def aggregate_declared_portfolio(selected_action_ids: list[str], scenario_tables: dict[str, dict[str, Any]], relationships: list[dict[str, Any]], *, combined_effects: dict[str, dict[str, Any]] | None = None, economic_value_sources: list[dict[str, Any]] | None = None, scenario_assumptions: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     """Agrège seulement un portefeuille entièrement déclaré et dimensionnellement sûr."""
     selected = set(selected_action_ids)
     if not selected or selected - set(scenario_tables):
         raise ValueError("Le portefeuille doit sélectionner des actions avec scénarios connus.")
+    value_sources = _value_source_index(economic_value_sources or [], scenario_assumptions or [])
     for table in scenario_tables.values():
         _verify_deterministic_calculation(table)
     relationship_by_pair: dict[frozenset[str], dict[str, Any]] = {}
@@ -353,7 +416,7 @@ def aggregate_declared_portfolio(selected_action_ids: list[str], scenario_tables
         reference = relation.get("combined_effect_ref")
         if not reference or not combined_effects or reference not in combined_effects:
             raise ValueError("Recouvrement sans effet combiné déclaré: aucune somme n'est autorisée.")
-        combined = _combined_table(combined_effects[reference])
+        combined = _combined_table(combined_effects[reference], value_sources)
         if combined.get("currency") != scenario_tables[left].get("currency") or combined.get("currency") != scenario_tables[right].get("currency"):
             raise ValueError("Devises incompatibles pour effet combiné.")
         if not _baseline_is_resolved(scenario_tables[left], combined, relation) or not _baseline_is_resolved(scenario_tables[right], combined, relation):
@@ -375,7 +438,7 @@ def initialize_economic_state(case_directory: str | Path) -> dict[str, Any]:
     if path.exists():
         raise FileExistsError("L'état économique existe déjà et ne sera pas réinitialisé.")
     canonical = _read(case / "derived" / "canonical_case.json")
-    state = {"schema_version": 2, "created_at_utc": _now(), "status": "awaiting_codex_economic_reasoning", "technical_finding_refs": [], "economic_inputs": [], "scenario_assumptions": [], "operational_constraints": [], "candidate_actions": [], "relationships": [], "scenario_calculations": {}, "decisions": [], "economic_requests": [], "unresolved_blockers": canonical.get("unresolved_material_ambiguities", []), "provenance_context": {"canonical_case": "derived/canonical_case.json", "dataset_provenance": "evidence/dataset_provenance.json", "technical_findings": "investigation/structured_findings.json"}, "history": [{"at_utc": _now(), "action": "economic_state_initialized"}], "ground_truth_used": False, "deterministic_recommendation_engine": False}
+    state = {"schema_version": 3, "created_at_utc": _now(), "status": "awaiting_codex_economic_reasoning", "technical_finding_refs": [], "economic_inputs": [], "scenario_assumptions": [], "operational_constraints": [], "candidate_actions": [], "relationships": [], "combined_effects": {}, "scenario_calculations": {}, "decisions": [], "economic_requests": [], "unresolved_blockers": canonical.get("unresolved_material_ambiguities", []), "provenance_context": {"canonical_case": "derived/canonical_case.json", "dataset_provenance": "evidence/dataset_provenance.json", "technical_findings": "investigation/structured_findings.json"}, "history": [{"at_utc": _now(), "action": "economic_state_initialized"}], "ground_truth_used": False, "deterministic_recommendation_engine": False}
     _write(path, state)
     return state
 
@@ -409,15 +472,28 @@ def _case_provenance_ids(case: Path) -> set[str]:
     return identifiers
 
 
+def _goal_a_finding_ids(case: Path) -> set[str]:
+    findings_path = case / "investigation" / "structured_findings.json"
+    if not findings_path.exists():
+        return set()
+    payload = _read(findings_path)
+    findings = payload.get("findings", [])
+    if not isinstance(findings, list):
+        raise ValueError("Artefact Goal A structured_findings.json invalide.")
+    return {item.get("finding_id") for item in findings if isinstance(item, dict) and item.get("finding_id")}
+
+
 def economic_handoff(case_directory: str | Path) -> dict[str, Any]:
-    """Produit le handoff pré-raisonnement, même avant tout packet économique."""
+    """Produit un handoff nommé pré-raisonnement ou reprise, sans écrasement."""
     case = Path(case_directory)
     if not (case / "case_manifest.json").is_file():
         raise ValueError("Le dossier doit être un cas Goal A valide.")
     state_path = case / "investigation" / "economic_decision_state.json"
     state = _read(state_path) if state_path.exists() else None
-    payload = {"schema_version": 2, "phase": "pre_reasoning" if state is None else "resume_reasoning", "purpose": "Contexte Goal A → Goal B pour raisonnement Codex; pas une recommandation automatique.", **_pre_reasoning_context(case), "existing_economic_state": None if state is None else {"economic_inputs": state["economic_inputs"], "scenario_assumptions": state.get("scenario_assumptions", []), "constraints": state["operational_constraints"], "candidate_actions": state["candidate_actions"], "relationships": state["relationships"], "decisions": state["decisions"], "economic_requests": state["economic_requests"]}, "codex_must_decide": ["candidate actions", "material constraints", "relationships", "baseline reconciliation", "economic assumptions", "evidence worth buying", "decision", "priority", "validation"], "python_can_calculate": ["scenario table", "time-aligned tariff impact", "payback when meaningful", "declared portfolio arithmetic", "reproducibility validation"], "deterministic_recommendation_engine": False}
-    _write(case / "investigation" / "economic_handoff.json", payload)
+    phase = "pre_reasoning" if state is None else "resume_reasoning"
+    artifact = "economic_handoff_pre_reasoning.json" if state is None else "economic_handoff_resume.json"
+    payload = {"schema_version": 3, "phase": phase, "artifact": f"investigation/{artifact}", "purpose": "Contexte Goal A → Goal B pour raisonnement Codex; pas une recommandation automatique.", **_pre_reasoning_context(case), "existing_economic_state": None if state is None else {"economic_inputs": state["economic_inputs"], "scenario_assumptions": state.get("scenario_assumptions", []), "constraints": state["operational_constraints"], "candidate_actions": state["candidate_actions"], "relationships": state["relationships"], "combined_effects": state.get("combined_effects", {}), "decisions": state["decisions"], "economic_requests": state["economic_requests"]}, "codex_must_decide": ["candidate actions", "material constraints", "relationships", "baseline reconciliation", "economic assumptions", "evidence worth buying", "decision", "priority", "validation"], "python_can_calculate": ["scenario table", "time-aligned tariff impact", "payback when meaningful", "declared portfolio arithmetic", "reproducibility validation"], "deterministic_recommendation_engine": False}
+    _write(case / "investigation" / artifact, payload)
     return payload
 
 
@@ -448,15 +524,10 @@ def persist_economic_packet(case_directory: str | Path, packet: dict[str, Any]) 
     inputs = packet.get("economic_inputs", [])
     for item in inputs:
         validate_economic_input(item)
-    input_ids = {item["input_id"] for item in inputs}
-    if len(input_ids) != len(inputs):
-        raise ValueError("Identifiants d'inputs économiques dupliqués.")
     assumptions = packet.get("scenario_assumptions", [])
     for item in assumptions:
         validate_scenario_assumption(item)
-    assumption_ids = {item["assumption_id"] for item in assumptions}
-    if len(assumption_ids) != len(assumptions):
-        raise ValueError("Identifiants d'hypothèses de scénario dupliqués.")
+    value_sources = _value_source_index(inputs, assumptions)
     actions = packet.get("candidate_actions", [])
     for action in actions:
         validate_candidate_action(action)
@@ -475,17 +546,37 @@ def persist_economic_packet(case_directory: str | Path, packet: dict[str, Any]) 
     if not isinstance(calculations, dict) or set(calculations) - action_ids:
         raise ValueError("Un calcul économique doit référencer une action candidate existante.")
     technical_refs = {item.get("finding_id") for item in packet.get("technical_finding_refs", []) if item.get("finding_id")}
+    real_goal_a_findings = _goal_a_finding_ids(case)
+    if not technical_refs or technical_refs - real_goal_a_findings:
+        raise ValueError("technical_finding_refs doit référencer des findings réellement présents dans Goal A.")
+    if any(set(action["finding_ids"]) - technical_refs for action in actions):
+        raise ValueError("Chaque action doit référencer un finding Goal A déclaré dans technical_finding_refs.")
     known_goal_a_refs = _case_provenance_ids(case)
     for action_id, calculation in calculations.items():
         action = next(item for item in actions if item["action_id"] == action_id)
         if not action.get("energy_effect_ref"):
             raise ValueError("Toute action avec économie d'énergie calculée doit identifier son baseline via energy_effect_ref.")
-        effect_refs = set(calculation.get("reproducibility", {}).get("energy_effect", {}).get("source_refs", []))
-        if not effect_refs & technical_refs:
+        energy_effect = calculation.get("reproducibility", {}).get("energy_effect", {})
+        finding_refs = set(energy_effect.get("finding_refs", []))
+        if not finding_refs or finding_refs - technical_refs or finding_refs - real_goal_a_findings:
             raise ValueError("Un effet énergétique persistant doit référencer au moins un finding technique du packet.")
-        _validate_calculation_provenance(calculation, allowed_input_ids=input_ids, allowed_assumption_ids=assumption_ids, allowed_energy_refs=technical_refs | known_goal_a_refs)
+        _validate_calculation_provenance(calculation, value_sources=value_sources, allowed_energy_refs=technical_refs | known_goal_a_refs)
         if calculation.get("effect_id") != action["energy_effect_ref"] or not calculation.get("baseline"):
             raise ValueError("Le calcul économique ne correspond pas à energy_effect_ref/baseline de l'action.")
+    combined_effects = packet.get("combined_effects", {})
+    if not isinstance(combined_effects, dict):
+        raise ValueError("combined_effects doit être un objet indexé par référence.")
+    for reference, entry in combined_effects.items():
+        if not isinstance(reference, str) or not reference:
+            raise ValueError("Référence d'effet combiné invalide.")
+        if entry.get("effect_type") == "ENERGY":
+            effect = entry.get("energy_effect", {})
+            if set(effect.get("finding_refs", [])) - technical_refs or set(effect.get("finding_refs", [])) - real_goal_a_findings:
+                raise ValueError("Un effet combiné énergie doit référencer des findings Goal A réels.")
+        _combined_table(entry, value_sources)
+    for relationship in relationships:
+        if relationship["type"] == "OVERLAPPING" and relationship["combined_effect_ref"] not in combined_effects:
+            raise ValueError("Un recouvrement persistant exige son combined_effect validé.")
     decision = packet.get("decision")
     if decision is not None:
         validate_decision(decision, action_ids)
@@ -499,7 +590,7 @@ def persist_economic_packet(case_directory: str | Path, packet: dict[str, Any]) 
         if decision.get("blocking_constraint_ids") and set(decision["blocking_constraint_ids"]) - {item["constraint_id"] for item in constraints}:
             raise ValueError("Décision référence une contrainte inconnue.")
     requests = build_economic_request_batch(packet.get("economic_requests", []))["requests"] if packet.get("economic_requests") else []
-    state.update({"status": "economic_reasoning_recorded", "technical_finding_refs": packet.get("technical_finding_refs", []), "economic_inputs": inputs, "scenario_assumptions": assumptions, "operational_constraints": constraints, "candidate_actions": actions, "relationships": relationships, "scenario_calculations": calculations, "decisions": [decision] if decision else [], "economic_requests": requests, "unresolved_blockers": packet.get("unresolved_blockers", state["unresolved_blockers"])})
+    state.update({"status": "economic_reasoning_recorded", "technical_finding_refs": packet.get("technical_finding_refs", []), "economic_inputs": inputs, "scenario_assumptions": assumptions, "operational_constraints": constraints, "candidate_actions": actions, "relationships": relationships, "combined_effects": combined_effects, "scenario_calculations": calculations, "decisions": [decision] if decision else [], "economic_requests": requests, "unresolved_blockers": packet.get("unresolved_blockers", state["unresolved_blockers"])})
     state["history"].append({"at_utc": _now(), "action": "economic_packet_persisted", "action_ids": sorted(action_ids), "decision": decision.get("decision") if decision else None})
     _write(path, state)
     return state

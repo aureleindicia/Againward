@@ -1,0 +1,342 @@
+{
+  "schema_version": 3,
+  "phase": "resume_reasoning",
+  "artifact": "investigation/economic_handoff_resume.json",
+  "purpose": "Contexte Goal A → Goal B pour raisonnement Codex; pas une recommandation automatique.",
+  "technical_findings": [
+    {
+      "finding_id": "FIND-EXCESS-01",
+      "observation": "Excès pré-ouverture récurrent dans les données synthétiques.",
+      "time_context_window": "05:00–06:00",
+      "quantitative_evidence": {
+        "excess_energy_kwh": 6.0,
+        "source": "DS-001"
+      },
+      "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+      "possible_explanations": [
+        "dérive technique",
+        "préparation opérationnelle"
+      ],
+      "current_leading_explanation": null,
+      "counter_explanations": [
+        "horaire exceptionnel"
+      ],
+      "missing_material_information": [
+        "statut de préparation"
+      ],
+      "client_question": null,
+      "technical_evidence_request": "Inspection pendant visite prévue.",
+      "confidence": "MEDIUM",
+      "provenance": [
+        "evidence/dataset_provenance.json"
+      ],
+      "recommended_next_analytical_step": "Comparer après inspection.",
+      "predictive_degradation_note": null
+    }
+  ],
+  "technical_no_finding": null,
+  "technical_findings_source": "investigation/structured_findings.json",
+  "known_facts": [
+    {
+      "kind": "source_observation",
+      "value": "ART-001-1352e6ee1a21_energy_interval_export.csv classé ENERGY_INTERVAL_SERIES",
+      "artifact_id": "ART-001-1352e6ee1a21"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-002-251d135464e3_facture_tarif.txt classé TARIFF",
+      "artifact_id": "ART-002-251d135464e3"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-003-d0b9bab96790_logo_photo.txt classé IRRELEVANT",
+      "artifact_id": "ART-003-d0b9bab96790"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-004-43d20cf28b1c_maintenance_note.txt classé MAINTENANCE",
+      "artifact_id": "ART-004-43d20cf28b1c"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-005-2eb407921171_meter_without_unit.csv classé ENERGY_INTERVAL_SERIES",
+      "artifact_id": "ART-005-2eb407921171"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-006-e33f7742896f_planning_ouverture.txt classé SCHEDULE",
+      "artifact_id": "ART-006-e33f7742896f"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-007-d9368e0992cf_production_approx.csv classé PRODUCTION",
+      "artifact_id": "ART-007-d9368e0992cf"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-008-2ceca0b1c795_supplier_quote.txt classé TEXT_NOTE",
+      "artifact_id": "ART-008-2ceca0b1c795"
+    }
+  ],
+  "available_context_roles": {
+    "ENERGY_INTERVAL_SERIES": [
+      "DS-001-01",
+      "DS-005-01"
+    ],
+    "PRODUCTION": [
+      "DS-007-01"
+    ],
+    "TARIFF": [
+      "ART-002-251d135464e3"
+    ],
+    "IRRELEVANT": [
+      "ART-003-d0b9bab96790"
+    ],
+    "MAINTENANCE": [
+      "ART-004-43d20cf28b1c"
+    ],
+    "SCHEDULE": [
+      "ART-006-e33f7742896f"
+    ],
+    "TEXT_NOTE": [
+      "ART-008-2ceca0b1c795"
+    ]
+  },
+  "available_economic_operational_documents": [
+    {
+      "artifact_id": "ART-002-251d135464e3",
+      "original_filename": "ART-002-251d135464e3_facture_tarif.txt",
+      "probable_role": "TARIFF",
+      "usability": "partially_usable",
+      "role_evidence": [
+        "filename keyword"
+      ]
+    },
+    {
+      "artifact_id": "ART-004-43d20cf28b1c",
+      "original_filename": "ART-004-43d20cf28b1c_maintenance_note.txt",
+      "probable_role": "MAINTENANCE",
+      "usability": "partially_usable",
+      "role_evidence": [
+        "filename keyword"
+      ]
+    },
+    {
+      "artifact_id": "ART-006-e33f7742896f",
+      "original_filename": "ART-006-e33f7742896f_planning_ouverture.txt",
+      "probable_role": "SCHEDULE",
+      "usability": "partially_usable",
+      "role_evidence": [
+        "filename keyword"
+      ]
+    },
+    {
+      "artifact_id": "ART-007-d9368e0992cf",
+      "original_filename": "ART-007-d9368e0992cf_production_approx.csv",
+      "probable_role": "PRODUCTION",
+      "usability": "usable",
+      "role_evidence": [
+        "recognized production header",
+        "recognized timestamp header"
+      ]
+    },
+    {
+      "artifact_id": "ART-008-2ceca0b1c795",
+      "original_filename": "ART-008-2ceca0b1c795_supplier_quote.txt",
+      "probable_role": "TEXT_NOTE",
+      "usability": "partially_usable",
+      "role_evidence": [
+        "readable text-like file without stronger evidence"
+      ]
+    }
+  ],
+  "unresolved_material_ambiguities": [
+    {
+      "dataset_id": "DS-005-01",
+      "issue": "measurement_unit",
+      "reason": "unlabeled non-negative measurement supports competing kW/kWh interpretations",
+      "blocking_for": "quantitative_energy_interpretation"
+    },
+    {
+      "dataset_id": "DS-005-01",
+      "issue": "unlabeled non-negative measurement supports competing kW/kWh interpretations"
+    }
+  ],
+  "dataset_provenance_ref": "evidence/dataset_provenance.json",
+  "canonical_case_ref": "derived/canonical_case.json",
+  "existing_economic_state": {
+    "economic_inputs": [
+      {
+        "input_id": "TAR-BASE",
+        "kind": "electricity_tariff",
+        "value": 0.2,
+        "unit": "EUR/kWh",
+        "currency": "EUR",
+        "period": "per_kwh",
+        "provenance": "DOCUMENT_EXTRACTED",
+        "status": "KNOWN",
+        "source": {
+          "artifact": "TAR-BASE"
+        },
+        "confidence": "MEDIUM"
+      },
+      {
+        "input_id": "CAP-INSPECT",
+        "kind": "diagnostic_quote",
+        "value": 300,
+        "unit": "EUR",
+        "currency": "EUR",
+        "period": "one_off",
+        "provenance": "DOCUMENT_EXTRACTED",
+        "status": "KNOWN",
+        "source": {
+          "artifact": "CAP-INSPECT"
+        },
+        "confidence": "MEDIUM"
+      }
+    ],
+    "scenario_assumptions": [
+      {
+        "assumption_id": "TAR-LOW",
+        "description": "Tarif bas plausible.",
+        "value": 0.18,
+        "unit": "EUR/kWh",
+        "currency": "EUR",
+        "period": "per_kwh",
+        "provenance": "SCENARIO_ASSUMPTION",
+        "status": "SCENARIO",
+        "source": {
+          "method": "tariff sensitivity"
+        }
+      },
+      {
+        "assumption_id": "TAR-HIGH",
+        "description": "Tarif haut plausible.",
+        "value": 0.23,
+        "unit": "EUR/kWh",
+        "currency": "EUR",
+        "period": "per_kwh",
+        "provenance": "SCENARIO_ASSUMPTION",
+        "status": "SCENARIO",
+        "source": {
+          "method": "tariff sensitivity"
+        }
+      },
+      {
+        "assumption_id": "CAP-LOW",
+        "description": "Devis bas plausible.",
+        "value": 250,
+        "unit": "EUR",
+        "currency": "EUR",
+        "period": "one_off",
+        "provenance": "SCENARIO_ASSUMPTION",
+        "status": "SCENARIO",
+        "source": {
+          "method": "quote range"
+        }
+      },
+      {
+        "assumption_id": "CAP-HIGH",
+        "description": "Devis haut plausible.",
+        "value": 400,
+        "unit": "EUR",
+        "currency": "EUR",
+        "period": "one_off",
+        "provenance": "SCENARIO_ASSUMPTION",
+        "status": "SCENARIO",
+        "source": {
+          "method": "quote range"
+        }
+      }
+    ],
+    "constraints": [
+      {
+        "constraint_id": "CONS-PROD-01",
+        "category": "PRODUCTION",
+        "description": "Pas d'indisponibilité pendant préparation/livraison.",
+        "source_status": "EXPLICIT",
+        "source_ref": "planning_ouverture.txt",
+        "hard": true,
+        "material": true,
+        "affected_action_ids": [
+          "ACT-INSPECT-01"
+        ]
+      }
+    ],
+    "candidate_actions": [
+      {
+        "action_id": "ACT-INSPECT-01",
+        "finding_ids": [
+          "FIND-EXCESS-01"
+        ],
+        "title": "Inspection ciblée pendant maintenance",
+        "description": "Option formulée par Codex pour cette fixture.",
+        "action_type": "diagnostic",
+        "technical_rationale": "Excès confirmé, cause concurrente.",
+        "operational_rationale": "Préserver la préparation du matin.",
+        "implementation_scope": "Système pré-ouverture.",
+        "requires_professional_validation": true,
+        "reversibility": "REVERSIBLE",
+        "energy_effect_ref": "EFF-EXCESS-01",
+        "validation_plan": {
+          "metric": "kWh pré-ouverture comparable",
+          "expected_direction": "baisse",
+          "comparison_window": "quatre semaines",
+          "confounders": "production et horaires",
+          "minimum_evidence": "baisse persistante"
+        }
+      }
+    ],
+    "relationships": [],
+    "combined_effects": {},
+    "decisions": [
+      {
+        "decision_id": "DEC-E2E-02",
+        "decision": "INVESTIGATE_FIRST",
+        "selected_action_ids": [
+          "ACT-INSPECT-01"
+        ],
+        "considered_action_ids": [
+          "ACT-INSPECT-01"
+        ],
+        "reason": "Cause physique non départagée avant intervention irréversible.",
+        "priority_reasoning": "Inspection réversible et faible coût.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "HIGH",
+        "constraint_assessments": [
+          {
+            "constraint_id": "CONS-PROD-01",
+            "disposition": "MITIGATED",
+            "rationale": "Inspection hors préparation."
+          }
+        ],
+        "evidence_acquisition": {
+          "what_it_resolves": "dérive ou préparation légitime",
+          "decision_that_can_change": "réparer/remplacer ou ne pas intervenir",
+          "cost_or_burden": "inspection planifiée",
+          "why_worth_it": "évite CAPEX non justifié"
+        }
+      }
+    ],
+    "economic_requests": []
+  },
+  "codex_must_decide": [
+    "candidate actions",
+    "material constraints",
+    "relationships",
+    "baseline reconciliation",
+    "economic assumptions",
+    "evidence worth buying",
+    "decision",
+    "priority",
+    "validation"
+  ],
+  "python_can_calculate": [
+    "scenario table",
+    "time-aligned tariff impact",
+    "payback when meaningful",
+    "declared portfolio arithmetic",
+    "reproducibility validation"
+  ],
+  "deterministic_recommendation_engine": false
+}

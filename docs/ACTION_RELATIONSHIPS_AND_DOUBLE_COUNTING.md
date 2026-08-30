@@ -25,6 +25,15 @@ effet `ECONOMIC` avec devise, `EUR/year`, période annualisée, baseline,
 scénarios et provenance explicites. Les unités, devises, périodes ou baselines
 incompatibles sont refusées.
 
+## B.2 — effet économique combiné
+
+Un effet combiné direct en euros ne peut plus porter un montant libre. Chaque
+scénario référence exactement une source de valeur économique existante, avec
+valeur, unité `EUR/year`, devise, période `annual`, statut et provenance. Python
+vérifie l'égalité entre la valeur source et le montant combiné. Un effet énergie
+combiné reste préférable : il est valorisé par un calcul déterministe avec les
+sources tarifaires explicites.
+
 Chaque effet réclame sa baseline : comportement observé, période saine,
 baseline production/météo normalisée ou scénario. Des économies issues de
 baselines incompatibles ne doivent pas être agrégées sans modèle explicite.

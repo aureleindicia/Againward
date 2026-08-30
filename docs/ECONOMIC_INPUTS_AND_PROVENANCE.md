@@ -32,3 +32,19 @@ une hypothèse `SCENARIO_ASSUMPTION` explicitement stockée ; l'effet énergéti
 doit remonter à un finding/preuve. Avant persistance, Python reconstruit le
 tableau à partir de ce contrat et refuse une divergence de net benefit, payback,
 unité ou devise.
+
+## B.2 — provenance liée à la valeur effectivement utilisée
+
+Une référence ne suffit plus. Pour chaque composant matériel et chaque scénario,
+Python exige exactement une source de valeur existante dont le `value`, l'unité,
+la devise et la période correspondent à la valeur réellement calculée :
+
+- tarif : `EUR/kWh`, `per_kwh` ;
+- coût ponctuel : `EUR`, `one_off` ;
+- coût récurrent ou bénéfice annuel : `EUR/year`, `annual`.
+
+Si LOW ou HIGH diffère d'un fait client BASE, cette valeur doit venir d'une
+`SCENARIO_ASSUMPTION` persistée portant elle-même la valeur et sa provenance.
+Faire pointer 0,18 ou 0,23 EUR/kWh vers un input client de 0,20 EUR/kWh est
+refusé. Les effets énergie portent aussi `finding_refs`, qui sont résolus contre
+les findings réels de Goal A au moment de la persistance.

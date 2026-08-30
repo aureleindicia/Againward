@@ -89,11 +89,11 @@ def generate(root: str | Path = "examples") -> Path:
     effect = {
         "effect_id": "EFF-EXCESS-01", "basis": "COUNTERFACTUAL_ESTIMATE", "baseline": "créneau pré-ouverture de référence",
         "unit": "kWh/year", "period": "hypothèse de récurrence annuelle", "scenarios": {"LOW": 4000, "BASE": 7000, "HIGH": 10000},
-        "source_refs": ["FIND-EXCESS-01", "SCENARIO-RECURRENCE"],
+        "finding_refs": ["FIND-EXCESS-01"], "source_refs": ["DS-001-01", "SCENARIO-RECURRENCE"],
     }
     scenarios = calculate_economic_scenarios(
-        effect, tariff_per_kwh={"LOW": .18, "BASE": .20, "HIGH": .23},
-        intervention_cost={"LOW": 9000, "BASE": 12000, "HIGH": 15000},
+        effect, tariff_per_kwh={"LOW": .20, "BASE": .20, "HIGH": .20},
+        intervention_cost={"LOW": 12000, "BASE": 12000, "HIGH": 12000},
         recurring_cost={"LOW": 0, "BASE": 0, "HIGH": 0},
         input_references={
             "energy_effect": {item: ["FIND-EXCESS-01"] for item in ("LOW", "BASE", "HIGH")},
@@ -105,9 +105,9 @@ def generate(root: str | Path = "examples") -> Path:
     packet = {
         "technical_finding_refs": [{"finding_id": "FIND-EXCESS-01", "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "technical_confidence": "MEDIUM", "provenance": "investigation/structured_findings.json"}],
         "economic_inputs": [
-            {"input_id": "ECON-TARIFF-01", "kind": "electricity_tariff", "value": .20, "unit": "EUR/kWh", "provenance": "DOCUMENT_EXTRACTED", "source": {"artifact": "facture_tarif.txt"}, "confidence": "MEDIUM"},
-            {"input_id": "ECON-CAPEX-01", "kind": "replacement_quote", "value": 12000, "unit": "EUR", "provenance": "DOCUMENT_EXTRACTED", "source": {"artifact": "supplier_quote.txt"}, "confidence": "LOW"},
-            {"input_id": "ECON-RECUR-01", "kind": "incremental_maintenance", "value": 0, "unit": "EUR/year", "provenance": "SCENARIO_ASSUMPTION", "source": {"assumption": "none in synthetic fixture"}, "confidence": "NOT_CALIBRATED"},
+            {"input_id": "ECON-TARIFF-01", "kind": "electricity_tariff", "value": .20, "unit": "EUR/kWh", "currency": "EUR", "period": "per_kwh", "provenance": "DOCUMENT_EXTRACTED", "status": "KNOWN", "source": {"artifact": "facture_tarif.txt"}, "confidence": "MEDIUM"},
+            {"input_id": "ECON-CAPEX-01", "kind": "replacement_quote", "value": 12000, "unit": "EUR", "currency": "EUR", "period": "one_off", "provenance": "DOCUMENT_EXTRACTED", "status": "KNOWN", "source": {"artifact": "supplier_quote.txt"}, "confidence": "LOW"},
+            {"input_id": "ECON-RECUR-01", "kind": "incremental_maintenance", "value": 0, "unit": "EUR/year", "currency": "EUR", "period": "annual", "provenance": "SCENARIO_ASSUMPTION", "status": "KNOWN", "source": {"assumption": "none in synthetic fixture"}, "confidence": "NOT_CALIBRATED"},
         ],
         "operational_constraints": [{"constraint_id": "CONS-PROD-01", "category": "PRODUCTION", "description": "Le système ne peut pas être indisponible pendant la préparation/livraison du matin.", "source_status": "EXPLICIT", "source_ref": "planning_ouverture.txt", "hard": True, "material": True, "affected_action_ids": ["ACT-INSPECT-01", "ACT-REPLACE-01"], "unresolved_uncertainty": None}],
         "candidate_actions": [_action("ACT-INSPECT-01", "Inspection ciblée pendant visite planifiée", "diagnostic", "REVERSIBLE"), _action("ACT-REPLACE-01", "Remplacement après confirmation", "replacement", "IRREVERSIBLE", "EFF-EXCESS-01")],

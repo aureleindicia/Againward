@@ -256,3 +256,27 @@ READY_FOR_FRESH_HOLDOUT
   donnée client réelle n'y est inclus.
 
 READY_FOR_INDEPENDENT_GOAL_B_1_REVIEW
+
+## Checkpoint Goal B.2 — durcissement final de provenance économique
+
+- Portée limitée aux contrats Goal B : provenance numérique exacte, références
+  réelles aux findings Goal A, effets combinés validés et handoffs E2E séparés.
+- Les générateurs E2E historiques Goal B/B.1 ont été rendus compatibles avec
+  le contrat durci sans modifier leurs artefacts historiques.
+- Les fixtures B-A à B-O sont désormais testées sur leurs propriétés
+  économiques/opérationnelles distinctes, pas seulement sur une décision
+  attendue.
+- Tests avant freeze : `pytest -q` **204 passed** en 28,87 s ; tests Goal B.2
+  ciblés **16 passed**.
+- Contrôles adversariaux : valeur-source incohérente rejetée, finding Goal A
+  inexistant rejeté, effet économique combiné arbitraire rejeté.
+- Candidate V2.1 et Goal A sont restés hors du diff B.2; leurs tags de
+  référence restent respectivement `expert-benchmark-candidate-v2.1` et
+  `energy-analyzer-client-pipeline-goal-a` (commit pelé Goal A
+  `3c62fdff2a7dedd7c8d75042243933234a1ff78c`).
+
+### Prochaine étape autorisée
+
+Revue indépendante du bundle Goal B.2. Goal C n'est pas déclaré prêt ici.
+
+READY_FOR_INDEPENDENT_GOAL_B_2_REVIEW

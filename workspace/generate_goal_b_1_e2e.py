@@ -58,20 +58,26 @@ def generate(root: str | Path = "examples") -> Path:
     }])
     pre_handoff = economic_handoff(case)
     _write(case / "investigation" / "codex_economic_reasoning_contract.json", {
-        "schema_version": 1, "input_handoff_ref": "investigation/economic_handoff.json", "handoff_phase": pre_handoff["phase"],
+        "schema_version": 1, "input_handoff_ref": pre_handoff["artifact"], "handoff_phase": pre_handoff["phase"],
         "codex_responsibilities": ["choose candidate actions", "declare operational constraints", "choose baselines and relationships", "choose whether evidence is worth buying", "select a decision"],
         "python_responsibilities": ["calculate scenario arithmetic", "validate provenance, units and reproducibility", "persist only valid state"],
         "not_a_deterministic_recommendation": True,
     })
     initialize_economic_state(case)
-    effect = {"effect_id": "EFF-EXCESS-01", "basis": "COUNTERFACTUAL_ESTIMATE", "baseline": "créneau pré-ouverture de référence", "unit": "kWh/year", "period": "annual", "scenarios": {"LOW": 4000, "BASE": 7000, "HIGH": 10000}, "source_refs": ["FIND-EXCESS-01"]}
-    refs = {"energy_effect": {item: ["FIND-EXCESS-01"] for item in ("LOW", "BASE", "HIGH")}, "tariff_per_kwh": {item: ["ECON-TARIFF-01"] for item in ("LOW", "BASE", "HIGH")}, "intervention_cost": {item: ["ECON-INSPECTION-01"] for item in ("LOW", "BASE", "HIGH")}}
+    effect = {"effect_id": "EFF-EXCESS-01", "basis": "COUNTERFACTUAL_ESTIMATE", "baseline": "créneau pré-ouverture de référence", "unit": "kWh/year", "period": "annual", "scenarios": {"LOW": 4000, "BASE": 7000, "HIGH": 10000}, "finding_refs": ["FIND-EXCESS-01"], "source_refs": ["DS-001-01"]}
+    refs = {"energy_effect": {item: ["FIND-EXCESS-01"] for item in ("LOW", "BASE", "HIGH")}, "tariff_per_kwh": {"LOW": ["TAR-LOW"], "BASE": ["ECON-TARIFF-01"], "HIGH": ["TAR-HIGH"]}, "intervention_cost": {"LOW": ["CAP-LOW"], "BASE": ["ECON-INSPECTION-01"], "HIGH": ["CAP-HIGH"]}}
     scenarios = calculate_economic_scenarios(effect, tariff_per_kwh={"LOW": .18, "BASE": .20, "HIGH": .23}, intervention_cost={"LOW": 250, "BASE": 300, "HIGH": 400}, input_references=refs)
     packet = {
         "technical_finding_refs": [{"finding_id": "FIND-EXCESS-01", "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "technical_confidence": "MEDIUM", "provenance": "investigation/structured_findings.json"}],
         "economic_inputs": [
-            {"input_id": "ECON-TARIFF-01", "kind": "electricity_tariff", "value": .20, "unit": "EUR/kWh", "provenance": "DOCUMENT_EXTRACTED", "source": {"artifact": "facture_tarif.txt"}, "confidence": "MEDIUM"},
-            {"input_id": "ECON-INSPECTION-01", "kind": "diagnostic_quote", "value": 300, "unit": "EUR", "provenance": "DOCUMENT_EXTRACTED", "source": {"artifact": "supplier_quote.txt"}, "confidence": "MEDIUM"},
+            {"input_id": "ECON-TARIFF-01", "kind": "electricity_tariff", "value": .20, "unit": "EUR/kWh", "currency": "EUR", "period": "per_kwh", "provenance": "DOCUMENT_EXTRACTED", "status": "KNOWN", "source": {"artifact": "facture_tarif.txt"}, "confidence": "MEDIUM"},
+            {"input_id": "ECON-INSPECTION-01", "kind": "diagnostic_quote", "value": 300, "unit": "EUR", "currency": "EUR", "period": "one_off", "provenance": "DOCUMENT_EXTRACTED", "status": "KNOWN", "source": {"artifact": "supplier_quote.txt"}, "confidence": "MEDIUM"},
+        ],
+        "scenario_assumptions": [
+            {"assumption_id": "TAR-LOW", "description": "Tarif bas plausible.", "value": .18, "unit": "EUR/kWh", "currency": "EUR", "period": "per_kwh", "provenance": "SCENARIO_ASSUMPTION", "status": "SCENARIO", "source": {"method": "sensitivity"}},
+            {"assumption_id": "TAR-HIGH", "description": "Tarif haut plausible.", "value": .23, "unit": "EUR/kWh", "currency": "EUR", "period": "per_kwh", "provenance": "SCENARIO_ASSUMPTION", "status": "SCENARIO", "source": {"method": "sensitivity"}},
+            {"assumption_id": "CAP-LOW", "description": "Coût bas plausible.", "value": 250, "unit": "EUR", "currency": "EUR", "period": "one_off", "provenance": "SCENARIO_ASSUMPTION", "status": "SCENARIO", "source": {"method": "quote range"}},
+            {"assumption_id": "CAP-HIGH", "description": "Coût haut plausible.", "value": 400, "unit": "EUR", "currency": "EUR", "period": "one_off", "provenance": "SCENARIO_ASSUMPTION", "status": "SCENARIO", "source": {"method": "quote range"}},
         ],
         "operational_constraints": [{"constraint_id": "CONS-PROD-01", "category": "PRODUCTION", "description": "Pas d'indisponibilité pendant la préparation/livraison du matin.", "source_status": "EXPLICIT", "source_ref": "planning_ouverture.txt", "hard": True, "material": True, "affected_action_ids": ["ACT-INSPECT-01"]}],
         "candidate_actions": [_action()], "relationships": [], "scenario_calculations": {"ACT-INSPECT-01": scenarios},
@@ -80,7 +86,7 @@ def generate(root: str | Path = "examples") -> Path:
     }
     persist_economic_packet(case, packet)
     economic_handoff(case)
-    _write(case / "investigation" / "goal_b_1_e2e_trace.json", {"workflow": ["Goal A evidence", "pre-reasoning economic handoff", "Codex reasoning contract", "deterministic scenario calculations", "persisted Goal B state"], "pre_handoff": "investigation/economic_handoff.json", "reasoning_contract": "investigation/codex_economic_reasoning_contract.json", "state": "investigation/economic_decision_state.json"})
+    _write(case / "investigation" / "goal_b_1_e2e_trace.json", {"workflow": ["Goal A evidence", "pre-reasoning economic handoff", "Codex reasoning contract", "deterministic scenario calculations", "persisted Goal B state", "optional resume handoff"], "pre_handoff": pre_handoff["artifact"], "reasoning_contract": "investigation/codex_economic_reasoning_contract.json", "state": "investigation/economic_decision_state.json", "resume_handoff": "investigation/economic_handoff_resume.json"})
     return case
 
 
