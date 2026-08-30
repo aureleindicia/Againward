@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "case_id": "boulangerie_centre",
+  "created_at_utc": "2026-08-30T13:56:43.441175+00:00",
+  "artifacts": [
+    {
+      "artifact_id": "ART-001-aed43daf285a",
+      "original_filename": "ART-001-aed43daf285a_devis_reparation.txt",
+      "raw_relative_path": "devis_reparation.txt",
+      "file_type": "txt",
+      "mime_type": "text/plain",
+      "size_bytes": 54,
+      "sha256": "aed43daf285a68db2cb85a03a8715af4c234426e01be9267f318732689e404c4",
+      "ingested_at_utc": "2026-08-30T13:56:43.435518+00:00",
+      "parsing_status": "metadata_only",
+      "probable_role": "TEXT_NOTE",
+      "role_evidence": [
+        "readable text-like file without stronger evidence"
+      ],
+      "usability": "partially_usable",
+      "parse_error": null,
+      "extracted_dataset_ids": []
+    },
+    {
+      "artifact_id": "ART-002-273ae8bb99ff",
+      "original_filename": "ART-002-273ae8bb99ff_energy_interval.csv",
+      "raw_relative_path": "energy_interval.csv",
+      "file_type": "csv",
+      "mime_type": "text/csv",
+      "size_bytes": 289,
+      "sha256": "273ae8bb99ffb2a3345e28fe5c1b082924da8681bf11f8587c70a7d5d6379aad",
+      "ingested_at_utc": "2026-08-30T13:56:43.438875+00:00",
+      "parsing_status": "parsed",
+      "probable_role": "ENERGY_INTERVAL_SERIES",
+      "role_evidence": [
+        "recognized energy header",
+        "recognized timestamp header"
+      ],
+      "usability": "usable",
+      "parse_error": null,
+      "extracted_dataset_ids": [
+        "DS-002-01"
+      ]
+    },
+    {
+      "artifact_id": "ART-003-24ae92c0cdf9",
+      "original_filename": "ART-003-24ae92c0cdf9_planning.txt",
+      "raw_relative_path": "planning.txt",
+      "file_type": "txt",
+      "mime_type": "text/plain",
+      "size_bytes": 59,
+      "sha256": "24ae92c0cdf961547ff0f8fc066bf186d4359bb19001fc42080d9461c0a3b066",
+      "ingested_at_utc": "2026-08-30T13:56:43.440438+00:00",
+      "parsing_status": "metadata_only",
+      "probable_role": "SCHEDULE",
+      "role_evidence": [
+        "filename keyword"
+      ],
+      "usability": "partially_usable",
+      "parse_error": null,
+      "extracted_dataset_ids": []
+    },
+    {
+      "artifact_id": "ART-004-81e2e1351fe6",
+      "original_filename": "ART-004-81e2e1351fe6_tarif_electricite.txt",
+      "raw_relative_path": "tarif_electricite.txt",
+      "file_type": "txt",
+      "mime_type": "text/plain",
+      "size_bytes": 38,
+      "sha256": "81e2e1351fe64f1afcf653bb3c77ca01570b0c91c1f6945323e26a4f96e756d3",
+      "ingested_at_utc": "2026-08-30T13:56:43.441138+00:00",
+      "parsing_status": "metadata_only",
+      "probable_role": "TARIFF",
+      "role_evidence": [
+        "filename keyword"
+      ],
+      "usability": "partially_usable",
+      "parse_error": null,
+      "extracted_dataset_ids": []
+    }
+  ]
+}

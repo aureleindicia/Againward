@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "case_id": "atelier_reference",
+  "created_at_utc": "2026-08-30T13:56:43.488222+00:00",
+  "artifacts": [
+    {
+      "artifact_id": "ART-001-ff0485154bc5",
+      "original_filename": "ART-001-ff0485154bc5_energy.csv",
+      "raw_relative_path": "energy.csv",
+      "file_type": "csv",
+      "mime_type": "text/csv",
+      "size_bytes": 59,
+      "sha256": "ff0485154bc515024e22334de39c6fd0a39980717796ac0a6b4cadf40fe3ee3d",
+      "ingested_at_utc": "2026-08-30T13:56:43.487809+00:00",
+      "parsing_status": "parsed",
+      "probable_role": "ENERGY_INTERVAL_SERIES",
+      "role_evidence": [
+        "recognized energy header",
+        "recognized timestamp header"
+      ],
+      "usability": "usable",
+      "parse_error": null,
+      "extracted_dataset_ids": [
+        "DS-001-01"
+      ]
+    }
+  ]
+}

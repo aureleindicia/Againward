@@ -324,3 +324,24 @@ READY_FOR_INDEPENDENT_GOAL_B_3_REVIEW
 Revue indépendante du bundle Goal B.4. Goal C n'est pas déclaré prêt ici.
 
 READY_FOR_INDEPENDENT_GOAL_B_4_REVIEW
+
+## Checkpoint Goal C — Client Decision Delivery
+
+- Portée : couche client indépendante construite au-dessus des états Goal A/B;
+  aucun changement de `client_intake_pipeline.py`, `operational_economics.py`
+  ou Candidate V2.1.
+- `client_delivery.py` sépare le narratif sélectionné par Codex du modèle de
+  report, des calculs, de la fidélité des claims et du renderer PDF Python.
+- Les décisions, chiffres, fourchettes, contraintes et alternatives restent
+  fidèles aux artefacts Goal A/B. Les nombres libres dans le narratif sont
+  refusés pour éviter les claims inventés.
+- E2E : action recommandée + alternative non cumulative + contrainte + chart;
+  rapport no-finding séparé avec `DO_NOTHING` réel.
+- Validation : `pytest -q` **220 passed**; PDF principal 5 pages; PDF
+  no-finding 4 pages; absence d'IDs internes et chemins locaux vérifiée.
+
+### Prochaine étape autorisée
+
+Revue indépendante du bundle Goal C. Aucun goal ultérieur n'est déclaré prêt.
+
+READY_FOR_INDEPENDENT_GOAL_C_REVIEW

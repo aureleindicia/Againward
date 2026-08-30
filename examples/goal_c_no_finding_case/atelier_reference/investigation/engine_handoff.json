@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "purpose": "Choix explicite de Codex avant les calculs; aucun jeu n'est privilégié automatiquement.",
+  "analytically_usable_inputs": [
+    {
+      "dataset_id": "DS-001-01",
+      "role": "ENERGY_INTERVAL_SERIES",
+      "normalized_input": "normalized/DS-001-01.csv",
+      "provenance": "evidence/dataset_provenance.json",
+      "suggested_existing_command": "python investigate.py normalized/DS-001-01.csv --output-dir investigation/DS-001-01"
+    }
+  ],
+  "not_ready_without_resolution": [],
+  "agent_decision_required": "Choisir le périmètre, les tests et l'ordre d'investigation."
+}

@@ -1,0 +1,91 @@
+%PDF-1.4
+%âãÏÓ
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 4 0 R 5 0 R 6 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R /F2 8 0 R >> /XObject <<  >> >> /Contents 9 0 R >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R /F2 8 0 R >> /XObject <<  >> >> /Contents 10 0 R >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R /F2 8 0 R >> /XObject <<  >> >> /Contents 11 0 R >>
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R /F2 8 0 R >> /XObject <<  >> >> /Contents 12 0 R >>
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+8 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+9 0 obj
+<< /Length 562 >>
+stream
+BT /F2 19 Tf 48 790.0 Td (ANALYSE DE PERFORMANCE ÉNERGÉTIQUE) Tj ET
+BT /F2 13 Tf 48 763.0 Td (Atelier de référence) Tj ET
+BT /F1 10 Tf 48 742.0 Td (Période analysée : Période de données fournie) Tj ET
+0.75 w 48 724.0 m 547 724.0 l S
+BT /F2 14 Tf 48 712.0 Td (Décision en bref) Tj ET
+BT /F1 11 Tf 48 690.0 Td (Aucune anomalie énergétique significative ne justifie actuellement une dépense) Tj ET
+BT /F1 11 Tf 48 675.0 Td (corrective.) Tj ET
+BT /F2 10 Tf 48 656.0 Td (0 action\(s\) recommandée\(s\) · 0 point\(s\) à vérifier · 1 conclusion\(s\) sans action) Tj ET
+endstream
+endobj
+10 0 obj
+<< /Length 480 >>
+stream
+BT /F2 17 Tf 48 790.0 Td (Ce que nous avons vérifié) Tj ET
+BT /F1 10 Tf 48 765.0 Td (• Les régimes de consommation disponibles) Tj ET
+BT /F1 10 Tf 48 747.0 Td (• Les limites de qualité et de période des données) Tj ET
+BT /F2 12 Tf 48 729.0 Td (Aucune action corrective nécessaire) Tj ET
+BT /F1 10 Tf 48 709.0 Td (Les éléments disponibles sont compatibles avec le fonctionnement attendu et ne) Tj ET
+BT /F1 10 Tf 48 695.0 Td (justifient pas une intervention supplémentaire.) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Length 502 >>
+stream
+BT /F2 17 Tf 48 790.0 Td (Sources, méthode et limites) Tj ET
+BT /F1 10 Tf 48 765.0 Td (La conclusion conserve la décision no finding et ne transforme pas une absence de signal) Tj ET
+BT /F1 10 Tf 48 751.0 Td (en recommandation.) Tj ET
+BT /F1 10 Tf 48 733.0 Td (Limite : La période courte sert de référence mais ne remplace pas un suivi lorsque l) Tj ET
+BT /F1 10 Tf 48 719.0 Td (activité change.) Tj ET
+BT /F2 11 Tf 48 701.0 Td (Sources principales) Tj ET
+BT /F1 10 Tf 48 682.0 Td (• energy.csv) Tj ET
+endstream
+endobj
+12 0 obj
+<< /Length 302 >>
+stream
+BT /F2 17 Tf 48 790.0 Td (À retenir) Tj ET
+BT /F1 12 Tf 48 765.0 Td (Aucune anomalie énergétique significative ne justifie actuellement une dépense) Tj ET
+BT /F1 12 Tf 48 749.0 Td (corrective.) Tj ET
+BT /F1 9 Tf 48 729.0 Td (Cette prestation ne constitue pas un audit énergétique réglementaire.) Tj ET
+endstream
+endobj
+xref
+0 13
+0000000000 65535 f
+0000000015 00000 n
+0000000064 00000 n
+0000000139 00000 n
+0000000291 00000 n
+0000000444 00000 n
+0000000597 00000 n
+0000000750 00000 n
+0000000847 00000 n
+0000000949 00000 n
+0000001561 00000 n
+0000002092 00000 n
+0000002645 00000 n
+trailer
+<< /Size 13 /Root 1 0 R >>
+startxref
+2998
+%%EOF
