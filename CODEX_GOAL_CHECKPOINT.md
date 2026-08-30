@@ -230,6 +230,25 @@ Préparer un HOLDOUT frais, indépendant et jamais utilisé pour mesurer Candida
 
 READY_FOR_FRESH_HOLDOUT
 
+## Checkpoint Goal C.1 — implementation and validation complete
+
+- C.1 implementation commit : `0a5cd8bb96d262311f6ea493e30292eb42110b97`.
+- Extension Goal B minimale et rétrocompatible : `decision` reste accepté;
+  `decisions` permet plusieurs records sans modifier le choix analytique,
+  économique ou physique de Codex.
+- Goal A et Candidate V2.1 n'ont pas été modifiés.
+- Les fixtures C-A à C-J et C-MULTI sont exécutables via
+  `workspace/generate_goal_c_1_fixtures.py`.
+- Tests complets après C.1 : **227 passed**.
+- Les rapports C.1 documentent fidélité, adversarial review, simplicité,
+  agenticité et inspection visuelle.
+
+### Prochaine action
+
+Créer le bundle de revue indépendant C.1, vérifier ses sommes SHA-256
+portables, puis créer le commit/tag de clôture. Aucun nouveau diagnostic ou
+changement Goal A/V2.1 n'est autorisé dans cette phase.
+
 ## Checkpoint Goal B.1 — correctif opérationnel-économique
 
 - Portée : contrats Goal B uniquement; aucun chemin analytique V2.1 ni module
