@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "case_id": "b4_artisan",
+  "created_at_utc": "2026-08-30T12:57:05.237492+00:00",
+  "purpose": "Paquet descriptif pour investigation Codex; aucune anomalie, cause, action ou question n'est décidée ici.",
+  "available_datasets": [
+    {
+      "dataset_id": "DS-001-01",
+      "role": "ENERGY_INTERVAL_SERIES",
+      "normalized_file": "normalized/DS-001-01.csv",
+      "analytically_usable": true,
+      "data_quality": {
+        "usable_time_span": {
+          "start": "2026-07-01T05:00:00",
+          "end": "2026-07-01T06:30:00"
+        },
+        "rows_parsed": 2,
+        "rows_retained": 2,
+        "sampling_frequency_minutes": 90.0,
+        "coverage_ratio": 1.0,
+        "missing_intervals": 0,
+        "frequency_change_detected": false,
+        "strict_duplicates_removed": 0,
+        "conflicting_duplicates": 0,
+        "suspicious_values": {
+          "negative_production_rows": [],
+          "negative_measurement_rows": []
+        },
+        "production_coverage_ratio": 1.0,
+        "unit_interpretation": {
+          "status": "AUTO_FIX_SAFE",
+          "unit": "kwh",
+          "measurement_kind": "energy_per_interval",
+          "basis": "explicit unit in source header"
+        },
+        "timezone_confidence": "not_declared",
+        "known_limitations": []
+      },
+      "field_lineage": {
+        "timestamp": {
+          "source_artifact_id": "ART-001-09bdff44caea",
+          "sheet": null,
+          "source_column": "timestamp",
+          "normalization": "parse_date"
+        },
+        "measurement": {
+          "source_artifact_id": "ART-001-09bdff44caea",
+          "sheet": null,
+          "source_column": "energy_kwh",
+          "normalization": "parse_number",
+          "unit_interpretation": {
+            "status": "AUTO_FIX_SAFE",
+            "unit": "kwh",
+            "measurement_kind": "energy_per_interval",
+            "basis": "explicit unit in source header"
+          }
+        },
+        "production": {
+          "source_artifact_id": "ART-001-09bdff44caea",
+          "sheet": null,
+          "source_column": "production",
+          "normalization": "parse_number"
+        }
+      }
+    }
+  ],
+  "evidence_by_role": {
+    "ENERGY_INTERVAL_SERIES": [
+      "DS-001-01"
+    ],
+    "TARIFF": [
+      "ART-002-771a98cc1805"
+    ]
+  },
+  "known_facts": [
+    {
+      "kind": "source_observation",
+      "value": "ART-001-09bdff44caea_energy.csv classé ENERGY_INTERVAL_SERIES",
+      "artifact_id": "ART-001-09bdff44caea"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-002-771a98cc1805_tariff.txt classé TARIFF",
+      "artifact_id": "ART-002-771a98cc1805"
+    }
+  ],
+  "inferred_facts": [
+    {
+      "dataset_id": "DS-001-01",
+      "measurement": {
+        "status": "AUTO_FIX_SAFE",
+        "unit": "kwh",
+        "measurement_kind": "energy_per_interval",
+        "basis": "explicit unit in source header"
+      }
+    }
+  ],
+  "unresolved_material_ambiguities": [],
+  "agent_decisions_required": [
+    "anomaly relevance",
+    "hypotheses",
+    "alternative explanations",
+    "next calculation",
+    "client question necessity",
+    "finding status",
+    "intervention"
+  ],
+  "no_finding_is_valid": true,
+  "ground_truth_available": false
+}

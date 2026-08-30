@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "case_id": "b4_artisan",
+  "created_at_utc": "2026-08-30T12:57:05.236981+00:00",
+  "artifacts": [
+    {
+      "artifact_id": "ART-001-09bdff44caea",
+      "original_filename": "ART-001-09bdff44caea_energy.csv",
+      "raw_relative_path": "energy.csv",
+      "file_type": "csv",
+      "mime_type": "text/csv",
+      "size_bytes": 79,
+      "sha256": "09bdff44caea565f7a8e13cb4fb71704c56817eb39dcbe2f6327eeb28172cd9c",
+      "ingested_at_utc": "2026-08-30T12:57:05.235306+00:00",
+      "parsing_status": "parsed",
+      "probable_role": "ENERGY_INTERVAL_SERIES",
+      "role_evidence": [
+        "recognized energy header",
+        "recognized timestamp header"
+      ],
+      "usability": "usable",
+      "parse_error": null,
+      "extracted_dataset_ids": [
+        "DS-001-01"
+      ]
+    },
+    {
+      "artifact_id": "ART-002-771a98cc1805",
+      "original_filename": "ART-002-771a98cc1805_tariff.txt",
+      "raw_relative_path": "tariff.txt",
+      "file_type": "txt",
+      "mime_type": "text/plain",
+      "size_bytes": 42,
+      "sha256": "771a98cc1805dda8917740efde510cc67ef8d1e7c60a52ecaa0eb364014ee78d",
+      "ingested_at_utc": "2026-08-30T12:57:05.236927+00:00",
+      "parsing_status": "metadata_only",
+      "probable_role": "TARIFF",
+      "role_evidence": [
+        "filename keyword"
+      ],
+      "usability": "partially_usable",
+      "parse_error": null,
+      "extracted_dataset_ids": []
+    }
+  ]
+}

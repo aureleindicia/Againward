@@ -64,3 +64,17 @@ Une contrainte `EXPLICIT` ou `INFERRED` cite `source_refs` (un ou plusieurs
 artefacts/datasets canoniques). Python vérifie qu'ils existent. Codex reste le
 seul responsable de l'interprétation de la contrainte et de la décision : le
 résolveur ne choisit aucune action ni verdict.
+
+## B.4 : no-finding réel et réponses post-Goal A
+
+Un résultat `DO_NOTHING` sans finding est accepté seulement lorsque
+`investigation/structured_findings.json` contient réellement `findings: []` et
+un `no_finding` canonique complet Goal A. Dans ce cas précis, il doit aussi
+rester sans action sélectionnée ou considérée, sans calcul ni référence
+technique. Un tableau vide seul ne contourne donc jamais le contrat.
+
+Après une demande économique, `record_goal_b_evidence()` enregistre une réponse
+client ou documentaire native Goal B. Le handoff de reprise expose ces preuves
+à Codex avec les inputs, contraintes et demandes déjà persistés. Python valide
+les liens et les valeurs structurées; Codex décide toujours si la réponse
+modifie l'action, l'hypothèse, la contrainte ou la décision.

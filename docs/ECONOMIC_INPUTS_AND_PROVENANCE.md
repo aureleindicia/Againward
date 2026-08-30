@@ -68,3 +68,23 @@ L'état contient `recommendation_provenance`, une chaîne compacte décision →
 action → finding → calcul → inputs/hypothèses → source réelle. Elle n'ajoute
 aucune logique de recommandation : elle rend seulement les choix Codex et les
 mesures Python auditables.
+
+## B.4 — preuves natives acquises après Goal A
+
+Une réponse obtenue pendant Goal B n'est ni un faux artefact Goal A ni une
+`EXTERNAL_ASSUMPTION`. Elle est enregistrée immuablement dans
+`economic_decision_state.json#goal_b_evidence`, avec un `evidence_id`, le cas,
+le type (`GOAL_B_CLIENT_RESPONSE` ou `GOAL_B_DOCUMENT_RESPONSE`), le contenu
+structuré, le lien éventuel vers la demande économique et son ordre
+d'acquisition.
+
+Une valeur reçue (par exemple un devis) porte aussi un `structured_value`.
+Un `EconomicInput CLIENT_EXPLICIT` la cite avec
+`source.goal_b_evidence_refs`; Python vérifie la valeur, l'unité, la devise et
+la période au lieu de faire confiance à une simple référence. Une contrainte
+opérationnelle peut de la même manière citer une réponse Goal B persistée.
+
+Les sources Goal A explicitement classées `IRRELEVANT` sont refusées pour un
+tarif ou une contrainte factuelle, sauf justification structurée explicite de
+Codex. C'est un contrôle de cohérence des métadonnées, pas une lecture ou une
+interprétation automatique du document.

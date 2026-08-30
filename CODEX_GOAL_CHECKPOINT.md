@@ -299,3 +299,28 @@ Revue indépendante du bundle Goal B.3. Goal C n'est pas déclaré prêt par ce
 checkpoint.
 
 READY_FOR_INDEPENDENT_GOAL_B_3_REVIEW
+
+## Checkpoint Goal B.4 — fermeture fonctionnelle finale
+
+- Portée : support strict du vrai `no_finding` Goal A et provenance native des
+  réponses obtenues pendant Goal B; aucun changement à Goal A ou Candidate V2.1.
+- `findings=[]` autorise `DO_NOTHING` uniquement avec un `no_finding` canonique
+  complet, sans action, action considérée ni calcul.
+- État Goal B schéma 5 : `goal_b_evidence` persiste les réponses client et
+  documentaires, leurs liens aux demandes et leurs valeurs structurées.
+- La reprise expose ces preuves à Codex; Python vérifie les références et les
+  valeurs mais ne décide ni action ni recommandation.
+- Les artefacts Goal A explicitement `IRRELEVANT` ne peuvent pas soutenir
+  silencieusement un tarif ou une contrainte factuelle.
+- Validation : `pytest -q` **213 passed**; benchmark/oracle **31 passed**;
+  opérationnel-économique **25 passed**.
+- E2E : `examples/goal_b_4_e2e_case/` trace demande → réponse → preuve Goal B
+  → input/contrainte → reprise → calcul → décision.
+- Freeze : commit Goal B.4 et tag
+  `energy-analyzer-operational-economics-goal-b.4` (provenance Git du bundle).
+
+### Prochaine étape autorisée
+
+Revue indépendante du bundle Goal B.4. Goal C n'est pas déclaré prêt ici.
+
+READY_FOR_INDEPENDENT_GOAL_B_4_REVIEW

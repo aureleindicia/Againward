@@ -1,0 +1,78 @@
+{
+  "schema_version": 4,
+  "phase": "pre_reasoning",
+  "artifact": "investigation/economic_handoff_pre_reasoning.json",
+  "purpose": "Contexte Goal A → Goal B pour raisonnement Codex; pas une recommandation automatique.",
+  "technical_findings": [
+    {
+      "finding_id": "FIND-EXCESS-01",
+      "observation": "Excès pré-ouverture récurrent observé.",
+      "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+      "confidence": "MEDIUM",
+      "possible_explanations": [
+        "dérive",
+        "préparation légitime"
+      ],
+      "provenance": [
+        "evidence/dataset_provenance.json"
+      ],
+      "recommended_next_analytical_step": "Tester l'état réel pendant le créneau."
+    }
+  ],
+  "technical_no_finding": null,
+  "technical_findings_source": "investigation/structured_findings.json",
+  "known_facts": [
+    {
+      "kind": "source_observation",
+      "value": "ART-001-09bdff44caea_energy.csv classé ENERGY_INTERVAL_SERIES",
+      "artifact_id": "ART-001-09bdff44caea"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-002-771a98cc1805_tariff.txt classé TARIFF",
+      "artifact_id": "ART-002-771a98cc1805"
+    }
+  ],
+  "available_context_roles": {
+    "ENERGY_INTERVAL_SERIES": [
+      "DS-001-01"
+    ],
+    "TARIFF": [
+      "ART-002-771a98cc1805"
+    ]
+  },
+  "available_economic_operational_documents": [
+    {
+      "artifact_id": "ART-002-771a98cc1805",
+      "original_filename": "ART-002-771a98cc1805_tariff.txt",
+      "probable_role": "TARIFF",
+      "usability": "partially_usable",
+      "role_evidence": [
+        "filename keyword"
+      ]
+    }
+  ],
+  "unresolved_material_ambiguities": [],
+  "dataset_provenance_ref": "evidence/dataset_provenance.json",
+  "canonical_case_ref": "derived/canonical_case.json",
+  "existing_economic_state": null,
+  "codex_must_decide": [
+    "candidate actions",
+    "material constraints",
+    "relationships",
+    "baseline reconciliation",
+    "economic assumptions",
+    "evidence worth buying",
+    "decision",
+    "priority",
+    "validation"
+  ],
+  "python_can_calculate": [
+    "scenario table",
+    "time-aligned tariff impact",
+    "payback when meaningful",
+    "declared portfolio arithmetic",
+    "reproducibility validation"
+  ],
+  "deterministic_recommendation_engine": false
+}

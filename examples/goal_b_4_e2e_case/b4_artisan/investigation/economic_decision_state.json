@@ -1,0 +1,389 @@
+{
+  "schema_version": 5,
+  "created_at_utc": "2026-08-30T12:57:05.240866+00:00",
+  "status": "economic_reasoning_recorded",
+  "technical_finding_refs": [
+    {
+      "finding_id": "FIND-EXCESS-01",
+      "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+      "technical_confidence": "MEDIUM",
+      "provenance": "investigation/structured_findings.json"
+    }
+  ],
+  "economic_inputs": [
+    {
+      "input_id": "TAR-CLIENT-01",
+      "kind": "electricity_tariff",
+      "value": 0.2,
+      "unit": "EUR/kWh",
+      "currency": "EUR",
+      "period": "per_kwh",
+      "provenance": "DOCUMENT_EXTRACTED",
+      "status": "KNOWN",
+      "source": {
+        "source_refs": [
+          "ART-002-771a98cc1805"
+        ]
+      },
+      "confidence": "MEDIUM"
+    },
+    {
+      "input_id": "CAP-QUOTE-01",
+      "kind": "inspection_quote",
+      "value": 450,
+      "unit": "EUR",
+      "currency": "EUR",
+      "period": "one_off",
+      "provenance": "CLIENT_EXPLICIT",
+      "status": "KNOWN",
+      "source": {
+        "goal_b_evidence_refs": [
+          "GBE-QUOTE-01"
+        ]
+      },
+      "confidence": "HIGH"
+    }
+  ],
+  "scenario_assumptions": [],
+  "operational_constraints": [
+    {
+      "constraint_id": "CONS-PROD-01",
+      "category": "PRODUCTION",
+      "description": "Pas d'arrêt pendant la production.",
+      "source_status": "EXPLICIT",
+      "goal_b_evidence_refs": [
+        "GBE-DOWNTIME-01"
+      ],
+      "hard": true,
+      "material": true,
+      "affected_action_ids": [
+        "ACT-INSPECT-01"
+      ]
+    }
+  ],
+  "candidate_actions": [
+    {
+      "action_id": "ACT-INSPECT-01",
+      "finding_ids": [
+        "FIND-EXCESS-01"
+      ],
+      "title": "Inspection ciblée",
+      "description": "Option formulée par Codex.",
+      "action_type": "diagnostic",
+      "technical_rationale": "Cause concurrente non tranchée.",
+      "operational_rationale": "À réaliser hors production.",
+      "implementation_scope": "Équipement associé au régime pré-ouverture.",
+      "requires_professional_validation": true,
+      "reversibility": "REVERSIBLE",
+      "energy_effect_ref": "EFF-EXCESS-01",
+      "validation_plan": {
+        "metric": "kWh pré-ouverture",
+        "expected_direction": "baisse",
+        "comparison_window": "quatre semaines",
+        "confounders": "production et horaires",
+        "minimum_evidence": "baisse récurrente à régime comparable"
+      }
+    }
+  ],
+  "relationships": [],
+  "combined_effects": {},
+  "scenario_calculations": {
+    "ACT-INSPECT-01": {
+      "schema_version": 2,
+      "calculation_method": "deterministic_scenario_v2",
+      "currency": "EUR",
+      "effect_id": "EFF-EXCESS-01",
+      "baseline": "créneau pré-ouverture comparable",
+      "period": "annual",
+      "scenarios": {
+        "LOW": {
+          "annual_energy_saving_kwh": 1200.0,
+          "tariff_per_kwh": 0.2,
+          "gross_annual_energy_cost_avoided": 240.0,
+          "incremental_recurring_cost": null,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 240.0,
+          "intervention_cost": 450.0,
+          "simple_payback_years": 1.875,
+          "payback_status": "meaningful"
+        },
+        "BASE": {
+          "annual_energy_saving_kwh": 1800.0,
+          "tariff_per_kwh": 0.2,
+          "gross_annual_energy_cost_avoided": 360.0,
+          "incremental_recurring_cost": null,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 360.0,
+          "intervention_cost": 450.0,
+          "simple_payback_years": 1.25,
+          "payback_status": "meaningful"
+        },
+        "HIGH": {
+          "annual_energy_saving_kwh": 2400.0,
+          "tariff_per_kwh": 0.2,
+          "gross_annual_energy_cost_avoided": 480.0,
+          "incremental_recurring_cost": null,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 480.0,
+          "intervention_cost": 450.0,
+          "simple_payback_years": 0.9375,
+          "payback_status": "meaningful"
+        }
+      },
+      "calculation_notes": [],
+      "reproducibility": {
+        "calculator": "calculate_economic_scenarios",
+        "calculator_schema_version": 2,
+        "energy_effect": {
+          "effect_id": "EFF-EXCESS-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "créneau pré-ouverture comparable",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 1200,
+            "BASE": 1800,
+            "HIGH": 2400
+          },
+          "finding_refs": [
+            "FIND-EXCESS-01"
+          ],
+          "source_refs": [
+            "DS-001-01"
+          ]
+        },
+        "input_values": {
+          "tariff_per_kwh": {
+            "LOW": 0.2,
+            "BASE": 0.2,
+            "HIGH": 0.2
+          },
+          "intervention_cost": {
+            "LOW": 450.0,
+            "BASE": 450.0,
+            "HIGH": 450.0
+          },
+          "recurring_cost": null,
+          "other_annual_benefit": null
+        },
+        "input_references": {
+          "energy_effect": {
+            "LOW": [
+              "FIND-EXCESS-01"
+            ],
+            "BASE": [
+              "FIND-EXCESS-01"
+            ],
+            "HIGH": [
+              "FIND-EXCESS-01"
+            ]
+          },
+          "tariff_per_kwh": {
+            "LOW": [
+              "TAR-CLIENT-01"
+            ],
+            "BASE": [
+              "TAR-CLIENT-01"
+            ],
+            "HIGH": [
+              "TAR-CLIENT-01"
+            ]
+          },
+          "intervention_cost": {
+            "LOW": [
+              "CAP-QUOTE-01"
+            ],
+            "BASE": [
+              "CAP-QUOTE-01"
+            ],
+            "HIGH": [
+              "CAP-QUOTE-01"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "decisions": [
+    {
+      "decision_id": "DEC-B4-01",
+      "decision": "INVESTIGATE_FIRST",
+      "selected_action_ids": [
+        "ACT-INSPECT-01"
+      ],
+      "considered_action_ids": [
+        "ACT-INSPECT-01"
+      ],
+      "reason": "La cause reste indéterminée; un devis et la fenêtre d'arrêt changent la décision.",
+      "priority_reasoning": "Question faible effort avant intervention.",
+      "technical_confidence": "MEDIUM",
+      "economic_importance": "MEDIUM",
+      "evidence_acquisition": {
+        "what_it_resolves": "coût et faisabilité de l'inspection",
+        "decision_that_can_change": "agir maintenant ou différer",
+        "cost_or_burden": "devis et réponse simple",
+        "why_worth_it": "évite une intervention non planifiable"
+      },
+      "constraint_assessments": [
+        {
+          "constraint_id": "CONS-PROD-01",
+          "disposition": "MITIGATED",
+          "rationale": "Intervention planifiée hors période de production."
+        }
+      ]
+    }
+  ],
+  "economic_requests": [
+    {
+      "request_id": "ECO-REQ-QUOTE",
+      "request_type": "REQUEST_QUOTE",
+      "client_question": "Pouvez-vous transmettre le devis de l'inspection ciblée ?",
+      "internal_reason": "Le coût conditionne la priorité économique.",
+      "target_role": "dirigeant",
+      "decision_impact": "Comparer coût et bénéfice.",
+      "expected_effort": "Envoyer le devis.",
+      "analysis_can_continue_without_answer": true
+    },
+    {
+      "request_id": "ECO-REQ-DOWNTIME",
+      "request_type": "ASK_CLIENT",
+      "client_question": "La machine peut-elle être arrêtée pendant les heures de production ?",
+      "internal_reason": "La fenêtre d'arrêt conditionne la faisabilité.",
+      "target_role": "responsable site",
+      "decision_impact": "Planifier ou différer.",
+      "expected_effort": "Réponse simple.",
+      "analysis_can_continue_without_answer": true
+    }
+  ],
+  "goal_b_evidence": [
+    {
+      "evidence_id": "GBE-QUOTE-01",
+      "evidence_type": "GOAL_B_CLIENT_RESPONSE",
+      "content": {
+        "response_text": "Le devis est de 450 EUR."
+      },
+      "structured_value": {
+        "value": 450,
+        "unit": "EUR",
+        "currency": "EUR",
+        "period": "one_off"
+      },
+      "request_id": "ECO-REQ-QUOTE",
+      "case_id": "b4_artisan",
+      "acquisition_order": 1,
+      "recorded_at_utc": "2026-08-30T12:57:05.242721+00:00"
+    },
+    {
+      "evidence_id": "GBE-DOWNTIME-01",
+      "evidence_type": "GOAL_B_CLIENT_RESPONSE",
+      "content": {
+        "response_text": "La machine ne peut pas être arrêtée pendant la production."
+      },
+      "request_id": "ECO-REQ-DOWNTIME",
+      "case_id": "b4_artisan",
+      "acquisition_order": 2,
+      "recorded_at_utc": "2026-08-30T12:57:05.243280+00:00"
+    }
+  ],
+  "recommendation_provenance": {
+    "schema_version": 1,
+    "decision_id": "DEC-B4-01",
+    "selected_action_chains": [
+      {
+        "action_id": "ACT-INSPECT-01",
+        "finding_ids": [
+          "FIND-EXCESS-01"
+        ],
+        "energy_effect_ref": "EFF-EXCESS-01",
+        "calculation_ref": "ACT-INSPECT-01",
+        "economic_source_links": [
+          {
+            "component": "tariff_per_kwh",
+            "scenario_source_ids": {
+              "LOW": "TAR-CLIENT-01",
+              "BASE": "TAR-CLIENT-01",
+              "HIGH": "TAR-CLIENT-01"
+            }
+          },
+          {
+            "component": "intervention_cost",
+            "scenario_source_ids": {
+              "LOW": "CAP-QUOTE-01",
+              "BASE": "CAP-QUOTE-01",
+              "HIGH": "CAP-QUOTE-01"
+            }
+          }
+        ],
+        "constraint_ids": [
+          "CONS-PROD-01"
+        ]
+      }
+    ],
+    "economic_sources": [
+      {
+        "source_id": "CAP-QUOTE-01",
+        "provenance": "CLIENT_EXPLICIT",
+        "status": "KNOWN",
+        "source": {
+          "goal_b_evidence_refs": [
+            "GBE-QUOTE-01"
+          ]
+        }
+      },
+      {
+        "source_id": "TAR-CLIENT-01",
+        "provenance": "DOCUMENT_EXTRACTED",
+        "status": "KNOWN",
+        "source": {
+          "source_refs": [
+            "ART-002-771a98cc1805"
+          ]
+        }
+      }
+    ],
+    "chain_is_reference_validated": true
+  },
+  "unresolved_blockers": [],
+  "provenance_context": {
+    "canonical_case": "derived/canonical_case.json",
+    "dataset_provenance": "evidence/dataset_provenance.json",
+    "technical_findings": "investigation/structured_findings.json",
+    "goal_b_evidence": "investigation/economic_decision_state.json#goal_b_evidence"
+  },
+  "history": [
+    {
+      "at_utc": "2026-08-30T12:57:05.240881+00:00",
+      "action": "economic_state_initialized"
+    },
+    {
+      "at_utc": "2026-08-30T12:57:05.242081+00:00",
+      "action": "economic_packet_persisted",
+      "action_ids": [
+        "ACT-INSPECT-01"
+      ],
+      "decision": "INVESTIGATE_FIRST"
+    },
+    {
+      "at_utc": "2026-08-30T12:57:05.242732+00:00",
+      "action": "goal_b_evidence_recorded",
+      "evidence_id": "GBE-QUOTE-01",
+      "request_id": "ECO-REQ-QUOTE"
+    },
+    {
+      "at_utc": "2026-08-30T12:57:05.243290+00:00",
+      "action": "goal_b_evidence_recorded",
+      "evidence_id": "GBE-DOWNTIME-01",
+      "request_id": "ECO-REQ-DOWNTIME"
+    },
+    {
+      "at_utc": "2026-08-30T12:57:05.245480+00:00",
+      "action": "economic_packet_persisted",
+      "action_ids": [
+        "ACT-INSPECT-01"
+      ],
+      "decision": "INVESTIGATE_FIRST"
+    }
+  ],
+  "ground_truth_used": false,
+  "deterministic_recommendation_engine": false
+}

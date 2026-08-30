@@ -1,0 +1,199 @@
+{
+  "schema_version": 4,
+  "phase": "resume_reasoning",
+  "artifact": "investigation/economic_handoff_resume.json",
+  "purpose": "Contexte Goal A → Goal B pour raisonnement Codex; pas une recommandation automatique.",
+  "technical_findings": [
+    {
+      "finding_id": "FIND-EXCESS-01",
+      "observation": "Excès pré-ouverture récurrent observé.",
+      "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+      "confidence": "MEDIUM",
+      "possible_explanations": [
+        "dérive",
+        "préparation légitime"
+      ],
+      "provenance": [
+        "evidence/dataset_provenance.json"
+      ],
+      "recommended_next_analytical_step": "Tester l'état réel pendant le créneau."
+    }
+  ],
+  "technical_no_finding": null,
+  "technical_findings_source": "investigation/structured_findings.json",
+  "known_facts": [
+    {
+      "kind": "source_observation",
+      "value": "ART-001-09bdff44caea_energy.csv classé ENERGY_INTERVAL_SERIES",
+      "artifact_id": "ART-001-09bdff44caea"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-002-771a98cc1805_tariff.txt classé TARIFF",
+      "artifact_id": "ART-002-771a98cc1805"
+    }
+  ],
+  "available_context_roles": {
+    "ENERGY_INTERVAL_SERIES": [
+      "DS-001-01"
+    ],
+    "TARIFF": [
+      "ART-002-771a98cc1805"
+    ]
+  },
+  "available_economic_operational_documents": [
+    {
+      "artifact_id": "ART-002-771a98cc1805",
+      "original_filename": "ART-002-771a98cc1805_tariff.txt",
+      "probable_role": "TARIFF",
+      "usability": "partially_usable",
+      "role_evidence": [
+        "filename keyword"
+      ]
+    }
+  ],
+  "unresolved_material_ambiguities": [],
+  "dataset_provenance_ref": "evidence/dataset_provenance.json",
+  "canonical_case_ref": "derived/canonical_case.json",
+  "existing_economic_state": {
+    "economic_inputs": [
+      {
+        "input_id": "TAR-CLIENT-01",
+        "kind": "electricity_tariff",
+        "value": 0.2,
+        "unit": "EUR/kWh",
+        "currency": "EUR",
+        "period": "per_kwh",
+        "provenance": "DOCUMENT_EXTRACTED",
+        "status": "KNOWN",
+        "source": {
+          "source_refs": [
+            "ART-002-771a98cc1805"
+          ]
+        },
+        "confidence": "MEDIUM"
+      }
+    ],
+    "scenario_assumptions": [],
+    "constraints": [],
+    "candidate_actions": [
+      {
+        "action_id": "ACT-INSPECT-01",
+        "finding_ids": [
+          "FIND-EXCESS-01"
+        ],
+        "title": "Inspection ciblée",
+        "description": "Option formulée par Codex.",
+        "action_type": "diagnostic",
+        "technical_rationale": "Cause concurrente non tranchée.",
+        "operational_rationale": "À réaliser hors production.",
+        "implementation_scope": "Équipement associé au régime pré-ouverture.",
+        "requires_professional_validation": true,
+        "reversibility": "REVERSIBLE",
+        "energy_effect_ref": "EFF-EXCESS-01",
+        "validation_plan": {
+          "metric": "kWh pré-ouverture",
+          "expected_direction": "baisse",
+          "comparison_window": "quatre semaines",
+          "confounders": "production et horaires",
+          "minimum_evidence": "baisse récurrente à régime comparable"
+        }
+      }
+    ],
+    "relationships": [],
+    "combined_effects": {},
+    "decisions": [
+      {
+        "decision_id": "DEC-B4-01",
+        "decision": "INVESTIGATE_FIRST",
+        "selected_action_ids": [
+          "ACT-INSPECT-01"
+        ],
+        "considered_action_ids": [
+          "ACT-INSPECT-01"
+        ],
+        "reason": "La cause reste indéterminée; un devis et la fenêtre d'arrêt changent la décision.",
+        "priority_reasoning": "Question faible effort avant intervention.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM",
+        "evidence_acquisition": {
+          "what_it_resolves": "coût et faisabilité de l'inspection",
+          "decision_that_can_change": "agir maintenant ou différer",
+          "cost_or_burden": "devis et réponse simple",
+          "why_worth_it": "évite une intervention non planifiable"
+        }
+      }
+    ],
+    "economic_requests": [
+      {
+        "request_id": "ECO-REQ-QUOTE",
+        "request_type": "REQUEST_QUOTE",
+        "client_question": "Pouvez-vous transmettre le devis de l'inspection ciblée ?",
+        "internal_reason": "Le coût conditionne la priorité économique.",
+        "target_role": "dirigeant",
+        "decision_impact": "Comparer coût et bénéfice.",
+        "expected_effort": "Envoyer le devis.",
+        "analysis_can_continue_without_answer": true
+      },
+      {
+        "request_id": "ECO-REQ-DOWNTIME",
+        "request_type": "ASK_CLIENT",
+        "client_question": "La machine peut-elle être arrêtée pendant les heures de production ?",
+        "internal_reason": "La fenêtre d'arrêt conditionne la faisabilité.",
+        "target_role": "responsable site",
+        "decision_impact": "Planifier ou différer.",
+        "expected_effort": "Réponse simple.",
+        "analysis_can_continue_without_answer": true
+      }
+    ],
+    "goal_b_evidence": [
+      {
+        "evidence_id": "GBE-QUOTE-01",
+        "evidence_type": "GOAL_B_CLIENT_RESPONSE",
+        "content": {
+          "response_text": "Le devis est de 450 EUR."
+        },
+        "structured_value": {
+          "value": 450,
+          "unit": "EUR",
+          "currency": "EUR",
+          "period": "one_off"
+        },
+        "request_id": "ECO-REQ-QUOTE",
+        "case_id": "b4_artisan",
+        "acquisition_order": 1,
+        "recorded_at_utc": "2026-08-30T12:57:05.242721+00:00"
+      },
+      {
+        "evidence_id": "GBE-DOWNTIME-01",
+        "evidence_type": "GOAL_B_CLIENT_RESPONSE",
+        "content": {
+          "response_text": "La machine ne peut pas être arrêtée pendant la production."
+        },
+        "request_id": "ECO-REQ-DOWNTIME",
+        "case_id": "b4_artisan",
+        "acquisition_order": 2,
+        "recorded_at_utc": "2026-08-30T12:57:05.243280+00:00"
+      }
+    ]
+  },
+  "codex_must_decide": [
+    "candidate actions",
+    "material constraints",
+    "relationships",
+    "baseline reconciliation",
+    "economic assumptions",
+    "evidence worth buying",
+    "decision",
+    "priority",
+    "validation"
+  ],
+  "python_can_calculate": [
+    "scenario table",
+    "time-aligned tariff impact",
+    "payback when meaningful",
+    "declared portfolio arithmetic",
+    "reproducibility validation"
+  ],
+  "deterministic_recommendation_engine": false
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "case_id": "b4_artisan",
+  "created_at_utc": "2026-08-30T12:57:05.218848+00:00",
+  "status": "ready_for_codex_first_pass",
+  "retention": {
+    "policy": "not_configured",
+    "review_required_before_deletion": true
+  },
+  "security": {
+    "raw_inputs_immutable_after_ingestion": true,
+    "raw_inputs_must_not_be_committed": true,
+    "secrets_allowed_in_case_artifacts": false
+  },
+  "architecture": {
+    "codex": "choisit l'investigation, les hypothèses, les demandes et les décisions",
+    "python": "extrait, normalise, mesure, valide et conserve la provenance",
+    "deterministic_diagnosis": false
+  },
+  "intake_completed_at_utc": "2026-08-30T12:57:05.238843+00:00"
+}

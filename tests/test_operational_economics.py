@@ -16,6 +16,7 @@ from operational_economics import (
     economic_handoff,
     initialize_economic_state,
     persist_economic_packet,
+    record_goal_b_evidence,
     validate_candidate_action,
     validate_constraint,
     validate_decision,
@@ -24,6 +25,7 @@ from operational_economics import (
     validate_relationship,
 )
 from workspace.generate_goal_b_2_e2e import generate as generate_goal_b_2_e2e
+from workspace.generate_goal_b_4_e2e import generate as generate_goal_b_4_e2e
 
 
 SCENARIOS = ("LOW", "BASE", "HIGH")
@@ -90,6 +92,29 @@ class OperationalEconomicsB2Tests(unittest.TestCase):
             source["source"] = {"source_refs": [self._real_artifact_id]}
         calculation = calculation or _calculation(capex={s: 300 for s in SCENARIOS}, capex_refs={s: "CAP" for s in SCENARIOS}, recurring={s: 20 for s in SCENARIOS}, recurring_refs={s: "REC" for s in SCENARIOS})
         return {"technical_finding_refs": [{"finding_id": "FIND-01", "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "technical_confidence": "MEDIUM", "provenance": "investigation/structured_findings.json"}], "economic_inputs": sources, "scenario_assumptions": [], "candidate_actions": [_action()], "operational_constraints": [], "relationships": [], "combined_effects": {}, "scenario_calculations": {"ACT-01": calculation}, "economic_requests": [], "decision": _decision()}
+
+    def _no_finding_case(self, *, canonical: bool) -> tuple[Path, tempfile.TemporaryDirectory[str]]:
+        directory = tempfile.TemporaryDirectory()
+        root = Path(directory.name)
+        drop = root / "drop"
+        drop.mkdir()
+        (drop / "energy.csv").write_text("timestamp,energy_kwh\n2026-01-01 00:00,1\n", encoding="utf-8")
+        create_client_case("case", root=root / "cases")
+        case = root / "cases" / "case"
+        ingest_client_drop(drop, case)
+        if canonical:
+            record_structured_findings(case, [], no_finding={
+                "what_was_analyzed": "Série énergie disponible.",
+                "usable_period": "2026-01-01.",
+                "operating_regimes": "Unique régime observé.",
+                "limitations": "Période courte.",
+                "monitoring_baseline_meaningful": False,
+            })
+        return case, directory
+
+    @staticmethod
+    def _no_finding_packet() -> dict:
+        return {"technical_finding_refs": [], "economic_inputs": [], "scenario_assumptions": [], "candidate_actions": [], "operational_constraints": [], "relationships": [], "combined_effects": {}, "scenario_calculations": {}, "economic_requests": [], "decision": _decision("DO_NOTHING", selected=[], considered=[])}
 
     def test_calculation_rejects_value_that_does_not_match_referenced_input(self) -> None:
         case, directory = self._case()
@@ -284,6 +309,8 @@ class OperationalEconomicsB2Tests(unittest.TestCase):
         self.assertLessEqual(calculations["B-N"]["ACT-N"]["scenarios"]["BASE"]["net_annual_benefit"], 0)
         self.assertEqual(len(by_id["B-O"]["economic_requests"]), 0)
         self.assertIsNotNone(calculations["B-O"]["ACT-O"]["scenarios"]["BASE"]["net_annual_benefit"])
+        self.assertEqual(by_id["B-J"]["goal_a_case"]["findings"], [])
+        self.assertTrue(by_id["B-J"]["goal_a_case"]["no_finding"]["monitoring_baseline_meaningful"])
 
     def test_controlled_requests_and_time_of_use_remain_non_decisional(self) -> None:
         inferred = build_economic_request_batch([{"request_type": "INFER_AUTOMATICALLY", "internal_reason": "Document déjà disponible.", "decision_impact": "Éviter une question."}])
@@ -369,6 +396,89 @@ class OperationalEconomicsB2Tests(unittest.TestCase):
             price_for_timestamp=lambda timestamp: .1 if "T01" in timestamp else .3,
         )
         self.assertAlmostEqual(result["time_aligned_cost_saving"], 2.2)
+
+    def test_true_goal_a_no_finding_allows_only_empty_do_nothing_packet(self) -> None:
+        case, directory = self._no_finding_case(canonical=True)
+        with directory:
+            initialize_economic_state(case)
+            state = persist_economic_packet(case, self._no_finding_packet())
+            self.assertEqual(state["decisions"][0]["decision"], "DO_NOTHING")
+            self.assertEqual(state["technical_finding_refs"], [])
+            self.assertEqual(state["candidate_actions"], [])
+            self.assertEqual(state["decisions"][0]["considered_action_ids"], [])
+
+    def test_empty_findings_without_canonical_no_finding_cannot_bypass_contract(self) -> None:
+        case, directory = self._no_finding_case(canonical=False)
+        with directory:
+            initialize_economic_state(case)
+            with self.assertRaisesRegex(ValueError, "finding Goal A réel"):
+                persist_economic_packet(case, self._no_finding_packet())
+
+    def test_goal_b_client_quote_is_persistent_evidence_for_exact_economic_input(self) -> None:
+        case, directory = self._case()
+        with directory:
+            initialize_economic_state(case)
+            request = {"request_id": "ECO-REQ-QUOTE", "request_type": "REQUEST_QUOTE", "client_question": "Pouvez-vous transmettre le devis récent de cette intervention ?", "internal_reason": "Le CAPEX conditionne la comparaison économique.", "target_role": "dirigeant", "decision_impact": "Comparer coût et bénéfice.", "expected_effort": "Envoyer le devis."}
+            first = self._packet()
+            first["economic_requests"] = [request]
+            persist_economic_packet(case, first)
+            recorded = record_goal_b_evidence(case, {"evidence_id": "GBE-QUOTE-01", "evidence_type": "GOAL_B_CLIENT_RESPONSE", "content": {"response_text": "Le devis est de 450 EUR."}, "structured_value": {"value": 450, "unit": "EUR", "currency": "EUR", "period": "one_off"}, "request_id": "ECO-REQ-QUOTE"})
+            self.assertEqual(recorded["acquisition_order"], 1)
+            calculation = _calculation(capex={s: 450 for s in SCENARIOS}, capex_refs={s: "CAP-QUOTE" for s in SCENARIOS})
+            packet = self._packet(calculation)
+            packet["economic_inputs"] = [item for item in packet["economic_inputs"] if item["input_id"] != "CAP"] + [{"input_id": "CAP-QUOTE", "kind": "supplier_quote", "value": 450, "unit": "EUR", "currency": "EUR", "period": "one_off", "provenance": "CLIENT_EXPLICIT", "status": "KNOWN", "source": {"goal_b_evidence_refs": ["GBE-QUOTE-01"]}, "confidence": "HIGH"}]
+            del packet["economic_requests"]
+            state = persist_economic_packet(case, packet)
+            self.assertEqual(state["scenario_calculations"]["ACT-01"]["scenarios"]["BASE"]["intervention_cost"], 450.0)
+            self.assertEqual(state["goal_b_evidence"][0]["evidence_id"], "GBE-QUOTE-01")
+
+    def test_goal_b_operational_answer_survives_resume_and_supports_constraint(self) -> None:
+        case, directory = self._case()
+        with directory:
+            initialize_economic_state(case)
+            request = {"request_id": "ECO-REQ-DOWNTIME", "request_type": "ASK_CLIENT", "client_question": "La machine peut-elle être arrêtée pendant les heures de production ?", "internal_reason": "La contrainte d'arrêt conditionne l'intervention.", "target_role": "responsable site", "decision_impact": "Planifier ou différer.", "expected_effort": "Réponse simple."}
+            first = self._packet()
+            first["economic_requests"] = [request]
+            persist_economic_packet(case, first)
+            record_goal_b_evidence(case, {"evidence_id": "GBE-DOWNTIME-01", "evidence_type": "GOAL_B_CLIENT_RESPONSE", "content": {"response_text": "La machine ne peut pas s'arrêter pendant la production."}, "request_id": "ECO-REQ-DOWNTIME"})
+            resumed = economic_handoff(case)
+            self.assertEqual(resumed["phase"], "resume_reasoning")
+            self.assertEqual(resumed["existing_economic_state"]["goal_b_evidence"][0]["evidence_id"], "GBE-DOWNTIME-01")
+            packet = self._packet()
+            packet["operational_constraints"] = [{"constraint_id": "CONS-DOWNTIME", "category": "PRODUCTION", "description": "La machine ne peut pas s'arrêter pendant la production.", "source_status": "EXPLICIT", "goal_b_evidence_refs": ["GBE-DOWNTIME-01"], "hard": True, "material": True, "affected_action_ids": ["ACT-01"]}]
+            packet["decision"]["constraint_assessments"] = [{"constraint_id": "CONS-DOWNTIME", "disposition": "MITIGATED", "rationale": "Intervention prévue hors production."}]
+            del packet["economic_requests"]
+            state = persist_economic_packet(case, packet)
+            self.assertEqual(state["operational_constraints"][0]["goal_b_evidence_refs"], ["GBE-DOWNTIME-01"])
+
+    def test_nonexistent_goal_b_evidence_and_irrelevant_source_are_rejected(self) -> None:
+        case, directory = self._case()
+        with directory:
+            initialize_economic_state(case)
+            packet = self._packet()
+            packet["economic_inputs"][0]["provenance"] = "CLIENT_EXPLICIT"
+            packet["economic_inputs"][0]["source"] = {"goal_b_evidence_refs": ["GBE-MISSING"]}
+            with self.assertRaisesRegex(ValueError, "preuve Goal B inexistante"):
+                persist_economic_packet(case, packet)
+            inventory_path = case / "evidence" / "intake_inventory.json"
+            inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+            inventory["artifacts"][0]["probable_role"] = "IRRELEVANT"
+            inventory_path.write_text(json.dumps(inventory), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "IRRELEVANT"):
+                persist_economic_packet(case, self._packet())
+
+    def test_goal_b4_e2e_preserves_request_response_evidence_and_resume(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            case = generate_goal_b_4_e2e(Path(directory))
+            trace = json.loads((case / "investigation" / "goal_b_4_e2e_trace.json").read_text(encoding="utf-8"))
+            self.assertEqual(trace["workflow"], ["Goal A evidence", "pre-reasoning handoff", "Codex reasoning contract", "economic request", "client response", "persistent Goal B evidence", "resume handoff", "deterministic calculations", "persisted Goal B state"])
+            state = json.loads((case / "investigation" / "economic_decision_state.json").read_text(encoding="utf-8"))
+            self.assertEqual([item["evidence_id"] for item in state["goal_b_evidence"]], ["GBE-QUOTE-01", "GBE-DOWNTIME-01"])
+            quote_input = next(item for item in state["economic_inputs"] if item["input_id"] == "CAP-QUOTE-01")
+            self.assertEqual(quote_input["source"]["goal_b_evidence_refs"], ["GBE-QUOTE-01"])
+            self.assertEqual(state["operational_constraints"][0]["goal_b_evidence_refs"], ["GBE-DOWNTIME-01"])
+            resume = json.loads((case / "investigation" / "economic_handoff_resume.json").read_text(encoding="utf-8"))
+            self.assertEqual(len(resume["existing_economic_state"]["goal_b_evidence"]), 2)
 
 
 if __name__ == "__main__":

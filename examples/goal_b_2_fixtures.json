@@ -1641,13 +1641,15 @@
     {
       "fixture_id": "B-J",
       "family": "no_finding_no_action",
-      "technical_finding": {
-        "finding_id": "FIND-01",
-        "status": "NORMAL_OPERATION",
-        "uncertainty": "aucun gaspillage significatif détecté",
-        "provenance": [
-          "DS-ENERGY-01"
-        ]
+      "goal_a_case": {
+        "findings": [],
+        "no_finding": {
+          "what_was_analyzed": "Consommation et régimes opérationnels disponibles.",
+          "usable_period": "Période synthétique de référence.",
+          "operating_regimes": "Régimes connus sans dérive significative.",
+          "limitations": "Aucune limite ne justifie une action économique.",
+          "monitoring_baseline_meaningful": true
+        }
       },
       "energy_effects": [],
       "economic_inputs": [],
