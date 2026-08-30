@@ -8,11 +8,12 @@ une confiance qualitative. Les provenances autorisées sont :
 - `DOCUMENT_EXTRACTED` ;
 - `INFERRED_FROM_CLIENT_DATA` ;
 - `EXTERNAL_ASSUMPTION` ;
-- `SCENARIO_ASSUMPTION` ;
 - `UNKNOWN`.
 
 Une entrée `UNKNOWN` ne peut porter aucune valeur. Une hypothèse de scénario ne
-devient jamais une donnée client parce qu'elle est utilisée dans un calcul.
+devient jamais une donnée client parce qu'elle est utilisée dans un calcul :
+elle est portée par le type distinct `ScenarioAssumption`, et non par un
+`EconomicInput`.
 
 La chaîne d'audit est : décision → calcul de scénario → effet énergétique et
 baseline → finding → dataset normalisé/document → artefact Goal A. Pour un coût
@@ -48,3 +49,22 @@ Si LOW ou HIGH diffère d'un fait client BASE, cette valeur doit venir d'une
 Faire pointer 0,18 ou 0,23 EUR/kWh vers un input client de 0,20 EUR/kWh est
 refusé. Les effets énergie portent aussi `finding_refs`, qui sont résolus contre
 les findings réels de Goal A au moment de la persistance.
+
+## B.3 — source factuelle résolue et chaîne complète
+
+Un `EconomicInput` de provenance `CLIENT_EXPLICIT`, `DOCUMENT_EXTRACTED` ou
+`INFERRED_FROM_CLIENT_DATA` porte `source.source_refs` (ou, pour compatibilité
+structurée, un unique `artifact_id`/`dataset_id`). À la persistance, Python
+résout ces identifiants contre les artefacts et datasets réellement présents
+dans le cas Goal A. Un nom de fichier libre ou un `ART-*` inventé ne suffit pas.
+
+Une variation LOW/HIGH reste une `SCENARIO_ASSUMPTION` autonome. Une valeur
+introduite après Goal A doit être une hypothèse de scénario ou une
+`EXTERNAL_ASSUMPTION` clairement marquée
+`source_type=GOAL_B_EXTERNAL_ASSUMPTION`; elle ne simule jamais un document
+client.
+
+L'état contient `recommendation_provenance`, une chaîne compacte décision →
+action → finding → calcul → inputs/hypothèses → source réelle. Elle n'ajoute
+aucune logique de recommandation : elle rend seulement les choix Codex et les
+mesures Python auditables.

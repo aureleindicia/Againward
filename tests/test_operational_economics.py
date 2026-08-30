@@ -78,11 +78,16 @@ class OperationalEconomicsB2Tests(unittest.TestCase):
         create_client_case("case", root=root / "cases")
         case = root / "cases" / "case"
         ingest_client_drop(drop, case)
-        record_structured_findings(case, [{"finding_id": "FIND-01", "observation": "Excès confirmé.", "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "possible_explanations": ["A", "B"], "provenance": ["evidence/dataset_provenance.json"], "recommended_next_analytical_step": "Comparer régimes."}])
+        inventory = json.loads((case / "evidence" / "intake_inventory.json").read_text(encoding="utf-8"))
+        self._real_artifact_id = inventory["artifacts"][0]["artifact_id"]
+        self._real_dataset_id = inventory["artifacts"][0]["extracted_dataset_ids"][0]
+        record_structured_findings(case, [{"finding_id": "FIND-01", "observation": "Excès confirmé.", "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "confidence": "MEDIUM", "possible_explanations": ["A", "B"], "provenance": ["evidence/dataset_provenance.json"], "recommended_next_analytical_step": "Comparer régimes."}])
         return case, directory
 
     def _packet(self, calculation: dict | None = None) -> dict:
         sources = [_input("TAR", .2, "EUR/kWh", "per_kwh"), _input("CAP", 300, "EUR", "one_off"), _input("REC", 20, "EUR/year", "annual")]
+        for source in sources:
+            source["source"] = {"source_refs": [self._real_artifact_id]}
         calculation = calculation or _calculation(capex={s: 300 for s in SCENARIOS}, capex_refs={s: "CAP" for s in SCENARIOS}, recurring={s: 20 for s in SCENARIOS}, recurring_refs={s: "REC" for s in SCENARIOS})
         return {"technical_finding_refs": [{"finding_id": "FIND-01", "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "technical_confidence": "MEDIUM", "provenance": "investigation/structured_findings.json"}], "economic_inputs": sources, "scenario_assumptions": [], "candidate_actions": [_action()], "operational_constraints": [], "relationships": [], "combined_effects": {}, "scenario_calculations": {"ACT-01": calculation}, "economic_requests": [], "decision": _decision()}
 
@@ -131,6 +136,43 @@ class OperationalEconomicsB2Tests(unittest.TestCase):
                 mutator(packet)
                 with self.assertRaises(ValueError):
                     persist_economic_packet(case, packet)
+
+    def test_packet_rejects_unresolved_factual_economic_and_constraint_sources(self) -> None:
+        case, directory = self._case()
+        with directory:
+            initialize_economic_state(case)
+            packet = self._packet()
+            packet["economic_inputs"][0]["source"] = {"source_refs": ["ART-DOES-NOT-EXIST"]}
+            with self.assertRaisesRegex(ValueError, "source Goal A inexistante"):
+                persist_economic_packet(case, packet)
+            packet = self._packet()
+            packet["operational_constraints"] = [{"constraint_id": "CONS-01", "category": "PRODUCTION", "description": "Contrainte explicitement observée.", "source_status": "EXPLICIT", "source_ref": "ART-DOES-NOT-EXIST", "hard": True, "material": True, "affected_action_ids": ["ACT-01"]}]
+            with self.assertRaisesRegex(ValueError, "source Goal A inexistante"):
+                persist_economic_packet(case, packet)
+
+    def test_goal_b_cannot_rewrite_goal_a_metadata_and_resolves_it_canonically(self) -> None:
+        case, directory = self._case()
+        with directory:
+            initialize_economic_state(case)
+            for field, value in (("technical_status", "CAUSE_CONFIRMED"), ("technical_confidence", "HIGH")):
+                packet = self._packet()
+                packet["technical_finding_refs"][0][field] = value
+                with self.assertRaisesRegex(ValueError, "ne peut pas altérer"):
+                    persist_economic_packet(case, packet)
+            state = persist_economic_packet(case, self._packet())
+            self.assertEqual(state["technical_finding_refs"], [{"finding_id": "FIND-01", "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "technical_confidence": "MEDIUM", "provenance": "investigation/structured_findings.json"}])
+
+    def test_real_and_multisource_goal_a_provenance_builds_complete_chain(self) -> None:
+        case, directory = self._case()
+        with directory:
+            initialize_economic_state(case)
+            packet = self._packet()
+            packet["operational_constraints"] = [{"constraint_id": "CONS-01", "category": "PRODUCTION", "description": "Déduit du planning et de la série énergie.", "source_status": "INFERRED", "source_refs": [self._real_artifact_id, self._real_dataset_id], "hard": False, "material": True, "affected_action_ids": ["ACT-01"]}]
+            state = persist_economic_packet(case, packet)
+            chain = state["recommendation_provenance"]
+            self.assertTrue(chain["chain_is_reference_validated"])
+            self.assertEqual(chain["selected_action_chains"][0]["finding_ids"], ["FIND-01"])
+            self.assertEqual(chain["selected_action_chains"][0]["constraint_ids"], ["CONS-01"])
 
     def test_combined_economic_effect_requires_real_value_source_and_exact_value(self) -> None:
         table = _calculation()
@@ -182,6 +224,14 @@ class OperationalEconomicsB2Tests(unittest.TestCase):
             self.assertTrue((case / "investigation" / "economic_handoff_pre_reasoning.json").exists())
             self.assertTrue((case / "investigation" / "economic_handoff_resume.json").exists())
             self.assertNotEqual((case / "investigation" / "economic_handoff_pre_reasoning.json").read_text(), (case / "investigation" / "economic_handoff_resume.json").read_text())
+            inventory = json.loads((case / "evidence" / "intake_inventory.json").read_text(encoding="utf-8"))
+            actual_refs = {item["artifact_id"] for item in inventory["artifacts"]}
+            state = json.loads((case / "investigation" / "economic_decision_state.json").read_text(encoding="utf-8"))
+            for item in state["economic_inputs"]:
+                self.assertTrue(set(item["source"]["source_refs"]) <= actual_refs)
+            self.assertTrue(set(state["operational_constraints"][0]["source_refs"]) <= actual_refs)
+            self.assertEqual(state["technical_finding_refs"][0]["technical_status"], "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN")
+            self.assertTrue(state["recommendation_provenance"]["chain_is_reference_validated"])
 
     def test_b_a_to_b_o_have_distinct_properties_not_just_labels(self) -> None:
         fixtures = json.loads((Path("examples") / "goal_b_2_fixtures.json").read_text(encoding="utf-8"))["fixtures"]
@@ -304,7 +354,7 @@ class OperationalEconomicsB2Tests(unittest.TestCase):
             packet["scenario_calculations"]["ACT-MISSING"] = packet["scenario_calculations"].pop("ACT-01")
             with self.assertRaisesRegex(ValueError, "action candidate existante"):
                 persist_economic_packet(case, packet)
-            safety = {"constraint_id": "CONS-SAFE", "category": "SAFETY", "description": "Arrêt interdit sans professionnel.", "source_status": "EXPLICIT", "source_ref": "ART-01", "hard": True, "material": True, "affected_action_ids": ["ACT-01"]}
+            safety = {"constraint_id": "CONS-SAFE", "category": "SAFETY", "description": "Arrêt interdit sans professionnel.", "source_status": "EXPLICIT", "source_ref": self._real_artifact_id, "hard": True, "material": True, "affected_action_ids": ["ACT-01"]}
             with self.assertRaisesRegex(ValueError, "ne peut pas être ignorée"):
                 persist_economic_packet(case, {**self._packet(), "operational_constraints": [safety]})
             rejected = _decision("OPERATIONALLY_NOT_JUSTIFIED", selected=[], considered=["ACT-01"])

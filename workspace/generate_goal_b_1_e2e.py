@@ -47,6 +47,8 @@ def generate(root: str | Path = "examples") -> Path:
     create_client_case("artisan_sme", root=case_root)
     case = case_root / "artisan_sme"
     ingest_client_drop(raw, case)
+    inventory = json.loads((case / "evidence" / "intake_inventory.json").read_text(encoding="utf-8"))
+    artifact_ids = {item["raw_relative_path"]: item["artifact_id"] for item in inventory["artifacts"]}
     record_structured_findings(case, [{
         "finding_id": "FIND-EXCESS-01", "observation": "Excès récurrent avant préparation observé dans la série synthétique.",
         "time_context_window": "05:00–06:00, deux jours comparables", "quantitative_evidence": {"excess_energy_kwh": 6.0, "source": "DS-001"},
@@ -70,8 +72,8 @@ def generate(root: str | Path = "examples") -> Path:
     packet = {
         "technical_finding_refs": [{"finding_id": "FIND-EXCESS-01", "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "technical_confidence": "MEDIUM", "provenance": "investigation/structured_findings.json"}],
         "economic_inputs": [
-            {"input_id": "ECON-TARIFF-01", "kind": "electricity_tariff", "value": .20, "unit": "EUR/kWh", "currency": "EUR", "period": "per_kwh", "provenance": "DOCUMENT_EXTRACTED", "status": "KNOWN", "source": {"artifact": "facture_tarif.txt"}, "confidence": "MEDIUM"},
-            {"input_id": "ECON-INSPECTION-01", "kind": "diagnostic_quote", "value": 300, "unit": "EUR", "currency": "EUR", "period": "one_off", "provenance": "DOCUMENT_EXTRACTED", "status": "KNOWN", "source": {"artifact": "supplier_quote.txt"}, "confidence": "MEDIUM"},
+            {"input_id": "ECON-TARIFF-01", "kind": "electricity_tariff", "value": .20, "unit": "EUR/kWh", "currency": "EUR", "period": "per_kwh", "provenance": "DOCUMENT_EXTRACTED", "status": "KNOWN", "source": {"source_refs": [artifact_ids["facture_tarif.txt"]]}, "confidence": "MEDIUM"},
+            {"input_id": "ECON-INSPECTION-01", "kind": "diagnostic_quote", "value": 300, "unit": "EUR", "currency": "EUR", "period": "one_off", "provenance": "DOCUMENT_EXTRACTED", "status": "KNOWN", "source": {"source_refs": [artifact_ids["supplier_quote.txt"]]}, "confidence": "MEDIUM"},
         ],
         "scenario_assumptions": [
             {"assumption_id": "TAR-LOW", "description": "Tarif bas plausible.", "value": .18, "unit": "EUR/kWh", "currency": "EUR", "period": "per_kwh", "provenance": "SCENARIO_ASSUMPTION", "status": "SCENARIO", "source": {"method": "sensitivity"}},
@@ -79,7 +81,7 @@ def generate(root: str | Path = "examples") -> Path:
             {"assumption_id": "CAP-LOW", "description": "Coût bas plausible.", "value": 250, "unit": "EUR", "currency": "EUR", "period": "one_off", "provenance": "SCENARIO_ASSUMPTION", "status": "SCENARIO", "source": {"method": "quote range"}},
             {"assumption_id": "CAP-HIGH", "description": "Coût haut plausible.", "value": 400, "unit": "EUR", "currency": "EUR", "period": "one_off", "provenance": "SCENARIO_ASSUMPTION", "status": "SCENARIO", "source": {"method": "quote range"}},
         ],
-        "operational_constraints": [{"constraint_id": "CONS-PROD-01", "category": "PRODUCTION", "description": "Pas d'indisponibilité pendant la préparation/livraison du matin.", "source_status": "EXPLICIT", "source_ref": "planning_ouverture.txt", "hard": True, "material": True, "affected_action_ids": ["ACT-INSPECT-01"]}],
+        "operational_constraints": [{"constraint_id": "CONS-PROD-01", "category": "PRODUCTION", "description": "Pas d'indisponibilité pendant la préparation/livraison du matin.", "source_status": "EXPLICIT", "source_refs": [artifact_ids["planning_ouverture.txt"], artifact_ids["production_approx.csv"]], "hard": True, "material": True, "affected_action_ids": ["ACT-INSPECT-01"]}],
         "candidate_actions": [_action()], "relationships": [], "scenario_calculations": {"ACT-INSPECT-01": scenarios},
         "economic_requests": [{"request_id": "ECO-REQ-01", "request_type": "REQUEST_QUOTE", "client_question": "Avez-vous un devis récent de remplacement à partager si vous l'avez déjà ?", "internal_reason": "Un CAPEX de remplacement peut changer l'étape suivante après inspection.", "target_role": "dirigeant", "decision_impact": "Comparer inspection, réparation et remplacement.", "expected_effort": "Envoyer un document existant si disponible.", "importance": "NON_BLOCKING"}],
         "decision": {"decision_id": "DEC-E2E-01", "decision": "INVESTIGATE_FIRST", "selected_action_ids": ["ACT-INSPECT-01"], "considered_action_ids": ["ACT-INSPECT-01"], "reason": "Le gain potentiel justifie un contrôle peu coûteux, mais la cause ne justifie pas encore un remplacement.", "priority_reasoning": "Préserver la production et départager une cause technique d'un horaire légitime.", "technical_confidence": "MEDIUM", "economic_importance": "HIGH", "constraint_assessments": [{"constraint_id": "CONS-PROD-01", "disposition": "MITIGATED", "rationale": "Inspection pendant une visite hors préparation."}], "evidence_acquisition": {"what_it_resolves": "dérive technique versus préparation opérationnelle", "decision_that_can_change": "réparer/remplacer ou ne pas intervenir", "cost_or_burden": "inspection ciblée planifiée", "why_worth_it": "évite un investissement irréversible non justifié"}},

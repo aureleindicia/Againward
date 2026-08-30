@@ -280,3 +280,22 @@ READY_FOR_INDEPENDENT_GOAL_B_1_REVIEW
 Revue indépendante du bundle Goal B.2. Goal C n'est pas déclaré prêt ici.
 
 READY_FOR_INDEPENDENT_GOAL_B_2_REVIEW
+
+## Checkpoint Goal B.3 — fermeture finale de provenance
+
+- Portée : validation de références réelles, sans changement Goal A/V2.1 ni
+  moteur déterministe de recommandation.
+- EconomicInput factuel : source Goal A canonique obligatoire.
+- Contrainte factuelle : une ou plusieurs sources Goal A canoniques obligatoires.
+- Finding technique : statut/confiance résolus depuis Goal A et non modifiables
+  par Goal B.
+- `recommendation_provenance` matérialise décision → action → finding →
+  calcul → source économique/contrainte.
+- L'E2E synthétique utilise les IDs d'artefacts réels de son propre cas.
+
+### Prochaine étape autorisée
+
+Revue indépendante du bundle Goal B.3. Goal C n'est pas déclaré prêt par ce
+checkpoint.
+
+READY_FOR_INDEPENDENT_GOAL_B_3_REVIEW

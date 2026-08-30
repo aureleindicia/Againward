@@ -89,6 +89,8 @@ def validate_economic_input(payload: dict[str, Any]) -> None:
     _require_text(payload, ("input_id", "kind", "provenance"), "Input économique")
     if payload["provenance"] not in INPUT_PROVENANCE:
         raise ValueError("Provenance économique inconnue.")
+    if payload["provenance"] == "SCENARIO_ASSUMPTION":
+        raise ValueError("Une variation de scénario doit utiliser ScenarioAssumption, pas EconomicInput.")
     status = payload.get("status", "KNOWN")
     if status not in {"KNOWN", "UNKNOWN", "SCENARIO"}:
         raise ValueError("Statut économique inconnu.")
@@ -170,8 +172,14 @@ def validate_constraint(payload: dict[str, Any]) -> None:
         raise ValueError("Catégorie ou statut de source de contrainte inconnu.")
     if not isinstance(payload.get("hard"), bool) or not isinstance(payload.get("material"), bool) or not isinstance(payload.get("affected_action_ids"), list):
         raise ValueError("Une contrainte exige hard/material booléens et affected_action_ids liste.")
-    if payload["source_status"] != "UNKNOWN" and not payload.get("source_ref"):
-        raise ValueError("Une contrainte connue doit citer sa provenance.")
+    if payload["source_status"] != "UNKNOWN":
+        refs = payload.get("source_refs")
+        legacy_ref = payload.get("source_ref")
+        if refs is not None:
+            if not isinstance(refs, list) or not refs or not all(isinstance(item, str) and item.strip() for item in refs):
+                raise ValueError("source_refs d'une contrainte doit être une liste non vide de références.")
+        elif not isinstance(legacy_ref, str) or not legacy_ref.strip():
+            raise ValueError("Une contrainte connue doit citer une ou plusieurs sources.")
 
 
 def validate_candidate_action(payload: dict[str, Any]) -> None:
@@ -438,7 +446,7 @@ def initialize_economic_state(case_directory: str | Path) -> dict[str, Any]:
     if path.exists():
         raise FileExistsError("L'état économique existe déjà et ne sera pas réinitialisé.")
     canonical = _read(case / "derived" / "canonical_case.json")
-    state = {"schema_version": 3, "created_at_utc": _now(), "status": "awaiting_codex_economic_reasoning", "technical_finding_refs": [], "economic_inputs": [], "scenario_assumptions": [], "operational_constraints": [], "candidate_actions": [], "relationships": [], "combined_effects": {}, "scenario_calculations": {}, "decisions": [], "economic_requests": [], "unresolved_blockers": canonical.get("unresolved_material_ambiguities", []), "provenance_context": {"canonical_case": "derived/canonical_case.json", "dataset_provenance": "evidence/dataset_provenance.json", "technical_findings": "investigation/structured_findings.json"}, "history": [{"at_utc": _now(), "action": "economic_state_initialized"}], "ground_truth_used": False, "deterministic_recommendation_engine": False}
+    state = {"schema_version": 4, "created_at_utc": _now(), "status": "awaiting_codex_economic_reasoning", "technical_finding_refs": [], "economic_inputs": [], "scenario_assumptions": [], "operational_constraints": [], "candidate_actions": [], "relationships": [], "combined_effects": {}, "scenario_calculations": {}, "decisions": [], "economic_requests": [], "recommendation_provenance": None, "unresolved_blockers": canonical.get("unresolved_material_ambiguities", []), "provenance_context": {"canonical_case": "derived/canonical_case.json", "dataset_provenance": "evidence/dataset_provenance.json", "technical_findings": "investigation/structured_findings.json"}, "history": [{"at_utc": _now(), "action": "economic_state_initialized"}], "ground_truth_used": False, "deterministic_recommendation_engine": False}
     _write(path, state)
     return state
 
@@ -472,15 +480,155 @@ def _case_provenance_ids(case: Path) -> set[str]:
     return identifiers
 
 
-def _goal_a_finding_ids(case: Path) -> set[str]:
+def _goal_a_findings(case: Path) -> dict[str, dict[str, Any]]:
     findings_path = case / "investigation" / "structured_findings.json"
     if not findings_path.exists():
-        return set()
+        return {}
     payload = _read(findings_path)
     findings = payload.get("findings", [])
     if not isinstance(findings, list):
         raise ValueError("Artefact Goal A structured_findings.json invalide.")
-    return {item.get("finding_id") for item in findings if isinstance(item, dict) and item.get("finding_id")}
+    result: dict[str, dict[str, Any]] = {}
+    for item in findings:
+        if not isinstance(item, dict) or not item.get("finding_id"):
+            continue
+        _require_text(item, ("status", "confidence"), "Finding Goal A")
+        result[item["finding_id"]] = item
+    return result
+
+
+def _source_refs(payload: dict[str, Any], *, label: str) -> list[str]:
+    """Extrait une provenance explicite, sans accepter un nom de fichier libre."""
+    source = payload.get("source")
+    if not isinstance(source, dict):
+        raise ValueError(f"{label} exige une provenance structurée.")
+    refs = source.get("source_refs")
+    if refs is None:
+        # Compatibilité strictement structurée pour les producteurs existants;
+        # les aliases de type `artifact: filename.txt` ne sont pas acceptés.
+        refs = [source[key] for key in ("artifact_id", "dataset_id") if isinstance(source.get(key), str) and source[key].strip()]
+    if not isinstance(refs, list) or not refs or not all(isinstance(item, str) and item.strip() for item in refs):
+        raise ValueError(f"{label} exige source.source_refs ou un artifact_id/dataset_id structuré.")
+    return list(dict.fromkeys(refs))
+
+
+def _validate_economic_input_sources(inputs: list[dict[str, Any]], known_goal_a_refs: set[str]) -> None:
+    """Ferme les sources client de Goal B sur les artefacts/datasets réels du cas."""
+    for item in inputs:
+        provenance = item["provenance"]
+        if item.get("status", "KNOWN") == "UNKNOWN":
+            continue
+        if provenance in {"CLIENT_EXPLICIT", "DOCUMENT_EXTRACTED", "INFERRED_FROM_CLIENT_DATA"}:
+            refs = _source_refs(item, label=f"EconomicInput {item['input_id']}")
+            if set(refs) - known_goal_a_refs:
+                raise ValueError(f"EconomicInput {item['input_id']} référence une source Goal A inexistante.")
+        elif provenance == "EXTERNAL_ASSUMPTION":
+            source = item.get("source", {})
+            if source.get("source_type") != "GOAL_B_EXTERNAL_ASSUMPTION":
+                raise ValueError("Une valeur externe Goal B exige source_type=GOAL_B_EXTERNAL_ASSUMPTION.")
+            _require_text(source, ("description",), "Provenance externe Goal B")
+
+
+def _constraint_refs(constraint: dict[str, Any]) -> list[str]:
+    refs = constraint.get("source_refs")
+    if refs is None:
+        refs = [constraint["source_ref"]] if isinstance(constraint.get("source_ref"), str) else []
+    if not isinstance(refs, list) or not refs or not all(isinstance(item, str) and item.strip() for item in refs):
+        raise ValueError("Une contrainte factuelle exige au moins une référence structurée.")
+    return list(dict.fromkeys(refs))
+
+
+def _validate_constraint_sources(constraints: list[dict[str, Any]], known_goal_a_refs: set[str]) -> None:
+    for constraint in constraints:
+        if constraint["source_status"] == "UNKNOWN":
+            continue
+        refs = _constraint_refs(constraint)
+        if set(refs) - known_goal_a_refs:
+            raise ValueError(f"Contrainte {constraint['constraint_id']} référence une source Goal A inexistante.")
+
+
+def _resolve_technical_finding_refs(
+    references: list[dict[str, Any]], findings: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Résout la vérité technique depuis Goal A; Goal B ne peut pas la réécrire."""
+    if not isinstance(references, list) or not references:
+        raise ValueError("Goal B doit référencer au moins un finding Goal A réel.")
+    resolved: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for reference in references:
+        if not isinstance(reference, dict) or not isinstance(reference.get("finding_id"), str):
+            raise ValueError("Référence de finding Goal A invalide.")
+        finding_id = reference["finding_id"]
+        if finding_id in seen or finding_id not in findings:
+            raise ValueError("technical_finding_refs doit référencer des findings réellement présents dans Goal A.")
+        finding = findings[finding_id]
+        for field, source_field in (("technical_status", "status"), ("technical_confidence", "confidence")):
+            if field in reference and reference[field] != finding[source_field]:
+                raise ValueError(f"Goal B ne peut pas altérer {field} du finding Goal A {finding_id}.")
+        if "provenance" in reference and reference["provenance"] != "investigation/structured_findings.json":
+            raise ValueError("La provenance technique Goal B doit rester l'artefact canonique Goal A.")
+        resolved.append({
+            "finding_id": finding_id,
+            "technical_status": finding["status"],
+            "technical_confidence": finding["confidence"],
+            "provenance": "investigation/structured_findings.json",
+        })
+        seen.add(finding_id)
+    return resolved
+
+
+def _build_recommendation_provenance(
+    decision: dict[str, Any] | None,
+    actions: list[dict[str, Any]],
+    calculations: dict[str, dict[str, Any]],
+    value_sources: dict[str, dict[str, Any]],
+    constraints: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Matérialise une chaîne auditable sans décider ni interpréter l'action."""
+    selected = set() if decision is None else set(decision.get("selected_action_ids", decision.get("action_ids", [])))
+    constraints_by_action = {
+        action_id: [item["constraint_id"] for item in constraints if action_id in item["affected_action_ids"]]
+        for action_id in selected
+    }
+    chains: list[dict[str, Any]] = []
+    for action in actions:
+        if action["action_id"] not in selected:
+            continue
+        calculation = calculations.get(action["action_id"])
+        source_links: list[dict[str, Any]] = []
+        if calculation is not None:
+            refs = calculation["reproducibility"]["input_references"]
+            values = calculation["reproducibility"]["input_values"]
+            for component, scenario_values in values.items():
+                if scenario_values is None:
+                    continue
+                source_links.append({
+                    "component": component,
+                    "scenario_source_ids": {scenario: refs[component][scenario][0] for scenario in SCENARIOS},
+                })
+        chains.append({
+            "action_id": action["action_id"],
+            "finding_ids": action["finding_ids"],
+            "energy_effect_ref": action.get("energy_effect_ref"),
+            "calculation_ref": action["action_id"] if calculation is not None else None,
+            "economic_source_links": source_links,
+            "constraint_ids": constraints_by_action[action["action_id"]],
+        })
+    return {
+        "schema_version": 1,
+        "decision_id": None if decision is None else decision["decision_id"],
+        "selected_action_chains": chains,
+        "economic_sources": [
+            {
+                "source_id": source_id,
+                "provenance": source["provenance"],
+                "status": source.get("status", "KNOWN"),
+                "source": source.get("source"),
+            }
+            for source_id, source in sorted(value_sources.items())
+        ],
+        "chain_is_reference_validated": True,
+    }
 
 
 def economic_handoff(case_directory: str | Path) -> dict[str, Any]:
@@ -528,6 +676,8 @@ def persist_economic_packet(case_directory: str | Path, packet: dict[str, Any]) 
     for item in assumptions:
         validate_scenario_assumption(item)
     value_sources = _value_source_index(inputs, assumptions)
+    known_goal_a_refs = _case_provenance_ids(case)
+    _validate_economic_input_sources(inputs, known_goal_a_refs)
     actions = packet.get("candidate_actions", [])
     for action in actions:
         validate_candidate_action(action)
@@ -539,26 +689,25 @@ def persist_economic_packet(case_directory: str | Path, packet: dict[str, Any]) 
         validate_constraint(constraint)
         if set(constraint["affected_action_ids"]) - action_ids:
             raise ValueError("Contrainte référence une action inconnue.")
+    _validate_constraint_sources(constraints, known_goal_a_refs)
     relationships = packet.get("relationships", [])
     for relationship in relationships:
         validate_relationship(relationship, action_ids)
     calculations = packet.get("scenario_calculations", {})
     if not isinstance(calculations, dict) or set(calculations) - action_ids:
         raise ValueError("Un calcul économique doit référencer une action candidate existante.")
-    technical_refs = {item.get("finding_id") for item in packet.get("technical_finding_refs", []) if item.get("finding_id")}
-    real_goal_a_findings = _goal_a_finding_ids(case)
-    if not technical_refs or technical_refs - real_goal_a_findings:
-        raise ValueError("technical_finding_refs doit référencer des findings réellement présents dans Goal A.")
+    real_goal_a_findings = _goal_a_findings(case)
+    resolved_technical_refs = _resolve_technical_finding_refs(packet.get("technical_finding_refs", []), real_goal_a_findings)
+    technical_refs = {item["finding_id"] for item in resolved_technical_refs}
     if any(set(action["finding_ids"]) - technical_refs for action in actions):
         raise ValueError("Chaque action doit référencer un finding Goal A déclaré dans technical_finding_refs.")
-    known_goal_a_refs = _case_provenance_ids(case)
     for action_id, calculation in calculations.items():
         action = next(item for item in actions if item["action_id"] == action_id)
         if not action.get("energy_effect_ref"):
             raise ValueError("Toute action avec économie d'énergie calculée doit identifier son baseline via energy_effect_ref.")
         energy_effect = calculation.get("reproducibility", {}).get("energy_effect", {})
         finding_refs = set(energy_effect.get("finding_refs", []))
-        if not finding_refs or finding_refs - technical_refs or finding_refs - real_goal_a_findings:
+        if not finding_refs or finding_refs - technical_refs or finding_refs - set(real_goal_a_findings):
             raise ValueError("Un effet énergétique persistant doit référencer au moins un finding technique du packet.")
         _validate_calculation_provenance(calculation, value_sources=value_sources, allowed_energy_refs=technical_refs | known_goal_a_refs)
         if calculation.get("effect_id") != action["energy_effect_ref"] or not calculation.get("baseline"):
@@ -590,7 +739,8 @@ def persist_economic_packet(case_directory: str | Path, packet: dict[str, Any]) 
         if decision.get("blocking_constraint_ids") and set(decision["blocking_constraint_ids"]) - {item["constraint_id"] for item in constraints}:
             raise ValueError("Décision référence une contrainte inconnue.")
     requests = build_economic_request_batch(packet.get("economic_requests", []))["requests"] if packet.get("economic_requests") else []
-    state.update({"status": "economic_reasoning_recorded", "technical_finding_refs": packet.get("technical_finding_refs", []), "economic_inputs": inputs, "scenario_assumptions": assumptions, "operational_constraints": constraints, "candidate_actions": actions, "relationships": relationships, "combined_effects": combined_effects, "scenario_calculations": calculations, "decisions": [decision] if decision else [], "economic_requests": requests, "unresolved_blockers": packet.get("unresolved_blockers", state["unresolved_blockers"])})
+    provenance_chain = _build_recommendation_provenance(decision, actions, calculations, value_sources, constraints)
+    state.update({"status": "economic_reasoning_recorded", "technical_finding_refs": resolved_technical_refs, "economic_inputs": inputs, "scenario_assumptions": assumptions, "operational_constraints": constraints, "candidate_actions": actions, "relationships": relationships, "combined_effects": combined_effects, "scenario_calculations": calculations, "decisions": [decision] if decision else [], "economic_requests": requests, "unresolved_blockers": packet.get("unresolved_blockers", state["unresolved_blockers"]), "recommendation_provenance": provenance_chain})
     state["history"].append({"at_utc": _now(), "action": "economic_packet_persisted", "action_ids": sorted(action_ids), "decision": decision.get("decision") if decision else None})
     _write(path, state)
     return state

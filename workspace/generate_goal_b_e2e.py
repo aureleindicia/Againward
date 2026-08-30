@@ -1,6 +1,7 @@
 """Crée le cas synthétique Goal A → Goal B, sans données ou vérité client cachée."""
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -72,6 +73,8 @@ def generate(root: str | Path = "examples") -> Path:
     create_client_case("artisan_sme", root=case_root)
     case = case_root / "artisan_sme"
     ingest_client_drop(raw, case)
+    inventory = json.loads((case / "evidence" / "intake_inventory.json").read_text(encoding="utf-8"))
+    artifact_ids = {item["raw_relative_path"]: item["artifact_id"] for item in inventory["artifacts"]}
     record_structured_findings(case, [{
         "finding_id": "FIND-EXCESS-01", "observation": "Excès récurrent avant préparation observé dans la série synthétique.",
         "time_context_window": "05:00–06:00, deux jours comparables", "quantitative_evidence": {"excess_energy_kwh": 6.0, "source": "DS-001"},
@@ -89,7 +92,7 @@ def generate(root: str | Path = "examples") -> Path:
     effect = {
         "effect_id": "EFF-EXCESS-01", "basis": "COUNTERFACTUAL_ESTIMATE", "baseline": "créneau pré-ouverture de référence",
         "unit": "kWh/year", "period": "hypothèse de récurrence annuelle", "scenarios": {"LOW": 4000, "BASE": 7000, "HIGH": 10000},
-        "finding_refs": ["FIND-EXCESS-01"], "source_refs": ["DS-001-01", "SCENARIO-RECURRENCE"],
+        "finding_refs": ["FIND-EXCESS-01"], "source_refs": ["DS-001-01"],
     }
     scenarios = calculate_economic_scenarios(
         effect, tariff_per_kwh={"LOW": .20, "BASE": .20, "HIGH": .20},
@@ -105,11 +108,11 @@ def generate(root: str | Path = "examples") -> Path:
     packet = {
         "technical_finding_refs": [{"finding_id": "FIND-EXCESS-01", "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "technical_confidence": "MEDIUM", "provenance": "investigation/structured_findings.json"}],
         "economic_inputs": [
-            {"input_id": "ECON-TARIFF-01", "kind": "electricity_tariff", "value": .20, "unit": "EUR/kWh", "currency": "EUR", "period": "per_kwh", "provenance": "DOCUMENT_EXTRACTED", "status": "KNOWN", "source": {"artifact": "facture_tarif.txt"}, "confidence": "MEDIUM"},
-            {"input_id": "ECON-CAPEX-01", "kind": "replacement_quote", "value": 12000, "unit": "EUR", "currency": "EUR", "period": "one_off", "provenance": "DOCUMENT_EXTRACTED", "status": "KNOWN", "source": {"artifact": "supplier_quote.txt"}, "confidence": "LOW"},
-            {"input_id": "ECON-RECUR-01", "kind": "incremental_maintenance", "value": 0, "unit": "EUR/year", "currency": "EUR", "period": "annual", "provenance": "SCENARIO_ASSUMPTION", "status": "KNOWN", "source": {"assumption": "none in synthetic fixture"}, "confidence": "NOT_CALIBRATED"},
+            {"input_id": "ECON-TARIFF-01", "kind": "electricity_tariff", "value": .20, "unit": "EUR/kWh", "currency": "EUR", "period": "per_kwh", "provenance": "DOCUMENT_EXTRACTED", "status": "KNOWN", "source": {"source_refs": [artifact_ids["facture_tarif.txt"]]}, "confidence": "MEDIUM"},
+            {"input_id": "ECON-CAPEX-01", "kind": "replacement_quote", "value": 12000, "unit": "EUR", "currency": "EUR", "period": "one_off", "provenance": "DOCUMENT_EXTRACTED", "status": "KNOWN", "source": {"source_refs": [artifact_ids["supplier_quote.txt"]]}, "confidence": "LOW"},
         ],
-        "operational_constraints": [{"constraint_id": "CONS-PROD-01", "category": "PRODUCTION", "description": "Le système ne peut pas être indisponible pendant la préparation/livraison du matin.", "source_status": "EXPLICIT", "source_ref": "planning_ouverture.txt", "hard": True, "material": True, "affected_action_ids": ["ACT-INSPECT-01", "ACT-REPLACE-01"], "unresolved_uncertainty": None}],
+        "scenario_assumptions": [{"assumption_id": "ECON-RECUR-01", "description": "Aucun coût récurrent additionnel dans cette fixture.", "value": 0, "unit": "EUR/year", "currency": "EUR", "period": "annual", "provenance": "SCENARIO_ASSUMPTION", "status": "SCENARIO", "source": {"method": "explicit zero scenario"}}],
+        "operational_constraints": [{"constraint_id": "CONS-PROD-01", "category": "PRODUCTION", "description": "Le système ne peut pas être indisponible pendant la préparation/livraison du matin.", "source_status": "EXPLICIT", "source_refs": [artifact_ids["planning_ouverture.txt"], artifact_ids["production_approx.csv"]], "hard": True, "material": True, "affected_action_ids": ["ACT-INSPECT-01", "ACT-REPLACE-01"], "unresolved_uncertainty": None}],
         "candidate_actions": [_action("ACT-INSPECT-01", "Inspection ciblée pendant visite planifiée", "diagnostic", "REVERSIBLE"), _action("ACT-REPLACE-01", "Remplacement après confirmation", "replacement", "IRREVERSIBLE", "EFF-EXCESS-01")],
         "relationships": [{"relationship_id": "REL-SEQ-01", "type": "SEQUENTIAL", "action_a": "ACT-INSPECT-01", "action_b": "ACT-REPLACE-01", "rationale": "La décision de remplacement dépend du résultat de l'inspection.", "sequence": ["ACT-INSPECT-01", "ACT-REPLACE-01"]}],
         "scenario_calculations": {"ACT-REPLACE-01": scenarios},

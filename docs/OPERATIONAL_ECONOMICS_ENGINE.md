@@ -52,3 +52,15 @@ packet, le contexte de reprise est écrit séparément dans
 `investigation/economic_handoff_resume.json`. Le premier n'est donc jamais
 écrasé par le second, ce qui préserve l'audit de l'information disponible avant
 le raisonnement économique.
+
+## B.3 : vérité technique et contraintes factuelles
+
+`technical_finding_refs` est résolu contre
+`investigation/structured_findings.json`. Goal B peut référencer le statut et
+la confiance issus de Goal A, mais ne peut ni les renforcer ni les réécrire; la
+version résolue est celle qui est persistée.
+
+Une contrainte `EXPLICIT` ou `INFERRED` cite `source_refs` (un ou plusieurs
+artefacts/datasets canoniques). Python vérifie qu'ils existent. Codex reste le
+seul responsable de l'interprétation de la contrainte et de la décision : le
+résolveur ne choisit aucune action ni verdict.

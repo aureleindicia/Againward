@@ -176,7 +176,9 @@
         "provenance": "DOCUMENT_EXTRACTED",
         "status": "KNOWN",
         "source": {
-          "artifact": "TAR-BASE"
+          "source_refs": [
+            "ART-002-251d135464e3"
+          ]
         },
         "confidence": "MEDIUM"
       },
@@ -190,7 +192,9 @@
         "provenance": "DOCUMENT_EXTRACTED",
         "status": "KNOWN",
         "source": {
-          "artifact": "CAP-INSPECT"
+          "source_refs": [
+            "ART-008-2ceca0b1c795"
+          ]
         },
         "confidence": "MEDIUM"
       }
@@ -255,7 +259,10 @@
         "category": "PRODUCTION",
         "description": "Pas d'indisponibilité pendant préparation/livraison.",
         "source_status": "EXPLICIT",
-        "source_ref": "planning_ouverture.txt",
+        "source_refs": [
+          "ART-006-e33f7742896f",
+          "ART-007-d9368e0992cf"
+        ],
         "hard": true,
         "material": true,
         "affected_action_ids": [

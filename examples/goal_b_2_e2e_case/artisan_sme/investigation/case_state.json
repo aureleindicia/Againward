@@ -37,12 +37,12 @@
   "unresolved_requests": [],
   "history": [
     {
-      "at_utc": "2026-08-30T09:23:03.249221+00:00",
+      "at_utc": "2026-08-30T12:33:00.780364+00:00",
       "action": "intake_completed",
       "inventory": "evidence/intake_inventory.json"
     },
     {
-      "at_utc": "2026-08-30T09:23:03.250914+00:00",
+      "at_utc": "2026-08-30T12:33:00.781975+00:00",
       "action": "structured_findings_recorded",
       "count": 1,
       "no_finding": false

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "case_id": "artisan_sme",
-  "created_at_utc": "2026-08-30T09:23:03.247550+00:00",
+  "created_at_utc": "2026-08-30T12:33:00.778781+00:00",
   "artifacts": [
     {
       "artifact_id": "ART-001-1352e6ee1a21",
@@ -11,7 +11,7 @@
       "mime_type": "text/csv",
       "size_bytes": 218,
       "sha256": "1352e6ee1a21ce809cb64fd08ce52e22b5c4800b9649d49c19e5de65b78f86c0",
-      "ingested_at_utc": "2026-08-30T09:23:03.238416+00:00",
+      "ingested_at_utc": "2026-08-30T12:33:00.769367+00:00",
       "parsing_status": "parsed",
       "probable_role": "ENERGY_INTERVAL_SERIES",
       "role_evidence": [
@@ -32,7 +32,7 @@
       "mime_type": "text/plain",
       "size_bytes": 60,
       "sha256": "251d135464e39b9a199d8c5c0bf3bbc07704aa00f14856424815d1178e6df633",
-      "ingested_at_utc": "2026-08-30T09:23:03.240548+00:00",
+      "ingested_at_utc": "2026-08-30T12:33:00.771378+00:00",
       "parsing_status": "metadata_only",
       "probable_role": "TARIFF",
       "role_evidence": [
@@ -50,7 +50,7 @@
       "mime_type": "text/plain",
       "size_bytes": 47,
       "sha256": "d0b9bab967905bdcf8a7ee93d5973875bf675fba441242b00d9194460d09d2d8",
-      "ingested_at_utc": "2026-08-30T09:23:03.241288+00:00",
+      "ingested_at_utc": "2026-08-30T12:33:00.772059+00:00",
       "parsing_status": "metadata_only",
       "probable_role": "IRRELEVANT",
       "role_evidence": [
@@ -68,7 +68,7 @@
       "mime_type": "text/plain",
       "size_bytes": 74,
       "sha256": "43d20cf28b1cf7c412a8b5de803e099f6d0dcac8a9569514c110f6a1caa9500e",
-      "ingested_at_utc": "2026-08-30T09:23:03.242143+00:00",
+      "ingested_at_utc": "2026-08-30T12:33:00.772792+00:00",
       "parsing_status": "metadata_only",
       "probable_role": "MAINTENANCE",
       "role_evidence": [
@@ -86,7 +86,7 @@
       "mime_type": "text/csv",
       "size_bytes": 57,
       "sha256": "2eb4079211712103c6fac2094a2a064d902a7d1afb2dacc67a424774ca61ee5e",
-      "ingested_at_utc": "2026-08-30T09:23:03.243703+00:00",
+      "ingested_at_utc": "2026-08-30T12:33:00.774070+00:00",
       "parsing_status": "parsed",
       "probable_role": "ENERGY_INTERVAL_SERIES",
       "role_evidence": [
@@ -107,7 +107,7 @@
       "mime_type": "text/plain",
       "size_bytes": 72,
       "sha256": "e33f7742896f4dc5769339236245d3663f822e51c6d2ae879e7d6c72cb2d648f",
-      "ingested_at_utc": "2026-08-30T09:23:03.244892+00:00",
+      "ingested_at_utc": "2026-08-30T12:33:00.775212+00:00",
       "parsing_status": "metadata_only",
       "probable_role": "SCHEDULE",
       "role_evidence": [
@@ -125,7 +125,7 @@
       "mime_type": "text/csv",
       "size_bytes": 44,
       "sha256": "d9368e0992cfba164ab49e35ac7419f51ed82c02b15b863d64b6e16d8cff7646",
-      "ingested_at_utc": "2026-08-30T09:23:03.246194+00:00",
+      "ingested_at_utc": "2026-08-30T12:33:00.777010+00:00",
       "parsing_status": "parsed",
       "probable_role": "PRODUCTION",
       "role_evidence": [
@@ -146,7 +146,7 @@
       "mime_type": "text/plain",
       "size_bytes": 59,
       "sha256": "2ceca0b1c7957fb8af6b6c4fd62ac8c3201a736b033cb4c74213e880f71577a9",
-      "ingested_at_utc": "2026-08-30T09:23:03.247491+00:00",
+      "ingested_at_utc": "2026-08-30T12:33:00.778722+00:00",
       "parsing_status": "metadata_only",
       "probable_role": "TEXT_NOTE",
       "role_evidence": [
