@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "datasets": [
+    {
+      "dataset_id": "DS-001-01",
+      "source_artifact_id": "ART-001-1352e6ee1a21",
+      "role": "ENERGY_INTERVAL_SERIES",
+      "role_evidence": [
+        "recognized energy header",
+        "recognized timestamp header"
+      ],
+      "sheet": null,
+      "header_row": 1,
+      "source_headers": [
+        "timestamp",
+        "energy_kwh",
+        "production"
+      ],
+      "source_columns": {
+        "date": "timestamp",
+        "energy": "energy_kwh",
+        "production": "production"
+      },
+      "normalized_file": "normalized/DS-001-01.csv",
+      "analytically_usable": true,
+      "transformations": [],
+      "data_quality": {
+        "usable_time_span": {
+          "start": "2026-06-01T05:00:00",
+          "end": "2026-06-02T06:30:00"
+        },
+        "rows_parsed": 8,
+        "rows_retained": 8,
+        "sampling_frequency_minutes": 30.0,
+        "coverage_ratio": 0.15384615384615385,
+        "missing_intervals": 44,
+        "frequency_change_detected": false,
+        "strict_duplicates_removed": 0,
+        "conflicting_duplicates": 0,
+        "suspicious_values": {
+          "negative_production_rows": [],
+          "negative_measurement_rows": []
+        },
+        "production_coverage_ratio": 1.0,
+        "unit_interpretation": {
+          "status": "AUTO_FIX_SAFE",
+          "unit": "kwh",
+          "measurement_kind": "energy_per_interval",
+          "basis": "explicit unit in source header"
+        },
+        "timezone_confidence": "not_declared",
+        "known_limitations": []
+      },
+      "field_lineage": {
+        "timestamp": {
+          "source_artifact_id": "ART-001-1352e6ee1a21",
+          "sheet": null,
+          "source_column": "timestamp",
+          "normalization": "parse_date"
+        },
+        "measurement": {
+          "source_artifact_id": "ART-001-1352e6ee1a21",
+          "sheet": null,
+          "source_column": "energy_kwh",
+          "normalization": "parse_number",
+          "unit_interpretation": {
+            "status": "AUTO_FIX_SAFE",
+            "unit": "kwh",
+            "measurement_kind": "energy_per_interval",
+            "basis": "explicit unit in source header"
+          }
+        },
+        "production": {
+          "source_artifact_id": "ART-001-1352e6ee1a21",
+          "sheet": null,
+          "source_column": "production",
+          "normalization": "parse_number"
+        }
+      }
+    },
+    {
+      "dataset_id": "DS-005-01",
+      "source_artifact_id": "ART-005-2eb407921171",
+      "role": "ENERGY_INTERVAL_SERIES",
+      "role_evidence": [
+        "recognized energy header",
+        "recognized timestamp header"
+      ],
+      "sheet": null,
+      "header_row": 1,
+      "source_headers": [
+        "timestamp",
+        "Energy"
+      ],
+      "source_columns": {
+        "date": "timestamp",
+        "energy": "Energy"
+      },
+      "normalized_file": "normalized/DS-005-01.json",
+      "analytically_usable": false,
+      "transformations": [
+        {
+          "status": "MATERIAL_AMBIGUITY",
+          "operation": "measurement_unit",
+          "reason": "unlabeled non-negative measurement supports competing kW/kWh interpretations"
+        }
+      ],
+      "data_quality": {
+        "usable_time_span": {
+          "start": "2026-06-01T05:00:00",
+          "end": "2026-06-01T05:30:00"
+        },
+        "rows_parsed": 2,
+        "rows_retained": 2,
+        "sampling_frequency_minutes": 30.0,
+        "coverage_ratio": 1.0,
+        "missing_intervals": 0,
+        "frequency_change_detected": false,
+        "strict_duplicates_removed": 0,
+        "conflicting_duplicates": 0,
+        "suspicious_values": {
+          "negative_production_rows": [],
+          "negative_measurement_rows": []
+        },
+        "production_coverage_ratio": 0.0,
+        "unit_interpretation": {
+          "status": "MATERIAL_AMBIGUITY",
+          "unit": null,
+          "measurement_kind": "unknown",
+          "basis": "unlabeled non-negative measurement supports competing kW/kWh interpretations"
+        },
+        "timezone_confidence": "not_declared",
+        "known_limitations": [
+          "unlabeled non-negative measurement supports competing kW/kWh interpretations"
+        ]
+      },
+      "field_lineage": {
+        "timestamp": {
+          "source_artifact_id": "ART-005-2eb407921171",
+          "sheet": null,
+          "source_column": "timestamp",
+          "normalization": "parse_date"
+        },
+        "measurement": {
+          "source_artifact_id": "ART-005-2eb407921171",
+          "sheet": null,
+          "source_column": "Energy",
+          "normalization": "parse_number",
+          "unit_interpretation": {
+            "status": "MATERIAL_AMBIGUITY",
+            "unit": null,
+            "measurement_kind": "unknown",
+            "basis": "unlabeled non-negative measurement supports competing kW/kWh interpretations"
+          }
+        }
+      }
+    },
+    {
+      "dataset_id": "DS-007-01",
+      "source_artifact_id": "ART-007-d9368e0992cf",
+      "role": "PRODUCTION",
+      "role_evidence": [
+        "recognized production header",
+        "recognized timestamp header"
+      ],
+      "sheet": null,
+      "header_row": 1,
+      "source_headers": [
+        "date",
+        "production"
+      ],
+      "source_columns": {
+        "date": "date",
+        "production": "production"
+      },
+      "normalized_file": "normalized/DS-007-01.json",
+      "analytically_usable": false,
+      "transformations": [],
+      "data_quality": {
+        "usable_time_span": {
+          "start": "2026-06-01T00:00:00",
+          "end": "2026-06-02T00:00:00"
+        },
+        "rows_parsed": 2,
+        "rows_retained": 2,
+        "sampling_frequency_minutes": null,
+        "missing_intervals": null,
+        "frequency_change_detected": false,
+        "strict_duplicates_removed": 0,
+        "conflicting_duplicates": 0,
+        "suspicious_values": {},
+        "unit_interpretation": {
+          "status": "FLAG_ONLY",
+          "unit": null,
+          "measurement_kind": "context_only",
+          "basis": "context table is not an energy/power measurement"
+        },
+        "timezone_confidence": "not_declared",
+        "known_limitations": []
+      },
+      "field_lineage": {
+        "timestamp": {
+          "source_artifact_id": "ART-007-d9368e0992cf",
+          "sheet": null,
+          "source_column": "date",
+          "normalization": "parse_date"
+        },
+        "production": {
+          "source_artifact_id": "ART-007-d9368e0992cf",
+          "sheet": null,
+          "source_column": "production",
+          "normalization": "parse_number"
+        }
+      }
+    }
+  ]
+}

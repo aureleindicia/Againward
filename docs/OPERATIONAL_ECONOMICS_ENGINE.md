@@ -28,3 +28,18 @@ effort, la décision susceptible de changer et la raison économique de l'obteni
 
 Le résultat est advisory. Il ne garantit ni économie, ni payback, ni cause
 physique; les économies ne sont considérées réalisées qu'après validation.
+
+## Correctif B.1 : handoff et vérité quantitative
+
+`economic_handoff()` peut être appelé **avant** la création de tout paquet
+économique. Il transmet alors les findings Goal A, leur statut et leurs limites,
+le contexte opérationnel déjà disponible, les documents tarif/coût/maintenance
+repérés et les ambiguïtés matérielles. Il n'en déduit ni action, ni priorité, ni
+décision. L'ordre E2E est donc : preuves Goal A → handoff pré-raisonnement →
+contrat de raisonnement Codex → calcul Python → état Goal B persistant.
+
+Les tableaux LOW/BASE/HIGH persistés sont refusés s'ils ne peuvent pas être
+reproduits par `calculate_economic_scenarios`. Chaque valeur matérielle cite
+des `EconomicInput`, une hypothèse de scénario explicitement persistée, ou la
+preuve de l'effet énergie. Un nombre de bénéfice, de coût ou de payback soumis
+par l'agent ne peut donc pas devenir une vérité quantitative sans recalcul.

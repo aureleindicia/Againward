@@ -14,7 +14,9 @@ Python. La confiance technique et l'importance économique sont séparées.
 | OPERATIONALLY_NOT_JUSTIFIED | Gain théorique bloqué par une contrainte opérationnelle explicite. |
 | INSUFFICIENT_FOR_ECONOMIC_DECISION | Blocage réellement matériel, sans décision responsable disponible. |
 
-Une décision de non-action ne cache pas une action sélectionnée. Une non-
-justification opérationnelle cite la contrainte qui bloque l'action. Une action
-de preuve pour `INVESTIGATE_FIRST` précise ce qu'elle départage et quelle
-décision peut changer.
+Une décision distingue `selected_action_ids` (actions effectivement retenues)
+de `considered_action_ids` (options évaluées). Une décision de non-action ne
+cache pas une action sélectionnée. Une non-justification opérationnelle cite la
+contrainte qui bloque l'option considérée sans la présenter comme recommandée.
+Une action de preuve pour `INVESTIGATE_FIRST` précise ce qu'elle départage et
+quelle décision peut changer.

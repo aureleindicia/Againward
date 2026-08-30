@@ -22,3 +22,13 @@ Un effet énergie porte aussi sa base (`DIRECTLY_MEASURED_HISTORICAL_EXCESS`,
 `COUNTERFACTUAL_ESTIMATE`, `MODELED_REDUCTION`, `ENGINEERING_ASSUMPTION` ou
 `SCENARIO_ESTIMATE`), sa baseline, son unité annualisée, ses trois scénarios et
 ses références. Les chiffres restent donc remplaçables et auditables.
+
+## B.1 — provenance des scénarios calculés
+
+Pour chaque LOW/BASE/HIGH, le calcul persiste les valeurs d'entrée et une liste
+de références par composant (`energy_effect`, tarif, CAPEX, coût récurrent,
+autre bénéfice). Une référence économique doit désigner un `EconomicInput` ou
+une hypothèse `SCENARIO_ASSUMPTION` explicitement stockée ; l'effet énergétique
+doit remonter à un finding/preuve. Avant persistance, Python reconstruit le
+tableau à partir de ce contrat et refuse une divergence de net benefit, payback,
+unité ou devise.

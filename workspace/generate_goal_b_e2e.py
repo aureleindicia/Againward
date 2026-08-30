@@ -15,7 +15,7 @@ from operational_economics import (
 )
 
 
-def _action(identifier: str, title: str, action_type: str, reversibility: str) -> dict:
+def _action(identifier: str, title: str, action_type: str, reversibility: str, effect_ref: str | None = None) -> dict:
     return {
         "action_id": identifier,
         "finding_ids": ["FIND-EXCESS-01"], "title": title,
@@ -26,7 +26,7 @@ def _action(identifier: str, title: str, action_type: str, reversibility: str) -
         "implementation_scope": "Système thermique concerné.",
         "requires_professional_validation": True,
         "assumptions": ["Cause physique non confirmée."], "constraints": ["CONS-PROD-01"],
-        "dependencies": [], "alternatives": [], "reversibility": reversibility,
+        "dependencies": [], "alternatives": [], "reversibility": reversibility, "energy_effect_ref": effect_ref,
         "validation_plan": {
             "metric": "kWh par lot de production comparable", "expected_direction": "baisse si la cause est confirmée",
             "comparison_window": "quatre semaines avant/après", "confounders": "mix produit, météo, volume",
@@ -83,6 +83,8 @@ def generate(root: str | Path = "examples") -> Path:
         "recommended_next_analytical_step": "Comparer périodes comparables après inspection.",
         "predictive_degradation_note": None,
     }])
+    # B.1: Goal A evidence is exposed to Codex before an economic packet exists.
+    economic_handoff(case)
     initialize_economic_state(case)
     effect = {
         "effect_id": "EFF-EXCESS-01", "basis": "COUNTERFACTUAL_ESTIMATE", "baseline": "créneau pré-ouverture de référence",
@@ -93,19 +95,26 @@ def generate(root: str | Path = "examples") -> Path:
         effect, tariff_per_kwh={"LOW": .18, "BASE": .20, "HIGH": .23},
         intervention_cost={"LOW": 9000, "BASE": 12000, "HIGH": 15000},
         recurring_cost={"LOW": 0, "BASE": 0, "HIGH": 0},
+        input_references={
+            "energy_effect": {item: ["FIND-EXCESS-01"] for item in ("LOW", "BASE", "HIGH")},
+            "tariff_per_kwh": {item: ["ECON-TARIFF-01"] for item in ("LOW", "BASE", "HIGH")},
+            "intervention_cost": {item: ["ECON-CAPEX-01"] for item in ("LOW", "BASE", "HIGH")},
+            "recurring_cost": {item: ["ECON-RECUR-01"] for item in ("LOW", "BASE", "HIGH")},
+        },
     )
     packet = {
         "technical_finding_refs": [{"finding_id": "FIND-EXCESS-01", "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "technical_confidence": "MEDIUM", "provenance": "investigation/structured_findings.json"}],
         "economic_inputs": [
             {"input_id": "ECON-TARIFF-01", "kind": "electricity_tariff", "value": .20, "unit": "EUR/kWh", "provenance": "DOCUMENT_EXTRACTED", "source": {"artifact": "facture_tarif.txt"}, "confidence": "MEDIUM"},
             {"input_id": "ECON-CAPEX-01", "kind": "replacement_quote", "value": 12000, "unit": "EUR", "provenance": "DOCUMENT_EXTRACTED", "source": {"artifact": "supplier_quote.txt"}, "confidence": "LOW"},
+            {"input_id": "ECON-RECUR-01", "kind": "incremental_maintenance", "value": 0, "unit": "EUR/year", "provenance": "SCENARIO_ASSUMPTION", "source": {"assumption": "none in synthetic fixture"}, "confidence": "NOT_CALIBRATED"},
         ],
         "operational_constraints": [{"constraint_id": "CONS-PROD-01", "category": "PRODUCTION", "description": "Le système ne peut pas être indisponible pendant la préparation/livraison du matin.", "source_status": "EXPLICIT", "source_ref": "planning_ouverture.txt", "hard": True, "material": True, "affected_action_ids": ["ACT-INSPECT-01", "ACT-REPLACE-01"], "unresolved_uncertainty": None}],
-        "candidate_actions": [_action("ACT-INSPECT-01", "Inspection ciblée pendant visite planifiée", "diagnostic", "REVERSIBLE"), _action("ACT-REPLACE-01", "Remplacement après confirmation", "replacement", "IRREVERSIBLE")],
+        "candidate_actions": [_action("ACT-INSPECT-01", "Inspection ciblée pendant visite planifiée", "diagnostic", "REVERSIBLE"), _action("ACT-REPLACE-01", "Remplacement après confirmation", "replacement", "IRREVERSIBLE", "EFF-EXCESS-01")],
         "relationships": [{"relationship_id": "REL-SEQ-01", "type": "SEQUENTIAL", "action_a": "ACT-INSPECT-01", "action_b": "ACT-REPLACE-01", "rationale": "La décision de remplacement dépend du résultat de l'inspection.", "sequence": ["ACT-INSPECT-01", "ACT-REPLACE-01"]}],
         "scenario_calculations": {"ACT-REPLACE-01": scenarios},
         "economic_requests": [{"request_id": "ECO-REQ-01", "request_type": "REQUEST_QUOTE", "client_question": "Avez-vous un devis récent ou un remplacement déjà planifié pour cet équipement ?", "internal_reason": "Le coût/timing peut modifier la comparaison après inspection.", "target_role": "dirigeant", "decision_impact": "Planifier, remplacer ou conserver l'équipement.", "expected_effort": "Envoyer un document existant si disponible.", "importance": "NON_BLOCKING"}],
-        "decision": {"decision_id": "DEC-E2E-01", "decision": "INVESTIGATE_FIRST", "action_ids": ["ACT-INSPECT-01"], "reason": "Le gain potentiel justifie un contrôle peu coûteux, mais la cause ne justifie pas encore un remplacement.", "priority_reasoning": "Préserver la production, limiter le risque CAPEX et départager une cause technique d'un horaire légitime.", "technical_confidence": "MEDIUM", "economic_importance": "HIGH", "constraint_assessments": [{"constraint_id": "CONS-PROD-01", "disposition": "MITIGATED", "rationale": "Inspection seulement pendant une visite de maintenance hors préparation."}], "evidence_acquisition": {"what_it_resolves": "dérive technique versus préparation opérationnelle", "decision_that_can_change": "engager ou non un remplacement", "cost_or_burden": "inspection ciblée pendant maintenance prévue", "why_worth_it": "évite un CAPEX élevé si la charge est légitime"}},
+        "decision": {"decision_id": "DEC-E2E-01", "decision": "INVESTIGATE_FIRST", "selected_action_ids": ["ACT-INSPECT-01"], "considered_action_ids": ["ACT-INSPECT-01", "ACT-REPLACE-01"], "reason": "Le gain potentiel justifie un contrôle peu coûteux, mais la cause ne justifie pas encore un remplacement.", "priority_reasoning": "Préserver la production, limiter le risque CAPEX et départager une cause technique d'un horaire légitime.", "technical_confidence": "MEDIUM", "economic_importance": "HIGH", "constraint_assessments": [{"constraint_id": "CONS-PROD-01", "disposition": "MITIGATED", "rationale": "Inspection seulement pendant une visite de maintenance hors préparation."}], "evidence_acquisition": {"what_it_resolves": "dérive technique versus préparation opérationnelle", "decision_that_can_change": "engager ou non un remplacement", "cost_or_burden": "inspection ciblée pendant maintenance prévue", "why_worth_it": "évite un CAPEX élevé si la charge est légitime"}},
     }
     persist_economic_packet(case, packet)
     economic_handoff(case)

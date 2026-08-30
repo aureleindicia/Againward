@@ -229,3 +229,30 @@ clôture et publier le checkpoint `READY_FOR_INDEPENDENT_CANDIDATE_V2_SCORING`.
 Préparer un HOLDOUT frais, indépendant et jamais utilisé pour mesurer Candidate V2.1.
 
 READY_FOR_FRESH_HOLDOUT
+
+## Checkpoint Goal B.1 — correctif opérationnel-économique
+
+- Portée : contrats Goal B uniquement; aucun chemin analytique V2.1 ni module
+  Goal A n'a été modifié.
+- Correctifs : handoff pré-raisonnement, calculs reproductibles/provenancés,
+  agrégation fail-closed, baselines explicites, effets combinés typés,
+  vocabulaire de demandes contrôlé, distinction actions considérées/sélectionnées.
+- E2E : `examples/goal_b_1_e2e_case/artisan_sme/` démontre Goal A evidence →
+  handoff → contrat Codex → calcul Python → état Goal B.
+- Fixtures : `examples/goal_b_1_fixtures.json`, B-A à B-O, testées comme
+  contrats structurés; aucune règle de production ne les référence.
+- Tests avant freeze : `pytest -q` **205 passed** en 29,35 s; tests Goal B
+  spécifiques **17 passed**.
+- Vérification métadonnée Goal A : `909196…` est l'objet tag annoté;
+  `3c62fdff2a7dedd7c8d75042243933234a1ff78c` est le commit pelé attendu.
+
+### Clôture
+
+- Freeze Goal B.1 : commit et tag `energy-analyzer-operational-economics-goal-b.1`.
+- Bundle de revue indépendant :
+  `/storage/emulated/0/Download/ENERGY_ANALYZER_GOAL_B_1_REVIEW.zip`.
+- Le bundle contient les rapports, tests, fixtures, E2E, diff Git, empreintes,
+  provenance Goal A corrigée et logs de test. Aucun secret, ground truth ou
+  donnée client réelle n'y est inclus.
+
+READY_FOR_INDEPENDENT_GOAL_B_1_REVIEW

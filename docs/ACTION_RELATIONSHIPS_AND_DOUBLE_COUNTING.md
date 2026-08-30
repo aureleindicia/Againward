@@ -9,8 +9,21 @@ Python vérifie ensuite l'arithmétique; il ne déduit jamais la relation physiq
   est refusé plutôt que de sommer deux économies possibles.
 - Les relations `DEPENDENT`, `SEQUENTIAL` ou `UNKNOWN` nécessitent un modèle
   combiné ou une séquence explicite avant agrégation.
-- Seules les actions sans relation déclarée ou `INDEPENDENT` peuvent être
-  additionnées directement.
+- Une paire sans relation déclarée vaut `UNKNOWN`, pas `INDEPENDENT` : le
+  portefeuille échoue en mode fail-closed. Seule une relation `INDEPENDENT`
+  explicitement déclarée permet l'addition directe.
+
+## B.1 — baselines et effets combinés typés
+
+Deux calculs portant des baselines différentes ne sont jamais agrégés
+automatiquement. Codex peut déclarer une `baseline_resolution` traçable
+(`COMPATIBLE_DECLARED` ou `RECONCILED`), mais Python ne l'infère pas.
+
+Un `combined_effect` n'est jamais un nombre nu. Il est soit un effet `ENERGY`
+avec unité/période/baseline/provenance et tableau économique recalculé, soit un
+effet `ECONOMIC` avec devise, `EUR/year`, période annualisée, baseline,
+scénarios et provenance explicites. Les unités, devises, périodes ou baselines
+incompatibles sont refusées.
 
 Chaque effet réclame sa baseline : comportement observé, période saine,
 baseline production/météo normalisée ou scénario. Des économies issues de

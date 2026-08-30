@@ -1,0 +1,260 @@
+{
+  "schema_version": 1,
+  "case_id": "artisan_sme",
+  "created_at_utc": "2026-08-30T08:53:15.150613+00:00",
+  "purpose": "Paquet descriptif pour investigation Codex; aucune anomalie, cause, action ou question n'est décidée ici.",
+  "available_datasets": [
+    {
+      "dataset_id": "DS-001-01",
+      "role": "ENERGY_INTERVAL_SERIES",
+      "normalized_file": "normalized/DS-001-01.csv",
+      "analytically_usable": true,
+      "data_quality": {
+        "usable_time_span": {
+          "start": "2026-06-01T05:00:00",
+          "end": "2026-06-02T06:30:00"
+        },
+        "rows_parsed": 8,
+        "rows_retained": 8,
+        "sampling_frequency_minutes": 30.0,
+        "coverage_ratio": 0.15384615384615385,
+        "missing_intervals": 44,
+        "frequency_change_detected": false,
+        "strict_duplicates_removed": 0,
+        "conflicting_duplicates": 0,
+        "suspicious_values": {
+          "negative_production_rows": [],
+          "negative_measurement_rows": []
+        },
+        "production_coverage_ratio": 1.0,
+        "unit_interpretation": {
+          "status": "AUTO_FIX_SAFE",
+          "unit": "kwh",
+          "measurement_kind": "energy_per_interval",
+          "basis": "explicit unit in source header"
+        },
+        "timezone_confidence": "not_declared",
+        "known_limitations": []
+      },
+      "field_lineage": {
+        "timestamp": {
+          "source_artifact_id": "ART-001-1352e6ee1a21",
+          "sheet": null,
+          "source_column": "timestamp",
+          "normalization": "parse_date"
+        },
+        "measurement": {
+          "source_artifact_id": "ART-001-1352e6ee1a21",
+          "sheet": null,
+          "source_column": "energy_kwh",
+          "normalization": "parse_number",
+          "unit_interpretation": {
+            "status": "AUTO_FIX_SAFE",
+            "unit": "kwh",
+            "measurement_kind": "energy_per_interval",
+            "basis": "explicit unit in source header"
+          }
+        },
+        "production": {
+          "source_artifact_id": "ART-001-1352e6ee1a21",
+          "sheet": null,
+          "source_column": "production",
+          "normalization": "parse_number"
+        }
+      }
+    },
+    {
+      "dataset_id": "DS-005-01",
+      "role": "ENERGY_INTERVAL_SERIES",
+      "normalized_file": "normalized/DS-005-01.json",
+      "analytically_usable": false,
+      "data_quality": {
+        "usable_time_span": {
+          "start": "2026-06-01T05:00:00",
+          "end": "2026-06-01T05:30:00"
+        },
+        "rows_parsed": 2,
+        "rows_retained": 2,
+        "sampling_frequency_minutes": 30.0,
+        "coverage_ratio": 1.0,
+        "missing_intervals": 0,
+        "frequency_change_detected": false,
+        "strict_duplicates_removed": 0,
+        "conflicting_duplicates": 0,
+        "suspicious_values": {
+          "negative_production_rows": [],
+          "negative_measurement_rows": []
+        },
+        "production_coverage_ratio": 0.0,
+        "unit_interpretation": {
+          "status": "MATERIAL_AMBIGUITY",
+          "unit": null,
+          "measurement_kind": "unknown",
+          "basis": "unlabeled non-negative measurement supports competing kW/kWh interpretations"
+        },
+        "timezone_confidence": "not_declared",
+        "known_limitations": [
+          "unlabeled non-negative measurement supports competing kW/kWh interpretations"
+        ]
+      },
+      "field_lineage": {
+        "timestamp": {
+          "source_artifact_id": "ART-005-2eb407921171",
+          "sheet": null,
+          "source_column": "timestamp",
+          "normalization": "parse_date"
+        },
+        "measurement": {
+          "source_artifact_id": "ART-005-2eb407921171",
+          "sheet": null,
+          "source_column": "Energy",
+          "normalization": "parse_number",
+          "unit_interpretation": {
+            "status": "MATERIAL_AMBIGUITY",
+            "unit": null,
+            "measurement_kind": "unknown",
+            "basis": "unlabeled non-negative measurement supports competing kW/kWh interpretations"
+          }
+        }
+      }
+    },
+    {
+      "dataset_id": "DS-007-01",
+      "role": "PRODUCTION",
+      "normalized_file": "normalized/DS-007-01.json",
+      "analytically_usable": false,
+      "data_quality": {
+        "usable_time_span": {
+          "start": "2026-06-01T00:00:00",
+          "end": "2026-06-02T00:00:00"
+        },
+        "rows_parsed": 2,
+        "rows_retained": 2,
+        "sampling_frequency_minutes": null,
+        "missing_intervals": null,
+        "frequency_change_detected": false,
+        "strict_duplicates_removed": 0,
+        "conflicting_duplicates": 0,
+        "suspicious_values": {},
+        "unit_interpretation": {
+          "status": "FLAG_ONLY",
+          "unit": null,
+          "measurement_kind": "context_only",
+          "basis": "context table is not an energy/power measurement"
+        },
+        "timezone_confidence": "not_declared",
+        "known_limitations": []
+      },
+      "field_lineage": {
+        "timestamp": {
+          "source_artifact_id": "ART-007-d9368e0992cf",
+          "sheet": null,
+          "source_column": "date",
+          "normalization": "parse_date"
+        },
+        "production": {
+          "source_artifact_id": "ART-007-d9368e0992cf",
+          "sheet": null,
+          "source_column": "production",
+          "normalization": "parse_number"
+        }
+      }
+    }
+  ],
+  "evidence_by_role": {
+    "ENERGY_INTERVAL_SERIES": [
+      "DS-001-01",
+      "DS-005-01"
+    ],
+    "PRODUCTION": [
+      "DS-007-01"
+    ],
+    "TARIFF": [
+      "ART-002-251d135464e3"
+    ],
+    "IRRELEVANT": [
+      "ART-003-d0b9bab96790"
+    ],
+    "MAINTENANCE": [
+      "ART-004-43d20cf28b1c"
+    ],
+    "SCHEDULE": [
+      "ART-006-e33f7742896f"
+    ],
+    "TEXT_NOTE": [
+      "ART-008-2c49952649e1"
+    ]
+  },
+  "known_facts": [
+    {
+      "kind": "source_observation",
+      "value": "ART-001-1352e6ee1a21_energy_interval_export.csv classé ENERGY_INTERVAL_SERIES",
+      "artifact_id": "ART-001-1352e6ee1a21"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-002-251d135464e3_facture_tarif.txt classé TARIFF",
+      "artifact_id": "ART-002-251d135464e3"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-003-d0b9bab96790_logo_photo.txt classé IRRELEVANT",
+      "artifact_id": "ART-003-d0b9bab96790"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-004-43d20cf28b1c_maintenance_note.txt classé MAINTENANCE",
+      "artifact_id": "ART-004-43d20cf28b1c"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-005-2eb407921171_meter_without_unit.csv classé ENERGY_INTERVAL_SERIES",
+      "artifact_id": "ART-005-2eb407921171"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-006-e33f7742896f_planning_ouverture.txt classé SCHEDULE",
+      "artifact_id": "ART-006-e33f7742896f"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-007-d9368e0992cf_production_approx.csv classé PRODUCTION",
+      "artifact_id": "ART-007-d9368e0992cf"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-008-2c49952649e1_supplier_quote.txt classé TEXT_NOTE",
+      "artifact_id": "ART-008-2c49952649e1"
+    }
+  ],
+  "inferred_facts": [
+    {
+      "dataset_id": "DS-001-01",
+      "measurement": {
+        "status": "AUTO_FIX_SAFE",
+        "unit": "kwh",
+        "measurement_kind": "energy_per_interval",
+        "basis": "explicit unit in source header"
+      }
+    }
+  ],
+  "unresolved_material_ambiguities": [
+    {
+      "dataset_id": "DS-005-01",
+      "issue": "measurement_unit",
+      "reason": "unlabeled non-negative measurement supports competing kW/kWh interpretations",
+      "blocking_for": "quantitative_energy_interpretation"
+    }
+  ],
+  "agent_decisions_required": [
+    "anomaly relevance",
+    "hypotheses",
+    "alternative explanations",
+    "next calculation",
+    "client question necessity",
+    "finding status",
+    "intervention"
+  ],
+  "no_finding_is_valid": true,
+  "ground_truth_available": false
+}

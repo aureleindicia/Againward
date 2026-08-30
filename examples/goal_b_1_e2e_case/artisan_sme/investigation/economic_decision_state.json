@@ -1,0 +1,268 @@
+{
+  "schema_version": 2,
+  "created_at_utc": "2026-08-30T08:53:15.156240+00:00",
+  "status": "economic_reasoning_recorded",
+  "technical_finding_refs": [
+    {
+      "finding_id": "FIND-EXCESS-01",
+      "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+      "technical_confidence": "MEDIUM",
+      "provenance": "investigation/structured_findings.json"
+    }
+  ],
+  "economic_inputs": [
+    {
+      "input_id": "ECON-TARIFF-01",
+      "kind": "electricity_tariff",
+      "value": 0.2,
+      "unit": "EUR/kWh",
+      "provenance": "DOCUMENT_EXTRACTED",
+      "source": {
+        "artifact": "facture_tarif.txt"
+      },
+      "confidence": "MEDIUM"
+    },
+    {
+      "input_id": "ECON-INSPECTION-01",
+      "kind": "diagnostic_quote",
+      "value": 300,
+      "unit": "EUR",
+      "provenance": "DOCUMENT_EXTRACTED",
+      "source": {
+        "artifact": "supplier_quote.txt"
+      },
+      "confidence": "MEDIUM"
+    }
+  ],
+  "scenario_assumptions": [],
+  "operational_constraints": [
+    {
+      "constraint_id": "CONS-PROD-01",
+      "category": "PRODUCTION",
+      "description": "Pas d'indisponibilité pendant la préparation/livraison du matin.",
+      "source_status": "EXPLICIT",
+      "source_ref": "planning_ouverture.txt",
+      "hard": true,
+      "material": true,
+      "affected_action_ids": [
+        "ACT-INSPECT-01"
+      ]
+    }
+  ],
+  "candidate_actions": [
+    {
+      "action_id": "ACT-INSPECT-01",
+      "finding_ids": [
+        "FIND-EXCESS-01"
+      ],
+      "title": "Inspection ciblée pendant la maintenance planifiée",
+      "description": "Action candidate formulée par Codex dans cette fixture synthétique.",
+      "action_type": "diagnostic",
+      "technical_rationale": "L'excès est observé, mais la cause physique reste concurrente.",
+      "operational_rationale": "Préserver la préparation du matin et utiliser la visite déjà prévue.",
+      "implementation_scope": "Système concerné par l'excès pré-ouverture.",
+      "requires_professional_validation": true,
+      "assumptions": [],
+      "constraints": [
+        "CONS-PROD-01"
+      ],
+      "dependencies": [],
+      "alternatives": [],
+      "reversibility": "REVERSIBLE",
+      "energy_effect_ref": "EFF-EXCESS-01",
+      "validation_plan": {
+        "metric": "kWh par créneau pré-ouverture comparable",
+        "expected_direction": "baisse si une dérive est corrigée",
+        "comparison_window": "quatre semaines avant/après",
+        "confounders": "production, horaires, météo",
+        "minimum_evidence": "baisse persistante normalisée par les conditions comparables"
+      }
+    }
+  ],
+  "relationships": [],
+  "scenario_calculations": {
+    "ACT-INSPECT-01": {
+      "schema_version": 2,
+      "calculation_method": "deterministic_scenario_v2",
+      "currency": "EUR",
+      "effect_id": "EFF-EXCESS-01",
+      "baseline": "créneau pré-ouverture de référence",
+      "period": "annual",
+      "scenarios": {
+        "LOW": {
+          "annual_energy_saving_kwh": 4000.0,
+          "tariff_per_kwh": 0.18,
+          "gross_annual_energy_cost_avoided": 720.0,
+          "incremental_recurring_cost": null,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 720.0,
+          "intervention_cost": 250.0,
+          "simple_payback_years": 0.3472222222222222,
+          "payback_status": "meaningful"
+        },
+        "BASE": {
+          "annual_energy_saving_kwh": 7000.0,
+          "tariff_per_kwh": 0.2,
+          "gross_annual_energy_cost_avoided": 1400.0,
+          "incremental_recurring_cost": null,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 1400.0,
+          "intervention_cost": 300.0,
+          "simple_payback_years": 0.21428571428571427,
+          "payback_status": "meaningful"
+        },
+        "HIGH": {
+          "annual_energy_saving_kwh": 10000.0,
+          "tariff_per_kwh": 0.23,
+          "gross_annual_energy_cost_avoided": 2300.0,
+          "incremental_recurring_cost": null,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 2300.0,
+          "intervention_cost": 400.0,
+          "simple_payback_years": 0.17391304347826086,
+          "payback_status": "meaningful"
+        }
+      },
+      "calculation_notes": [],
+      "reproducibility": {
+        "calculator": "calculate_economic_scenarios",
+        "calculator_schema_version": 2,
+        "energy_effect": {
+          "effect_id": "EFF-EXCESS-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "créneau pré-ouverture de référence",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 4000,
+            "BASE": 7000,
+            "HIGH": 10000
+          },
+          "source_refs": [
+            "FIND-EXCESS-01"
+          ]
+        },
+        "input_values": {
+          "tariff_per_kwh": {
+            "LOW": 0.18,
+            "BASE": 0.2,
+            "HIGH": 0.23
+          },
+          "intervention_cost": {
+            "LOW": 250.0,
+            "BASE": 300.0,
+            "HIGH": 400.0
+          },
+          "recurring_cost": null,
+          "other_annual_benefit": null
+        },
+        "input_references": {
+          "energy_effect": {
+            "LOW": [
+              "FIND-EXCESS-01"
+            ],
+            "BASE": [
+              "FIND-EXCESS-01"
+            ],
+            "HIGH": [
+              "FIND-EXCESS-01"
+            ]
+          },
+          "tariff_per_kwh": {
+            "LOW": [
+              "ECON-TARIFF-01"
+            ],
+            "BASE": [
+              "ECON-TARIFF-01"
+            ],
+            "HIGH": [
+              "ECON-TARIFF-01"
+            ]
+          },
+          "intervention_cost": {
+            "LOW": [
+              "ECON-INSPECTION-01"
+            ],
+            "BASE": [
+              "ECON-INSPECTION-01"
+            ],
+            "HIGH": [
+              "ECON-INSPECTION-01"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "decisions": [
+    {
+      "decision_id": "DEC-E2E-01",
+      "decision": "INVESTIGATE_FIRST",
+      "selected_action_ids": [
+        "ACT-INSPECT-01"
+      ],
+      "considered_action_ids": [
+        "ACT-INSPECT-01"
+      ],
+      "reason": "Le gain potentiel justifie un contrôle peu coûteux, mais la cause ne justifie pas encore un remplacement.",
+      "priority_reasoning": "Préserver la production et départager une cause technique d'un horaire légitime.",
+      "technical_confidence": "MEDIUM",
+      "economic_importance": "HIGH",
+      "constraint_assessments": [
+        {
+          "constraint_id": "CONS-PROD-01",
+          "disposition": "MITIGATED",
+          "rationale": "Inspection pendant une visite hors préparation."
+        }
+      ],
+      "evidence_acquisition": {
+        "what_it_resolves": "dérive technique versus préparation opérationnelle",
+        "decision_that_can_change": "réparer/remplacer ou ne pas intervenir",
+        "cost_or_burden": "inspection ciblée planifiée",
+        "why_worth_it": "évite un investissement irréversible non justifié"
+      }
+    }
+  ],
+  "economic_requests": [
+    {
+      "request_id": "ECO-REQ-01",
+      "request_type": "REQUEST_QUOTE",
+      "client_question": "Avez-vous un devis récent de remplacement à partager si vous l'avez déjà ?",
+      "internal_reason": "Un CAPEX de remplacement peut changer l'étape suivante après inspection.",
+      "target_role": "dirigeant",
+      "decision_impact": "Comparer inspection, réparation et remplacement.",
+      "expected_effort": "Envoyer un document existant si disponible.",
+      "importance": "NON_BLOCKING",
+      "analysis_can_continue_without_answer": true
+    }
+  ],
+  "unresolved_blockers": [
+    {
+      "dataset_id": "DS-005-01",
+      "issue": "measurement_unit",
+      "reason": "unlabeled non-negative measurement supports competing kW/kWh interpretations",
+      "blocking_for": "quantitative_energy_interpretation"
+    }
+  ],
+  "provenance_context": {
+    "canonical_case": "derived/canonical_case.json",
+    "dataset_provenance": "evidence/dataset_provenance.json",
+    "technical_findings": "investigation/structured_findings.json"
+  },
+  "history": [
+    {
+      "at_utc": "2026-08-30T08:53:15.156268+00:00",
+      "action": "economic_state_initialized"
+    },
+    {
+      "at_utc": "2026-08-30T08:53:15.157099+00:00",
+      "action": "economic_packet_persisted",
+      "action_ids": [
+        "ACT-INSPECT-01"
+      ],
+      "decision": "INVESTIGATE_FIRST"
+    }
+  ],
+  "ground_truth_used": false,
+  "deterministic_recommendation_engine": false
+}

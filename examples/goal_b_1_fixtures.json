@@ -1,0 +1,1841 @@
+{
+  "schema_version": 1,
+  "purpose": "Fixtures de contrat B.1, sans règles de recommandation en production.",
+  "fixtures": [
+    {
+      "fixture_id": "B-A",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "CAUSE_PROBABLE",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "obvious_low_cost",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [],
+      "relationships": [],
+      "economic_requests": [],
+      "decision": {
+        "decision_id": "DEC-ACT_NOW",
+        "decision": "ACT_NOW",
+        "selected_action_ids": [
+          "ACT-01"
+        ],
+        "considered_action_ids": [
+          "ACT-01"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM"
+      },
+      "expected_agent_decision": "ACT_NOW",
+      "expected_contract": {
+        "portfolio_behavior": "NOT_AGGREGATED",
+        "requires_normalized_baseline": false,
+        "sparse_information": false,
+        "recurring_cost_must_be_net": false
+      }
+    },
+    {
+      "fixture_id": "B-B",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "uncertain_expensive",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [],
+      "relationships": [],
+      "economic_requests": [],
+      "decision": {
+        "decision_id": "DEC-INVESTIGATE_FIRST",
+        "decision": "INVESTIGATE_FIRST",
+        "selected_action_ids": [
+          "ACT-01"
+        ],
+        "considered_action_ids": [
+          "ACT-01"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM",
+        "evidence_acquisition": {
+          "what_it_resolves": "cause concurrente",
+          "decision_that_can_change": "agir ou non",
+          "cost_or_burden": "test faible coût",
+          "why_worth_it": "évite une action irréversible"
+        }
+      },
+      "expected_agent_decision": "INVESTIGATE_FIRST",
+      "expected_contract": {
+        "portfolio_behavior": "NOT_AGGREGATED",
+        "requires_normalized_baseline": false,
+        "sparse_information": false,
+        "recurring_cost_must_be_net": false
+      }
+    },
+    {
+      "fixture_id": "B-C",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "CAUSE_PROBABLE",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "trivial_saving",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [],
+      "relationships": [],
+      "economic_requests": [],
+      "decision": {
+        "decision_id": "DEC-NO_ECONOMIC_CASE",
+        "decision": "NO_ECONOMIC_CASE",
+        "selected_action_ids": [],
+        "considered_action_ids": [
+          "ACT-01"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM"
+      },
+      "expected_agent_decision": "NO_ECONOMIC_CASE",
+      "expected_contract": {
+        "portfolio_behavior": "NOT_AGGREGATED",
+        "requires_normalized_baseline": false,
+        "sparse_information": false,
+        "recurring_cost_must_be_net": false
+      }
+    },
+    {
+      "fixture_id": "B-D",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "CAUSE_PROBABLE",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "production_schedule_blocks",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [
+        {
+          "constraint_id": "CONS-01",
+          "category": "PRODUCTION",
+          "description": "Contrainte opérationnelle explicite.",
+          "source_status": "EXPLICIT",
+          "source_ref": "ART-01",
+          "hard": true,
+          "material": true,
+          "affected_action_ids": [
+            "ACT-01"
+          ]
+        }
+      ],
+      "relationships": [],
+      "economic_requests": [],
+      "decision": {
+        "decision_id": "DEC-OPERATIONALLY_NOT_JUSTIFIED",
+        "decision": "OPERATIONALLY_NOT_JUSTIFIED",
+        "selected_action_ids": [],
+        "considered_action_ids": [
+          "ACT-01"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM",
+        "blocking_constraint_ids": [
+          "CONS-01"
+        ]
+      },
+      "expected_agent_decision": "OPERATIONALLY_NOT_JUSTIFIED",
+      "expected_contract": {
+        "portfolio_behavior": "NOT_AGGREGATED",
+        "requires_normalized_baseline": false,
+        "sparse_information": false,
+        "recurring_cost_must_be_net": false
+      }
+    },
+    {
+      "fixture_id": "B-E",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "CAUSE_PROBABLE",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "mandatory_safety_load",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [
+        {
+          "constraint_id": "CONS-01",
+          "category": "HYGIENE",
+          "description": "Contrainte opérationnelle explicite.",
+          "source_status": "EXPLICIT",
+          "source_ref": "ART-01",
+          "hard": true,
+          "material": true,
+          "affected_action_ids": [
+            "ACT-01"
+          ]
+        }
+      ],
+      "relationships": [],
+      "economic_requests": [],
+      "decision": {
+        "decision_id": "DEC-DO_NOTHING",
+        "decision": "DO_NOTHING",
+        "selected_action_ids": [],
+        "considered_action_ids": [
+          "ACT-01"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM"
+      },
+      "expected_agent_decision": "DO_NOTHING",
+      "expected_contract": {
+        "portfolio_behavior": "NOT_AGGREGATED",
+        "requires_normalized_baseline": false,
+        "sparse_information": false,
+        "recurring_cost_must_be_net": false
+      }
+    },
+    {
+      "fixture_id": "B-F",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "overlap",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        },
+        {
+          "effect_id": "EFF-02",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        },
+        {
+          "action_id": "ACT-02",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-02",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-02",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [],
+      "relationships": [
+        {
+          "relationship_id": "REL-01",
+          "type": "OVERLAPPING",
+          "action_a": "ACT-01",
+          "action_b": "ACT-02",
+          "rationale": "Même excès physique.",
+          "combined_effect_ref": "COMB-01"
+        }
+      ],
+      "economic_requests": [],
+      "decision": {
+        "decision_id": "DEC-INVESTIGATE_FIRST",
+        "decision": "INVESTIGATE_FIRST",
+        "selected_action_ids": [
+          "ACT-01"
+        ],
+        "considered_action_ids": [
+          "ACT-01",
+          "ACT-02"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM",
+        "evidence_acquisition": {
+          "what_it_resolves": "cause concurrente",
+          "decision_that_can_change": "agir ou non",
+          "cost_or_burden": "test faible coût",
+          "why_worth_it": "évite une action irréversible"
+        }
+      },
+      "expected_agent_decision": "INVESTIGATE_FIRST",
+      "expected_contract": {
+        "portfolio_behavior": "REFUSE_UNRESOLVED_OVERLAP",
+        "requires_normalized_baseline": false,
+        "sparse_information": false,
+        "recurring_cost_must_be_net": false
+      }
+    },
+    {
+      "fixture_id": "B-G",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "CAUSE_PROBABLE",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "mutually_exclusive",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        },
+        {
+          "effect_id": "EFF-02",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        },
+        {
+          "action_id": "ACT-02",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-02",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-02",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [],
+      "relationships": [
+        {
+          "relationship_id": "REL-01",
+          "type": "MUTUALLY_EXCLUSIVE",
+          "action_a": "ACT-01",
+          "action_b": "ACT-02",
+          "rationale": "Réparer ou remplacer."
+        }
+      ],
+      "economic_requests": [],
+      "decision": {
+        "decision_id": "DEC-DEFER",
+        "decision": "DEFER",
+        "selected_action_ids": [
+          "ACT-01"
+        ],
+        "considered_action_ids": [
+          "ACT-01",
+          "ACT-02"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM"
+      },
+      "expected_agent_decision": "DEFER",
+      "expected_contract": {
+        "portfolio_behavior": "REFUSE_MUTUALLY_EXCLUSIVE",
+        "requires_normalized_baseline": false,
+        "sparse_information": false,
+        "recurring_cost_must_be_net": false
+      }
+    },
+    {
+      "fixture_id": "B-H",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "CAUSE_PROBABLE",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "planned_shutdown",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [
+        {
+          "constraint_id": "CONS-01",
+          "category": "PRODUCTION",
+          "description": "Contrainte opérationnelle explicite.",
+          "source_status": "EXPLICIT",
+          "source_ref": "ART-01",
+          "hard": false,
+          "material": true,
+          "affected_action_ids": [
+            "ACT-01"
+          ]
+        }
+      ],
+      "relationships": [],
+      "economic_requests": [],
+      "decision": {
+        "decision_id": "DEC-DEFER",
+        "decision": "DEFER",
+        "selected_action_ids": [
+          "ACT-01"
+        ],
+        "considered_action_ids": [
+          "ACT-01"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM"
+      },
+      "expected_agent_decision": "DEFER",
+      "expected_contract": {
+        "portfolio_behavior": "NOT_AGGREGATED",
+        "requires_normalized_baseline": false,
+        "sparse_information": false,
+        "recurring_cost_must_be_net": false
+      }
+    },
+    {
+      "fixture_id": "B-I",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "CAUSE_PROBABLE",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "tariff_uncertainty",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [],
+      "relationships": [],
+      "economic_requests": [
+        {
+          "request_type": "REQUEST_EXISTING_DOCUMENT",
+          "client_question": "Pouvez-vous transmettre votre dernière facture d'électricité si elle est disponible ?",
+          "internal_reason": "Le tarif peut modifier la décision.",
+          "target_role": "dirigeant",
+          "decision_impact": "Établir si le projet est matériel.",
+          "expected_effort": "Envoyer un document existant.",
+          "importance": "BLOCKING"
+        }
+      ],
+      "decision": {
+        "decision_id": "DEC-INSUFFICIENT_FOR_ECONOMIC_DECISION",
+        "decision": "INSUFFICIENT_FOR_ECONOMIC_DECISION",
+        "selected_action_ids": [],
+        "considered_action_ids": [
+          "ACT-01"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM"
+      },
+      "expected_agent_decision": "INSUFFICIENT_FOR_ECONOMIC_DECISION",
+      "expected_contract": {
+        "portfolio_behavior": "NOT_AGGREGATED",
+        "requires_normalized_baseline": false,
+        "sparse_information": false,
+        "recurring_cost_must_be_net": false
+      }
+    },
+    {
+      "fixture_id": "B-J",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "CAUSE_PROBABLE",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "normal_operation",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [],
+      "relationships": [],
+      "economic_requests": [],
+      "decision": {
+        "decision_id": "DEC-DO_NOTHING",
+        "decision": "DO_NOTHING",
+        "selected_action_ids": [],
+        "considered_action_ids": [
+          "ACT-01"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM"
+      },
+      "expected_agent_decision": "DO_NOTHING",
+      "expected_contract": {
+        "portfolio_behavior": "NOT_AGGREGATED",
+        "requires_normalized_baseline": false,
+        "sparse_information": false,
+        "recurring_cost_must_be_net": false
+      }
+    },
+    {
+      "fixture_id": "B-K",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "reversible_experiment",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [],
+      "relationships": [],
+      "economic_requests": [],
+      "decision": {
+        "decision_id": "DEC-INVESTIGATE_FIRST",
+        "decision": "INVESTIGATE_FIRST",
+        "selected_action_ids": [
+          "ACT-01"
+        ],
+        "considered_action_ids": [
+          "ACT-01"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM",
+        "evidence_acquisition": {
+          "what_it_resolves": "cause concurrente",
+          "decision_that_can_change": "agir ou non",
+          "cost_or_burden": "test faible coût",
+          "why_worth_it": "évite une action irréversible"
+        }
+      },
+      "expected_agent_decision": "INVESTIGATE_FIRST",
+      "expected_contract": {
+        "portfolio_behavior": "NOT_AGGREGATED",
+        "requires_normalized_baseline": false,
+        "sparse_information": false,
+        "recurring_cost_must_be_net": false
+      }
+    },
+    {
+      "fixture_id": "B-L",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "CAUSE_PROBABLE",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "production_adjusted_baseline",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [],
+      "relationships": [],
+      "economic_requests": [],
+      "decision": {
+        "decision_id": "DEC-ACT_NOW",
+        "decision": "ACT_NOW",
+        "selected_action_ids": [
+          "ACT-01"
+        ],
+        "considered_action_ids": [
+          "ACT-01"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM"
+      },
+      "expected_agent_decision": "ACT_NOW",
+      "expected_contract": {
+        "portfolio_behavior": "NOT_AGGREGATED",
+        "requires_normalized_baseline": true,
+        "sparse_information": false,
+        "recurring_cost_must_be_net": false
+      }
+    },
+    {
+      "fixture_id": "B-M",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "CAUSE_PROBABLE",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "recurring_cost",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [],
+      "relationships": [],
+      "economic_requests": [],
+      "decision": {
+        "decision_id": "DEC-NO_ECONOMIC_CASE",
+        "decision": "NO_ECONOMIC_CASE",
+        "selected_action_ids": [],
+        "considered_action_ids": [
+          "ACT-01"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM"
+      },
+      "expected_agent_decision": "NO_ECONOMIC_CASE",
+      "expected_contract": {
+        "portfolio_behavior": "NOT_AGGREGATED",
+        "requires_normalized_baseline": false,
+        "sparse_information": false,
+        "recurring_cost_must_be_net": true
+      }
+    },
+    {
+      "fixture_id": "B-N",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "CAUSE_PROBABLE",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "negative_economics",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [],
+      "relationships": [],
+      "economic_requests": [],
+      "decision": {
+        "decision_id": "DEC-NO_ECONOMIC_CASE",
+        "decision": "NO_ECONOMIC_CASE",
+        "selected_action_ids": [],
+        "considered_action_ids": [
+          "ACT-01"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM"
+      },
+      "expected_agent_decision": "NO_ECONOMIC_CASE",
+      "expected_contract": {
+        "portfolio_behavior": "NOT_AGGREGATED",
+        "requires_normalized_baseline": false,
+        "sparse_information": false,
+        "recurring_cost_must_be_net": true
+      }
+    },
+    {
+      "fixture_id": "B-O",
+      "technical_finding": {
+        "finding_id": "FIND-01",
+        "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+        "uncertainty": "cause ou économie à valider selon le scénario",
+        "provenance": [
+          "ART-01"
+        ]
+      },
+      "family": "sparse_sme",
+      "energy_effects": [
+        {
+          "effect_id": "EFF-01",
+          "basis": "COUNTERFACTUAL_ESTIMATE",
+          "baseline": "baseline courant",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 100,
+            "BASE": 200,
+            "HIGH": 300
+          },
+          "source_refs": [
+            "FIND-01"
+          ]
+        }
+      ],
+      "economic_inputs": [
+        {
+          "input_id": "ECON-TARIFF",
+          "kind": "electricity_tariff",
+          "value": 0.2,
+          "unit": "EUR/kWh",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-CAPEX",
+          "kind": "capex",
+          "value": 300,
+          "unit": "EUR",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        },
+        {
+          "input_id": "ECON-RECUR",
+          "kind": "recurring_cost",
+          "value": 20,
+          "unit": "EUR/year",
+          "provenance": "DOCUMENT_EXTRACTED",
+          "source": {
+            "artifact_id": "ART-01"
+          },
+          "confidence": "MEDIUM"
+        }
+      ],
+      "candidate_actions": [
+        {
+          "action_id": "ACT-01",
+          "finding_ids": [
+            "FIND-01"
+          ],
+          "title": "Action ACT-01",
+          "description": "Option candidate explicitement formulée pour fixture.",
+          "action_type": "maintenance",
+          "technical_rationale": "Finding technique lié.",
+          "operational_rationale": "Contraintes documentées dans la fixture.",
+          "implementation_scope": "Équipement concerné.",
+          "requires_professional_validation": true,
+          "reversibility": "PARTIALLY_REVERSIBLE",
+          "energy_effect_ref": "EFF-01",
+          "validation_plan": {
+            "metric": "kWh normalisés",
+            "expected_direction": "baisse",
+            "comparison_window": "avant/après comparable",
+            "confounders": "activité",
+            "minimum_evidence": "effet récurrent"
+          }
+        }
+      ],
+      "operational_constraints": [],
+      "relationships": [],
+      "economic_requests": [],
+      "decision": {
+        "decision_id": "DEC-INVESTIGATE_FIRST",
+        "decision": "INVESTIGATE_FIRST",
+        "selected_action_ids": [
+          "ACT-01"
+        ],
+        "considered_action_ids": [
+          "ACT-01"
+        ],
+        "reason": "Raisonnement de fixture fourni à Codex; aucune règle de production.",
+        "priority_reasoning": "Comparaison qualitative explicite.",
+        "technical_confidence": "MEDIUM",
+        "economic_importance": "MEDIUM",
+        "evidence_acquisition": {
+          "what_it_resolves": "cause concurrente",
+          "decision_that_can_change": "agir ou non",
+          "cost_or_burden": "test faible coût",
+          "why_worth_it": "évite une action irréversible"
+        }
+      },
+      "expected_agent_decision": "INVESTIGATE_FIRST",
+      "expected_contract": {
+        "portfolio_behavior": "NOT_AGGREGATED",
+        "requires_normalized_baseline": false,
+        "sparse_information": true,
+        "recurring_cost_must_be_net": false
+      }
+    }
+  ]
+}
