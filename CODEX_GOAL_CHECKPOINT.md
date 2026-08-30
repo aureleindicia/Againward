@@ -227,3 +227,5 @@ clôture et publier le checkpoint `READY_FOR_INDEPENDENT_CANDIDATE_V2_SCORING`.
 ### Prochaine action
 
 Préparer un HOLDOUT frais, indépendant et jamais utilisé pour mesurer Candidate V2.1.
+
+READY_FOR_FRESH_HOLDOUT
