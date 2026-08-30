@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "case_id": "messy_shop",
+  "batch_status": "published",
+  "requests": [
+    {
+      "request_id": "REQ-OPENING-01",
+      "request_type": "ASK_CLIENT",
+      "client_question": "Le démarrage plus tôt observé le 1er juin faisait-il partie d’une préparation prévue ?",
+      "internal_reason": "Le planning reçu indique 06:30, tandis que la série commence plus tôt; cette réponse distingue une demande légitime d’un comportement à investiguer.",
+      "target_role": "responsable de site",
+      "hypotheses_distinguished": [
+        "préparation planifiée",
+        "charge non expliquée"
+      ],
+      "decision_impact": "Détermine si le comportement mérite une investigation énergétique plus poussée.",
+      "expected_effort": "Réponse oui/non en moins de cinq minutes.",
+      "importance": "NON_BLOCKING",
+      "analysis_can_continue_without_answer": true,
+      "created_at_utc": "2026-08-30T07:42:21.634644+00:00"
+    }
+  ],
+  "client_facing_text": "- Le démarrage plus tôt observé le 1er juin faisait-il partie d’une préparation prévue ?",
+  "exceptional_second_batch_reason": null
+}

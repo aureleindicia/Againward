@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "timestamp": "2026-06-01T05:00:00",
+      "source_row": 2,
+      "measurement": 42.0
+    },
+    {
+      "timestamp": "2026-06-01T05:30:00",
+      "source_row": 3,
+      "measurement": 41.0
+    },
+    {
+      "timestamp": "2026-06-01T06:00:00",
+      "source_row": 4,
+      "measurement": 15.0
+    }
+  ]
+}

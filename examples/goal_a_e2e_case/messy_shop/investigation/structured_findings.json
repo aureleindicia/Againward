@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-08-30T07:42:21.635382+00:00",
+  "findings": [],
+  "no_finding": {
+    "what_was_analyzed": [
+      "intake, qualité et disponibilité des séries"
+    ],
+    "usable_period": "1 juin 2026 (échantillon très court)",
+    "operating_regimes": [
+      "pré-ouverture et ouverture selon note fournie"
+    ],
+    "limitations": [
+      "période trop courte pour conclure à une anomalie",
+      "compteur secondaire sans unité matériellement ambigu"
+    ],
+    "monitoring_baseline_meaningful": false
+  },
+  "decision_source": "Codex investigation; deterministic pipeline did not decide findings."
+}

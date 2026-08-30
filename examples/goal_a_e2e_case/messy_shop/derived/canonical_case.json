@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "case_id": "messy_shop",
+  "created_at_utc": "2026-08-30T07:42:21.483803+00:00",
+  "purpose": "Paquet descriptif pour investigation Codex; aucune anomalie, cause, action ou question n'est décidée ici.",
+  "available_datasets": [
+    {
+      "dataset_id": "DS-001-01",
+      "role": "ENERGY_INTERVAL_SERIES",
+      "normalized_file": "normalized/DS-001-01.json",
+      "analytically_usable": false,
+      "data_quality": {
+        "usable_time_span": {
+          "start": "2026-06-01T05:00:00",
+          "end": "2026-06-01T06:00:00"
+        },
+        "rows_parsed": 3,
+        "rows_retained": 3,
+        "sampling_frequency_minutes": 30.0,
+        "missing_intervals": 0,
+        "frequency_change_detected": false,
+        "strict_duplicates_removed": 0,
+        "conflicting_duplicates": 0,
+        "suspicious_values": {
+          "negative_production_rows": [],
+          "negative_measurement_rows": []
+        },
+        "unit_interpretation": {
+          "status": "MATERIAL_AMBIGUITY",
+          "unit": null,
+          "measurement_kind": "unknown",
+          "basis": "unlabeled non-negative measurement supports competing kW/kWh interpretations"
+        },
+        "timezone_confidence": "not_declared",
+        "known_limitations": [
+          "unlabeled non-negative measurement supports competing kW/kWh interpretations"
+        ]
+      },
+      "field_lineage": {
+        "timestamp": {
+          "source_artifact_id": "ART-001-db381c4018ba",
+          "sheet": null,
+          "source_column": "timestamp",
+          "normalization": "parse_date"
+        },
+        "measurement": {
+          "source_artifact_id": "ART-001-db381c4018ba",
+          "sheet": null,
+          "source_column": "Energy",
+          "normalization": "parse_number",
+          "unit_interpretation": {
+            "status": "MATERIAL_AMBIGUITY",
+            "unit": null,
+            "measurement_kind": "unknown",
+            "basis": "unlabeled non-negative measurement supports competing kW/kWh interpretations"
+          }
+        }
+      }
+    },
+    {
+      "dataset_id": "DS-002-01",
+      "role": "ENERGY_INTERVAL_SERIES",
+      "normalized_file": "normalized/DS-002-01.csv",
+      "analytically_usable": true,
+      "data_quality": {
+        "usable_time_span": {
+          "start": "2026-06-01T05:00:00",
+          "end": "2026-06-01T08:00:00"
+        },
+        "rows_parsed": 7,
+        "rows_retained": 6,
+        "sampling_frequency_minutes": 30.0,
+        "missing_intervals": 1,
+        "frequency_change_detected": false,
+        "strict_duplicates_removed": 1,
+        "conflicting_duplicates": 0,
+        "suspicious_values": {
+          "negative_production_rows": [],
+          "negative_measurement_rows": []
+        },
+        "unit_interpretation": {
+          "status": "AUTO_FIX_SAFE",
+          "unit": "kwh",
+          "measurement_kind": "energy_per_interval",
+          "basis": "energy context plus regular sub-daily series"
+        },
+        "timezone_confidence": "not_declared",
+        "known_limitations": []
+      },
+      "field_lineage": {
+        "timestamp": {
+          "source_artifact_id": "ART-002-6d73af52662a",
+          "sheet": "Compteur atelier kWh",
+          "source_column": "Date",
+          "normalization": "parse_date"
+        },
+        "measurement": {
+          "source_artifact_id": "ART-002-6d73af52662a",
+          "sheet": "Compteur atelier kWh",
+          "source_column": "Conso",
+          "normalization": "parse_number",
+          "unit_interpretation": {
+            "status": "AUTO_FIX_SAFE",
+            "unit": "kwh",
+            "measurement_kind": "energy_per_interval",
+            "basis": "energy context plus regular sub-daily series"
+          }
+        },
+        "production": {
+          "source_artifact_id": "ART-002-6d73af52662a",
+          "sheet": "Compteur atelier kWh",
+          "source_column": "Production",
+          "normalization": "parse_number"
+        }
+      }
+    },
+    {
+      "dataset_id": "DS-006-01",
+      "role": "PRODUCTION",
+      "normalized_file": "normalized/DS-006-01.json",
+      "analytically_usable": false,
+      "data_quality": {
+        "usable_time_span": {
+          "start": "2026-06-01T00:00:00",
+          "end": "2026-06-02T00:00:00"
+        },
+        "rows_parsed": 2,
+        "rows_retained": 2,
+        "sampling_frequency_minutes": null,
+        "missing_intervals": null,
+        "frequency_change_detected": false,
+        "strict_duplicates_removed": 0,
+        "conflicting_duplicates": 0,
+        "suspicious_values": {},
+        "unit_interpretation": {
+          "status": "FLAG_ONLY",
+          "unit": null,
+          "measurement_kind": "context_only",
+          "basis": "context table is not an energy/power measurement"
+        },
+        "timezone_confidence": "not_declared",
+        "known_limitations": []
+      },
+      "field_lineage": {
+        "timestamp": {
+          "source_artifact_id": "ART-006-659971441282",
+          "sheet": null,
+          "source_column": "date",
+          "normalization": "parse_date"
+        },
+        "production": {
+          "source_artifact_id": "ART-006-659971441282",
+          "sheet": null,
+          "source_column": "production",
+          "normalization": "parse_number"
+        }
+      }
+    }
+  ],
+  "evidence_by_role": {
+    "ENERGY_INTERVAL_SERIES": [
+      "DS-001-01",
+      "DS-002-01"
+    ],
+    "PRODUCTION": [
+      "DS-006-01"
+    ],
+    "IRRELEVANT": [
+      "ART-003-9aa7b58e5664"
+    ],
+    "TARIFF": [
+      "ART-004-94fdca7f15df"
+    ],
+    "SCHEDULE": [
+      "ART-005-71ef6a0b7c05"
+    ]
+  },
+  "known_facts": [
+    {
+      "kind": "source_observation",
+      "value": "ART-001-db381c4018ba_compteur_secondaire_sans_unite.csv classé ENERGY_INTERVAL_SERIES",
+      "artifact_id": "ART-001-db381c4018ba"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-002-6d73af52662a_export_compteur_atelier.xlsx classé ENERGY_INTERVAL_SERIES",
+      "artifact_id": "ART-002-6d73af52662a"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-003-9aa7b58e5664_logo_photo.txt classé IRRELEVANT",
+      "artifact_id": "ART-003-9aa7b58e5664"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-004-94fdca7f15df_note_tarif.txt classé TARIFF",
+      "artifact_id": "ART-004-94fdca7f15df"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-005-71ef6a0b7c05_planning_ouverture.txt classé SCHEDULE",
+      "artifact_id": "ART-005-71ef6a0b7c05"
+    },
+    {
+      "kind": "source_observation",
+      "value": "ART-006-659971441282_production_approx.csv classé PRODUCTION",
+      "artifact_id": "ART-006-659971441282"
+    }
+  ],
+  "inferred_facts": [
+    {
+      "dataset_id": "DS-002-01",
+      "measurement": {
+        "status": "AUTO_FIX_SAFE",
+        "unit": "kwh",
+        "measurement_kind": "energy_per_interval",
+        "basis": "energy context plus regular sub-daily series"
+      }
+    }
+  ],
+  "unresolved_material_ambiguities": [
+    {
+      "dataset_id": "DS-001-01",
+      "issue": "measurement_unit",
+      "reason": "unlabeled non-negative measurement supports competing kW/kWh interpretations",
+      "blocking_for": "quantitative_energy_interpretation"
+    }
+  ],
+  "agent_decisions_required": [
+    "anomaly relevance",
+    "hypotheses",
+    "alternative explanations",
+    "next calculation",
+    "client question necessity",
+    "finding status",
+    "intervention"
+  ],
+  "no_finding_is_valid": true,
+  "ground_truth_available": false
+}

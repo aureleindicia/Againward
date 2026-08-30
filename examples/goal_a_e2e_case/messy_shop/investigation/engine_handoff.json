@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "purpose": "Choix explicite de Codex avant les calculs; aucun jeu n'est privilégié automatiquement.",
+  "analytically_usable_inputs": [
+    {
+      "dataset_id": "DS-002-01",
+      "role": "ENERGY_INTERVAL_SERIES",
+      "normalized_input": "normalized/DS-002-01.csv",
+      "provenance": "evidence/dataset_provenance.json",
+      "suggested_existing_command": "python investigate.py normalized/DS-002-01.csv --output-dir investigation/DS-002-01"
+    }
+  ],
+  "not_ready_without_resolution": [
+    {
+      "dataset_id": "DS-001-01",
+      "issue": "measurement_unit",
+      "reason": "unlabeled non-negative measurement supports competing kW/kWh interpretations",
+      "blocking_for": "quantitative_energy_interpretation"
+    }
+  ],
+  "agent_decision_required": "Choisir le périmètre, les tests et l'ordre d'investigation."
+}

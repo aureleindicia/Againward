@@ -4,6 +4,7 @@ __pycache__/
 .env
 
 client_data/
+client_cases/
 scratch/
 workspaces/*/input/
 workspaces/*/processed/

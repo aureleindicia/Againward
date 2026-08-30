@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "datasets": [
+    {
+      "dataset_id": "DS-001-01",
+      "role": "ENERGY_INTERVAL_SERIES",
+      "usable_time_span": {
+        "start": "2026-06-01T05:00:00",
+        "end": "2026-06-01T06:00:00"
+      },
+      "sampling_frequency_minutes": 30.0,
+      "missing_intervals": 0,
+      "conflicting_duplicates": 0,
+      "unit_interpretation": {
+        "status": "MATERIAL_AMBIGUITY",
+        "unit": null,
+        "measurement_kind": "unknown",
+        "basis": "unlabeled non-negative measurement supports competing kW/kWh interpretations"
+      },
+      "known_limitations": [
+        "unlabeled non-negative measurement supports competing kW/kWh interpretations"
+      ]
+    },
+    {
+      "dataset_id": "DS-002-01",
+      "role": "ENERGY_INTERVAL_SERIES",
+      "usable_time_span": {
+        "start": "2026-06-01T05:00:00",
+        "end": "2026-06-01T08:00:00"
+      },
+      "sampling_frequency_minutes": 30.0,
+      "missing_intervals": 1,
+      "conflicting_duplicates": 0,
+      "unit_interpretation": {
+        "status": "AUTO_FIX_SAFE",
+        "unit": "kwh",
+        "measurement_kind": "energy_per_interval",
+        "basis": "energy context plus regular sub-daily series"
+      },
+      "known_limitations": []
+    },
+    {
+      "dataset_id": "DS-006-01",
+      "role": "PRODUCTION",
+      "usable_time_span": {
+        "start": "2026-06-01T00:00:00",
+        "end": "2026-06-02T00:00:00"
+      },
+      "sampling_frequency_minutes": null,
+      "missing_intervals": null,
+      "conflicting_duplicates": 0,
+      "unit_interpretation": {
+        "status": "FLAG_ONLY",
+        "unit": null,
+        "measurement_kind": "context_only",
+        "basis": "context table is not an energy/power measurement"
+      },
+      "known_limitations": []
+    }
+  ],
+  "supporting_document_coverage": {
+    "ENERGY_INTERVAL_SERIES": 2,
+    "IRRELEVANT": 1,
+    "TARIFF": 1,
+    "SCHEDULE": 1,
+    "PRODUCTION": 1
+  },
+  "global_score": null,
+  "note": "Aucun score global: la qualité limite seulement les conclusions qu'elle affecte."
+}
