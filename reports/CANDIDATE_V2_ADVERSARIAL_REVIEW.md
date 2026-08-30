@@ -121,3 +121,17 @@ doit vérifier que cette visibilité ne ferme pas les hypothèses non listées.
 Candidate V2 respecte l'architecture « Codex décide quoi mesurer, Python mesure, Codex
 interprète ». La preuve expérimentale de non-régression, de sécurité et de meilleure
 autonomie reste incomplète tant que les 17 runs DEV ne sont pas tous scellés et revus.
+
+
+## Clôture de campagne Terra
+
+La campagne `CANDIDATE_V2_DEV_TERRA` a exécuté 17 cas valides, tous avec
+`gpt-5.6-terra` effort `high`; `a17` reste exclu. Les trois runs Sol
+préexistants sont archivés et n'entrent dans aucun agrégat. Les 17 journaux
+ont été vérifiés par le runner. Les incidents de reprise et de format de
+revue aveugle ont été limités à l'orchestration temporaire, documentés dans
+le rapport DEV, et n'ont modifié ni l'empreinte du moteur ni les données
+privées.
+
+Aucun score ou verdict de capacité n'est inféré de cette campagne DEV sans
+scorecard indépendante.

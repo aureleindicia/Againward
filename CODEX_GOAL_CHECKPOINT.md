@@ -198,3 +198,17 @@ run Terra n'a encore été créé à ce checkpoint.
 
 Créer le manifeste public de `CANDIDATE_V2_DEV_TERRA`, préparer les 17
 workspaces participants isolés et les exécuter sans changer le moteur.
+
+
+## Checkpoint phase 6 — campagne Terra exécutée
+
+- Les 17 cas valides de `CANDIDATE_V2_DEV_TERRA` sont scellés et vérifiés.
+- Tous les participants sont `gpt-5.6-terra`, effort `high`; `a17` est
+  `EXCLUDED_PENDING_CASE_VALIDATION`.
+- Les runs Sol restent une archive séparée non scorée.
+- `pytest -q` après campagne : **171 passed**.
+
+### Prochaine action
+
+Effectuer le contrôle final d'intégrité/empreinte, commiter les rapports de
+clôture et publier le checkpoint `READY_FOR_INDEPENDENT_CANDIDATE_V2_SCORING`.
