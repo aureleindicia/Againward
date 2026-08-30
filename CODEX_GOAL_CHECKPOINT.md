@@ -212,3 +212,18 @@ workspaces participants isolés et les exécuter sans changer le moteur.
 
 Effectuer le contrôle final d'intégrité/empreinte, commiter les rapports de
 clôture et publier le checkpoint `READY_FOR_INDEPENDENT_CANDIDATE_V2_SCORING`.
+
+
+## Checkpoint Candidate V2.1 — frozen epistemic protocol patch
+
+- Commit moteur/protocole : `41ff9d6ab88f7581978ad08210f96f1859c83f14`.
+- Commit documentaire de clôture : `e2bace9e032ae3617a71d762903a4893d0038917`.
+- Tag : `expert-benchmark-candidate-v2.1`.
+- Portée : calibration générique de la conclusion maximale justifiée, sémantique
+  des décisions et revue aveugle par intention discriminante principale.
+- Aucune campagne DEV V2 n'a été relancée; aucun ground truth n'a été consulté.
+- Tests : `pytest -q` **177 passed** ; tests benchmark/oracle **31 passed**.
+
+### Prochaine action
+
+Préparer un HOLDOUT frais, indépendant et jamais utilisé pour mesurer Candidate V2.1.
