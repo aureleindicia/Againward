@@ -30,7 +30,23 @@ DECISION_LABELS = {
 }
 EVIDENCE_LABELS = {"HIGH": "Fort", "MEDIUM": "Modéré", "LOW": "Limité", "NOT_CALIBRATED": "Non calibré"}
 SAVING_STATUS = {"POTENTIAL", "EXPECTED", "VERIFIED"}
-_FORBIDDEN_NARRATIVE = re.compile(r"\b(verified savings|économie vérifiée|act_now|investigate_first|find-[a-z0-9-]+|art-[a-z0-9-]+|ds-[a-z0-9-]+)\b", re.IGNORECASE)
+_FORBIDDEN_NARRATIVE = re.compile(r"(?:\b(?:verified savings|économie vérifiée|act_now|investigate_first)\b|\b(?:find|art|ds|gbe|dec|act|eff|rel|cons)-[a-z0-9-]+\b|/(?:data|home|storage)/|\b[a-f0-9]{32,}\b)", re.IGNORECASE)
+_RECOMMENDATION_CLAIM_TYPES = {
+    "ACT_NOW": "ACTION_RECOMMENDED",
+    "INVESTIGATE_FIRST": "VERIFY_BEFORE_INVESTING",
+    "MONITOR": "MONITOR",
+    "DEFER": "PLAN_LATER",
+    "DO_NOTHING": "NO_ACTION_REQUIRED",
+    "NO_ECONOMIC_CASE": "NO_ACTION_ECONOMIC",
+    "OPERATIONALLY_NOT_JUSTIFIED": "NO_ACTION_OPERATIONAL",
+    "INSUFFICIENT_FOR_ECONOMIC_DECISION": "INSUFFICIENT_TO_DECIDE",
+}
+_CARD_CLAIM_TYPES = {
+    "what_we_found": "OBSERVATION",
+    "why_this_matters": "WHY_THIS_MATTERS",
+    "recommendation": "RECOMMENDATION",
+    "uncertainty": "UNCERTAINTY",
+}
 
 
 def _read(path: Path) -> dict[str, Any]:
@@ -45,12 +61,12 @@ def _write(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
-def _require_text(value: Any, label: str, *, max_length: int = 700) -> str:
+def _require_text(value: Any, label: str, *, max_length: int = 700, allow_numbers: bool = False) -> str:
     if not isinstance(value, str) or not value.strip() or len(value.strip()) > max_length:
         raise ValueError(f"{label} doit être un texte client non vide et concis.")
     if _FORBIDDEN_NARRATIVE.search(value):
         raise ValueError(f"{label} expose un identifiant interne ou une formulation interdite.")
-    if re.search(r"\d", value):
+    if not allow_numbers and re.search(r"\d", value):
         raise ValueError(f"{label} ne peut pas contenir de nombre libre : utilisez un claim quantitatif validé.")
     return value.strip()
 
@@ -109,26 +125,109 @@ def _goal_a_findings(case: Path) -> tuple[dict[str, dict[str, Any]], dict[str, A
     return mapping, payload.get("no_finding")
 
 
-def _validate_narrative(narrative: dict[str, Any], action_ids: set[str]) -> None:
+def _validate_claim(
+    claim: Any,
+    *,
+    label: str,
+    decisions: dict[str, dict[str, Any]],
+    actions: dict[str, dict[str, Any]],
+    findings: dict[str, dict[str, Any]],
+    constraints: dict[str, dict[str, Any]],
+    calculations: dict[str, dict[str, Any]],
+    dataset_ids: set[str],
+    no_finding: dict[str, Any] | None,
+    expected_action_id: str | None = None,
+    expected_decision_id: str | None = None,
+    expected_kind: str | None = None,
+) -> dict[str, Any]:
+    """Valide le rattachement, pas le sens libre du français écrit par Codex.
+
+    Les types de claim rendent impossible qu'un bloc de recommandation soit
+    structurellement un claim de non-action pour une décision ACT_NOW.  Le
+    texte reste du ressort de Codex : Python vérifie les objets auxquels il se
+    rapporte, sans tenter d'interpréter le langage naturel.
+    """
+    if not isinstance(claim, dict):
+        raise ValueError(f"{label} doit être un claim client structuré.")
+    _require_text(claim.get("text"), f"{label}/text")
+    claim_type = claim.get("claim_type")
+    if not isinstance(claim_type, str) or not claim_type:
+        raise ValueError(f"{label} exige claim_type.")
+    if expected_kind == "RECOMMENDATION":
+        if claim_type != _RECOMMENDATION_CLAIM_TYPES[decisions[expected_decision_id]["decision"]]:
+            raise ValueError("Le type de claim de recommandation contredit la décision Goal B.")
+    elif expected_kind and claim_type != expected_kind:
+        raise ValueError(f"{label} exige un claim_type {expected_kind}.")
+    decision_ref = claim.get("decision_ref")
+    if decision_ref is not None and decision_ref not in decisions:
+        raise ValueError(f"{label} référence une décision Goal B inexistante.")
+    if expected_decision_id is not None and decision_ref != expected_decision_id:
+        raise ValueError(f"{label} doit rester rattaché à la décision de sa carte.")
+    action_ref = claim.get("action_ref")
+    if action_ref is not None and action_ref not in actions:
+        raise ValueError(f"{label} référence une action Goal B inexistante.")
+    if expected_action_id is not None and action_ref != expected_action_id:
+        raise ValueError(f"{label} doit rester rattaché à l'action de sa carte.")
+    finding_refs = claim.get("finding_refs", [])
+    if not isinstance(finding_refs, list) or set(finding_refs) - set(findings):
+        raise ValueError(f"{label} référence un finding Goal A inexistant.")
+    if expected_action_id is not None and set(finding_refs) != set(actions[expected_action_id]["finding_ids"]):
+        raise ValueError(f"{label} doit conserver les findings de l'action concernée.")
+    constraint_refs = claim.get("constraint_refs", [])
+    if not isinstance(constraint_refs, list) or set(constraint_refs) - set(constraints):
+        raise ValueError(f"{label} référence une contrainte inexistante.")
+    economic_refs = claim.get("economic_refs", [])
+    if not isinstance(economic_refs, list) or set(economic_refs) - set(calculations):
+        raise ValueError(f"{label} référence un calcul économique inexistant.")
+    evidence_refs = claim.get("evidence_refs", [])
+    if not isinstance(evidence_refs, list) or set(evidence_refs) - dataset_ids:
+        raise ValueError(f"{label} référence une preuve ou dataset inexistant.")
+    if claim.get("no_finding_ref") not in {None, "GOAL_A_NO_FINDING"}:
+        raise ValueError(f"{label} possède un no_finding_ref invalide.")
+    if claim.get("no_finding_ref") == "GOAL_A_NO_FINDING" and not no_finding:
+        raise ValueError(f"{label} référence un no-finding Goal A absent.")
+    if not (finding_refs or constraint_refs or economic_refs or evidence_refs or claim.get("no_finding_ref") == "GOAL_A_NO_FINDING" or decision_ref or action_ref):
+        raise ValueError(f"{label} ne peut pas créer un fait client sans référence auditable.")
+    return claim
+
+
+def _validate_narrative(
+    narrative: dict[str, Any], *, decisions: dict[str, dict[str, Any]], actions: dict[str, dict[str, Any]],
+    findings: dict[str, dict[str, Any]], constraints: dict[str, dict[str, Any]], calculations: dict[str, dict[str, Any]],
+    dataset_ids: set[str], no_finding: dict[str, Any] | None,
+) -> None:
     if not isinstance(narrative, dict):
         raise ValueError("Le contenu narratif Codex doit être un objet.")
-    _require_text(narrative.get("site_name"), "site_name", max_length=100)
+    _require_text(narrative.get("site_name"), "site_name", max_length=100, allow_numbers=True)
+    _require_text(narrative.get("report_title", "Analyse de performance énergétique"), "report_title", max_length=140, allow_numbers=True)
+    _require_text(narrative.get("analysis_period", "Période disponible dans les données"), "analysis_period", max_length=160, allow_numbers=True)
     _require_text(narrative.get("executive_message"), "executive_message", max_length=500)
     cards = narrative.get("cards", {})
-    if not isinstance(cards, dict) or set(cards) - action_ids:
+    if not isinstance(cards, dict) or set(cards) - set(actions):
         raise ValueError("Les récits de cartes doivent référencer des actions Goal B réelles.")
     for action_id, card in cards.items():
         if not isinstance(card, dict):
             raise ValueError(f"Carte narrative {action_id} invalide.")
-        for field in ("headline", "what_we_found", "why_this_matters", "recommendation", "uncertainty"):
-            _require_text(card.get(field), f"Carte {action_id}/{field}")
+        _require_text(card.get("headline"), f"Carte {action_id}/headline", max_length=150)
+        decision = next((item for item in decisions.values() if action_id in item.get("considered_action_ids", item.get("selected_action_ids", item.get("action_ids", [])))), None)
+        if decision is None:
+            raise ValueError("Une carte ne peut pas mettre en avant une action absente des décisions Goal B.")
+        claims = card.get("claims")
+        if not isinstance(claims, dict) or set(claims) != set(_CARD_CLAIM_TYPES):
+            raise ValueError("Chaque carte exige ses quatre claims client structurés.")
+        for field, kind in _CARD_CLAIM_TYPES.items():
+            _validate_claim(claims[field], label=f"Carte {action_id}/{field}", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding, expected_action_id=action_id, expected_decision_id=decision["decision_id"], expected_kind=None if kind == "RECOMMENDATION" else kind)
+            if kind == "RECOMMENDATION":
+                _validate_claim(claims[field], label=f"Carte {action_id}/{field}", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding, expected_action_id=action_id, expected_decision_id=decision["decision_id"], expected_kind="RECOMMENDATION")
     for item in narrative.get("no_action_items", []):
         if not isinstance(item, dict):
             raise ValueError("Élément no-action invalide.")
         _require_text(item.get("title"), "no-action/title", max_length=150)
-        _require_text(item.get("explanation"), "no-action/explanation")
+        claim = _validate_claim(item.get("claim"), label="no-action/claim", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding)
+        if claim["claim_type"] not in {"NO_ACTION_REQUIRED", "NO_ACTION_ECONOMIC", "NO_ACTION_OPERATIONAL", "INSUFFICIENT_TO_DECIDE"}:
+            raise ValueError("Un no-action item ne peut pas porter une recommandation positive.")
     for item in narrative.get("what_we_checked", []):
-        _require_text(item, "what_we_checked", max_length=260)
+        _validate_claim(item, label="what_we_checked", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding, expected_kind="WHAT_WAS_CHECKED")
     for item in narrative.get("limitations", []):
         _require_text(item, "limitation", max_length=320)
     if "method" in narrative:
@@ -140,8 +239,8 @@ def _resolve_chart_requests(case: Path, narrative: dict[str, Any], output_dir: P
     datasets = {item["dataset_id"]: item for item in canonical.get("available_datasets", [])}
     charts: list[dict[str, Any]] = []
     for index, request in enumerate(narrative.get("chart_requests", []), start=1):
-        if not isinstance(request, dict) or request.get("type") != "ENERGY_SERIES":
-            raise ValueError("Seul un graphique ENERGY_SERIES explicitement demandé est supporté.")
+        if not isinstance(request, dict) or request.get("type") not in {"ENERGY_SERIES", "ENERGY_WITH_OPERATION_STATUS"}:
+            raise ValueError("Le type de graphique client doit être ENERGY_SERIES ou ENERGY_WITH_OPERATION_STATUS.")
         dataset = datasets.get(request.get("dataset_id"))
         if not dataset or not dataset.get("analytically_usable") or dataset.get("role") not in {"ENERGY_INTERVAL_SERIES", "POWER_SERIES"}:
             raise ValueError("Le graphique doit référencer une série Goal A réellement exploitable.")
@@ -149,19 +248,28 @@ def _resolve_chart_requests(case: Path, narrative: dict[str, Any], output_dir: P
         purpose = _require_text(request.get("purpose"), "chart/purpose", max_length=260)
         source = case / str(dataset["normalized_file"])
         values: list[float] = []
+        operation: list[float] = []
+        timestamps: list[str] = []
         with source.open(encoding="utf-8", newline="") as handle:
             for row in csv.DictReader(handle):
                 raw = row.get("energy_kwh") or row.get("power_kw") or row.get("measurement")
                 try:
                     values.append(float(raw))
+                    timestamps.append(str(row.get("timestamp", "")))
+                    raw_operation = row.get("production_active") or row.get("production")
+                    operation.append(1.0 if raw_operation not in {None, "", "0", "0.0"} else 0.0)
                 except (TypeError, ValueError):
                     continue
         if len(values) < 2:
             raise ValueError("Un graphique client exige au moins deux observations numériques.")
         filename = f"chart_{index:02d}.png"
         path = output_dir / "charts" / filename
-        write_line_chart({"energy": values}, path, title=title, zero_floor=True)
-        charts.append({"chart_id": f"CHART-{index:02d}", "type": "ENERGY_SERIES", "title": title, "purpose": purpose, "dataset_ref": dataset["dataset_id"], "relative_path": f"charts/{filename}", "claim_refs": [dataset["dataset_id"]]})
+        series = {"energy": values}
+        if request["type"] == "ENERGY_WITH_OPERATION_STATUS" and any(operation):
+            maximum = max(values) or 1.0
+            series["activité (repère visuel)"] = [value * maximum for value in operation]
+        write_line_chart(series, path, title=title, zero_floor=True)
+        charts.append({"chart_id": f"CHART-{index:02d}", "type": request["type"], "title": title, "purpose": purpose, "caption": purpose, "dataset_ref": dataset["dataset_id"], "relative_path": f"charts/{filename}", "claim_refs": [dataset["dataset_id"]], "axis_x": "Chronologie des relevés" if not timestamps else f"Chronologie des relevés ({timestamps[0]} à {timestamps[-1]})", "axis_y": "Énergie par intervalle (kWh)" if dataset.get("measurement_type") != "POWER" else "Puissance (kW)", "legend": "Courbe bleue : consommation" + (" ; repère orange : activité/production présente" if len(series) > 1 else ""), "explains": purpose})
     return charts
 
 
@@ -175,7 +283,8 @@ def _decision_cards(
     for decision in state.get("decisions", []):
         selected = decision.get("selected_action_ids", decision.get("action_ids", []))
         considered = decision.get("considered_action_ids", selected)
-        for action_id in selected:
+        displayed = selected if decision["decision"] not in {"NO_ECONOMIC_CASE", "OPERATIONALLY_NOT_JUSTIFIED"} else considered
+        for action_id in displayed:
             action = actions[action_id]
             if action_id not in narrative.get("cards", {}):
                 raise ValueError(f"Codex doit fournir un récit client pour l'action sélectionnée {action_id}.")
@@ -185,14 +294,17 @@ def _decision_cards(
             if any(item["constraint_id"] not in assessment_ids for item in hard_constraints):
                 raise ValueError("Une contrainte dure pertinente ne peut pas disparaître du rapport client.")
             calc = calculations.get(action_id)
+            claim_text = narrative["cards"][action_id]["claims"]
             card = {
-                "card_id": f"CARD-{action_id}", "action_ref": action_id,
+                "card_id": f"CARD-{decision['decision_id']}-{action_id}", "decision_ref": decision["decision_id"], "action_ref": action_id,
+                "considered_action_ref": action_id if action_id in considered else None,
                 "decision": decision["decision"], "client_decision": DECISION_LABELS[decision["decision"]],
                 "headline": narrative["cards"][action_id]["headline"],
-                "what_we_found": narrative["cards"][action_id]["what_we_found"],
-                "why_this_matters": narrative["cards"][action_id]["why_this_matters"],
-                "recommendation": narrative["cards"][action_id]["recommendation"],
-                "uncertainty": narrative["cards"][action_id]["uncertainty"],
+                "what_we_found": claim_text["what_we_found"]["text"],
+                "why_this_matters": claim_text["why_this_matters"]["text"],
+                "recommendation": claim_text["recommendation"]["text"],
+                "uncertainty": claim_text["uncertainty"]["text"],
+                "claims": claim_text,
                 "observed": [item["observation"] for item in linked_findings],
                 "inferred": [explanation for item in linked_findings for explanation in item.get("possible_explanations", [])],
                 "evidence_level": EVIDENCE_LABELS.get(decision.get("technical_confidence"), "Non calibré"),
@@ -200,7 +312,7 @@ def _decision_cards(
                 "next_step": decision.get("evidence_acquisition"),
                 "validation_plan": action.get("validation_plan"),
                 "economic_impact": None if calc is None else _economic_claim(calc),
-                "claim_refs": {"finding_ids": action["finding_ids"], "decision_id": decision["decision_id"], "action_id": action_id},
+                "claim_refs": {"finding_ids": action["finding_ids"], "decision_id": decision["decision_id"], "action_id": action_id, "economic_calculation_refs": [action_id] if action_id in calculations else [], "constraint_refs": [item["constraint_id"] for item in hard_constraints]},
                 "considered_action_ids": considered,
             }
             cards.append(card)
@@ -215,19 +327,31 @@ def _alternative_groups(state: dict[str, Any]) -> list[dict[str, Any]]:
         if relation.get("type") not in {"MUTUALLY_EXCLUSIVE", "ALTERNATIVE"}:
             continue
         members = [relation["action_a"], relation["action_b"]]
+        selected = {action_id for decision in state.get("decisions", []) for action_id in decision.get("selected_action_ids", decision.get("action_ids", []))}
+        def option(action_id: str) -> dict[str, Any]:
+            calculation = calculations.get(action_id)
+            scenario = None if calculation is None else calculation.get("scenarios", {}).get("BASE", {})
+            affected = [item["description"] for item in state.get("operational_constraints", []) if action_id in item.get("affected_action_ids", [])]
+            return {
+                "action_ref": action_id, "title": actions[action_id]["title"],
+                "economic_impact": None if calculation is None else _economic_claim(calculation),
+                "payback_years": None if scenario is None else scenario.get("simple_payback_years"),
+                "downtime": actions[action_id].get("downtime", "À confirmer avec le prestataire"),
+                "operational_burden": actions[action_id].get("operational_rationale"),
+                "major_uncertainty": actions[action_id].get("major_uncertainty", "À confirmer avant engagement."),
+                "constraint_refs": [item["constraint_id"] for item in state.get("operational_constraints", []) if action_id in item.get("affected_action_ids", [])],
+                "current_preference": action_id in selected,
+            }
         groups.append({
             "relationship_ref": relation["relationship_id"], "type": relation["type"], "rationale": relation["rationale"],
-            "options": [{"action_ref": action_id, "title": actions[action_id]["title"], "economic_impact": None if action_id not in calculations else _economic_claim(calculations[action_id])} for action_id in members],
+            "options": [option(action_id) for action_id in members],
             "not_additive": True,
         })
     return groups
 
 
 def _portfolio_total(state: dict[str, Any]) -> dict[str, Any] | None:
-    decision = state.get("decisions", [None])[0]
-    if not decision:
-        return None
-    selected = decision.get("selected_action_ids", decision.get("action_ids", []))
+    selected = [action_id for decision in state.get("decisions", []) for action_id in decision.get("selected_action_ids", decision.get("action_ids", []))]
     calculations = state.get("scenario_calculations", {})
     if not selected or any(action_id not in calculations for action_id in selected):
         return None
@@ -253,11 +377,13 @@ def build_client_report_model(case_directory: str | Path, narrative: dict[str, A
     if not state_path.exists():
         raise ValueError("Goal C exige un état économique Goal B persistant.")
     state = _read(state_path)
-    actions = {item["action_id"] for item in state.get("candidate_actions", [])}
-    _validate_narrative(narrative, actions)
     decisions = state.get("decisions", [])
-    if len(decisions) > 1:
-        raise ValueError("Goal C attend une décision Goal B courante unique.")
+    decisions_by_id = {item["decision_id"]: item for item in decisions}
+    actions = {item["action_id"]: item for item in state.get("candidate_actions", [])}
+    constraints = {item["constraint_id"]: item for item in state.get("operational_constraints", [])}
+    canonical = _read(case / "derived" / "canonical_case.json")
+    dataset_ids = {item["dataset_id"] for item in canonical.get("available_datasets", [])}
+    _validate_narrative(narrative, decisions=decisions_by_id, actions=actions, findings=findings, constraints=constraints, calculations=state.get("scenario_calculations", {}), dataset_ids=dataset_ids, no_finding=no_finding)
     decision = decisions[0] if decisions else None
     if not findings:
         if not isinstance(no_finding, dict) or not decision or decision.get("decision") != "DO_NOTHING":
@@ -268,7 +394,7 @@ def build_client_report_model(case_directory: str | Path, narrative: dict[str, A
     target = Path(output_directory) if output_directory else case / "outputs" / "client_report"
     charts = _resolve_chart_requests(case, narrative, target)
     priority_cards = cards[:3]
-    no_action_items = list(narrative.get("no_action_items", []))
+    no_action_items = [{"title": item["title"], "explanation": item["claim"]["text"], "claim": item["claim"]} for item in narrative.get("no_action_items", [])]
     if not findings and not no_action_items:
         raise ValueError("Un rapport no-finding exige une explication client utile.")
     evidence_by_request = {item.get("request_id") for item in state.get("goal_b_evidence", []) if item.get("request_id")}
@@ -277,7 +403,7 @@ def build_client_report_model(case_directory: str | Path, narrative: dict[str, A
         for item in state.get("economic_requests", []) if item.get("request_id") not in evidence_by_request
     ]
     model = {
-        "schema_version": 1,
+        "schema_version": 2,
         "kind": "CLIENT_REPORT_MODEL",
         "metadata": {"case_id": _read(case / "case_manifest.json")["case_id"], "site_name": narrative["site_name"], "report_title": narrative.get("report_title", "Analyse de performance énergétique"), "analysis_period": narrative.get("analysis_period", "Période disponible dans les données"), "regulatory_notice": "Cette prestation ne constitue pas un audit énergétique réglementaire."},
         "executive_summary": {"message": narrative["executive_message"], "important_subjects": len(cards), "recommended_actions": sum(card["decision"] == "ACT_NOW" for card in cards), "verify_first": sum(card["decision"] == "INVESTIGATE_FIRST" for card in cards), "monitor": sum(card["decision"] == "MONITOR" for card in cards), "no_action_items": len(no_action_items), "economic_total": _portfolio_total(state), "priority_card_refs": [card["card_id"] for card in priority_cards]},
@@ -298,27 +424,54 @@ def build_client_report_model(case_directory: str | Path, narrative: dict[str, A
 def validate_client_report_model(model: dict[str, Any], case_directory: str | Path) -> None:
     """Contrat anti-renforcement : le modèle doit refléter exactement Goal A/B."""
     case = Path(case_directory)
-    if model.get("kind") != "CLIENT_REPORT_MODEL" or model.get("schema_version") != 1:
+    if model.get("kind") != "CLIENT_REPORT_MODEL" or model.get("schema_version") != 2:
         raise ValueError("Schéma de modèle client invalide.")
     findings, no_finding = _goal_a_findings(case)
     state = _read(case / "investigation" / "economic_decision_state.json")
     decisions = {item["decision_id"]: item for item in state.get("decisions", [])}
     actions = {item["action_id"]: item for item in state.get("candidate_actions", [])}
     calculations = state.get("scenario_calculations", {})
+    constraints = {item["constraint_id"]: item for item in state.get("operational_constraints", [])}
+    canonical = _read(case / "derived" / "canonical_case.json")
+    dataset_ids = {item["dataset_id"] for item in canonical.get("available_datasets", [])}
+    metadata = model.get("metadata", {})
+    for field in ("site_name", "report_title", "analysis_period", "regulatory_notice"):
+        _require_text(metadata.get(field), f"metadata/{field}", max_length=220, allow_numbers=True)
+    _require_text(model.get("executive_summary", {}).get("message"), "executive_summary/message", max_length=500)
+    expected_cards = {
+        (decision["decision_id"], action_id)
+        for decision in decisions.values()
+        for action_id in (decision.get("considered_action_ids", decision.get("selected_action_ids", decision.get("action_ids", []))) if decision["decision"] in {"NO_ECONOMIC_CASE", "OPERATIONALLY_NOT_JUSTIFIED"} else decision.get("selected_action_ids", decision.get("action_ids", [])))
+    }
+    actual_cards = {(item.get("decision_ref"), item.get("action_ref")) for item in model.get("decision_cards", [])}
+    if actual_cards != expected_cards:
+        raise ValueError("Le rapport doit représenter chaque action correspondant à une décision Goal B client-facing.")
     seen_actions: set[str] = set()
     for card in model.get("decision_cards", []):
         action_id = card.get("action_ref")
-        decision = decisions.get(card.get("claim_refs", {}).get("decision_id"))
+        decision = decisions.get(card.get("decision_ref"))
         if action_id not in actions or not decision or card.get("decision") != decision.get("decision"):
             raise ValueError("Une carte client ne peut pas modifier une décision ou une action Goal B.")
-        if action_id not in decision.get("selected_action_ids", decision.get("action_ids", [])):
-            raise ValueError("Une carte client ne peut pas promouvoir une action non sélectionnée.")
+        selected = set(decision.get("selected_action_ids", decision.get("action_ids", [])))
+        considered = set(decision.get("considered_action_ids", selected))
+        allowed = considered if decision["decision"] in {"NO_ECONOMIC_CASE", "OPERATIONALLY_NOT_JUSTIFIED"} else selected
+        if action_id not in allowed:
+            raise ValueError("Une carte client ne peut pas promouvoir une action hors de sa décision Goal B.")
+        if card.get("considered_action_ref") != (action_id if action_id in considered else None):
+            raise ValueError("La carte doit distinguer une action considérée d'une action sélectionnée.")
         if card.get("client_decision") != DECISION_LABELS[decision["decision"]]:
             raise ValueError("Le libellé client doit refléter la décision Goal B exacte.")
         if set(card.get("claim_refs", {}).get("finding_ids", [])) != set(actions[action_id]["finding_ids"]) or set(actions[action_id]["finding_ids"]) - set(findings):
             raise ValueError("Une carte doit référencer les findings Goal A réels de son action.")
         if card.get("evidence_level") != EVIDENCE_LABELS.get(decision.get("technical_confidence"), "Non calibré"):
             raise ValueError("Le niveau de preuve client ne peut pas augmenter la confiance Goal B.")
+        claims = card.get("claims")
+        if not isinstance(claims, dict) or set(claims) != set(_CARD_CLAIM_TYPES):
+            raise ValueError("Toute carte doit conserver ses claims structurés.")
+        for field, kind in _CARD_CLAIM_TYPES.items():
+            _validate_claim(claims[field], label=f"model/{card.get('card_id')}/{field}", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding, expected_action_id=action_id, expected_decision_id=decision["decision_id"], expected_kind="RECOMMENDATION" if kind == "RECOMMENDATION" else kind)
+            if card.get(field) != claims[field].get("text"):
+                raise ValueError("Le texte affiché d'une carte doit provenir de son claim validé.")
         if action_id in calculations:
             economic = card.get("economic_impact")
             if not isinstance(economic, dict) or economic.get("saving_status") == "VERIFIED":
@@ -345,6 +498,45 @@ def validate_client_report_model(model: dict[str, Any], case_directory: str | Pa
     total = model.get("executive_summary", {}).get("economic_total")
     if total is not None and total.get("scenario_used_as_expected") == "HIGH":
         raise ValueError("Le scénario HIGH ne peut pas devenir une valeur attendue client.")
+    for item in model.get("no_action_items", []):
+        _require_text(item.get("title"), "model/no-action/title", max_length=150)
+        claim = _validate_claim(item.get("claim"), label="model/no-action", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding)
+        if claim["claim_type"] not in {"NO_ACTION_REQUIRED", "NO_ACTION_ECONOMIC", "NO_ACTION_OPERATIONAL", "INSUFFICIENT_TO_DECIDE"}:
+            raise ValueError("Un no-action client ne peut pas contenir une recommandation positive.")
+        if item.get("explanation") != claim.get("text"):
+            raise ValueError("Un no-action client doit afficher le texte de son claim sourcé.")
+    for item in model.get("what_we_checked", []):
+        _validate_claim(item, label="model/what-we-checked", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding, expected_kind="WHAT_WAS_CHECKED")
+    for chart in model.get("charts", []):
+        for field in ("title", "purpose", "caption", "axis_x", "axis_y", "legend", "explains"):
+            _require_text(chart.get(field), f"chart/{field}", max_length=350, allow_numbers=True)
+        if chart.get("dataset_ref") not in dataset_ids or set(chart.get("claim_refs", [])) - dataset_ids:
+            raise ValueError("Un graphique client doit rester attaché à un dataset Goal A réel.")
+    appendix = model.get("technical_appendix", {})
+    _require_text(appendix.get("method"), "appendix/method", max_length=500)
+    for value in appendix.get("limitations", []):
+        _require_text(value, "appendix/limitation", max_length=320)
+    for source in appendix.get("sources", []):
+        _require_text(source.get("label"), "appendix/source", max_length=200, allow_numbers=True)
+    # Toute chaîne réellement rendue passe la même barrière de confidentialité,
+    # y compris les valeurs remontées de Goal B (contraintes, alternatives,
+    # validation) qui ne sont pas du texte narratif Codex.
+    visible: list[tuple[str, Any]] = []
+    for card in model.get("decision_cards", []):
+        visible.extend([(f"card/{card.get('card_id')}/headline", card.get("headline")), ("card/decision", card.get("client_decision")), ("card/evidence", card.get("evidence_level"))])
+        for constraint in card.get("operational_constraints", []):
+            visible.append(("card/constraint", constraint.get("description")))
+        if isinstance(card.get("next_step"), dict):
+            visible.extend(("card/next-step", card["next_step"].get(field)) for field in ("what_it_resolves", "why_worth_it"))
+        if isinstance(card.get("validation_plan"), dict):
+            visible.extend(("card/validation", card["validation_plan"].get(field)) for field in ("metric", "expected_direction", "comparison_window", "confounders"))
+    for group in model.get("alternative_groups", []):
+        for option in group.get("options", []):
+            visible.extend(("alternative", option.get(field)) for field in ("title", "downtime", "operational_burden", "major_uncertainty"))
+    for request in model.get("client_dialogue", {}).get("pending_questions", []):
+        visible.append(("client-question", request.get("question")))
+    for label, value in visible:
+        _require_text(value, label, max_length=700, allow_numbers=True)
 
 
 def _pdf_text(value: str) -> bytes:
@@ -418,102 +610,126 @@ def _png_rgb(path: Path) -> tuple[int, int, bytes]:
 def _render_pages(model: dict[str, Any], model_path: Path) -> tuple[list[_PdfPage], list[tuple[str, int, int, bytes]]]:
     pages: list[_PdfPage] = []
     images: list[tuple[str, int, int, bytes]] = []
+
     def page() -> _PdfPage:
         result = _PdfPage([])
         pages.append(result)
         return result
+
+    def needed(value: str, size: int = 10) -> float:
+        return len(_wrap(value, 70 if size >= 14 else 88)) * (size + 4.0) + 8.0
+
+    def add(current: _PdfPage, value: str, *, size: int = 10, bold: bool = False, reserve: float = 0.0) -> _PdfPage:
+        if current.y - needed(value, size) - reserve < 58:
+            current = page()
+        current.text(value, size=size, bold=bold)
+        return current
+
+    def section(current: _PdfPage, heading: str, value: str) -> _PdfPage:
+        current = add(current, heading, size=10, bold=True, reserve=needed(value, 10))
+        return add(current, value, size=10)
+
     metadata, summary = model["metadata"], model["executive_summary"]
     current = page()
-    current.text(metadata["report_title"].upper(), size=19, bold=True)
-    current.text(metadata["site_name"], size=13, bold=True)
-    current.text("Période analysée : " + metadata["analysis_period"])
+    current = add(current, metadata["report_title"].upper(), size=19, bold=True)
+    current = add(current, metadata["site_name"], size=13, bold=True)
+    current = add(current, "Période analysée : " + metadata["analysis_period"])
     current.line()
-    current.text("Décision en bref", size=14, bold=True)
-    current.text(summary["message"], size=11)
-    counters = f"{summary['recommended_actions']} action(s) recommandée(s) · {summary['verify_first']} point(s) à vérifier · {summary['no_action_items']} conclusion(s) sans action"
-    current.text(counters, bold=True)
+    current = add(current, "Décision en bref", size=14, bold=True)
+    current = add(current, summary["message"], size=11)
+    counters = f"{summary['recommended_actions']} action(s) recommandée(s) · {summary['verify_first']} point(s) à vérifier · {summary['monitor']} élément(s) à surveiller · {summary['no_action_items']} conclusion(s) sans action"
+    current = add(current, counters, bold=True)
     total = summary.get("economic_total")
     if total:
-        current.text("Potentiel économique validement agrégable : " + total["display"], size=12, bold=True)
+        current = add(current, "Potentiel économique validement agrégable : " + total["display"], size=12, bold=True)
     for card in model["decision_cards"][:3]:
-        current.text(card["client_decision"] + " — " + card["headline"], size=12, bold=True)
-        current.text(card["why_this_matters"])
+        current = add(current, card["client_decision"] + " — " + card["headline"], size=11, bold=True, reserve=needed(card["why_this_matters"]))
+        current = add(current, card["why_this_matters"])
         if card.get("economic_impact", {}).get("annual_net_benefit"):
-            current.text("Impact potentiel : " + card["economic_impact"]["annual_net_benefit"]["display"], bold=True)
+            current = add(current, "Impact potentiel : " + card["economic_impact"]["annual_net_benefit"]["display"], bold=True)
     for request in model.get("client_dialogue", {}).get("pending_questions", []):
-        current.text("Information utile pour confirmer la suite", size=11, bold=True)
-        current.text(request["question"])
+        current = add(current, "Information utile pour confirmer la suite", size=11, bold=True, reserve=needed(request["question"]))
+        current = add(current, request["question"])
     for card in model["decision_cards"]:
-        current = page()
-        current.text(card["client_decision"].upper(), size=14, bold=True)
-        current.text(card["headline"], size=18, bold=True)
+        current = add(current, card["client_decision"].upper(), size=13, bold=True, reserve=needed(card["headline"], 16) + 80)
+        current = add(current, card["headline"], size=16, bold=True)
         current.line()
         for heading, key in (("Ce que nous avons constaté", "what_we_found"), ("Pourquoi cela compte", "why_this_matters"), ("Ce que nous recommandons", "recommendation"), ("Ce qui reste à clarifier", "uncertainty")):
-            current.text(heading, size=11, bold=True)
-            current.text(card[key])
+            current = section(current, heading, card[key])
         if card.get("economic_impact", {}).get("annual_net_benefit"):
             impact = card["economic_impact"]
-            current.text("Impact économique potentiel", size=11, bold=True)
-            current.text("Bénéfice annuel net : " + impact["annual_net_benefit"]["display"])
+            current = add(current, "Impact économique potentiel", size=10, bold=True)
+            current = add(current, "Bénéfice annuel net : " + impact["annual_net_benefit"]["display"])
             if impact.get("intervention_cost"):
-                current.text("Coût d'intervention : " + impact["intervention_cost"]["display"])
-        current.text("Niveau de preuve : " + card["evidence_level"], bold=True)
+                current = add(current, "Coût d'intervention : " + impact["intervention_cost"]["display"])
+        current = add(current, "Niveau de preuve : " + card["evidence_level"], bold=True)
         for constraint in card.get("operational_constraints", []):
-            current.text("Contrainte opérationnelle : " + constraint["description"])
+            current = add(current, "Contrainte opérationnelle : " + constraint["description"])
         if card.get("next_step"):
-            current.text("À vérifier avant d'investir", size=11, bold=True)
-            current.text(card["next_step"]["what_it_resolves"] + ". " + card["next_step"]["why_worth_it"])
+            current = add(current, "À vérifier avant d'investir", size=10, bold=True)
+            current = add(current, card["next_step"]["what_it_resolves"] + ". " + card["next_step"]["why_worth_it"])
         if card.get("validation_plan"):
             validation = card["validation_plan"]
-            current.text("Comment vérifier après action", size=11, bold=True)
-            current.text(f"Mesure : {validation['metric']}. Attendu : {validation['expected_direction']}. Fenêtre : {validation['comparison_window']}. À tenir compte : {validation['confounders']}.")
+            current = add(current, "Comment vérifier après action", size=10, bold=True)
+            current = add(current, f"Mesure : {validation['metric']}. Attendu : {validation['expected_direction']}. Fenêtre : {validation['comparison_window']}. À tenir compte : {validation['confounders']}.")
     if model["no_action_items"] or model["what_we_checked"] or model["alternative_groups"]:
-        current = page()
-        current.text("Ce que nous avons vérifié", size=17, bold=True)
+        current = add(current, "Ce que nous avons vérifié", size=14, bold=True)
         for item in model["what_we_checked"]:
-            current.text("• " + item)
+            current = add(current, "• " + item["text"])
         for item in model["no_action_items"]:
-            current.text(item["title"], size=12, bold=True)
-            current.text(item["explanation"])
+            current = add(current, item["title"], size=11, bold=True, reserve=needed(item["explanation"]))
+            current = add(current, item["explanation"])
         for group in model["alternative_groups"]:
-            current.text("Options à comparer — non cumulables", size=12, bold=True)
+            # Deux alternatives doivent rester lisibles comme une comparaison,
+            # pas être séparées par un saut de page après leur seul titre.
+            current = add(current, "Options à comparer — non cumulables", size=11, bold=True, reserve=230)
             for option in group["options"]:
                 line = option["title"]
                 if option["economic_impact"] and option["economic_impact"]["annual_net_benefit"]:
                     line += " : " + option["economic_impact"]["annual_net_benefit"]["display"]
-                current.text(line)
+                cost_line = None
+                if option.get("economic_impact", {}).get("intervention_cost"):
+                    cost_line = "Coût : " + option["economic_impact"]["intervention_cost"]["display"] + "; retour : " + ("non calculable" if option.get("payback_years") is None else f"{option['payback_years']:.1f} an(s)")
+                detail_line = "Arrêt : " + option["downtime"] + "; charge opérationnelle : " + option["operational_burden"] + "; incertitude : " + option["major_uncertainty"]
+                reserve = needed(cost_line or "", 9) + needed(detail_line, 9) + 10
+                current = add(current, line, bold=option.get("current_preference", False), reserve=reserve)
+                if cost_line:
+                    current = add(current, cost_line, size=9)
+                current = add(current, detail_line, size=9)
     if model["charts"] or model["technical_appendix"]:
-        current = page()
-        current.text("Sources, méthode et limites", size=17, bold=True)
-        current.text(model["technical_appendix"]["method"])
+        current = add(current, "Sources, méthode et limites", size=14, bold=True)
+        current = add(current, model["technical_appendix"]["method"])
         for limitation in model["technical_appendix"].get("limitations", []):
-            current.text("Limite : " + limitation)
-        current.text("Sources principales", size=11, bold=True)
+            current = add(current, "Limite : " + limitation)
+        current = add(current, "Sources principales", size=10, bold=True)
         for source in model["technical_appendix"]["sources"][:6]:
-            current.text("• " + source["label"])
+            current = add(current, "• " + source["label"])
         for index, chart in enumerate(model["charts"], start=1):
             path = model_path.parent / chart["relative_path"]
             width, height, compressed = _png_rgb(path)
+            draw_w, draw_h = 430, min(190, 430 * height / width)
+            if current.y - draw_h - 86 < 58:
+                current = page()
+            current = add(current, "Graphique — " + chart["title"], size=11, bold=True)
+            current = add(current, "Axe X : " + chart["axis_x"] + ". Axe Y : " + chart["axis_y"] + ".", size=9)
+            current = add(current, "Légende : " + chart["legend"], size=9)
             image_name = f"Im{index}"
             images.append((image_name, width, height, compressed))
-            draw_w, draw_h = 430, min(190, 430 * height / width)
-            y = max(80, current.y - draw_h)
+            y = current.y - draw_h
             current.commands.append(f"q {draw_w:.1f} 0 0 {draw_h:.1f} 80 {y:.1f} cm /{image_name} Do Q")
             current.y = y - 12
-            current.text(chart["purpose"], size=9)
-    current = page()
-    current.text("À retenir", size=17, bold=True)
-    current.text(summary["message"], size=12)
-    current.text(metadata["regulatory_notice"], size=9)
+            current = add(current, chart["caption"], size=9)
+    current = add(current, metadata["regulatory_notice"], size=8)
     return pages, images
 
 
-def render_client_report_pdf(model: dict[str, Any], model_path: str | Path, pdf_path: str | Path) -> dict[str, Any]:
-    """Rendu PDF A4 sans dépendance externe; les données viennent du modèle validé."""
+def render_client_report_pdf(model: dict[str, Any], model_path: str | Path, pdf_path: str | Path, *, case_directory: str | Path) -> dict[str, Any]:
+    """Rendu PDF seulement après revalidation complète du modèle à l'instant T."""
+    validate_client_report_model(model, case_directory)
     model_file = Path(model_path)
     pages, images = _render_pages(model, model_file)
-    if not 3 <= len(pages) <= 8:
-        raise ValueError("Le rapport client normal doit contenir entre 3 et 8 pages.")
+    if not 1 <= len(pages) <= 8:
+        raise ValueError("Le rapport client doit rester compact et contenir entre une et huit pages.")
     objects: list[bytes] = []
     objects.append(b"<< /Type /Catalog /Pages 2 0 R >>")
     page_object_ids = [3 + index for index in range(len(pages))]
@@ -548,7 +764,7 @@ def render_client_report_pdf(model: dict[str, Any], model_path: str | Path, pdf_
     target = Path(pdf_path)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(bytes(output))
-    return {"pdf_path": str(target), "page_count": len(pages), "renderer": "stdlib_minimal_pdf_v1", "contains_client_internal_ids": False}
+    return {"pdf_path": str(target), "page_count": len(pages), "renderer": "stdlib_minimal_pdf_v2", "contains_client_internal_ids": False, "validated_immediately_before_render": True}
 
 
 def generate_client_report(case_directory: str | Path, narrative: dict[str, Any], *, output_directory: str | Path | None = None) -> dict[str, Any]:
@@ -556,6 +772,6 @@ def generate_client_report(case_directory: str | Path, narrative: dict[str, Any]
     target = Path(output_directory) if output_directory else case / "outputs" / "client_report"
     model = build_client_report_model(case, narrative, output_directory=target)
     model_path = target / "CLIENT_REPORT_MODEL.json"
-    rendered = render_client_report_pdf(model, model_path, target / "ENERGY_ANALYSIS_REPORT.pdf")
+    rendered = render_client_report_pdf(model, model_path, target / "ENERGY_ANALYSIS_REPORT.pdf", case_directory=case)
     _write(target / "CLIENT_REPORT_DELIVERY.json", {"schema_version": 1, "model": "CLIENT_REPORT_MODEL.json", "pdf": "ENERGY_ANALYSIS_REPORT.pdf", "rendered": rendered, "claim_validation": "passed"})
     return {"model": model, "model_path": model_path, **rendered}

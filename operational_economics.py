@@ -676,21 +676,33 @@ def _resolve_technical_finding_refs(
 
 
 def _build_recommendation_provenance(
-    decision: dict[str, Any] | None,
+    decisions: list[dict[str, Any]],
     actions: list[dict[str, Any]],
     calculations: dict[str, dict[str, Any]],
     value_sources: dict[str, dict[str, Any]],
     constraints: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Matérialise une chaîne auditable sans décider ni interpréter l'action."""
-    selected = set() if decision is None else set(decision.get("selected_action_ids", decision.get("action_ids", [])))
+    """Matérialise une chaîne auditable sans décider ni interpréter l'action.
+
+    B.4 persistait un seul record de décision.  Goal C.1 peut désormais
+    communiquer plusieurs décisions indépendantes dans un même cas; cette
+    fonction conserve donc le rattachement décision → action, sans jamais
+    choisir elle-même les actions ni leur priorité.
+    """
+    selected = set().union(*(set(item.get("selected_action_ids", item.get("action_ids", []))) for item in decisions)) if decisions else set()
+    considered = set().union(*(set(item.get("considered_action_ids", item.get("selected_action_ids", item.get("action_ids", [])))) for item in decisions)) if decisions else set()
     constraints_by_action = {
         action_id: [item["constraint_id"] for item in constraints if action_id in item["affected_action_ids"]]
-        for action_id in selected
+        for action_id in considered
     }
     chains: list[dict[str, Any]] = []
+    decision_by_action = {
+        action_id: decision["decision_id"]
+        for decision in decisions
+        for action_id in decision.get("considered_action_ids", decision.get("selected_action_ids", decision.get("action_ids", [])))
+    }
     for action in actions:
-        if action["action_id"] not in selected:
+        if action["action_id"] not in considered:
             continue
         calculation = calculations.get(action["action_id"])
         source_links: list[dict[str, Any]] = []
@@ -706,6 +718,8 @@ def _build_recommendation_provenance(
                 })
         chains.append({
             "action_id": action["action_id"],
+            "decision_id": decision_by_action.get(action["action_id"]),
+            "selection_status": "SELECTED" if action["action_id"] in selected else "CONSIDERED_ONLY",
             "finding_ids": action["finding_ids"],
             "energy_effect_ref": action.get("energy_effect_ref"),
             "calculation_ref": action["action_id"] if calculation is not None else None,
@@ -713,9 +727,10 @@ def _build_recommendation_provenance(
             "constraint_ids": constraints_by_action[action["action_id"]],
         })
     return {
-        "schema_version": 1,
-        "decision_id": None if decision is None else decision["decision_id"],
-        "selected_action_chains": chains,
+        "schema_version": 2,
+        "decision_ids": [item["decision_id"] for item in decisions],
+        "selected_action_chains": [item for item in chains if item["selection_status"] == "SELECTED"],
+        "considered_action_chains": [item for item in chains if item["selection_status"] == "CONSIDERED_ONLY"],
         "economic_sources": [
             {
                 "source_id": source_id,
@@ -843,9 +858,22 @@ def persist_economic_packet(case_directory: str | Path, packet: dict[str, Any]) 
     calculations = packet.get("scenario_calculations", {})
     if not isinstance(calculations, dict) or set(calculations) - action_ids:
         raise ValueError("Un calcul économique doit référencer une action candidate existante.")
-    decision = packet.get("decision")
-    if decision is not None:
+    if "decision" in packet and "decisions" in packet:
+        raise ValueError("Utilisez decision (compatibilité) ou decisions (multi-décision), pas les deux.")
+    decisions = packet.get("decisions") if "decisions" in packet else ([packet["decision"]] if packet.get("decision") is not None else [])
+    if not isinstance(decisions, list):
+        raise ValueError("decisions doit être une liste de records de décision.")
+    decision_ids: set[str] = set()
+    action_decision_refs: set[str] = set()
+    for decision in decisions:
         validate_decision(decision, action_ids)
+        if decision["decision_id"] in decision_ids:
+            raise ValueError("Identifiants de décision dupliqués.")
+        decision_ids.add(decision["decision_id"])
+        considered = set(decision.get("considered_action_ids", decision.get("selected_action_ids", decision.get("action_ids", []))))
+        if action_decision_refs & considered:
+            raise ValueError("Une action ne peut pas appartenir à deux décisions client concurrentes.")
+        action_decision_refs |= considered
     real_goal_a_findings = _goal_a_findings(case)
     canonical_no_finding = _canonical_no_finding(case)
     no_finding_packet = (
@@ -854,9 +882,9 @@ def persist_economic_packet(case_directory: str | Path, packet: dict[str, Any]) 
         and packet.get("technical_finding_refs", []) == []
     )
     if no_finding_packet:
-        if decision is None or decision.get("decision") != "DO_NOTHING":
+        if len(decisions) != 1 or decisions[0].get("decision") != "DO_NOTHING":
             raise ValueError("Un no-finding Goal A canonique n'autorise ici que DO_NOTHING.")
-        if actions or calculations or decision.get("selected_action_ids", decision.get("action_ids", [])) or decision.get("considered_action_ids", []):
+        if actions or calculations or decisions[0].get("selected_action_ids", decisions[0].get("action_ids", [])) or decisions[0].get("considered_action_ids", []):
             raise ValueError("DO_NOTHING après no-finding ne peut pas contenir actions, calculs ou actions considérées.")
     resolved_technical_refs = _resolve_technical_finding_refs(
         packet.get("technical_finding_refs", []), real_goal_a_findings, allow_canonical_no_finding=no_finding_packet,
@@ -889,7 +917,7 @@ def persist_economic_packet(case_directory: str | Path, packet: dict[str, Any]) 
     for relationship in relationships:
         if relationship["type"] == "OVERLAPPING" and relationship["combined_effect_ref"] not in combined_effects:
             raise ValueError("Un recouvrement persistant exige son combined_effect validé.")
-    if decision is not None:
+    for decision in decisions:
         selected = set(decision.get("selected_action_ids", decision.get("action_ids", [])))
         hard_affected = {item["constraint_id"] for item in constraints if item["hard"] and item["material"] and set(item["affected_action_ids"]) & selected}
         assessments = {item["constraint_id"]: item for item in decision.get("constraint_assessments", [])}
@@ -901,8 +929,8 @@ def persist_economic_packet(case_directory: str | Path, packet: dict[str, Any]) 
             raise ValueError("Décision référence une contrainte inconnue.")
     request_payload = packet["economic_requests"] if "economic_requests" in packet else state.get("economic_requests", [])
     requests = build_economic_request_batch(request_payload)["requests"] if request_payload else []
-    provenance_chain = _build_recommendation_provenance(decision, actions, calculations, value_sources, constraints)
-    state.update({"status": "economic_reasoning_recorded", "technical_finding_refs": resolved_technical_refs, "economic_inputs": inputs, "scenario_assumptions": assumptions, "operational_constraints": constraints, "candidate_actions": actions, "relationships": relationships, "combined_effects": combined_effects, "scenario_calculations": calculations, "decisions": [decision] if decision else [], "economic_requests": requests, "unresolved_blockers": packet.get("unresolved_blockers", state["unresolved_blockers"]), "recommendation_provenance": provenance_chain})
-    state["history"].append({"at_utc": _now(), "action": "economic_packet_persisted", "action_ids": sorted(action_ids), "decision": decision.get("decision") if decision else None})
+    provenance_chain = _build_recommendation_provenance(decisions, actions, calculations, value_sources, constraints)
+    state.update({"status": "economic_reasoning_recorded", "technical_finding_refs": resolved_technical_refs, "economic_inputs": inputs, "scenario_assumptions": assumptions, "operational_constraints": constraints, "candidate_actions": actions, "relationships": relationships, "combined_effects": combined_effects, "scenario_calculations": calculations, "decisions": decisions, "economic_requests": requests, "unresolved_blockers": packet.get("unresolved_blockers", state["unresolved_blockers"]), "recommendation_provenance": provenance_chain})
+    state["history"].append({"at_utc": _now(), "action": "economic_packet_persisted", "action_ids": sorted(action_ids), "decision_ids": sorted(decision_ids), "decision_classes": [item["decision"] for item in decisions]})
     _write(path, state)
     return state

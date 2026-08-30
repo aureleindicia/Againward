@@ -36,6 +36,16 @@ def _calc(effect: dict, capex: float, capex_id: str) -> dict:
     return calculate_economic_scenarios(effect, tariff_per_kwh={name: .20 for name in ("LOW", "BASE", "HIGH")}, intervention_cost={name: capex for name in ("LOW", "BASE", "HIGH")}, input_references=refs)
 
 
+def _claims(action_id: str, decision_id: str, recommendation_type: str, *, finding_id: str = "FIND-OFFHOURS-01") -> dict:
+    base = {"decision_ref": decision_id, "action_ref": action_id, "finding_refs": [finding_id], "constraint_refs": [], "economic_refs": [action_id], "evidence_refs": []}
+    return {
+        "what_we_found": {**base, "claim_type": "OBSERVATION", "text": "Une charge subsiste lorsque la production est arrêtée."},
+        "why_this_matters": {**base, "claim_type": "WHY_THIS_MATTERS", "text": "Cette consommation ne participe pas au service vendu pendant les périodes de fermeture et justifie une intervention proportionnée."},
+        "recommendation": {**base, "claim_type": recommendation_type, "text": "Faire contrôler puis corriger la charge pendant une fenêtre de maintenance planifiée."},
+        "uncertainty": {**base, "claim_type": "UNCERTAINTY", "text": "Le composant exact reste à confirmer par le professionnel avant toute réparation."},
+    }
+
+
 def _narrative(dataset_id: str) -> dict:
     return {
         "site_name": "Boulangerie du Centre", "report_title": "Analyse de performance énergétique", "analysis_period": "Période de données fournie",
@@ -44,10 +54,10 @@ def _narrative(dataset_id: str) -> dict:
             "headline": "Réparer la charge hors horaires", "what_we_found": "Une charge subsiste lorsque la production est arrêtée.",
             "why_this_matters": "Cette consommation ne participe pas au service vendu pendant les périodes de fermeture et justifie une intervention proportionnée.",
             "recommendation": "Faire contrôler puis corriger la charge pendant une fenêtre de maintenance planifiée.",
-            "uncertainty": "Le composant exact reste à confirmer par le professionnel avant toute réparation."}},
-        "no_action_items": [{"title": "Ne pas remplacer immédiatement", "explanation": "Le remplacement est une option alternative et ne doit pas être engagé avant comparaison avec la réparation ciblée."}],
-        "what_we_checked": ["La consommation pendant les créneaux de fermeture", "La compatibilité de l intervention avec l activité du site"],
-        "chart_requests": [{"type": "ENERGY_SERIES", "dataset_id": dataset_id, "title": "Consommation sur la période analysée", "purpose": "Le profil met en évidence la différence entre les créneaux actifs et les créneaux fermés."}],
+            "uncertainty": "Le composant exact reste à confirmer par le professionnel avant toute réparation.", "claims": _claims("ACT-REPAIR-01", "DEC-REPAIR-01", "ACTION_RECOMMENDED")}},
+        "no_action_items": [{"title": "Ne pas remplacer immédiatement", "claim": {"claim_type": "NO_ACTION_ECONOMIC", "decision_ref": "DEC-REPAIR-01", "action_ref": "ACT-REPLACE-01", "finding_refs": ["FIND-OFFHOURS-01"], "constraint_refs": [], "economic_refs": ["ACT-REPLACE-01"], "evidence_refs": [], "text": "Le remplacement est une option alternative et ne doit pas être engagé avant comparaison avec la réparation ciblée."}}],
+        "what_we_checked": [{"claim_type": "WHAT_WAS_CHECKED", "decision_ref": "DEC-REPAIR-01", "action_ref": "ACT-REPAIR-01", "finding_refs": ["FIND-OFFHOURS-01"], "constraint_refs": [], "economic_refs": [], "evidence_refs": [dataset_id], "text": "La consommation pendant les créneaux de fermeture."}, {"claim_type": "WHAT_WAS_CHECKED", "decision_ref": "DEC-REPAIR-01", "action_ref": "ACT-REPAIR-01", "finding_refs": ["FIND-OFFHOURS-01"], "constraint_refs": ["CONS-OPENING-01"], "economic_refs": [], "evidence_refs": [], "text": "La compatibilité de l intervention avec l activité du site."}],
+        "chart_requests": [{"type": "ENERGY_WITH_OPERATION_STATUS", "dataset_id": dataset_id, "title": "Consommation et activité sur la période analysée", "purpose": "Le profil compare directement la consommation avec les périodes d activité et de fermeture."}],
         "limitations": ["La cause précise nécessite la confirmation du professionnel qui interviendra."],
         "method": "Les montants reprennent les calculs économiques validés et les décisions enregistrées avant la livraison.",
     }
@@ -57,8 +67,8 @@ def _no_finding_narrative() -> dict:
     return {
         "site_name": "Atelier de référence", "report_title": "Analyse de performance énergétique", "analysis_period": "Période de données fournie",
         "executive_message": "Aucune anomalie énergétique significative ne justifie actuellement une dépense corrective.", "cards": {},
-        "no_action_items": [{"title": "Aucune action corrective nécessaire", "explanation": "Les éléments disponibles sont compatibles avec le fonctionnement attendu et ne justifient pas une intervention supplémentaire."}],
-        "what_we_checked": ["Les régimes de consommation disponibles", "Les limites de qualité et de période des données"],
+        "no_action_items": [{"title": "Aucune action corrective nécessaire", "claim": {"claim_type": "NO_ACTION_REQUIRED", "decision_ref": "DEC-NO-FINDING-01", "action_ref": None, "finding_refs": [], "constraint_refs": [], "economic_refs": [], "evidence_refs": [], "no_finding_ref": "GOAL_A_NO_FINDING", "text": "Les éléments disponibles sont compatibles avec le fonctionnement attendu et ne justifient pas une intervention supplémentaire."}}],
+        "what_we_checked": [{"claim_type": "WHAT_WAS_CHECKED", "decision_ref": "DEC-NO-FINDING-01", "action_ref": None, "finding_refs": [], "constraint_refs": [], "economic_refs": [], "evidence_refs": [], "no_finding_ref": "GOAL_A_NO_FINDING", "text": "Les régimes de consommation disponibles."}, {"claim_type": "WHAT_WAS_CHECKED", "decision_ref": "DEC-NO-FINDING-01", "action_ref": None, "finding_refs": [], "constraint_refs": [], "economic_refs": [], "evidence_refs": [], "no_finding_ref": "GOAL_A_NO_FINDING", "text": "Les limites de qualité et de période des données."}],
         "limitations": ["La période courte sert de référence mais ne remplace pas un suivi lorsque l activité change."],
         "method": "La conclusion conserve la décision no finding et ne transforme pas une absence de signal en recommandation.",
     }
