@@ -6,45 +6,37 @@ altération structurelle de la décision ou des claims quantitatifs.
 """
 from __future__ import annotations
 
+import binascii
 import csv
 import json
+import math
 import re
+import struct
 import zlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
-from energy_mvp.charts import write_line_chart
 from operational_economics import SCENARIOS, aggregate_declared_portfolio
 
 
 DECISION_LABELS = {
     "ACT_NOW": "Action recommandée",
-    "INVESTIGATE_FIRST": "À vérifier avant d'investir",
+    "INVESTIGATE_FIRST": "Vérifier avant d'investir",
     "MONITOR": "À surveiller",
     "DEFER": "À planifier",
     "DO_NOTHING": "Aucune action nécessaire",
-    "NO_ECONOMIC_CASE": "Pas suffisamment rentable actuellement",
-    "OPERATIONALLY_NOT_JUSTIFIED": "Économie possible, mais action non recommandée",
+    "NO_ECONOMIC_CASE": "Action non justifiée économiquement",
+    "OPERATIONALLY_NOT_JUSTIFIED": "Action non recommandée dans les conditions actuelles",
     "INSUFFICIENT_FOR_ECONOMIC_DECISION": "Informations insuffisantes pour décider",
 }
 EVIDENCE_LABELS = {"HIGH": "Fort", "MEDIUM": "Modéré", "LOW": "Limité", "NOT_CALIBRATED": "Non calibré"}
 SAVING_STATUS = {"POTENTIAL", "EXPECTED", "VERIFIED"}
 _FORBIDDEN_NARRATIVE = re.compile(r"(?:\b(?:verified savings|économie vérifiée|act_now|investigate_first)\b|\b(?:find|art|ds|gbe|dec|act|eff|rel|cons)-[a-z0-9-]+\b|/(?:data|home|storage)/|\b[a-f0-9]{32,}\b)", re.IGNORECASE)
-_RECOMMENDATION_CLAIM_TYPES = {
-    "ACT_NOW": "ACTION_RECOMMENDED",
-    "INVESTIGATE_FIRST": "VERIFY_BEFORE_INVESTING",
-    "MONITOR": "MONITOR",
-    "DEFER": "PLAN_LATER",
-    "DO_NOTHING": "NO_ACTION_REQUIRED",
-    "NO_ECONOMIC_CASE": "NO_ACTION_ECONOMIC",
-    "OPERATIONALLY_NOT_JUSTIFIED": "NO_ACTION_OPERATIONAL",
-    "INSUFFICIENT_FOR_ECONOMIC_DECISION": "INSUFFICIENT_TO_DECIDE",
-}
 _CARD_CLAIM_TYPES = {
     "what_we_found": "OBSERVATION",
     "why_this_matters": "WHY_THIS_MATTERS",
-    "recommendation": "RECOMMENDATION",
+    "contextual_rationale": "CONTEXTUAL_RATIONALE",
     "uncertainty": "UNCERTAINTY",
 }
 
@@ -108,6 +100,42 @@ def _economic_claim(calculation: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _decision_next_step(decision: dict[str, Any], action: dict[str, Any]) -> dict[str, Any] | None:
+    """Expose une prochaine étape déterminée par la décision, jamais par un récit libre."""
+    kind = decision["decision"]
+    if kind == "ACT_NOW":
+        plan = action.get("validation_plan")
+        if not isinstance(plan, dict):
+            return None
+        return {"kind": "POST_ACTION_VALIDATION", "title": "Comment vérifier après action", "details": {
+            field: plan[field] for field in ("metric", "expected_direction", "comparison_window", "confounders", "minimum_evidence") if field in plan
+        }}
+    if kind == "INVESTIGATE_FIRST":
+        evidence = decision.get("evidence_acquisition")
+        if not isinstance(evidence, dict):
+            return None
+        return {"kind": "PRE_INVESTMENT_VERIFICATION", "title": "Ce qu'il faut vérifier avant d'investir", "details": {
+            field: evidence[field] for field in ("what_it_resolves", "decision_that_can_change", "cost_or_burden", "why_worth_it") if field in evidence
+        }}
+    if kind == "MONITOR":
+        plan = action.get("validation_plan")
+        if not isinstance(plan, dict):
+            return None
+        return {"kind": "MONITORING", "title": "Ce qu'il faut surveiller", "details": {
+            field: plan[field] for field in ("metric", "comparison_window", "expected_direction", "confounders", "minimum_evidence") if field in plan
+        }}
+    if kind == "DEFER":
+        evidence = decision.get("evidence_acquisition")
+        if not isinstance(evidence, dict):
+            return None
+        return {"kind": "REASSESSMENT", "title": "Quand réévaluer cette option", "details": {
+            field: evidence[field] for field in ("what_it_resolves", "decision_that_can_change", "why_worth_it") if field in evidence
+        }}
+    # Une action non recommandée, non rentable ou un no-finding ne reçoit pas
+    # artificiellement un protocole de validation post-intervention.
+    return None
+
+
 def _human_sources(case: Path) -> list[dict[str, str]]:
     inventory = _read(case / "evidence" / "intake_inventory.json").get("artifacts", [])
     return [
@@ -153,10 +181,7 @@ def _validate_claim(
     claim_type = claim.get("claim_type")
     if not isinstance(claim_type, str) or not claim_type:
         raise ValueError(f"{label} exige claim_type.")
-    if expected_kind == "RECOMMENDATION":
-        if claim_type != _RECOMMENDATION_CLAIM_TYPES[decisions[expected_decision_id]["decision"]]:
-            raise ValueError("Le type de claim de recommandation contredit la décision Goal B.")
-    elif expected_kind and claim_type != expected_kind:
+    if expected_kind and claim_type != expected_kind:
         raise ValueError(f"{label} exige un claim_type {expected_kind}.")
     decision_ref = claim.get("decision_ref")
     if decision_ref is not None and decision_ref not in decisions:
@@ -176,9 +201,18 @@ def _validate_claim(
     constraint_refs = claim.get("constraint_refs", [])
     if not isinstance(constraint_refs, list) or set(constraint_refs) - set(constraints):
         raise ValueError(f"{label} référence une contrainte inexistante.")
+    if expected_action_id is not None:
+        related_constraints = {
+            item["constraint_id"] for item in constraints.values()
+            if expected_action_id in item.get("affected_action_ids", [])
+        }
+        if set(constraint_refs) - related_constraints:
+            raise ValueError(f"{label} référence une contrainte d'une autre action.")
     economic_refs = claim.get("economic_refs", [])
     if not isinstance(economic_refs, list) or set(economic_refs) - set(calculations):
         raise ValueError(f"{label} référence un calcul économique inexistant.")
+    if expected_action_id is not None and set(economic_refs) - {expected_action_id}:
+        raise ValueError(f"{label} référence un calcul économique d'une autre action.")
     evidence_refs = claim.get("evidence_refs", [])
     if not isinstance(evidence_refs, list) or set(evidence_refs) - dataset_ids:
         raise ValueError(f"{label} référence une preuve ou dataset inexistant.")
@@ -216,9 +250,7 @@ def _validate_narrative(
         if not isinstance(claims, dict) or set(claims) != set(_CARD_CLAIM_TYPES):
             raise ValueError("Chaque carte exige ses quatre claims client structurés.")
         for field, kind in _CARD_CLAIM_TYPES.items():
-            _validate_claim(claims[field], label=f"Carte {action_id}/{field}", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding, expected_action_id=action_id, expected_decision_id=decision["decision_id"], expected_kind=None if kind == "RECOMMENDATION" else kind)
-            if kind == "RECOMMENDATION":
-                _validate_claim(claims[field], label=f"Carte {action_id}/{field}", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding, expected_action_id=action_id, expected_decision_id=decision["decision_id"], expected_kind="RECOMMENDATION")
+            _validate_claim(claims[field], label=f"Carte {action_id}/{field}", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding, expected_action_id=action_id, expected_decision_id=decision["decision_id"], expected_kind=kind)
     for item in narrative.get("no_action_items", []):
         if not isinstance(item, dict):
             raise ValueError("Élément no-action invalide.")
@@ -232,6 +264,87 @@ def _validate_narrative(
         _require_text(item, "limitation", max_length=320)
     if "method" in narrative:
         _require_text(narrative["method"], "method", max_length=500)
+
+
+class _ClientChartCanvas:
+    """Petit raster local Goal C : il dessine, sans interpréter les données."""
+
+    def __init__(self, width: int, height: int) -> None:
+        self.width, self.height = width, height
+        self.pixels = bytearray((255, 255, 255) * (width * height))
+
+    def point(self, x: int, y: int, color: tuple[int, int, int]) -> None:
+        if 0 <= x < self.width and 0 <= y < self.height:
+            offset = (y * self.width + x) * 3
+            self.pixels[offset:offset + 3] = bytes(color)
+
+    def rect(self, x0: int, y0: int, x1: int, y1: int, color: tuple[int, int, int]) -> None:
+        for y in range(max(0, y0), min(self.height, y1)):
+            start, end = (y * self.width + max(0, x0)) * 3, (y * self.width + min(self.width, x1)) * 3
+            self.pixels[start:end] = bytes(color) * max(0, min(self.width, x1) - max(0, x0))
+
+    def line(self, x0: int, y0: int, x1: int, y1: int, color: tuple[int, int, int]) -> None:
+        dx, sx, dy, sy = abs(x1 - x0), (1 if x0 < x1 else -1), -abs(y1 - y0), (1 if y0 < y1 else -1)
+        error = dx + dy
+        while True:
+            self.point(x0, y0, color)
+            if x0 == x1 and y0 == y1:
+                return
+            twice = 2 * error
+            if twice >= dy:
+                error += dy
+                x0 += sx
+            if twice <= dx:
+                error += dx
+                y0 += sy
+
+    def save(self, path: Path, title: str) -> None:
+        raw = b"".join(b"\x00" + bytes(self.pixels[row * self.width * 3:(row + 1) * self.width * 3]) for row in range(self.height))
+        def chunk(kind: bytes, payload: bytes) -> bytes:
+            body = kind + payload
+            return struct.pack(">I", len(payload)) + body + struct.pack(">I", binascii.crc32(body) & 0xFFFFFFFF)
+        png = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", self.width, self.height, 8, 2, 0, 0, 0)) + chunk(b"tEXt", b"Title\x00" + title.encode("latin-1", errors="replace")) + chunk(b"IDAT", zlib.compress(raw, 6)) + chunk(b"IEND", b"")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(png)
+
+
+def _downsample_binary(values: list[float], target: int) -> list[bool]:
+    if len(values) <= target:
+        return [bool(item) for item in values]
+    return [any(values[index * len(values) // target:(index + 1) * len(values) // target]) for index in range(target)]
+
+
+def _write_operation_context_chart(values: list[float], operation: list[float], path: Path, *, title: str) -> None:
+    """Affiche l'état binaire par bandes, jamais par interpolation continue."""
+    width, height, left, right, top, bottom = 900, 360, 52, 18, 20, 36
+    plot_width, plot_height = width - left - right, height - top - bottom
+    if not values or not all(math.isfinite(item) for item in values):
+        raise ValueError("Le graphique opérationnel exige une énergie finie.")
+    bins = min(plot_width, len(values))
+    energy = [sum(values[index * len(values) // bins:(index + 1) * len(values) // bins]) / max(1, len(values[index * len(values) // bins:(index + 1) * len(values) // bins])) for index in range(bins)]
+    activity = _downsample_binary(operation, bins)
+    minimum, maximum = min(0.0, min(energy)), max(energy)
+    if math.isclose(minimum, maximum):
+        maximum += 1.0
+    maximum += (maximum - minimum) * .05
+    canvas = _ClientChartCanvas(width, height)
+    for index, active in enumerate(activity):
+        x0 = left + round(plot_width * index / bins)
+        x1 = left + round(plot_width * (index + 1) / bins)
+        canvas.rect(x0, top, x1, top + plot_height, (255, 244, 218) if active else (244, 247, 250))
+    for step in range(6):
+        y = top + round(plot_height * step / 5)
+        canvas.line(left, y, width - right, y, (220, 225, 230))
+    canvas.line(left, top, left, top + plot_height, (95, 105, 115))
+    canvas.line(left, top + plot_height, width - right, top + plot_height, (95, 105, 115))
+    previous: tuple[int, int] | None = None
+    for index, value in enumerate(energy):
+        x = left + round(plot_width * index / max(1, len(energy) - 1))
+        y = top + plot_height - round((value - minimum) / (maximum - minimum) * plot_height)
+        if previous is not None:
+            canvas.line(previous[0], previous[1], x, y, (31, 119, 180))
+        previous = (x, y)
+    canvas.save(path, title)
 
 
 def _resolve_chart_requests(case: Path, narrative: dict[str, Any], output_dir: Path) -> list[dict[str, Any]]:
@@ -264,12 +377,12 @@ def _resolve_chart_requests(case: Path, narrative: dict[str, Any], output_dir: P
             raise ValueError("Un graphique client exige au moins deux observations numériques.")
         filename = f"chart_{index:02d}.png"
         path = output_dir / "charts" / filename
-        series = {"energy": values}
-        if request["type"] == "ENERGY_WITH_OPERATION_STATUS" and any(operation):
-            maximum = max(values) or 1.0
-            series["activité (repère visuel)"] = [value * maximum for value in operation]
-        write_line_chart(series, path, title=title, zero_floor=True)
-        charts.append({"chart_id": f"CHART-{index:02d}", "type": request["type"], "title": title, "purpose": purpose, "caption": purpose, "dataset_ref": dataset["dataset_id"], "relative_path": f"charts/{filename}", "claim_refs": [dataset["dataset_id"]], "axis_x": "Chronologie des relevés" if not timestamps else f"Chronologie des relevés ({timestamps[0]} à {timestamps[-1]})", "axis_y": "Énergie par intervalle (kWh)" if dataset.get("measurement_type") != "POWER" else "Puissance (kW)", "legend": "Courbe bleue : consommation" + (" ; repère orange : activité/production présente" if len(series) > 1 else ""), "explains": purpose})
+        has_binary_context = request["type"] == "ENERGY_WITH_OPERATION_STATUS" and len(operation) == len(values)
+        if has_binary_context:
+            _write_operation_context_chart(values, operation, path, title=title)
+        else:
+            _write_operation_context_chart(values, [0.0] * len(values), path, title=title)
+        charts.append({"chart_id": f"CHART-{index:02d}", "type": request["type"], "title": title, "purpose": purpose, "caption": purpose, "dataset_ref": dataset["dataset_id"], "relative_path": f"charts/{filename}", "claim_refs": [dataset["dataset_id"]], "axis_x": "Chronologie des relevés" if not timestamps else f"Chronologie des relevés ({timestamps[0]} à {timestamps[-1]})", "axis_y": "Énergie par intervalle (kWh)" if dataset.get("measurement_type") != "POWER" else "Puissance (kW)", "legend": "Courbe bleue : consommation" + (" ; bandes orange pâle : activité/production active ; bandes grises : inactive" if has_binary_context else ""), "operation_encoding": "BACKGROUND_BANDS" if has_binary_context else "NONE", "explains": purpose})
     return charts
 
 
@@ -298,19 +411,18 @@ def _decision_cards(
             card = {
                 "card_id": f"CARD-{decision['decision_id']}-{action_id}", "decision_ref": decision["decision_id"], "action_ref": action_id,
                 "considered_action_ref": action_id if action_id in considered else None,
-                "decision": decision["decision"], "client_decision": DECISION_LABELS[decision["decision"]],
+                "decision": decision["decision"], "client_directive": DECISION_LABELS[decision["decision"]],
                 "headline": narrative["cards"][action_id]["headline"],
                 "what_we_found": claim_text["what_we_found"]["text"],
                 "why_this_matters": claim_text["why_this_matters"]["text"],
-                "recommendation": claim_text["recommendation"]["text"],
+                "contextual_rationale": claim_text["contextual_rationale"]["text"],
                 "uncertainty": claim_text["uncertainty"]["text"],
                 "claims": claim_text,
                 "observed": [item["observation"] for item in linked_findings],
                 "inferred": [explanation for item in linked_findings for explanation in item.get("possible_explanations", [])],
                 "evidence_level": EVIDENCE_LABELS.get(decision.get("technical_confidence"), "Non calibré"),
-                "operational_constraints": [{"description": item["description"], "hard": item["hard"], "material": item["material"]} for item in hard_constraints],
-                "next_step": decision.get("evidence_acquisition"),
-                "validation_plan": action.get("validation_plan"),
+                "operational_constraints": [{"constraint_ref": item["constraint_id"], "description": item["description"], "hard": item["hard"], "material": item["material"]} for item in hard_constraints],
+                "next_step": _decision_next_step(decision, action),
                 "economic_impact": None if calc is None else _economic_claim(calc),
                 "claim_refs": {"finding_ids": action["finding_ids"], "decision_id": decision["decision_id"], "action_id": action_id, "economic_calculation_refs": [action_id] if action_id in calculations else [], "constraint_refs": [item["constraint_id"] for item in hard_constraints]},
                 "considered_action_ids": considered,
@@ -403,7 +515,7 @@ def build_client_report_model(case_directory: str | Path, narrative: dict[str, A
         for item in state.get("economic_requests", []) if item.get("request_id") not in evidence_by_request
     ]
     model = {
-        "schema_version": 2,
+        "schema_version": 3,
         "kind": "CLIENT_REPORT_MODEL",
         "metadata": {"case_id": _read(case / "case_manifest.json")["case_id"], "site_name": narrative["site_name"], "report_title": narrative.get("report_title", "Analyse de performance énergétique"), "analysis_period": narrative.get("analysis_period", "Période disponible dans les données"), "regulatory_notice": "Cette prestation ne constitue pas un audit énergétique réglementaire."},
         "executive_summary": {"message": narrative["executive_message"], "important_subjects": len(cards), "recommended_actions": sum(card["decision"] == "ACT_NOW" for card in cards), "verify_first": sum(card["decision"] == "INVESTIGATE_FIRST" for card in cards), "monitor": sum(card["decision"] == "MONITOR" for card in cards), "no_action_items": len(no_action_items), "economic_total": _portfolio_total(state), "priority_card_refs": [card["card_id"] for card in priority_cards]},
@@ -424,7 +536,7 @@ def build_client_report_model(case_directory: str | Path, narrative: dict[str, A
 def validate_client_report_model(model: dict[str, Any], case_directory: str | Path) -> None:
     """Contrat anti-renforcement : le modèle doit refléter exactement Goal A/B."""
     case = Path(case_directory)
-    if model.get("kind") != "CLIENT_REPORT_MODEL" or model.get("schema_version") != 2:
+    if model.get("kind") != "CLIENT_REPORT_MODEL" or model.get("schema_version") != 3:
         raise ValueError("Schéma de modèle client invalide.")
     findings, no_finding = _goal_a_findings(case)
     state = _read(case / "investigation" / "economic_decision_state.json")
@@ -459,17 +571,23 @@ def validate_client_report_model(model: dict[str, Any], case_directory: str | Pa
             raise ValueError("Une carte client ne peut pas promouvoir une action hors de sa décision Goal B.")
         if card.get("considered_action_ref") != (action_id if action_id in considered else None):
             raise ValueError("La carte doit distinguer une action considérée d'une action sélectionnée.")
-        if card.get("client_decision") != DECISION_LABELS[decision["decision"]]:
-            raise ValueError("Le libellé client doit refléter la décision Goal B exacte.")
-        if set(card.get("claim_refs", {}).get("finding_ids", [])) != set(actions[action_id]["finding_ids"]) or set(actions[action_id]["finding_ids"]) - set(findings):
+        if card.get("client_directive") != DECISION_LABELS[decision["decision"]]:
+            raise ValueError("La directive client doit être dérivée de la décision Goal B exacte.")
+        claim_refs = card.get("claim_refs", {})
+        if set(claim_refs.get("finding_ids", [])) != set(actions[action_id]["finding_ids"]) or set(actions[action_id]["finding_ids"]) - set(findings):
             raise ValueError("Une carte doit référencer les findings Goal A réels de son action.")
+        if claim_refs.get("decision_id") != decision["decision_id"] or claim_refs.get("action_id") != action_id:
+            raise ValueError("La chaîne carte → décision → action doit rester locale et explicite.")
+        expected_economic_refs = [action_id] if action_id in calculations else []
+        if claim_refs.get("economic_calculation_refs") != expected_economic_refs:
+            raise ValueError("Une carte ne peut référencer que le calcul économique de sa propre action.")
         if card.get("evidence_level") != EVIDENCE_LABELS.get(decision.get("technical_confidence"), "Non calibré"):
             raise ValueError("Le niveau de preuve client ne peut pas augmenter la confiance Goal B.")
         claims = card.get("claims")
         if not isinstance(claims, dict) or set(claims) != set(_CARD_CLAIM_TYPES):
             raise ValueError("Toute carte doit conserver ses claims structurés.")
         for field, kind in _CARD_CLAIM_TYPES.items():
-            _validate_claim(claims[field], label=f"model/{card.get('card_id')}/{field}", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding, expected_action_id=action_id, expected_decision_id=decision["decision_id"], expected_kind="RECOMMENDATION" if kind == "RECOMMENDATION" else kind)
+            _validate_claim(claims[field], label=f"model/{card.get('card_id')}/{field}", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding, expected_action_id=action_id, expected_decision_id=decision["decision_id"], expected_kind=kind)
             if card.get(field) != claims[field].get("text"):
                 raise ValueError("Le texte affiché d'une carte doit provenir de son claim validé.")
         if action_id in calculations:
@@ -480,9 +598,14 @@ def validate_client_report_model(model: dict[str, Any], case_directory: str | Pa
             if economic != expected:
                 raise ValueError("Le claim économique client diffère du calcul déterministe Goal B.")
         relevant_hard = [item for item in state.get("operational_constraints", []) if item.get("hard") and item.get("material") and action_id in item.get("affected_action_ids", [])]
-        shown = {item["description"] for item in card.get("operational_constraints", [])}
-        if {item["description"] for item in relevant_hard} - shown:
-            raise ValueError("Une contrainte dure pertinente a été omise du rapport client.")
+        expected_constraint_refs = [item["constraint_id"] for item in relevant_hard]
+        if claim_refs.get("constraint_refs") != expected_constraint_refs:
+            raise ValueError("Une carte ne peut afficher que les contraintes matérielles de sa propre action.")
+        expected_constraints = [{"constraint_ref": item["constraint_id"], "description": item["description"], "hard": item["hard"], "material": item["material"]} for item in relevant_hard]
+        if card.get("operational_constraints") != expected_constraints:
+            raise ValueError("Les contraintes affichées doivent être celles de l'action concernée, sans ajout ni omission.")
+        if card.get("next_step") != _decision_next_step(decision, actions[action_id]):
+            raise ValueError("La prochaine étape client doit être adaptée à la décision Goal B exacte.")
         seen_actions.add(action_id)
     if not findings:
         if not isinstance(no_finding, dict) or model.get("decision_cards"):
@@ -523,13 +646,12 @@ def validate_client_report_model(model: dict[str, Any], case_directory: str | Pa
     # validation) qui ne sont pas du texte narratif Codex.
     visible: list[tuple[str, Any]] = []
     for card in model.get("decision_cards", []):
-        visible.extend([(f"card/{card.get('card_id')}/headline", card.get("headline")), ("card/decision", card.get("client_decision")), ("card/evidence", card.get("evidence_level"))])
+        visible.extend([(f"card/{card.get('card_id')}/headline", card.get("headline")), ("card/directive", card.get("client_directive")), ("card/evidence", card.get("evidence_level"))])
         for constraint in card.get("operational_constraints", []):
             visible.append(("card/constraint", constraint.get("description")))
         if isinstance(card.get("next_step"), dict):
-            visible.extend(("card/next-step", card["next_step"].get(field)) for field in ("what_it_resolves", "why_worth_it"))
-        if isinstance(card.get("validation_plan"), dict):
-            visible.extend(("card/validation", card["validation_plan"].get(field)) for field in ("metric", "expected_direction", "comparison_window", "confounders"))
+            visible.append(("card/next-step/title", card["next_step"].get("title")))
+            visible.extend(("card/next-step", value) for value in card["next_step"].get("details", {}).values())
     for group in model.get("alternative_groups", []):
         for option in group.get("options", []):
             visible.extend(("alternative", option.get(field)) for field in ("title", "downtime", "operational_burden", "major_uncertainty"))
@@ -643,7 +765,7 @@ def _render_pages(model: dict[str, Any], model_path: Path) -> tuple[list[_PdfPag
     if total:
         current = add(current, "Potentiel économique validement agrégable : " + total["display"], size=12, bold=True)
     for card in model["decision_cards"][:3]:
-        current = add(current, card["client_decision"] + " — " + card["headline"], size=11, bold=True, reserve=needed(card["why_this_matters"]))
+        current = add(current, card["client_directive"] + " — " + card["headline"], size=11, bold=True, reserve=needed(card["why_this_matters"]))
         current = add(current, card["why_this_matters"])
         if card.get("economic_impact", {}).get("annual_net_benefit"):
             current = add(current, "Impact potentiel : " + card["economic_impact"]["annual_net_benefit"]["display"], bold=True)
@@ -651,10 +773,10 @@ def _render_pages(model: dict[str, Any], model_path: Path) -> tuple[list[_PdfPag
         current = add(current, "Information utile pour confirmer la suite", size=11, bold=True, reserve=needed(request["question"]))
         current = add(current, request["question"])
     for card in model["decision_cards"]:
-        current = add(current, card["client_decision"].upper(), size=13, bold=True, reserve=needed(card["headline"], 16) + 80)
+        current = add(current, card["client_directive"].upper(), size=13, bold=True, reserve=needed(card["headline"], 16) + 80)
         current = add(current, card["headline"], size=16, bold=True)
         current.line()
-        for heading, key in (("Ce que nous avons constaté", "what_we_found"), ("Pourquoi cela compte", "why_this_matters"), ("Ce que nous recommandons", "recommendation"), ("Ce qui reste à clarifier", "uncertainty")):
+        for heading, key in (("Ce que nous avons constaté", "what_we_found"), ("Pourquoi cela compte", "why_this_matters"), ("Contexte de décision", "contextual_rationale"), ("Ce qui reste à clarifier", "uncertainty")):
             current = section(current, heading, card[key])
         if card.get("economic_impact", {}).get("annual_net_benefit"):
             impact = card["economic_impact"]
@@ -666,12 +788,15 @@ def _render_pages(model: dict[str, Any], model_path: Path) -> tuple[list[_PdfPag
         for constraint in card.get("operational_constraints", []):
             current = add(current, "Contrainte opérationnelle : " + constraint["description"])
         if card.get("next_step"):
-            current = add(current, "À vérifier avant d'investir", size=10, bold=True)
-            current = add(current, card["next_step"]["what_it_resolves"] + ". " + card["next_step"]["why_worth_it"])
-        if card.get("validation_plan"):
-            validation = card["validation_plan"]
-            current = add(current, "Comment vérifier après action", size=10, bold=True)
-            current = add(current, f"Mesure : {validation['metric']}. Attendu : {validation['expected_direction']}. Fenêtre : {validation['comparison_window']}. À tenir compte : {validation['confounders']}.")
+            step = card["next_step"]
+            current = add(current, step["title"], size=10, bold=True)
+            labels = {
+                "metric": "Mesure", "expected_direction": "Attendu", "comparison_window": "Période", "confounders": "À tenir compte",
+                "minimum_evidence": "Critère", "what_it_resolves": "Information", "decision_that_can_change": "Décision concernée",
+                "cost_or_burden": "Effort", "why_worth_it": "Pourquoi",
+            }
+            for field, value in step.get("details", {}).items():
+                current = add(current, f"{labels.get(field, 'Détail')} : {value}.")
     if model["no_action_items"] or model["what_we_checked"] or model["alternative_groups"]:
         current = add(current, "Ce que nous avons vérifié", size=14, bold=True)
         for item in model["what_we_checked"]:

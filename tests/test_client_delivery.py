@@ -62,16 +62,72 @@ class ClientDeliveryC1Tests(unittest.TestCase):
             self.assertEqual(card["decision"], "OPERATIONALLY_NOT_JUSTIFIED")
             self.assertIsNotNone(card["economic_impact"])
             self.assertTrue(card["operational_constraints"])
-            self.assertEqual(card["claims"]["recommendation"]["claim_type"], "NO_ACTION_OPERATIONAL")
+            self.assertEqual(card["client_directive"], "Action non recommandée dans les conditions actuelles")
+            self.assertEqual(card["claims"]["contextual_rationale"]["claim_type"], "CONTEXTUAL_RATIONALE")
+            self.assertIsNone(card["next_step"])
 
-    def test_recommendation_claim_class_prevents_structured_contradiction(self) -> None:
+    def test_free_context_cannot_reverse_deterministic_directive(self) -> None:
         cases, temporary = self._fixtures()
         with temporary:
             case, model = cases["C-A"], self._model(cases["C-A"])
             changed = copy.deepcopy(model)
-            changed["decision_cards"][0]["claims"]["recommendation"]["claim_type"] = "NO_ACTION_REQUIRED"
+            changed["decision_cards"][0]["claims"]["contextual_rationale"]["text"] = "Ne réalisez aucune intervention avant une nouvelle décision."
+            changed["decision_cards"][0]["contextual_rationale"] = changed["decision_cards"][0]["claims"]["contextual_rationale"]["text"]
+            validate_client_report_model(changed, case)
+            self.assertEqual(changed["decision_cards"][0]["client_directive"], "Action recommandée")
+            self.assertNotIn("recommendation", changed["decision_cards"][0])
+
+    def test_cross_action_economic_and_constraint_references_are_rejected(self) -> None:
+        cases, temporary = self._fixtures()
+        with temporary:
+            case, model = cases["C-F"], self._model(cases["C-F"])
+            changed = copy.deepcopy(model)
+            changed["decision_cards"][0]["claim_refs"]["economic_calculation_refs"] = ["A-C-F-REPLACE"]
             with self.assertRaises(ValueError):
                 validate_client_report_model(changed, case)
+
+            case, model = cases["C-MULTI"], self._model(cases["C-MULTI"])
+            card = next(item for item in model["decision_cards"] if item["action_ref"] == "A-MULTI-NOW")
+            card["claim_refs"]["constraint_refs"] = ["K-MULTI-OPS"]
+            card["operational_constraints"] = [{"constraint_ref": "K-MULTI-OPS", "description": "Les horaires de production ne peuvent pas être déplacés sans perte de fraîcheur.", "hard": True, "material": True}]
+            with self.assertRaises(ValueError):
+                validate_client_report_model(model, case)
+
+    def test_local_action_provenance_and_decision_aware_next_steps(self) -> None:
+        cases, temporary = self._fixtures()
+        with temporary:
+            model = self._model(cases["C-A"])
+            card = model["decision_cards"][0]
+            self.assertEqual(card["claim_refs"]["economic_calculation_refs"], [card["action_ref"]])
+            self.assertEqual(card["next_step"]["kind"], "POST_ACTION_VALIDATION")
+            self.assertEqual(card["next_step"]["title"], "Comment vérifier après action")
+            model = self._model(cases["C-B"])
+            self.assertEqual(model["decision_cards"][0]["next_step"]["kind"], "PRE_INVESTMENT_VERIFICATION")
+            self.assertIn("avant d'investir", model["decision_cards"][0]["next_step"]["title"])
+            model = self._model(cases["C-MULTI"])
+            monitor = next(item for item in model["decision_cards"] if item["decision"] == "MONITOR")
+            self.assertEqual(monitor["next_step"]["kind"], "MONITORING")
+            self.assertIn("surveiller", monitor["next_step"]["title"].lower())
+            negative = next(item for item in model["decision_cards"] if item["decision"] == "OPERATIONALLY_NOT_JUSTIFIED")
+            self.assertIsNone(negative["next_step"])
+
+    def test_binary_operational_context_uses_background_bands_not_interpolation(self) -> None:
+        cases, temporary = self._fixtures()
+        with temporary:
+            chart = self._model(cases["C-A"])["charts"][0]
+            self.assertEqual(chart["operation_encoding"], "BACKGROUND_BANDS")
+            self.assertIn("bandes orange", chart["legend"])
+            self.assertTrue((cases["C-A"] / "outputs/client_report" / chart["relative_path"]).is_file())
+
+    def test_sme_contextual_tradeoffs_are_specific(self) -> None:
+        cases, temporary = self._fixtures()
+        with temporary:
+            c_d = self._model(cases["C-D"])["decision_cards"][0]["why_this_matters"].lower()
+            c_i = self._model(cases["C-I"])["decision_cards"][0]["why_this_matters"].lower()
+            self.assertIn("fraîcheur", c_d)
+            self.assertIn("quotidienne", c_d)
+            self.assertIn("petit gain", c_i)
+            self.assertIn("personnel", c_i)
 
     def test_unsupported_no_action_and_checked_claims_are_rejected(self) -> None:
         cases, temporary = self._fixtures()

@@ -364,3 +364,29 @@ READY_FOR_INDEPENDENT_GOAL_B_4_REVIEW
 Revue indépendante du bundle Goal C. Aucun goal ultérieur n'est déclaré prêt.
 
 READY_FOR_INDEPENDENT_GOAL_C_REVIEW
+
+## Checkpoint Goal C.2 — final client-fidelity hardening
+
+- Portée : fermeture des contrats de livraison client uniquement; Goal A, Goal
+  B et Candidate V2.1 ne sont pas modifiés.
+- Le report model est passé au schéma 3. `client_directive` est dérivée de la
+  décision Goal B et le texte Codex est limité à des claims contextuels sourcés.
+- Une carte ferme sa provenance localement : une économie ou contrainte d'une
+  autre action est rejetée même lorsqu'elle existe dans le même dossier.
+- La prochaine étape est décisionnelle : validation post-action, vérification
+  préalable, surveillance ou réévaluation. Les non-actions ne reçoivent pas de
+  faux plan post-intervention.
+- Les états activité/inactivité binaires sont maintenant représentés par bandes
+  de fond, jamais par une ligne interpolée.
+- Fixtures C-A à C-J et E2E C.2 régénérés dans `workspace/goal_c_2_fixtures/`
+  et `workspace/goal_c_2_e2e/`; contrôle visuel C-A, C-B, C-D, C-E, C-I et
+  multi-décision consigné dans `reports/GOAL_C_2_VISUAL_REVIEW.md`.
+- Validation finale : `pytest -q` **231 passed** en 34,54 s; tests Goal C
+  ciblés **18 passed**.
+
+### Prochaine étape autorisée
+
+Revue indépendante du bundle Goal C.2. Aucun nouveau goal produit n'est
+déclaré prêt par ce checkpoint.
+
+READY_FOR_INDEPENDENT_GOAL_C_2_REVIEW

@@ -45,18 +45,18 @@ def _calculation(effect: dict, action_id: str, capex: float, capex_id: str) -> d
     return calculate_economic_scenarios(effect, tariff_per_kwh={name: 0.20 for name in SCENARIOS}, intervention_cost={name: capex for name in SCENARIOS}, input_references=refs)
 
 
-def _claim(action_id: str, decision_id: str, finding_id: str, recommendation_type: str, *, constraint_refs: list[str] | None = None) -> dict:
+def _claim(action_id: str, decision_id: str, finding_id: str, _legacy_claim_type: str, *, constraint_refs: list[str] | None = None, why_this_matters: str | None = None) -> dict:
     refs = {"decision_ref": decision_id, "action_ref": action_id, "finding_refs": [finding_id], "constraint_refs": constraint_refs or [], "economic_refs": [action_id], "evidence_refs": []}
     return {
         "what_we_found": {**refs, "claim_type": "OBSERVATION", "text": "Le comportement étudié persiste dans les régimes comparables."},
-        "why_this_matters": {**refs, "claim_type": "WHY_THIS_MATTERS", "text": "Cette situation mérite une décision proportionnée à son coût et à l activité du site."},
-        "recommendation": {**refs, "claim_type": recommendation_type, "text": "Suivre la décision indiquée avant de modifier le fonctionnement du site."},
+        "why_this_matters": {**refs, "claim_type": "WHY_THIS_MATTERS", "text": why_this_matters or "Cette situation mérite une décision proportionnée à son coût et à l activité du site."},
+        "contextual_rationale": {**refs, "claim_type": "CONTEXTUAL_RATIONALE", "text": "Le contexte opérationnel est pris en compte sans modifier la directive de décision."},
         "uncertainty": {**refs, "claim_type": "UNCERTAINTY", "text": "Les conditions de mise en œuvre doivent être confirmées avant engagement."},
     }
 
 
-def _narrative(site: str, cards: dict[str, tuple[str, str, str, str, list[str]]], dataset_id: str, *, no_action: list[dict] | None = None, checked_finding: str | None = None) -> dict:
-    card_payload = {action_id: {"headline": headline, "claims": _claim(action_id, decision_id, finding_id, claim_type, constraint_refs=constraint_refs)} for action_id, (headline, decision_id, finding_id, claim_type, constraint_refs) in cards.items()}
+def _narrative(site: str, cards: dict[str, tuple[str, str, str, str, list[str]]], dataset_id: str, *, no_action: list[dict] | None = None, checked_finding: str | None = None, why_by_action: dict[str, str] | None = None) -> dict:
+    card_payload = {action_id: {"headline": headline, "claims": _claim(action_id, decision_id, finding_id, claim_type, constraint_refs=constraint_refs, why_this_matters=(why_by_action or {}).get(action_id))} for action_id, (headline, decision_id, finding_id, claim_type, constraint_refs) in cards.items()}
     checked = []
     if checked_finding:
         checked = [{"claim_type": "WHAT_WAS_CHECKED", "decision_ref": next(iter(cards.values()))[1] if cards else None, "action_ref": next(iter(cards)) if cards else None, "finding_refs": [checked_finding], "constraint_refs": [], "economic_refs": [], "evidence_refs": [dataset_id], "text": "Les régimes disponibles et leur cohérence avec l activité du site."}]
@@ -130,7 +130,12 @@ def generate(root: str | Path) -> dict[str, Path]:
         persist_economic_packet(case, packet)
         claim_type = {"ACT_NOW": "ACTION_RECOMMENDED", "INVESTIGATE_FIRST": "VERIFY_BEFORE_INVESTING", "NO_ECONOMIC_CASE": "NO_ACTION_ECONOMIC", "OPERATIONALLY_NOT_JUSTIFIED": "NO_ACTION_OPERATIONAL"}[kind]
         no_action = [] if kind not in {"NO_ECONOMIC_CASE", "OPERATIONALLY_NOT_JUSTIFIED"} else [{"title": "Action non retenue", "claim": {"claim_type": claim_type, "decision_ref": decision_id, "action_ref": action_id, "finding_refs": [finding_id], "constraint_refs": constraint_ids, "economic_refs": [action_id], "evidence_refs": [], "text": "La décision conserve l économie théorique sans imposer une contrainte disproportionnée."}}]
-        narrative = _narrative(f"Fixture {fixture_id}", {action_id: (title, decision_id, finding_id, claim_type, constraint_ids)}, dataset_id, no_action=no_action, checked_finding=finding_id)
+        context = {
+            "C-B": "Le remplacement envisagé engage un budget important alors qu un contrôle ciblé peut encore lever l incertitude avant cet engagement.",
+            "C-D": "L économie théorique existe, mais avancer la production compromettrait la fraîcheur attendue des produits ; cette contrainte quotidienne est disproportionnée.",
+            "C-I": "Le petit gain potentiel ne compense pas une consigne quotidienne supplémentaire ni la coordination durable demandée au personnel.",
+        }
+        narrative = _narrative(f"Fixture {fixture_id}", {action_id: (title, decision_id, finding_id, claim_type, constraint_ids)}, dataset_id, no_action=no_action, checked_finding=finding_id, why_by_action={action_id: context[fixture_id]} if fixture_id in context else None)
         generate_client_report(case, narrative)
         outputs[fixture_id] = case
 

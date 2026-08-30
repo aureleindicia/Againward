@@ -36,12 +36,12 @@ def _calc(effect: dict, capex: float, capex_id: str) -> dict:
     return calculate_economic_scenarios(effect, tariff_per_kwh={name: .20 for name in ("LOW", "BASE", "HIGH")}, intervention_cost={name: capex for name in ("LOW", "BASE", "HIGH")}, input_references=refs)
 
 
-def _claims(action_id: str, decision_id: str, recommendation_type: str, *, finding_id: str = "FIND-OFFHOURS-01") -> dict:
+def _claims(action_id: str, decision_id: str, _legacy_claim_type: str, *, finding_id: str = "FIND-OFFHOURS-01") -> dict:
     base = {"decision_ref": decision_id, "action_ref": action_id, "finding_refs": [finding_id], "constraint_refs": [], "economic_refs": [action_id], "evidence_refs": []}
     return {
         "what_we_found": {**base, "claim_type": "OBSERVATION", "text": "Une charge subsiste lorsque la production est arrêtée."},
         "why_this_matters": {**base, "claim_type": "WHY_THIS_MATTERS", "text": "Cette consommation ne participe pas au service vendu pendant les périodes de fermeture et justifie une intervention proportionnée."},
-        "recommendation": {**base, "claim_type": recommendation_type, "text": "Faire contrôler puis corriger la charge pendant une fenêtre de maintenance planifiée."},
+        "contextual_rationale": {**base, "claim_type": "CONTEXTUAL_RATIONALE", "text": "La maintenance peut être planifiée pendant une fenêtre compatible avec l activité du site."},
         "uncertainty": {**base, "claim_type": "UNCERTAINTY", "text": "Le composant exact reste à confirmer par le professionnel avant toute réparation."},
     }
 
@@ -53,7 +53,7 @@ def _narrative(dataset_id: str) -> dict:
         "cards": {"ACT-REPAIR-01": {
             "headline": "Réparer la charge hors horaires", "what_we_found": "Une charge subsiste lorsque la production est arrêtée.",
             "why_this_matters": "Cette consommation ne participe pas au service vendu pendant les périodes de fermeture et justifie une intervention proportionnée.",
-            "recommendation": "Faire contrôler puis corriger la charge pendant une fenêtre de maintenance planifiée.",
+            "contextual_rationale": "La maintenance peut être planifiée pendant une fenêtre compatible avec l activité du site.",
             "uncertainty": "Le composant exact reste à confirmer par le professionnel avant toute réparation.", "claims": _claims("ACT-REPAIR-01", "DEC-REPAIR-01", "ACTION_RECOMMENDED")}},
         "no_action_items": [{"title": "Ne pas remplacer immédiatement", "claim": {"claim_type": "NO_ACTION_ECONOMIC", "decision_ref": "DEC-REPAIR-01", "action_ref": "ACT-REPLACE-01", "finding_refs": ["FIND-OFFHOURS-01"], "constraint_refs": [], "economic_refs": ["ACT-REPLACE-01"], "evidence_refs": [], "text": "Le remplacement est une option alternative et ne doit pas être engagé avant comparaison avec la réparation ciblée."}}],
         "what_we_checked": [{"claim_type": "WHAT_WAS_CHECKED", "decision_ref": "DEC-REPAIR-01", "action_ref": "ACT-REPAIR-01", "finding_refs": ["FIND-OFFHOURS-01"], "constraint_refs": [], "economic_refs": [], "evidence_refs": [dataset_id], "text": "La consommation pendant les créneaux de fermeture."}, {"claim_type": "WHAT_WAS_CHECKED", "decision_ref": "DEC-REPAIR-01", "action_ref": "ACT-REPAIR-01", "finding_refs": ["FIND-OFFHOURS-01"], "constraint_refs": ["CONS-OPENING-01"], "economic_refs": [], "evidence_refs": [], "text": "La compatibilité de l intervention avec l activité du site."}],
