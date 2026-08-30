@@ -40,7 +40,7 @@ INTERVENTIONS = {
     "TECHNICIAN_INTERVENTION",
 }
 ORACLE_AVAILABILITY = {"available", "unavailable"}
-ORACLE_MATCHER_VERSION = "semantic-v3-blind-fallback"
+ORACLE_MATCHER_VERSION = "semantic-v4-intent-blind-review"
 ORACLE_MATCH_STATUSES = {
     "MATCHED",
     "NO_MATCH",
@@ -744,6 +744,9 @@ def _oracle_candidate_score(
         and term_matches >= max(1, minimum - 1)
         and score >= ORACLE_BLIND_REVIEW_THRESHOLD
     )
+    # A primary discriminating intent may remain clear despite related details.
+    # This is review-only: automatic disclosure thresholds stay unchanged.
+    primary_intent_review_eligible = concept_coverage >= 0.75 and term_matches >= 1
     return {
         "oracle_id": descriptor["oracle_id"],
         "score": round(score, 6),
@@ -753,6 +756,7 @@ def _oracle_candidate_score(
         "term_ratio": round(term_ratio, 6),
         "auto_eligible": auto_eligible,
         "review_eligible": review_eligible,
+        "primary_intent_review_eligible": primary_intent_review_eligible,
     }
 
 
@@ -796,7 +800,7 @@ def oracle_match_decision(
     all_candidates = [
         _oracle_candidate_score(request, descriptor) for descriptor in descriptors
     ]
-    eligible = [item for item in all_candidates if item["review_eligible"]]
+    eligible = [item for item in all_candidates if item["review_eligible"] or item["primary_intent_review_eligible"]]
     eligible.sort(key=lambda item: (-float(item["score"]), str(item["oracle_id"])))
 
     if eligible:
@@ -825,7 +829,7 @@ def oracle_match_decision(
         return {
             "matcher_version": ORACLE_MATCHER_VERSION,
             "status": "PENDING_BLIND_ORACLE_REVIEW",
-            "reason": "borderline_or_competing_semantic_candidates",
+            "reason": "borderline_competing_or_primary_discriminating_intent",
             "selected_oracle_id": None,
             "candidates": review_candidates,
             "margin": round(margin, 6),
@@ -1101,6 +1105,9 @@ Write experiments only in `scratch/` and the structured answer in `output/respon
 Absolute rules:
 - never search for ground truth, scoring, oracle files, expert answers or previous runs;
 - do not assume that an anomaly or a recoverable saving exists;
+- produce the strongest conclusion justified by evidence, neither stronger nor weaker; data volume alone is not evidence strength;
+- a legitimate operation that explains the event is NORMAL_OPERATION, not CAUSE_PROBABLE; cause classes require an abnormal phenomenon;
+- ANOMALY_CONFIRMED_CAUSE_UNCERTAIN is valid when abnormality is established but causes remain unresolved; use INSUFFICIENT_INFORMATION only when missing evidence blocks the decision required;
 - NORMAL_OPERATION, INSUFFICIENT_INFORMATION and DATA_QUALITY_BLOCKER are valid conclusions;
 - ask only for the minimal information that most reduces uncertainty;
 - a temporal correlation does not prove a physical cause;
@@ -1303,8 +1310,11 @@ def _create_blind_review_packet(
             for oracle_id in candidate_ids
         ],
         "review_question": (
-            "Cette demande correspond-elle à exactement une catégorie d'information "
-            "disponible, sans consulter la réponse ou ses payloads ?"
+            "La demande contient-elle une intention principale matériellement discriminante "
+            "qui correspond à une seule catégorie disponible, sans consulter la réponse ou "
+            "ses payloads ? Des détails liés ne l'invalident pas. Répondre NO_MATCH si "
+            "l'intention est vague, incidente, déjà satisfaite, non discriminante, ou "
+            "réellement ambiguë entre plusieurs catégories."
         ),
         "matcher_version": ORACLE_MATCHER_VERSION,
         "created_at_utc": _utc_now(),

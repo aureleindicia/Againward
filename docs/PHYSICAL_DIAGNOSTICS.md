@@ -92,3 +92,23 @@ s'abstenir. Toute intervention garde les préconditions, l'exécuteur compétent
 risques, les conditions d'arrêt, le résultat attendu et la validation avant/après.
 Une baisse après correction renforce une hypothèse, mais une concomitance seule ne prouve
 pas nécessairement le mécanisme.
+
+
+## Maximum justified claim et classes de décision
+
+Règle : produire la conclusion la plus forte justifiée par les preuves disponibles,
+ni plus forte ni plus faible. Le volume de données n'est pas la force probante : une
+observation rare mais très discriminante peut suffire ; des données riches laissant des
+explications concurrentes intactes imposent encore l'abstention.
+
+- `NORMAL_OPERATION` : une opération légitime explique l'événement et aucune anomalie
+  ne reste établie. Identifier pourquoi elle consomme n'en fait pas une cause anormale.
+- `ANOMALY_CONFIRMED_CAUSE_UNCERTAIN` : le phénomène anormal est établi, mais les
+  mécanismes physiques concurrents ne sont pas encore départagés.
+- `CAUSE_PROBABLE` / `CAUSE_CONFIRMED` : uniquement la cause d'un phénomène anormal.
+- `INSUFFICIENT_INFORMATION` : une information absente bloque la décision requise, pas
+  seulement une amélioration souhaitable de l'explication.
+- `DATA_QUALITY_BLOCKER` : la qualité empêche de qualifier le phénomène lui-même.
+
+Codex peut appliquer `validate_epistemic_decision_semantics` à ses déclarations. Ce
+contrôle ne sélectionne aucune décision, cause, mesure ni intervention.

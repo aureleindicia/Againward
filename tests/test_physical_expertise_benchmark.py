@@ -817,7 +817,7 @@ def test_candidate_v2_fallback_packet_is_minimal_and_does_not_auto_reveal(tmp_pa
     assert "item_" not in json.dumps(public)
     packet = list_pending_blind_oracle_reviews(run)["pending_reviews"][0]
     serialized = json.dumps(packet)
-    assert packet["review_question"].startswith("Cette demande correspond-elle")
+    assert "intention principale matériellement discriminante" in packet["review_question"]
     assert len(packet["candidates"]) == 3
     assert set(packet["candidates"][0]) == {"oracle_id", "abstract_information_types"}
     assert "The equipment schedule is attached" not in serialized
@@ -828,3 +828,42 @@ def test_candidate_v2_fallback_packet_is_minimal_and_does_not_auto_reveal(tmp_pa
         path.is_file()
         for path in (run / "participant_workspace" / "revealed" / "cycle_001").glob("item_*")
     )
+
+
+def test_primary_discriminating_intent_with_related_detail_reaches_blind_review() -> None:
+    request = _request(
+        "request_primary_intent",
+        concept="equipment schedule",
+        question="Provide the equipment schedule and related operator notes for the same period.",
+    )
+    entry = {
+        "oracle_id": "item_schedule",
+        "accepted_concepts": ["equipment schedule"],
+        "question_terms": ["timetable", "operator roster", "maintenance ticket"],
+        "minimum_term_matches": 3,
+    }
+    decision = oracle_match_decision(request, [entry])
+    assert decision["status"] == "PENDING_BLIND_ORACLE_REVIEW"
+    assert decision["candidates"][0]["oracle_id"] == "item_schedule"
+    assert decision["selected_oracle_id"] is None
+
+
+def test_intent_review_does_not_auto_reveal_genuinely_ambiguous_payloads() -> None:
+    request = _request(
+        "request_multi_intent",
+        concept="equipment schedule",
+        question="Provide the equipment schedule and related operator notes for the same period.",
+    )
+    entries = [
+        {
+            "oracle_id": identifier,
+            "accepted_concepts": ["equipment schedule"],
+            "question_terms": ["equipment", "schedule", "timetable"],
+            "minimum_term_matches": 3,
+        }
+        for identifier in ("item_schedule_a", "item_schedule_b")
+    ]
+    decision = oracle_match_decision(request, entries)
+    assert decision["status"] == "PENDING_BLIND_ORACLE_REVIEW"
+    assert decision["selected_oracle_id"] is None
+    assert len(decision["candidates"]) == 2

@@ -12,6 +12,7 @@ from energy_mvp.physical_diagnostics import (
     physical_differential_template,
     rank_discriminating_measurements,
     validate_physical_differential,
+    validate_epistemic_decision_semantics,
 )
 
 
@@ -166,3 +167,44 @@ def test_measurement_rejects_non_boolean_technician_flag() -> None:
     payload["technician_required"] = "false"
     with pytest.raises(ValueError, match="booléen"):
         diagnostics.measurement_from_dict(payload)
+
+
+def _epistemic(decision: str, **overrides: object) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "decision": decision,
+        "abnormal_phenomenon_status": "CONFIRMED",
+        "legitimate_operation_explains_observation": False,
+        "physical_cause_distinguished": True,
+        "decision_required_blocked": False,
+        "data_quality_blocks_qualification": False,
+        "evidence_summary": ["Une observation directement discriminante élimine les alternatives plausibles."],
+        "remaining_competing_explanations": [],
+    }
+    payload.update(overrides)
+    return payload
+
+
+def test_sparse_but_discriminating_evidence_can_support_strong_claim() -> None:
+    validate_epistemic_decision_semantics(_epistemic("CAUSE_CONFIRMED"))
+
+
+def test_rich_evidence_with_competing_causes_requires_cause_uncertain_not_overclaim() -> None:
+    validate_epistemic_decision_semantics(_epistemic(
+        "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+        physical_cause_distinguished=False,
+        remaining_competing_explanations=["Deux mécanismes restent compatibles avec les observations riches."],
+    ))
+
+
+def test_legitimate_operation_remains_normal_operation() -> None:
+    validate_epistemic_decision_semantics(_epistemic(
+        "NORMAL_OPERATION",
+        abnormal_phenomenon_status="NOT_CONFIRMED",
+        legitimate_operation_explains_observation=True,
+        physical_cause_distinguished=False,
+    ))
+
+
+def test_insufficient_information_requires_a_decision_blocker() -> None:
+    with pytest.raises(ValueError, match="bloque la décision"):
+        validate_epistemic_decision_semantics(_epistemic("INSUFFICIENT_INFORMATION"))

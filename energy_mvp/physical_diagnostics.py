@@ -29,6 +29,10 @@ RISK_LEVELS = frozenset({"NEGLIGIBLE", "LOW", "MODERATE", "HIGH"})
 SERVICE_DEMAND_STATUSES = frozenset({"CHANGED", "UNCHANGED", "UNKNOWN", "NOT_APPLICABLE"})
 EFFICIENCY_STATUSES = frozenset({"CHANGED", "UNCHANGED", "UNKNOWN", "NOT_IDENTIFIABLE"})
 COMMAND_FEEDBACK_STATUSES = frozenset({"CONSISTENT", "MISMATCHED", "UNKNOWN", "NOT_APPLICABLE"})
+BENCHMARK_DECISIONS = frozenset({
+    "NORMAL_OPERATION", "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "CAUSE_PROBABLE",
+    "CAUSE_CONFIRMED", "INSUFFICIENT_INFORMATION", "DATA_QUALITY_BLOCKER",
+})
 
 _INFORMATION_VALUE_SCORES = {
     "DIRECT_PHYSICAL_DISCRIMINATOR": 60,
@@ -309,6 +313,40 @@ def describe_evidence_boundaries(
     }
 
 
+def validate_epistemic_decision_semantics(payload: Mapping[str, Any]) -> None:
+    """Checks consistency of an analyst-declared decision without choosing it."""
+    expected = {
+        "decision", "abnormal_phenomenon_status", "legitimate_operation_explains_observation",
+        "physical_cause_distinguished", "decision_required_blocked",
+        "data_quality_blocks_qualification", "evidence_summary",
+        "remaining_competing_explanations",
+    }
+    if set(payload) != expected:
+        raise ValueError("Le contrat épistémique de décision est incomplet.")
+    decision = payload.get("decision")
+    if decision not in BENCHMARK_DECISIONS:
+        raise ValueError("Décision benchmark inconnue.")
+    abnormal = payload.get("abnormal_phenomenon_status")
+    if abnormal not in {"CONFIRMED", "NOT_CONFIRMED", "UNKNOWN"}:
+        raise ValueError("Le statut du phénomène anormal est invalide.")
+    for field in ("legitimate_operation_explains_observation", "physical_cause_distinguished", "decision_required_blocked", "data_quality_blocks_qualification"):
+        if not isinstance(payload.get(field), bool):
+            raise ValueError(f"{field} doit être booléen.")
+    _text_list(payload.get("evidence_summary"), field="evidence_summary", minimum=1)
+    remaining = _text_list(payload.get("remaining_competing_explanations"), field="remaining_competing_explanations")
+    if decision in {"CAUSE_PROBABLE", "CAUSE_CONFIRMED"} and abnormal != "CONFIRMED":
+        raise ValueError("Une cause probable ou confirmée exige un phénomène anormal confirmé.")
+    if decision == "NORMAL_OPERATION" and (abnormal == "CONFIRMED" or not payload["legitimate_operation_explains_observation"]):
+        raise ValueError("NORMAL_OPERATION exige une explication opérationnelle légitime sans anomalie confirmée.")
+    if decision == "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN":
+        if abnormal != "CONFIRMED" or payload["physical_cause_distinguished"] or not remaining:
+            raise ValueError("Cette décision exige une anomalie confirmée et des causes concurrentes non départagées.")
+    if decision == "INSUFFICIENT_INFORMATION" and not payload["decision_required_blocked"]:
+        raise ValueError("INSUFFICIENT_INFORMATION exige que l'information manquante bloque la décision requise.")
+    if decision == "DATA_QUALITY_BLOCKER" and not payload["data_quality_blocks_qualification"]:
+        raise ValueError("DATA_QUALITY_BLOCKER exige un blocage de qualification déclaré.")
+
+
 def _knowledge_root() -> Path:
     return Path(__file__).resolve().parents[1] / "knowledge" / "physical_diagnostics"
 
@@ -384,6 +422,9 @@ def physical_reasoning_contract() -> dict[str, Any]:
         "energy_chain_required_for_major_findings": True,
         "service_demand_before_efficiency_claim": True,
         "command_vs_actual_feedback_considered": True,
+        "maximum_justified_claim_required": True,
+        "data_quantity_is_not_evidence_strength": True,
+        "decision_semantics_validated_as_analyst_declarations": True,
         "physical_differential_fields": [
             "cause", "mechanism", "supporting_evidence", "contrary_evidence",
             "expected_observables", "best_discriminating_measurement",
