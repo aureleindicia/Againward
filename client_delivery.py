@@ -32,6 +32,7 @@ DECISION_LABELS = {
 }
 EVIDENCE_LABELS = {"HIGH": "Fort", "MEDIUM": "Modéré", "LOW": "Limité", "NOT_CALIBRATED": "Non calibré"}
 SAVING_STATUS = {"POTENTIAL", "EXPECTED", "VERIFIED"}
+_OPERATION_CONTEXT_MIN_COVERAGE = 0.80
 _FORBIDDEN_NARRATIVE = re.compile(r"(?:\b(?:verified savings|économie vérifiée|act_now|investigate_first)\b|\b(?:find|art|ds|gbe|dec|act|eff|rel|cons)-[a-z0-9-]+\b|/(?:data|home|storage)/|\b[a-f0-9]{32,}\b)", re.IGNORECASE)
 _CARD_CLAIM_TYPES = {
     "what_we_found": "OBSERVATION",
@@ -308,30 +309,41 @@ class _ClientChartCanvas:
         path.write_bytes(png)
 
 
-def _downsample_binary(values: list[float], target: int) -> list[bool]:
-    if len(values) <= target:
-        return [bool(item) for item in values]
-    return [any(values[index * len(values) // target:(index + 1) * len(values) // target]) for index in range(target)]
+def _downsample_operation(values: list[bool | None], target: int) -> list[bool | None]:
+    """Conserve `UNKNOWN` : aucune valeur manquante ne devient inactive."""
+    groups = [[item] for item in values] if len(values) <= target else [values[index * len(values) // target:(index + 1) * len(values) // target] for index in range(target)]
+    result: list[bool | None] = []
+    for group in groups:
+        known = [item for item in group if item is not None]
+        if any(item is True for item in known):
+            result.append(True)
+        elif len(known) == len(group):
+            result.append(False)
+        else:
+            result.append(None)
+    return result
 
 
-def _write_operation_context_chart(values: list[float], operation: list[float], path: Path, *, title: str) -> None:
-    """Affiche l'état binaire par bandes, jamais par interpolation continue."""
+def _write_operation_context_chart(values: list[float], operation: list[bool | None] | None, path: Path, *, title: str) -> None:
+    """Affiche l'état opérationnel prouvé; `None` reste inconnu, jamais inactif."""
     width, height, left, right, top, bottom = 900, 360, 52, 18, 20, 36
     plot_width, plot_height = width - left - right, height - top - bottom
     if not values or not all(math.isfinite(item) for item in values):
         raise ValueError("Le graphique opérationnel exige une énergie finie.")
     bins = min(plot_width, len(values))
     energy = [sum(values[index * len(values) // bins:(index + 1) * len(values) // bins]) / max(1, len(values[index * len(values) // bins:(index + 1) * len(values) // bins])) for index in range(bins)]
-    activity = _downsample_binary(operation, bins)
+    activity = None if operation is None else _downsample_operation(operation, bins)
     minimum, maximum = min(0.0, min(energy)), max(energy)
     if math.isclose(minimum, maximum):
         maximum += 1.0
     maximum += (maximum - minimum) * .05
     canvas = _ClientChartCanvas(width, height)
-    for index, active in enumerate(activity):
-        x0 = left + round(plot_width * index / bins)
-        x1 = left + round(plot_width * (index + 1) / bins)
-        canvas.rect(x0, top, x1, top + plot_height, (255, 244, 218) if active else (244, 247, 250))
+    if activity is not None:
+        for index, active in enumerate(activity):
+            x0 = left + round(plot_width * index / bins)
+            x1 = left + round(plot_width * (index + 1) / bins)
+            color = (255, 244, 218) if active is True else (244, 247, 250) if active is False else (237, 237, 245)
+            canvas.rect(x0, top, x1, top + plot_height, color)
     for step in range(6):
         y = top + round(plot_height * step / 5)
         canvas.line(left, y, width - right, y, (220, 225, 230))
@@ -347,6 +359,27 @@ def _write_operation_context_chart(values: list[float], operation: list[float], 
     canvas.save(path, title)
 
 
+def _operation_context_source(dataset: dict[str, Any]) -> tuple[str, float]:
+    """Résout uniquement une source Goal A explicitement identifiée, jamais une colonne vide par défaut."""
+    lineage = dataset.get("field_lineage")
+    coverage = dataset.get("data_quality", {}).get("production_coverage_ratio")
+    if not isinstance(lineage, dict) or "production" not in lineage:
+        raise ValueError("ENERGY_WITH_OPERATION_STATUS exige une source Goal A explicite de production ou d'activité.")
+    if not isinstance(coverage, (int, float)) or not math.isfinite(float(coverage)) or float(coverage) < _OPERATION_CONTEXT_MIN_COVERAGE:
+        raise ValueError("ENERGY_WITH_OPERATION_STATUS exige une couverture de production suffisante; utilisez ENERGY_SERIES sans contexte opérationnel.")
+    return "production", float(coverage)
+
+
+def _production_status(value: Any) -> bool | None:
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return None
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return None
+    return numeric > 0 if math.isfinite(numeric) else None
+
+
 def _resolve_chart_requests(case: Path, narrative: dict[str, Any], output_dir: Path) -> list[dict[str, Any]]:
     canonical = _read(case / "derived" / "canonical_case.json")
     datasets = {item["dataset_id"]: item for item in canonical.get("available_datasets", [])}
@@ -360,8 +393,11 @@ def _resolve_chart_requests(case: Path, narrative: dict[str, Any], output_dir: P
         title = _require_text(request.get("title"), "chart/title", max_length=140)
         purpose = _require_text(request.get("purpose"), "chart/purpose", max_length=260)
         source = case / str(dataset["normalized_file"])
+        context_field, context_coverage = (None, None)
+        if request["type"] == "ENERGY_WITH_OPERATION_STATUS":
+            context_field, context_coverage = _operation_context_source(dataset)
         values: list[float] = []
-        operation: list[float] = []
+        operation: list[bool | None] = []
         timestamps: list[str] = []
         with source.open(encoding="utf-8", newline="") as handle:
             for row in csv.DictReader(handle):
@@ -369,20 +405,21 @@ def _resolve_chart_requests(case: Path, narrative: dict[str, Any], output_dir: P
                 try:
                     values.append(float(raw))
                     timestamps.append(str(row.get("timestamp", "")))
-                    raw_operation = row.get("production_active") or row.get("production")
-                    operation.append(1.0 if raw_operation not in {None, "", "0", "0.0"} else 0.0)
+                    if context_field is not None:
+                        operation.append(_production_status(row.get(context_field)))
                 except (TypeError, ValueError):
                     continue
         if len(values) < 2:
             raise ValueError("Un graphique client exige au moins deux observations numériques.")
         filename = f"chart_{index:02d}.png"
         path = output_dir / "charts" / filename
-        has_binary_context = request["type"] == "ENERGY_WITH_OPERATION_STATUS" and len(operation) == len(values)
+        has_binary_context = context_field is not None and len(operation) == len(values)
         if has_binary_context:
             _write_operation_context_chart(values, operation, path, title=title)
         else:
-            _write_operation_context_chart(values, [0.0] * len(values), path, title=title)
-        charts.append({"chart_id": f"CHART-{index:02d}", "type": request["type"], "title": title, "purpose": purpose, "caption": purpose, "dataset_ref": dataset["dataset_id"], "relative_path": f"charts/{filename}", "claim_refs": [dataset["dataset_id"]], "axis_x": "Chronologie des relevés" if not timestamps else f"Chronologie des relevés ({timestamps[0]} à {timestamps[-1]})", "axis_y": "Énergie par intervalle (kWh)" if dataset.get("measurement_type") != "POWER" else "Puissance (kW)", "legend": "Courbe bleue : consommation" + (" ; bandes orange pâle : activité/production active ; bandes grises : inactive" if has_binary_context else ""), "operation_encoding": "BACKGROUND_BANDS" if has_binary_context else "NONE", "explains": purpose})
+            _write_operation_context_chart(values, None, path, title=title)
+        unknown_count = sum(item is None for item in operation) if has_binary_context else 0
+        charts.append({"chart_id": f"CHART-{index:02d}", "type": request["type"], "title": title, "purpose": purpose, "caption": purpose, "dataset_ref": dataset["dataset_id"], "relative_path": f"charts/{filename}", "claim_refs": [dataset["dataset_id"]], "axis_x": "Chronologie des relevés" if not timestamps else f"Chronologie des relevés ({timestamps[0]} à {timestamps[-1]})", "axis_y": "Énergie par intervalle (kWh)" if dataset.get("measurement_type") != "POWER" else "Puissance (kW)", "legend": "Courbe bleue : consommation" + (" ; bandes orange pâle : activité/production active ; bandes grises : inactive" + (" ; bandes violettes pâles : statut inconnu" if unknown_count else "") if has_binary_context else ""), "operation_encoding": "BACKGROUND_BANDS" if has_binary_context else "NONE", "operation_context": None if not has_binary_context else {"source_field": context_field, "coverage_ratio": context_coverage, "unknown_interval_count": unknown_count}, "explains": purpose})
     return charts
 
 

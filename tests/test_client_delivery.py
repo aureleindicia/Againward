@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import copy
+import csv
 import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from client_delivery import _range_or_exact, build_client_report_model, render_client_report_pdf, validate_client_report_model
+from client_delivery import _range_or_exact, _resolve_chart_requests, build_client_report_model, render_client_report_pdf, validate_client_report_model
 from workspace.generate_goal_c_1_fixtures import generate
 
 
@@ -118,6 +119,59 @@ class ClientDeliveryC1Tests(unittest.TestCase):
             self.assertEqual(chart["operation_encoding"], "BACKGROUND_BANDS")
             self.assertIn("bandes orange", chart["legend"])
             self.assertTrue((cases["C-A"] / "outputs/client_report" / chart["relative_path"]).is_file())
+
+    @staticmethod
+    def _chart_request(chart_type: str, dataset_id: str) -> dict:
+        return {"chart_requests": [{"type": chart_type, "dataset_id": dataset_id, "title": "Consommation et contexte", "purpose": "Le graphique compare la consommation aux régimes réellement disponibles."}]}
+
+    def test_operation_context_requires_real_goal_a_source(self) -> None:
+        cases, temporary = self._fixtures()
+        with temporary:
+            case = cases["C-A"]
+            canonical_path = case / "derived/canonical_case.json"
+            canonical = json.loads(canonical_path.read_text(encoding="utf-8"))
+            dataset = canonical["available_datasets"][0]
+            dataset["field_lineage"].pop("production")
+            canonical_path.write_text(json.dumps(canonical), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "source Goal A explicite"):
+                _resolve_chart_requests(case, self._chart_request("ENERGY_WITH_OPERATION_STATUS", dataset["dataset_id"]), Path(temporary.name) / "no-context")
+
+    def test_missing_operational_values_remain_unknown_not_inactive(self) -> None:
+        cases, temporary = self._fixtures()
+        with temporary:
+            case = cases["C-A"]
+            canonical_path = case / "derived/canonical_case.json"
+            canonical = json.loads(canonical_path.read_text(encoding="utf-8"))
+            dataset = canonical["available_datasets"][0]
+            dataset["data_quality"]["production_coverage_ratio"] = 0.8
+            canonical_path.write_text(json.dumps(canonical), encoding="utf-8")
+            normalized = case / dataset["normalized_file"]
+            with normalized.open(encoding="utf-8", newline="") as handle:
+                rows = list(csv.DictReader(handle))
+                fields = list(rows[0])
+            rows[1]["production"] = ""
+            with normalized.open("w", encoding="utf-8", newline="") as handle:
+                writer = csv.DictWriter(handle, fieldnames=fields)
+                writer.writeheader()
+                writer.writerows(rows)
+            charts = _resolve_chart_requests(case, self._chart_request("ENERGY_WITH_OPERATION_STATUS", dataset["dataset_id"]), Path(temporary.name) / "unknown-status")
+            self.assertEqual(charts[0]["operation_context"]["unknown_interval_count"], 1)
+            self.assertIn("statut inconnu", charts[0]["legend"])
+            self.assertEqual(charts[0]["operation_encoding"], "BACKGROUND_BANDS")
+
+    def test_energy_only_chart_has_no_operational_bands_without_source(self) -> None:
+        cases, temporary = self._fixtures()
+        with temporary:
+            case = cases["C-A"]
+            canonical_path = case / "derived/canonical_case.json"
+            canonical = json.loads(canonical_path.read_text(encoding="utf-8"))
+            dataset = canonical["available_datasets"][0]
+            dataset["field_lineage"].pop("production")
+            canonical_path.write_text(json.dumps(canonical), encoding="utf-8")
+            charts = _resolve_chart_requests(case, self._chart_request("ENERGY_SERIES", dataset["dataset_id"]), Path(temporary.name) / "energy-only")
+            self.assertEqual(charts[0]["operation_encoding"], "NONE")
+            self.assertIsNone(charts[0]["operation_context"])
+            self.assertNotIn("activité/production", charts[0]["legend"])
 
     def test_sme_contextual_tradeoffs_are_specific(self) -> None:
         cases, temporary = self._fixtures()

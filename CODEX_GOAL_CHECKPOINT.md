@@ -390,3 +390,21 @@ Revue indépendante du bundle Goal C.2. Aucun nouveau goal produit n'est
 déclaré prêt par ce checkpoint.
 
 READY_FOR_INDEPENDENT_GOAL_C_2_REVIEW
+
+## Checkpoint Goal C.2.1 — operation-context chart integrity fix
+
+- Portée : micro-correctif du renderer Goal C. Aucun changement Goal A, Goal B
+  ou Candidate V2.1.
+- `ENERGY_WITH_OPERATION_STATUS` exige `field_lineage.production` Goal A et une
+  couverture `production_coverage_ratio` d'au moins 80 %; l'absence de donnée
+  n'est jamais rendue comme inactive.
+- Les valeurs opérationnelles manquantes restent `UNKNOWN` et reçoivent une
+  bande distincte, plutôt qu'une bande inactive. `ENERGY_SERIES` reste sans
+  bande ni légende opérationnelle.
+- Tests ciblés : source valide, source absente, valeur manquante et série
+  énergie seule. Validation complète : `pytest -q tests prospecting/tests`
+  **234 passed** en 36,48 s.
+- Contrôle PDF minimal : un cas avec production source affiche les bandes; un
+  cas sans provenance opérationnelle n'affiche que la courbe énergétique.
+
+READY_FOR_FINAL_GOAL_C_FREEZE_REVIEW
