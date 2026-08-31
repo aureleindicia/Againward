@@ -18,9 +18,12 @@ python -m pytest -q tests prospecting/tests \
 ```
 
 - Résultat final : **313 passed in 108.34s** ; 255 tests production sont collectés sous `tests/`.
-- Commits Stage 4 :
+- Commits d’implémentation Stage 4 :
   - `33ee73c feat(stage4): integrate agentic evidence plane` ;
   - `dbfda45 test(stage4): harden evidence gates and benchmark matrix`.
+
+Les commits de clôture documentaire suivants sont consultables dans le journal Git sans être
+auto-référencés dans cette liste.
 
 ## Préservation des preuves gelées
 
