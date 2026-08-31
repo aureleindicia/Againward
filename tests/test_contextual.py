@@ -52,6 +52,39 @@ class ContextualFieldStoreTests(unittest.TestCase):
         kinds = {item.original_name: item.inferred_type for item in restored.fields}
         self.assertEqual(kinds, {"is_cleaning": "boolean", "event_time": "datetime"})
 
+    def test_transitional_row_store_v1_is_migrated_without_value_loss(self) -> None:
+        path = self.csv_file(
+            "timestamp,energy_kwh,machine_mode\n"
+            "2026-01-01,5,idle\n2026-01-02,6,run\n"
+        )
+        store = load_data(path).auxiliary
+        serialized = store.to_dict()
+        legacy_rows = []
+        for source_row in store.source_rows:
+            legacy_rows.append({
+                "source_row": source_row,
+                "values": {
+                    key: {
+                        "raw": store.values_for_row(source_row, raw=True)[key],
+                        "value": store.values_for_row(source_row)[key],
+                    }
+                    for key in store.field_keys()
+                },
+            })
+        v1 = {
+            "schema_version": 1,
+            "maximum_fields": serialized["maximum_fields"],
+            "maximum_value_characters": serialized["maximum_value_characters"],
+            "fields": serialized["fields"],
+            "rows": legacy_rows,
+        }
+
+        restored = ContextualFieldStore.from_dict(v1)
+
+        self.assertEqual(restored.source_rows, store.source_rows)
+        self.assertEqual(restored.raw_columns, store.raw_columns)
+        self.assertEqual(restored.typed_columns, store.typed_columns)
+
     def test_auxiliary_change_makes_a_duplicate_conflicting(self) -> None:
         path = self.csv_file(
             "timestamp,energy_kwh,machine_mode\n"
