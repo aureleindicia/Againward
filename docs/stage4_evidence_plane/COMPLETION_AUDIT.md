@@ -17,7 +17,7 @@ python -m pytest -q tests prospecting/tests \
   research/indicia_rnd research/indicia_rnd_stage2 research/indicia_rnd_stage3
 ```
 
-- Résultat final : **312 passed in 106.51s** ; 254 tests production sont collectés sous `tests/`.
+- Résultat final : **313 passed in 108.34s** ; 255 tests production sont collectés sous `tests/`.
 - Commits Stage 4 :
   - `33ee73c feat(stage4): integrate agentic evidence plane` ;
   - `dbfda45 test(stage4): harden evidence gates and benchmark matrix`.
@@ -42,7 +42,7 @@ Stage 3 restent classés recherche/régression, jamais preuve de fiabilité prod
 | Exigence | Preuve autoritative | Verdict |
 |---|---|---|
 | Plan avant gros changements | `IMPLEMENTATION_PLAN.md`, baseline et cartographie datées avant le code production | PASS |
-| Noyau typé inchangé | `Reading`, conversions et 254 tests production ; tests d’unités historiques verts | PASS |
+| Noyau typé inchangé | `Reading`, conversions et 255 tests production ; tests d’unités historiques verts | PASS |
 | Colonnes inconnues conservées | `ContextualFieldStore`, intégration `io.load_data`, `tests/test_contextual.py` | PASS |
 | Typage/missing/malformed/cardinalité | tests booléen, numérique, catégoriel, datetime, mixed, absent, haute cardinalité | PASS |
 | Sérialisation/provenance | round-trip magasin v2/v1, `source_rows`, raw/typed columns, hash EvidenceDataset | PASS |
@@ -65,7 +65,7 @@ Stage 3 restent classés recherche/régression, jamais preuve de fiabilité prod
 | Rapport client simple | renderer non couplé ; exécution CLI réelle produit rapport Markdown/JSON non vides | PASS |
 | Performance bornée | probe 10k/100k/500k ; fenêtre capée ; O(n²) Support refusé hors budget | PASS |
 | Benchmark modèle | matrice 8 conditions préparée/testée ; statut `PREPARED_NOT_RUN`, scores nuls | PASS |
-| Suite historique | 312/312 verte, verrou HOLDOUT compris | PASS |
+| Suite historique | 313/313 verte, verrou HOLDOUT compris | PASS |
 
 ## Changements de production
 
@@ -166,7 +166,7 @@ existants ne sont jamais écrasés ; aucune migration destructive ou downgrade n
 
 ## Validation et portée de preuve
 
-- Développement/régression : 312 tests, shadow sur fixtures du dépôt, tests Stage 3 réutilisés
+- Développement/régression : 313 tests, shadow sur fixtures du dépôt, tests Stage 3 réutilisés
   uniquement comme régressions historiques.
 - Ingénierie : rapport client E2E, comparaison preferred/legacy, probe 10k/100k/500k.
 - Genuinely unseen : **aucune nouvelle preuve Stage 4**.
