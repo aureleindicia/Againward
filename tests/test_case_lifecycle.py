@@ -11,8 +11,11 @@ from energy_mvp.case_lifecycle import (
     publish_minimum_questions,
     record_client_answers,
     validate_adversarial_review,
+    validate_investigation_document,
 )
+from energy_mvp.evidence_cli import execute_case_query
 from energy_mvp.investigation import information_request
+from energy_mvp.workflow import prepare_investigation
 
 
 def _request() -> dict[str, object]:
@@ -140,6 +143,79 @@ class CaseLifecycleTests(unittest.TestCase):
         review["reviewed_hypotheses"][0]["final_decision"] = "CONFIRME"
         with self.assertRaisesRegex(ValueError, "ne peut rester CONFIRME"):
             validate_adversarial_review(review, investigation)
+
+    def test_stage4_retained_hypothesis_requires_evidence_references(self) -> None:
+        investigation = {
+            "ground_truth_used": False,
+            "evidence_plane_session": "session-test",
+            "hypotheses": [_hypothesis("A_CONSERVER_AVEC_RESERVES", request=True)],
+        }
+
+        with self.assertRaisesRegex(ValueError, "preuves Evidence Plane"):
+            validate_investigation_document(investigation)
+
+        investigation["hypotheses"][0]["evidence_query_ids"] = ["q1"]
+        investigation["hypotheses"][0]["evidence_handles"] = ["evh-test"]
+        validate_investigation_document(investigation)
+
+    def test_stage4_delivery_gate_requires_valid_agent_finding_provenance(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.csv"
+            source.write_text(
+                "timestamp,energy_kwh,machine_mode\n"
+                "2026-01-01,10,idle\n2026-01-02,11,run\n",
+                encoding="utf-8",
+            )
+            case = root / "case"
+            state = prepare_investigation(source, case)
+            request = root / "request.json"
+            request.write_text(json.dumps({
+                "schema_version": "indicia-evidence-query-v1",
+                "query_id": "q1",
+                "dataset_id": state["evidence_plane"]["dataset_id"],
+                "operation": "describe_schema",
+                "arguments": {},
+                "purpose": "Inventorier les preuves avant de conserver une piste.",
+            }), encoding="utf-8")
+            response = execute_case_query(case, request)
+            handle = response["retrieval_handles"][0]["handle"]
+            hypothesis = _hypothesis("A_CONSERVER_AVEC_RESERVES", request=True)
+            hypothesis["evidence_query_ids"] = ["q1"]
+            hypothesis["evidence_handles"] = [handle]
+            investigation = {
+                "ground_truth_used": False,
+                "evidence_plane_session": json.loads(
+                    (case / "evidence_query_session.json").read_text()
+                )["session_id"],
+                "hypotheses": [hypothesis],
+            }
+            (case / "investigation.json").write_text(json.dumps(investigation), encoding="utf-8")
+            (case / "review.json").write_text(json.dumps(_review()), encoding="utf-8")
+            (case / "report.md").write_text("# Rapport\n", encoding="utf-8")
+            (case / "human_review.json").write_text(json.dumps({
+                "status": "approved", "approved_for_delivery": True,
+                "reviewer_role": "ingénieur énergie",
+                "reviewed_at_utc": "2026-08-31T12:00:00+00:00",
+            }), encoding="utf-8")
+
+            blocked = evaluate_delivery_gate(case)
+            self.assertIn("agent_findings.json", " ".join(blocked["blocking_reasons"]))
+
+            (case / "agent_findings.json").write_text(json.dumps({
+                "schema_version": "indicia-agent-findings-v1",
+                "ground_truth_used": False,
+                "findings": [{
+                    "finding_id": "F01",
+                    "status": "A_CONSERVER_AVEC_RESERVES",
+                    "claim_or_abstention": "Signal à vérifier.",
+                    "evidence_query_ids": ["q1"],
+                    "evidence_handles": [handle],
+                    "alternative_explanations_tested": ["qualité des données"],
+                }],
+            }), encoding="utf-8")
+
+            self.assertTrue(evaluate_delivery_gate(case)["ready_for_delivery"])
 
 
 if __name__ == "__main__":

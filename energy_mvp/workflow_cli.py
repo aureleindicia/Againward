@@ -32,6 +32,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--interval-minutes", type=float)
     parser.add_argument("--timestamp-position", choices=("auto", "start", "end"), default="auto")
     parser.add_argument("--site-timezone", help="Fuseau IANA; remplace celui de intake.json")
+    parser.add_argument(
+        "--evidence-plane-mode",
+        choices=("preferred", "shadow", "legacy"),
+        default="preferred",
+        help="Migration Stage 4; legacy constitue le rollback immédiat.",
+    )
+    parser.add_argument("--maximum-auxiliary-fields", type=int, default=128)
+    parser.add_argument("--maximum-auxiliary-value-characters", type=int, default=4096)
     return parser
 
 
@@ -59,6 +67,8 @@ def main(argv: list[str] | None = None) -> int:
                 "interval_minutes": args.interval_minutes,
                 "timestamp_position": args.timestamp_position,
                 "site_timezone": args.site_timezone,
+                "maximum_auxiliary_fields": args.maximum_auxiliary_fields,
+                "maximum_auxiliary_value_characters": args.maximum_auxiliary_value_characters,
             }.items() if value is not None
         }
         state = prepare_investigation(
@@ -67,6 +77,7 @@ def main(argv: list[str] | None = None) -> int:
             intake=intake,
             default_tariff=args.price_per_kwh,
             load_options=load_options,
+            evidence_plane_mode=args.evidence_plane_mode,
         )
     except (OSError, ValueError, DataError, json.JSONDecodeError) as exc:
         print(f"Erreur: {exc}", file=sys.stderr)

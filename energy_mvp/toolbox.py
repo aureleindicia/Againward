@@ -46,6 +46,21 @@ def inspect_dataset(data: LoadedData) -> dict[str, Any]:
         "measurement_kind": data.measurement_kind.value,
         "source_units": dict(data.source_units),
         "columns": dict(data.columns),
+        "auxiliary_fields": [
+            {
+                "key": item.key,
+                "original_name": item.original_name,
+                "normalized_name": item.normalized_name,
+                "source_column_index": item.source_column_index,
+                "inferred_type": item.inferred_type,
+                "present_count": item.present_count,
+                "missing_count": item.missing_count,
+                "distinct_count": item.distinct_count,
+                "high_cardinality": item.high_cardinality,
+                "truncated_value_count": item.truncated_value_count,
+            }
+            for item in data.auxiliary.fields
+        ],
         "frequency_minutes": data.quality.inferred_frequency_minutes,
         "coverage_ratio": data.quality.coverage_ratio,
         "quality": {

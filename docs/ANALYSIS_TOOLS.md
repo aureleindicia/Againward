@@ -292,6 +292,67 @@ adversariale, le rapport et l'approbation humaine.
   review humaine reste obligatoire.
 - Exemple : `python manage_investigation.py check workspaces/usine_01/processed`.
 
+## Evidence Plane Stage 4
+
+`prepare_investigation()` crée par défaut `evidence_dataset.json`, `evidence_card.json`,
+`evidence_query_contract.json` et `evidence_query_session.json`. Les colonnes non canoniques sont
+conservées sous des clés internes stables telles que `aux_0007_machine_mode`; le nom original,
+l’index source, le type prudent, la missingness, la cardinalité et les éventuelles troncatures
+restent disponibles. Le magasin auxiliaire ne fournit jamais implicitement un prédicteur à un
+calcul physique.
+
+### describe_schema et raw_slice
+
+- Objectif : découvrir les champs puis récupérer une tranche exacte liée à un handle.
+- Entrée : dataset/session du dossier; champs, offset, limite 1–200 et représentation typée ou
+  auxiliaire brute.
+- Sortie : profil de schéma ou lignes avec `source_row`, hash et provenance.
+- Hypothèses : Codex sait pourquoi cette tranche peut départager ses hypothèses.
+- Limitations : une tranche n’est pas représentative par elle-même; les valeurs physiques brutes
+  pré-normalisation ne sont pas reconstruites.
+- Exemple : `python query_evidence.py DOSSIER request.json`.
+
+### contrast_surface
+
+- Objectif : mesurer, champ par champ, ce qui change entre deux groupes choisis par Codex.
+- Entrée : champ de groupe, valeurs gauche/droite, champs à comparer et effectif minimal.
+- Sortie : effets robustes numériques, distances catégorielles, missingness et handles de cohortes.
+- Hypothèses : les groupes ont une signification analytique et les facteurs confondants seront
+  testés séparément.
+- Limitations : classement exploratoire sans correction de multiplicité; aucune cause ou anomalie.
+
+### support_atlas
+
+- Objectif : exposer la géométrie de comparabilité entre cohortes, sans lire l’outcome interdit.
+- Entrée : split référence/cible, 1–12 dimensions typées, tolérances justifiées, contrôles minimaux.
+- Sortie : support complet, séquentiel, isolé et leave-one-out, avec nombre exact de paires.
+- Hypothèses : dimensions et tolérances décrivent réellement des régimes comparables.
+- Limitations : calcul quadratique refusé au-delà du budget; le support observable ne prouve pas
+  une relation causale.
+
+### boundary_ledger
+
+- Objectif : proposer des frontières multivariées à investiguer dans un ordre choisi.
+- Entrée : champ d’ordre complet, champs contextuels, fenêtres et budgets de candidats.
+- Sortie : positions classées, co-mouvements et changements de missingness, plus handles avant/après.
+- Hypothèses : l’ordre est pertinent et les alternatives saisonnières, opérationnelles et de
+  qualité de données seront examinées.
+- Limitations : une frontière forte n’est pas un changement anormal confirmé.
+
+### relationship_loss_certificate
+
+- Objectif : déclarer ce qu’une carte compacte n’a pas résumé.
+- Entrée : relations effectivement couvertes et limite d’exemples omis.
+- Sortie : nombre de relations possibles/couvertes/omises et accès de récupération exécutable.
+- Hypothèses : aucune; le certificat empêche seulement de confondre inventaire marginal et preuve
+  relationnelle.
+- Limitations : il ne choisit pas les relations pertinentes à la place de Codex.
+
+Toutes les requêtes utilisent un ensemble d’opérations fermé, des arguments validés et des budgets
+cumulés d’appels, lignes, octets, handles et comparaisons. Aucun code arbitraire n’est exécuté.
+`agent_findings.json` accepte `ABSTAIN` ou `INSUFFISAMMENT_ETAYE`; une conclusion conservée doit
+citer des requêtes et handles valides et au moins une explication alternative testée.
+
 
 ## Outils physiques Candidate V2
 

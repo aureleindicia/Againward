@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
+from .evidence_protocol import EvidenceQuerySession, validate_finding_provenance
 from .investigation import next_information_request, validate_follow_up_logic
 from .recommendations import validate_recommendations
 
@@ -78,6 +79,7 @@ def validate_investigation_document(payload: dict[str, Any]) -> None:
     if not isinstance(hypotheses, list):
         raise ValueError("investigation.json: hypotheses doit être une liste.")
     identifiers: set[str] = set()
+    evidence_plane_enabled = bool(payload.get("evidence_plane_session"))
     for hypothesis in hypotheses:
         identifier = hypothesis.get("hypothesis_id")
         if not isinstance(identifier, str) or not identifier.strip() or identifier in identifiers:
@@ -108,6 +110,22 @@ def validate_investigation_document(payload: dict[str, Any]) -> None:
             raise ValueError(f"{identifier}: confiance non justifiée.")
         if not str(hypothesis.get("physical_cause_status", "")).strip():
             raise ValueError(f"{identifier}: statut de cause physique absent.")
+        if evidence_plane_enabled:
+            query_ids = hypothesis.get("evidence_query_ids", [])
+            handles = hypothesis.get("evidence_handles", [])
+            if not isinstance(query_ids, list) or any(
+                not isinstance(item, str) or not item.strip() for item in query_ids
+            ):
+                raise ValueError(f"{identifier}: evidence_query_ids est invalide.")
+            if not isinstance(handles, list) or any(
+                not isinstance(item, str) or not item.strip() for item in handles
+            ):
+                raise ValueError(f"{identifier}: evidence_handles est invalide.")
+            if hypothesis.get("decision") in {"CONFIRME", "A_CONSERVER_AVEC_RESERVES"}:
+                if not query_ids or not handles:
+                    raise ValueError(
+                        f"{identifier}: une conclusion conservée exige des preuves Evidence Plane."
+                    )
     validate_follow_up_logic(hypotheses)
     recommendations = payload.get("recommendations", [])
     if not isinstance(recommendations, list):
@@ -345,6 +363,23 @@ def evaluate_delivery_gate(case_directory: str | Path) -> dict[str, Any]:
                     reasons.append(f"Revue humaine incomplète: {field} absent.")
         except ValueError as exc:
             reasons.append(str(exc))
+    evidence_artifacts: tuple[str, ...] = ()
+    if (root / "evidence_query_session.json").is_file():
+        evidence_artifacts = ("evidence_query_session.json", "agent_findings.json")
+        if not (root / "agent_findings.json").is_file():
+            reasons.append(
+                "Fichier requis absent pour le chemin Evidence Plane: agent_findings.json."
+            )
+        else:
+            try:
+                session = EvidenceQuerySession.from_dict(
+                    _read_json(root / "evidence_query_session.json")
+                )
+                validate_finding_provenance(
+                    _read_json(root / "agent_findings.json"), session
+                )
+            except ValueError as exc:
+                reasons.append(str(exc))
     payload = {
         "schema_version": 1,
         "evaluated_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -353,7 +388,7 @@ def evaluate_delivery_gate(case_directory: str | Path) -> dict[str, Any]:
         "blocking_reasons": reasons,
         "artifact_hashes": {
             name: _sha256(root / name)
-            for name in required if (root / name).is_file()
+            for name in required + evidence_artifacts if (root / name).is_file()
         },
     }
     _write_json(root / "delivery_gate.json", payload)

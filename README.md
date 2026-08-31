@@ -60,8 +60,8 @@ Le rapport automatique et son JSON contiennent des indicateurs fiables et des **
 candidats**. Ils ne constituent pas encore le rapport final de Codex.
 
 Pour un dataset inconnu, utiliser plutôt le workflow générique. Il prépare un paquet local
-avec empreinte de la source, questionnaire, inspection, limites de capacité et signaux candidats,
-sans hypothèse Hxx ni date issue de la démo :
+avec empreinte de la source, questionnaire, inspection, limites de capacité, signaux candidats
+legacy et Evidence Plane interactif, sans hypothèse Hxx ni date issue de la démo :
 
 ```sh
 python investigate.py workspaces/usine_01/input/mesures.csv \
@@ -70,8 +70,28 @@ python investigate.py workspaces/usine_01/input/mesures.csv \
   --price-per-kwh 0.175
 ```
 
-Codex conduit ensuite l'exploration dans ce dossier et écrit `investigation.json`, `review.json`
-et `report.md`. Le cycle client reste explicite et vérifiable :
+Les colonnes opérationnelles inconnues sont conservées dans un magasin contextuel séparé du
+noyau physique. Elles sont découvrables dans `evidence_card.json` mais ne contaminent jamais les
+calculs kW/kWh. Codex choisit ensuite ses tests via un protocole fini et borné. Par exemple, après
+avoir lu `evidence_query_contract.json` :
+
+```sh
+python query_evidence.py workspaces/usine_01/processed request.json
+```
+
+Chaque réponse contient hashes, provenance, limites relationnelles et handles de récupération,
+avec `decision: null`. Les appels répétés ou hors budget sont refusés et tracés. Les modes de
+migration sont `preferred` (défaut), `shadow`, et `legacy` pour le rollback immédiat :
+
+```sh
+python investigate.py donnees.csv --output-dir workspaces/rollback/processed \
+  --evidence-plane-mode legacy
+```
+
+Codex conduit ensuite l'exploration dans ce dossier et écrit `investigation.json`, `review.json`,
+`agent_findings.json` et `report.md`. Une conclusion Stage 4 conservée référence obligatoirement
+les query IDs et handles qui l’étayent ; une abstention explicite est valide. Le cycle client
+reste explicite et vérifiable :
 
 ```sh
 # Publie seulement la prochaine question minimale de chaque piste incertaine

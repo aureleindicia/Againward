@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from bisect import bisect_left
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -60,6 +61,141 @@ class DataQuality:
     processing_log: list[str] = field(default_factory=list)
 
 
+@dataclass(frozen=True, slots=True)
+class AuxiliaryFieldDefinition:
+    """Décrit une colonne non canonique sans lui attribuer de sens métier."""
+
+    key: str
+    original_name: str
+    normalized_name: str
+    source_column_index: int
+    inferred_type: str
+    present_count: int
+    missing_count: int
+    distinct_count: int
+    high_cardinality: bool
+    truncated_value_count: int = 0
+
+
+@dataclass(slots=True)
+class ContextualFieldStore:
+    """Magasin auxiliaire séparé du noyau physique et lié aux lignes sources."""
+
+    fields: list[AuxiliaryFieldDefinition] = field(default_factory=list)
+    source_rows: list[int] = field(default_factory=list)
+    raw_columns: dict[str, list[Any]] = field(default_factory=dict)
+    typed_columns: dict[str, list[Any]] = field(default_factory=dict)
+    maximum_fields: int = 128
+    maximum_value_characters: int = 4096
+
+    def field_keys(self) -> list[str]:
+        return [item.key for item in self.fields]
+
+    def field(self, key: str) -> AuxiliaryFieldDefinition:
+        for item in self.fields:
+            if item.key == key:
+                return item
+        raise KeyError(key)
+
+    def values_for_row(self, source_row: int, *, raw: bool = False) -> dict[str, Any]:
+        index = bisect_left(self.source_rows, source_row)
+        if index >= len(self.source_rows) or self.source_rows[index] != source_row:
+            return {}
+        columns = self.raw_columns if raw else self.typed_columns
+        return {key: values[index] for key, values in columns.items()}
+
+    def signature(self, source_row: int) -> tuple[tuple[str, str], ...]:
+        """Signature brute stable utilisée pour éviter une déduplication destructive."""
+
+        values = self.values_for_row(source_row, raw=True)
+        return tuple((key, repr(value)) for key, value in sorted(values.items()))
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": 2,
+            "maximum_fields": self.maximum_fields,
+            "maximum_value_characters": self.maximum_value_characters,
+            "fields": [
+                {
+                    "key": item.key,
+                    "original_name": item.original_name,
+                    "normalized_name": item.normalized_name,
+                    "source_column_index": item.source_column_index,
+                    "inferred_type": item.inferred_type,
+                    "present_count": item.present_count,
+                    "missing_count": item.missing_count,
+                    "distinct_count": item.distinct_count,
+                    "high_cardinality": item.high_cardinality,
+                    "truncated_value_count": item.truncated_value_count,
+                }
+                for item in self.fields
+            ],
+            "source_rows": self.source_rows,
+            "raw_columns": self.raw_columns,
+            "typed_columns": self.typed_columns,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> ContextualFieldStore:
+        if payload.get("schema_version") not in {1, 2}:
+            raise ValueError("Version de magasin contextuel inconnue.")
+        fields_payload = payload.get("fields")
+        if not isinstance(fields_payload, list):
+            raise ValueError("Magasin contextuel invalide: fields est requis.")
+        fields = [AuxiliaryFieldDefinition(**item) for item in fields_payload]
+        known = {item.key for item in fields}
+        if payload.get("schema_version") == 1:
+            rows_payload = payload.get("rows")
+            if not isinstance(rows_payload, list):
+                raise ValueError("Magasin contextuel v1 invalide: rows est requis.")
+            source_rows: list[int] = []
+            raw_columns = {key: [] for key in known}
+            typed_columns = {key: [] for key in known}
+            for row in sorted(rows_payload, key=lambda item: item.get("source_row", -1)):
+                source_row = row.get("source_row")
+                values = row.get("values")
+                if not isinstance(source_row, int) or not isinstance(values, dict):
+                    raise ValueError("Ligne contextuelle invalide.")
+                if set(values) - known:
+                    raise ValueError("Clé contextuelle inconnue dans le magasin v1.")
+                source_rows.append(source_row)
+                for key in known:
+                    cell = values.get(key, {"raw": None, "value": None})
+                    if not isinstance(cell, dict) or set(cell) != {"raw", "value"}:
+                        raise ValueError("Cellule contextuelle invalide.")
+                    raw_columns[key].append(cell["raw"])
+                    typed_columns[key].append(cell["value"])
+        else:
+            source_rows = payload.get("source_rows")
+            raw_columns = payload.get("raw_columns")
+            typed_columns = payload.get("typed_columns")
+            if (
+                not isinstance(source_rows, list)
+                or any(not isinstance(item, int) for item in source_rows)
+                or source_rows != sorted(set(source_rows))
+                or not isinstance(raw_columns, dict)
+                or not isinstance(typed_columns, dict)
+            ):
+                raise ValueError("Magasin contextuel colonnaire invalide.")
+            if set(raw_columns) != known or set(typed_columns) != known:
+                raise ValueError("Colonnes contextuelles incohérentes avec leur schéma.")
+            if any(
+                not isinstance(values, list) or len(values) != len(source_rows)
+                for values in [*raw_columns.values(), *typed_columns.values()]
+            ):
+                raise ValueError("Longueur de colonne contextuelle invalide.")
+        return cls(
+            fields=fields,
+            source_rows=source_rows,
+            raw_columns=raw_columns,
+            typed_columns=typed_columns,
+            maximum_fields=int(payload.get("maximum_fields", 128)),
+            maximum_value_characters=int(
+                payload.get("maximum_value_characters", 4096)
+            ),
+        )
+
+
 @dataclass(slots=True)
 class LoadedData:
     readings: list[Reading]
@@ -76,6 +212,7 @@ class LoadedData:
     coverage_end: datetime | None = None
     coverage_bounds_method: str = "unavailable"
     site_timezone: str | None = None
+    auxiliary: ContextualFieldStore = field(default_factory=ContextualFieldStore)
 
 
 @dataclass(slots=True)

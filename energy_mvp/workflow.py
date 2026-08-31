@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 from copy import deepcopy
 from dataclasses import asdict
 from datetime import datetime, timezone
@@ -9,11 +10,15 @@ from pathlib import Path
 from typing import Any
 
 from .analysis import analyze
+from .evidence_card import build_evidence_card
+from .evidence_plane import EvidenceDataset
+from .evidence_protocol import EvidenceQuerySession, query_contract
 from .intake import assess_intake, intake_template
 from .io import load_data
 from .positioning import positioning_payload
 from .physical_diagnostics import physical_differential_template, physical_reasoning_contract
 from .signals import detect_candidate_events
+from .shadow import build_shadow_comparison
 from .tariffs import calculate_tariff_cost, tariff_plan_from_dict
 from .toolbox import inspect_dataset
 
@@ -40,7 +45,7 @@ def _analysis_payload(result: Any) -> dict[str, Any]:
 def _brief(state: dict[str, Any]) -> str:
     candidates = state["candidate_detection"]
     missing = state["intake_assessment"]["missing_critical"]
-    return "\n".join([
+    lines = [
         "# Dossier d'exploration Codex — nouveau client", "",
         "Ce document ne contient aucune conclusion confirmée. Il prépare une investigation "
         "sur un dataset inconnu sans accès à une vérité terrain.", "",
@@ -70,10 +75,27 @@ def _brief(state: dict[str, Any]) -> str:
         "7. Rejeter, réserver ou confirmer le comportement observé.",
         "8. Si la preuve manque, demander l'information minimale précise.",
         "9. Soumettre toute conclusion à une review contradictoire et humaine.", "",
+    ]
+    evidence = state.get("evidence_plane")
+    if evidence and evidence.get("enabled"):
+        lines.extend([
+            "## Evidence Plane interactif", "",
+            "La carte initiale est volontairement compacte et ne préserve pas toutes les relations. "
+            "Utiliser le protocole borné pour tester les hypothèses choisies par Codex.", "",
+            f"- Dataset probatoire : `{evidence['dataset_id']}`.",
+            f"- Mode de migration : `{evidence['mode']}`.",
+            "- Commande : `python query_evidence.py DOSSIER REQUEST.json`.",
+            "- Les répétitions et dépassements de budget sont refusés et audités.",
+            "- Chaque conclusion conservée doit citer des query IDs et des handles de récupération.",
+            "- Si la preuve reste insuffisante, enregistrer une abstention explicite.", "",
+        ])
+    lines.extend([
         "Les fichiers `prepared_analysis.json`, `candidate_signals.json`, `intake_assessment.json` "
-        "et `investigation_state.json` constituent les sources quantitatives initiales. Les "
-        "templates vides documentent le contrat mais ne constituent pas une investigation.", "",
+        "et `investigation_state.json` restent des sources quantitatives initiales. `evidence_card.json` "
+        "et le protocole exécutable les augmentent lorsqu’ils sont activés. Les templates vides "
+        "documentent le contrat mais ne constituent pas une investigation.", "",
     ])
+    return "\n".join(lines)
 
 
 def prepare_investigation(
@@ -83,15 +105,19 @@ def prepare_investigation(
     intake: dict[str, Any] | None = None,
     default_tariff: float | None = None,
     load_options: dict[str, Any] | None = None,
+    evidence_plane_mode: str = "preferred",
 ) -> dict[str, Any]:
     """Prépare un dossier générique; ne formule ni hypothèse ni décision à la place de Codex."""
 
     source_path = Path(source)
     output = Path(output_directory)
     output.mkdir(parents=True, exist_ok=True)
+    if evidence_plane_mode not in {"preferred", "shadow", "legacy"}:
+        raise ValueError("evidence_plane_mode doit valoir preferred, shadow ou legacy.")
     protected_outputs = (
         "investigation_state.json", "trace.json", "questions.json", "human_review.json",
         "prepared_analysis.json", "candidate_signals.json", "physical_differential_template.json",
+        "evidence_dataset.json", "evidence_query_session.json", "evidence_card.json",
     )
     existing_outputs = [name for name in protected_outputs if (output / name).exists()]
     if existing_outputs:
@@ -102,10 +128,13 @@ def prepare_investigation(
         )
     context = deepcopy(intake) if intake is not None else intake_template()
     resolved_load_options = dict(load_options or {})
+    if evidence_plane_mode == "legacy" and "preserve_auxiliary_fields" not in resolved_load_options:
+        resolved_load_options["preserve_auxiliary_fields"] = False
     declared_timezone = (context.get("site") or {}).get("timezone")
     if declared_timezone and "site_timezone" not in resolved_load_options:
         resolved_load_options["site_timezone"] = declared_timezone
     loaded = load_data(source_path, **resolved_load_options)
+    source_sha256 = _fingerprint(source_path)
     source_unit = (
         loaded.source_units.get("power")
         if loaded.measurement_kind.value == "power"
@@ -141,6 +170,7 @@ def prepare_investigation(
         tariff_cost = calculate_tariff_cost(
             loaded.readings, tariff_plan_from_dict(cost_context)
         )
+    legacy_started = time.perf_counter()
     try:
         candidates = detect_candidate_events(loaded)
     except ValueError as exc:
@@ -150,6 +180,36 @@ def prepare_investigation(
             "events": [],
             "disabled_signal_families": ["generic_multi_event_detection"],
         }
+    legacy_elapsed = time.perf_counter() - legacy_started
+    evidence_dataset = None
+    evidence_session = None
+    evidence_card = None
+    evidence_elapsed = 0.0
+    shadow_comparison = None
+    if evidence_plane_mode != "legacy":
+        evidence_started = time.perf_counter()
+        evidence_dataset = EvidenceDataset.from_loaded_data(
+            loaded, source_sha256=source_sha256
+        )
+        evidence_session = EvidenceQuerySession.create(evidence_dataset)
+        evidence_card = build_evidence_card(
+            evidence_dataset,
+            inspection=inspect_dataset(loaded),
+            candidates=candidates,
+            session=evidence_session,
+        )
+        evidence_elapsed = time.perf_counter() - evidence_started
+        if evidence_plane_mode == "shadow":
+            shadow_comparison = build_shadow_comparison(
+                evidence_dataset,
+                candidates=candidates,
+                evidence_card=evidence_card,
+                session=evidence_session,
+                timings_seconds={
+                    "legacy_candidate_detection": round(legacy_elapsed, 6),
+                    "evidence_snapshot_and_card": round(evidence_elapsed, 6),
+                },
+            )
     prepared_at = datetime.now(timezone.utc).isoformat()
     state = {
         "schema_version": 1,
@@ -158,12 +218,24 @@ def prepare_investigation(
         "prepared_at_utc": prepared_at,
         "source": {
             "name": source_path.name,
-            "sha256": _fingerprint(source_path),
+            "sha256": source_sha256,
             "ground_truth_available_to_investigation": False,
         },
         "dataset": inspect_dataset(loaded),
         "intake_assessment": intake_assessment.to_dict(),
         "candidate_detection": candidates,
+        "evidence_plane": {
+            "enabled": evidence_dataset is not None,
+            "mode": evidence_plane_mode,
+            "authoritative_for_agent_queries": evidence_dataset is not None,
+            "legacy_candidate_path_retained": True,
+            "dataset_id": evidence_dataset.dataset_id if evidence_dataset else None,
+            "dataset_sha256": evidence_dataset.dataset_sha256 if evidence_dataset else None,
+            "query_session": "evidence_query_session.json" if evidence_dataset else None,
+            "evidence_card": "evidence_card.json" if evidence_dataset else None,
+            "rollback": "rerun a new case directory with evidence_plane_mode=legacy",
+            "shadow_comparison": "shadow_comparison.json" if shadow_comparison else None,
+        },
         "costing": {
             "method": "time_of_use_and_demand" if tariff_cost is not None else "flat_or_source",
             "structured_artifact": "tariff_cost.json" if tariff_cost is not None else None,
@@ -174,13 +246,34 @@ def prepare_investigation(
             "codex": "choix des analyses, hypothèses, falsification, décisions et synthèse",
             "knowledge": "référence non exhaustive de mécanismes, variables, tests, limites et risques",
         },
+        "agentic_investigation_loop": {
+            "enabled": evidence_dataset is not None,
+            "initial_overview": "evidence_card.json" if evidence_dataset else "prepared_analysis.json",
+            "steps": [
+                "form_competing_hypotheses",
+                "request_bounded_evidence",
+                "inspect_result_and_source_handles",
+                "test_best_alternative_explanation",
+                "request_new_evidence_only_if_decision_relevant",
+                "record_evidence_linked_finding_or_abstain",
+                "adversarial_review",
+            ],
+            "termination": [
+                "hypothesis_falsified",
+                "sufficient_evidence_for_calibrated_finding",
+                "explicit_abstention_due_to_evidence_gap",
+                "query_budget_exhausted",
+                "human_or_field_information_required",
+            ],
+            "deterministic_engine_makes_final_decisions": False,
+        },
         "physical_reasoning_contract": physical_reasoning_contract(),
         "required_artifacts_before_delivery": [
             "investigation.json",
             "review.json",
             "report.md",
             "human_review.json",
-        ],
+        ] + (["agent_findings.json"] if evidence_dataset is not None else []),
         "prohibited_shortcuts": [
             "candidate_signal_as_confirmed_opportunity",
             "causal_claim_without_evidence",
@@ -192,6 +285,24 @@ def prepare_investigation(
     _write_json(output / "intake_assessment.json", intake_assessment.to_dict())
     _write_json(output / "prepared_analysis.json", _analysis_payload(automatic))
     _write_json(output / "candidate_signals.json", candidates)
+    if evidence_dataset is not None and evidence_session is not None and evidence_card is not None:
+        _write_json(output / "evidence_dataset.json", evidence_dataset.to_dict())
+        _write_json(output / "evidence_query_session.json", evidence_session.to_dict())
+        _write_json(output / "evidence_query_contract.json", query_contract())
+        _write_json(output / "evidence_card.json", evidence_card)
+        _write_json(output / "agent_findings_template.json", {
+            "schema_version": "indicia-agent-findings-v1",
+            "ground_truth_used": False,
+            "findings": [],
+            "instructions": {
+                "conserved_findings_require": [
+                    "evidence_query_ids", "evidence_handles", "alternative_explanations_tested",
+                ],
+                "abstention_requires": ["claim_or_abstention", "evidence_gap"],
+            },
+        })
+        if shadow_comparison is not None:
+            _write_json(output / "shadow_comparison.json", shadow_comparison)
     if tariff_cost is not None:
         _write_json(output / "tariff_cost.json", tariff_cost)
     _write_json(output / "investigation_state.json", state)
@@ -213,8 +324,15 @@ def prepare_investigation(
     _write_json(output / "investigation_template.json", {
         "schema_version": 1,
         "ground_truth_used": False,
+        "evidence_plane_session": evidence_session.session_id if evidence_session else None,
         "hypotheses": [],
         "recommendations": [],
+        "evidence_requirements": {
+            "each_retained_hypothesis": [
+                "evidence_query_ids", "evidence_handles", "best_reason_false",
+            ],
+            "insufficient_evidence": "abstain or request the minimum decision-relevant information",
+        } if evidence_session else None,
     })
     _write_json(output / "physical_differential_template.json", physical_differential_template())
     _write_json(output / "review_template.json", {
@@ -249,7 +367,15 @@ def prepare_investigation(
                 "candidate_signals.json", "investigation_state.json", "questions.json",
                 "human_review.json", "investigation_template.json", "physical_differential_template.json", "review_template.json",
                 "answers_template.json", "ANALYST_BRIEF.md",
-            ] + (["tariff_cost.json"] if tariff_cost is not None else []),
+            ]
+            + (["tariff_cost.json"] if tariff_cost is not None else [])
+            + ([
+                "evidence_dataset.json", "evidence_query_session.json",
+                "evidence_query_contract.json", "evidence_card.json",
+                "agent_findings_template.json",
+            ] + (["shadow_comparison.json"] if shadow_comparison is not None else [])
+            if evidence_dataset is not None else []),
+            "evidence_plane_mode": evidence_plane_mode,
         }],
     })
     return state

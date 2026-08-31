@@ -10,6 +10,7 @@ from statistics import median
 from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from .contextual import build_contextual_store, retain_contextual_rows
 from .models import DataQuality, LoadedData, MeasurementKind, Reading
 from .units import convert_energy_to_kwh, convert_power_to_kw
 
@@ -303,7 +304,9 @@ def _reading_signature(reading: Reading) -> tuple[float | None, ...]:
     )
 
 
-def _deduplicate(readings: list[Reading], quality: DataQuality) -> list[Reading]:
+def _deduplicate(
+    readings: list[Reading], quality: DataQuality, auxiliary: Any
+) -> list[Reading]:
     unique: list[Reading] = []
     by_timestamp: dict[datetime, Reading] = {}
     for reading in readings:
@@ -312,7 +315,11 @@ def _deduplicate(readings: list[Reading], quality: DataQuality) -> list[Reading]
             by_timestamp[reading.timestamp] = reading
             unique.append(reading)
             continue
-        if _reading_signature(previous) == _reading_signature(reading):
+        if (
+            _reading_signature(previous) == _reading_signature(reading)
+            and auxiliary.signature(previous.source_row)
+            == auxiliary.signature(reading.source_row)
+        ):
             quality.identical_duplicates_removed += 1
             continue
         quality.conflicting_duplicates += 1
@@ -457,6 +464,9 @@ def load_data(
     power_unit: str | None = None,
     timestamp_position: str = "auto",
     site_timezone: str | None = None,
+    maximum_auxiliary_fields: int = 128,
+    maximum_auxiliary_value_characters: int = 4096,
+    preserve_auxiliary_fields: bool = True,
 ) -> LoadedData:
     source = Path(path).expanduser()
     if not source.is_file():
@@ -677,6 +687,27 @@ def load_data(
         )
     if not parsed:
         raise DataError("Aucune ligne exploitable: verifiez les dates et les mesures.")
+    if preserve_auxiliary_fields:
+        try:
+            auxiliary = build_contextual_store(
+                headers,
+                rows,
+                canonical_indices=indices.values(),
+                retained_source_rows=(reading.source_row for reading in parsed),
+                maximum_fields=maximum_auxiliary_fields,
+                maximum_value_characters=maximum_auxiliary_value_characters,
+            )
+        except ValueError as exc:
+            raise DataError(str(exc)) from exc
+    else:
+        auxiliary = build_contextual_store(
+            headers,
+            rows,
+            canonical_indices=range(len(headers)),
+            retained_source_rows=(),
+            maximum_fields=0,
+            maximum_value_characters=maximum_auxiliary_value_characters,
+        )
     if quality.blank_rows:
         discarded += quality.blank_rows
         quality.processing_log.append(
@@ -692,7 +723,7 @@ def load_data(
             "les lignes ont ete triees par timestamp."
         )
     parsed.sort(key=lambda reading: reading.timestamp)
-    parsed = _deduplicate(parsed, quality)
+    parsed = _deduplicate(parsed, quality, auxiliary)
     discarded += quality.identical_duplicates_removed
     _populate_time_quality(parsed, quality)
     _assign_interval_hours(
@@ -759,6 +790,23 @@ def load_data(
             reading.energy_kwh = reading.power_kw * reading.interval_hours
         quality.processing_log.append(
             "Puissance convertie en energie par la formule kWh = kW x duree en heures."
+        )
+
+    retain_contextual_rows(
+        auxiliary, (reading.source_row for reading in parsed)
+    )
+    if auxiliary.fields:
+        quality.processing_log.append(
+            f"{len(auxiliary.fields)} colonne(s) auxiliaire(s) conservée(s) "
+            "séparément du noyau physique."
+        )
+    truncated_auxiliary_values = sum(
+        item.truncated_value_count for item in auxiliary.fields
+    )
+    if truncated_auxiliary_values:
+        warnings.append(
+            f"{truncated_auxiliary_values} valeur(s) auxiliaire(s) dépassant "
+            f"{maximum_auxiliary_value_characters} caractères ont été tronquées et tracées."
         )
 
     coverage_start, coverage_end = _coverage_bounds(
@@ -865,4 +913,5 @@ def load_data(
         coverage_end=coverage_end,
         coverage_bounds_method=coverage_bounds_method,
         site_timezone=site_timezone,
+        auxiliary=auxiliary,
     )

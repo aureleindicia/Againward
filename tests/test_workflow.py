@@ -37,6 +37,11 @@ class GenericWorkflowTests(unittest.TestCase):
             self.assertTrue((output / "investigation_template.json").exists())
             self.assertTrue((output / "review_template.json").exists())
             self.assertTrue((output / "answers_template.json").exists())
+            self.assertTrue((output / "evidence_dataset.json").exists())
+            self.assertTrue((output / "evidence_card.json").exists())
+            self.assertTrue((output / "evidence_query_contract.json").exists())
+            self.assertTrue((output / "evidence_query_session.json").exists())
+            self.assertTrue(state["evidence_plane"]["authoritative_for_agent_queries"])
             automatic = json.loads((output / "prepared_analysis.json").read_text())
             self.assertTrue(all(item["status"] != "confirmed" for item in automatic["findings"]))
 
@@ -111,6 +116,49 @@ class GenericWorkflowTests(unittest.TestCase):
                 prepare_investigation(source, output)
 
             self.assertEqual((output / "trace.json").read_text(), original_trace)
+
+    def test_legacy_mode_is_a_non_destructive_rollback(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "site.csv"
+            source.write_text(
+                "timestamp,energy_kwh,machine_mode\n"
+                "2026-01-01,10,idle\n2026-01-02,11,run\n",
+                encoding="utf-8",
+            )
+            output = root / "legacy"
+
+            state = prepare_investigation(
+                source, output, evidence_plane_mode="legacy"
+            )
+
+            self.assertFalse(state["evidence_plane"]["enabled"])
+            self.assertTrue((output / "candidate_signals.json").exists())
+            self.assertFalse((output / "evidence_dataset.json").exists())
+            self.assertFalse((output / "evidence_card.json").exists())
+
+    def test_shadow_mode_preserves_legacy_signals_and_records_structural_delta(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "site.csv"
+            source.write_text(
+                "timestamp,energy_kwh,machine_mode\n"
+                "2026-01-01,10,idle\n2026-01-02,11,run\n",
+                encoding="utf-8",
+            )
+            output = root / "shadow"
+
+            state = prepare_investigation(
+                source, output, evidence_plane_mode="shadow"
+            )
+            comparison = json.loads(
+                (output / "shadow_comparison.json").read_text(encoding="utf-8")
+            )
+
+            self.assertEqual(state["evidence_plane"]["mode"], "shadow")
+            self.assertTrue(comparison["agreement"]["legacy_candidates_preserved"])
+            self.assertEqual(comparison["finding_disagreement"]["status"], "NOT_MEASURED")
+            self.assertEqual(comparison["evidence_plane_path"]["auxiliary_fields_available"], 1)
 
 
 if __name__ == "__main__":

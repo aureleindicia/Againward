@@ -1,0 +1,58 @@
+{
+  "schema_version": "indicia-stage4-performance-probe-v1",
+  "environment": "local Termux/Python; tracemalloc measures Python allocations only",
+  "evidence_classification": "engineering performance probe, not analytical validation",
+  "records": [
+    {
+      "rows": 10000,
+      "source_bytes": 436814,
+      "snapshot_bytes": 2808249,
+      "peak_python_allocated_bytes": 17311122,
+      "timings_seconds": {
+        "generation": 0.046224,
+        "load": 2.553323,
+        "snapshot_build": 0.606728,
+        "snapshot_serialization": 0.469666,
+        "describe_query": 0.005696,
+        "contrast_query": 0.105238,
+        "boundary_query": 0.530627
+      },
+      "query_calls": 3,
+      "pairwise_support_not_run": "bounded protocol refuses unscoped quadratic work"
+    },
+    {
+      "rows": 100000,
+      "source_bytes": 4367342,
+      "snapshot_bytes": 28248796,
+      "peak_python_allocated_bytes": 171746238,
+      "timings_seconds": {
+        "generation": 0.560059,
+        "load": 26.620463,
+        "snapshot_build": 7.731493,
+        "snapshot_serialization": 4.087529,
+        "describe_query": 0.006766,
+        "contrast_query": 1.010766,
+        "boundary_query": 5.53234
+      },
+      "query_calls": 3,
+      "pairwise_support_not_run": "bounded protocol refuses unscoped quadratic work"
+    },
+    {
+      "rows": 500000,
+      "source_bytes": 21836386,
+      "snapshot_bytes": 142117840,
+      "peak_python_allocated_bytes": 861990718,
+      "timings_seconds": {
+        "generation": 2.489261,
+        "load": 116.449404,
+        "snapshot_build": 32.369308,
+        "snapshot_serialization": 17.970646,
+        "describe_query": 0.004912,
+        "contrast_query": 4.259467,
+        "boundary_query": 98.197567
+      },
+      "query_calls": 3,
+      "pairwise_support_not_run": "bounded protocol refuses unscoped quadratic work"
+    }
+  ]
+}
