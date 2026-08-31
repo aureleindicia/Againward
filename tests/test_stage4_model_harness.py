@@ -9,7 +9,7 @@ from energy_mvp.workflow import prepare_investigation
 
 
 class Stage4ModelHarnessTests(unittest.TestCase):
-    def test_harness_prepares_three_randomized_arms_without_fabricating_results(self) -> None:
+    def test_harness_prepares_full_model_context_matrix_without_fabricating_results(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / "input.csv"
@@ -26,17 +26,34 @@ class Stage4ModelHarnessTests(unittest.TestCase):
                 root / "benchmark",
                 case_id="case_blind_001",
                 randomization_seed=42,
+                raw_source=source,
             )
 
-            self.assertEqual(set(manifest["arm_order"]), {
-                "STATIC_LEGACY", "RELATIONAL_CARD_V2", "EXECUTABLE_QUERY",
+            self.assertEqual(set(manifest["condition_order"]), {
+                "STATIC_LEGACY_CONTROL",
+                "STRONG_RAW_CONTEXT",
+                "STRONG_EVIDENCE_PLANE",
+                "SMALL_RAW_CONTEXT",
+                "SMALL_EVIDENCE_PLANE",
+                "SMALL_EVIDENCE_RETRIEVAL",
+                "SMALL_WITH_STRONG_ESCALATION",
+                "ITERATIVE_AGENT_PRIMITIVES",
             })
             self.assertEqual(manifest["status"], "PREPARED_NOT_RUN")
             self.assertIsNone(manifest["scores"])
             self.assertFalse(manifest["ground_truth_included"])
-            query_arm = next(item for item in manifest["arms"] if item["arm"] == "EXECUTABLE_QUERY")
-            self.assertTrue(Path(query_arm["directory"], "evidence_dataset.json").exists())
-            self.assertIsNotNone(query_arm["query_command"])
+            query_condition = next(
+                item for item in manifest["conditions"]
+                if item["condition"] == "SMALL_EVIDENCE_RETRIEVAL"
+            )
+            self.assertTrue(Path(query_condition["directory"], "evidence_dataset.json").exists())
+            self.assertIsNotNone(query_condition["query_command"])
+            raw_conditions = [
+                item for item in manifest["conditions"]
+                if item["context_mode"] == "raw_context"
+            ]
+            self.assertEqual(len(raw_conditions), 2)
+            self.assertTrue(all(list(Path(item["directory"]).glob("RAW_SOURCE.*")) for item in raw_conditions))
 
 
 if __name__ == "__main__":

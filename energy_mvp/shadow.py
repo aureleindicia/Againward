@@ -54,6 +54,32 @@ def build_shadow_comparison(
             "legacy_candidate_count_delta": 0,
             "legacy_candidate_type_delta": [],
         },
+        "comparison_outcomes": {
+            "same_conclusion": {
+                "status": "NOT_MEASURED",
+                "reason": "Neither deterministic path owns a final conclusion.",
+            },
+            "new_system_additional_evidence": {
+                "status": "OBSERVED",
+                "items": [
+                    "auxiliary field inventory",
+                    "relationship-loss metadata",
+                    "typed retrieval and query capabilities",
+                ],
+            },
+            "new_system_correct_abstention": {
+                "status": "NOT_MEASURED",
+                "reason": "Requires a blinded agent investigation and adjudication.",
+            },
+            "legacy_finds_new_system_misses": {
+                "status": "NONE_AT_CANDIDATE_LAYER",
+                "evidence": "candidate IDs and types are routed unchanged into the new card",
+            },
+            "disagreement": {
+                "status": "STRUCTURAL_ONLY",
+                "finding_disagreement": "NOT_MEASURED",
+            },
+        },
         "structural_disagreements": [
             {
                 "topic": "unknown operational columns",

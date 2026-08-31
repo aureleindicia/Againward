@@ -87,7 +87,9 @@ quadratique au-delà du budget est refusé.
 ### Boundary Ledger
 
 Classe des frontières candidates dans un ordre déclaré et décrit quels champs ou taux de présence
-changent autour de chacune. Une grille grossière bornée est raffinée localement. Le résultat impose
+changent autour de chacune. Une grille grossière bornée garde toujours la fenêtre déclarée, est
+raffinée localement puis applique une suppression de voisins afin de conserver plusieurs changements
+distincts. Le résultat impose
 les alternatives saison, régime, export, compteur et outlier ; une frontière n’est jamais qualifiée
 d’anormale par le code.
 
@@ -169,6 +171,7 @@ télémétrie, ni upload, ni dépendance réseau.
 
 Le stockage contextuel colonnaire a été retenu après mesure. Le probe local réel couvre 10 000,
 100 000 et 500 000 lignes. À 500 000 lignes, le snapshot atteint environ 142 Mo et le pic Python
-tracé environ 862 Mo ; le chemin fonctionne mais le Boundary Ledger prend près de 98 s. Ce palier
-est donc supporté comme capacité bornée, pas recommandé comme boucle interactive fréquente sur
-Android. Les résultats exacts sont dans `PERFORMANCE_PROBE.json`.
+tracé environ 862 Mo. Grâce à la fenêtre fixe, le Boundary Ledger borné prend environ 0,52 s, mais
+l’ingestion prend environ 121 s et la construction/sérialisation du snapshot 56 s. Ce palier est
+donc supporté comme capacité batch bornée, pas recommandé comme préparation interactive fréquente
+sur Android. Les résultats exacts sont dans `PERFORMANCE_PROBE.json`.

@@ -9,13 +9,13 @@
       "snapshot_bytes": 2808249,
       "peak_python_allocated_bytes": 17311122,
       "timings_seconds": {
-        "generation": 0.046224,
-        "load": 2.553323,
-        "snapshot_build": 0.606728,
-        "snapshot_serialization": 0.469666,
-        "describe_query": 0.005696,
-        "contrast_query": 0.105238,
-        "boundary_query": 0.530627
+        "generation": 0.040034,
+        "load": 1.976162,
+        "snapshot_build": 0.575161,
+        "snapshot_serialization": 0.377959,
+        "describe_query": 0.004433,
+        "contrast_query": 0.07435,
+        "boundary_query": 0.258906
       },
       "query_calls": 3,
       "pairwise_support_not_run": "bounded protocol refuses unscoped quadratic work"
@@ -26,13 +26,13 @@
       "snapshot_bytes": 28248796,
       "peak_python_allocated_bytes": 171746238,
       "timings_seconds": {
-        "generation": 0.560059,
-        "load": 26.620463,
-        "snapshot_build": 7.731493,
-        "snapshot_serialization": 4.087529,
-        "describe_query": 0.006766,
-        "contrast_query": 1.010766,
-        "boundary_query": 5.53234
+        "generation": 0.406398,
+        "load": 22.038741,
+        "snapshot_build": 7.276124,
+        "snapshot_serialization": 4.052577,
+        "describe_query": 0.005994,
+        "contrast_query": 0.791663,
+        "boundary_query": 0.346916
       },
       "query_calls": 3,
       "pairwise_support_not_run": "bounded protocol refuses unscoped quadratic work"
@@ -43,13 +43,13 @@
       "snapshot_bytes": 142117840,
       "peak_python_allocated_bytes": 861990718,
       "timings_seconds": {
-        "generation": 2.489261,
-        "load": 116.449404,
-        "snapshot_build": 32.369308,
-        "snapshot_serialization": 17.970646,
-        "describe_query": 0.004912,
-        "contrast_query": 4.259467,
-        "boundary_query": 98.197567
+        "generation": 2.141427,
+        "load": 120.966562,
+        "snapshot_build": 36.029231,
+        "snapshot_serialization": 20.096354,
+        "describe_query": 0.009242,
+        "contrast_query": 4.220661,
+        "boundary_query": 0.520948
       },
       "query_calls": 3,
       "pairwise_support_not_run": "bounded protocol refuses unscoped quadratic work"

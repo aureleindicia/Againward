@@ -158,6 +158,10 @@ class GenericWorkflowTests(unittest.TestCase):
             self.assertEqual(state["evidence_plane"]["mode"], "shadow")
             self.assertTrue(comparison["agreement"]["legacy_candidates_preserved"])
             self.assertEqual(comparison["finding_disagreement"]["status"], "NOT_MEASURED")
+            self.assertEqual(
+                comparison["comparison_outcomes"]["new_system_additional_evidence"]["status"],
+                "OBSERVED",
+            )
             self.assertEqual(comparison["evidence_plane_path"]["auxiliary_fields_available"], 1)
 
 

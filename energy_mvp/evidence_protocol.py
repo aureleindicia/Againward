@@ -286,6 +286,27 @@ class EvidenceQuerySession:
                 "result": response,
                 "retrieval_handles": pending_handles,
                 "relationship_metadata": relationship_metadata,
+                "uncertainty": {
+                    "status": "not_resolved_by_deterministic_tool",
+                    "claim_boundary": response.get(
+                        "claim_boundary",
+                        "Retrieved or summarized values require agent interpretation and alternative testing.",
+                    ),
+                    "omitted_pairwise_relations": relationship_metadata[
+                        "omitted_pairwise_relation_count"
+                    ],
+                    "higher_order_relations_summarized": False,
+                },
+                "evidence_sufficiency": {
+                    "status": "requires_agent_assessment",
+                    "common_support": (
+                        response.get("full_support")
+                        if query.operation is QueryOperation.SUPPORT_ATLAS
+                        else "not_evaluated_in_this_query"
+                    ),
+                    "raw_retrieval_available": bool(pending_handles),
+                    "abstention_is_valid": True,
+                },
                 "provenance": {
                     "source_sha256": dataset.source_sha256,
                     "snapshot": "evidence_dataset.json",

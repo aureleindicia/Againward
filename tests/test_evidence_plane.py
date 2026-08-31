@@ -125,7 +125,35 @@ class EvidencePlaneTests(unittest.TestCase):
         evidence = {item["field"]: item for item in result["candidates"][0]["field_evidence"]}
         self.assertLess(evidence["context"]["completeness_difference_after_minus_before"], 0)
         self.assertIn("seasonality", result["mandatory_alternatives"])
+        self.assertGreater(evidence["temperature"]["field_score"], 0)
         self.assertIsNone(result["decision"])
+
+    def test_boundary_ledger_surfaces_both_start_and_shutdown_changes_generically(self) -> None:
+        rows = []
+        for index in range(140):
+            active = 35 <= index < 95
+            rows.append(
+                {
+                    "order": index,
+                    "energy": 50 if active else 12,
+                    "operating_state": "active" if active else "inactive",
+                    "aux_feedback": 1 if active else 0,
+                }
+            )
+
+        result = boundary_ledger(
+            rows,
+            order_field="order",
+            fields=["energy", "operating_state", "aux_feedback"],
+            minimum_segment_rows=15,
+            comparison_window_rows=20,
+            maximum_candidates=8,
+        )
+        boundaries = [item["boundary_index"] for item in result["candidates"]]
+
+        self.assertTrue(any(abs(value - 35) <= 2 for value in boundaries))
+        self.assertTrue(any(abs(value - 95) <= 2 for value in boundaries))
+        self.assertEqual(result["status"], "decision_neutral_query_candidates")
 
     def test_relationship_certificate_counts_loss_without_pair_materialization(self) -> None:
         result = relationship_loss_certificate(
@@ -253,6 +281,12 @@ class EvidencePlaneTests(unittest.TestCase):
         session = EvidenceQuerySession.create(dataset)
         response = session.execute(dataset, self.query(dataset, "overview", "describe_schema", {}))
         handle = response["retrieval_handles"][0]["handle"]
+        self.assertEqual(
+            response["evidence_sufficiency"]["status"], "requires_agent_assessment"
+        )
+        self.assertEqual(
+            response["uncertainty"]["status"], "not_resolved_by_deterministic_tool"
+        )
         valid = {
             "schema_version": "indicia-agent-findings-v1",
             "ground_truth_used": False,

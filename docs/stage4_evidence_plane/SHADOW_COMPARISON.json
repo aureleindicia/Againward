@@ -6,7 +6,7 @@
     {
       "case_id": "monthly_legacy_fixture",
       "source_kind": "repository synthetic fixture",
-      "wall_time_seconds": 0.023806,
+      "wall_time_seconds": 0.019366,
       "comparison": {
         "schema_version": "indicia-stage4-shadow-comparison-v1",
         "scope": "structural production shadow; no model-quality inference",
@@ -38,6 +38,32 @@
           "legacy_candidate_count_delta": 0,
           "legacy_candidate_type_delta": []
         },
+        "comparison_outcomes": {
+          "same_conclusion": {
+            "status": "NOT_MEASURED",
+            "reason": "Neither deterministic path owns a final conclusion."
+          },
+          "new_system_additional_evidence": {
+            "status": "OBSERVED",
+            "items": [
+              "auxiliary field inventory",
+              "relationship-loss metadata",
+              "typed retrieval and query capabilities"
+            ]
+          },
+          "new_system_correct_abstention": {
+            "status": "NOT_MEASURED",
+            "reason": "Requires a blinded agent investigation and adjudication."
+          },
+          "legacy_finds_new_system_misses": {
+            "status": "NONE_AT_CANDIDATE_LAYER",
+            "evidence": "candidate IDs and types are routed unchanged into the new card"
+          },
+          "disagreement": {
+            "status": "STRUCTURAL_ONLY",
+            "finding_disagreement": "NOT_MEASURED"
+          }
+        },
         "structural_disagreements": [
           {
             "topic": "unknown operational columns",
@@ -61,8 +87,8 @@
         },
         "failures": [],
         "timings_seconds": {
-          "legacy_candidate_detection": 2.2e-05,
-          "evidence_snapshot_and_card": 0.00051
+          "legacy_candidate_detection": 2e-05,
+          "evidence_snapshot_and_card": 0.00046
         },
         "rollback": {
           "available": true,
@@ -75,7 +101,7 @@
     {
       "case_id": "demo_15min_regression",
       "source_kind": "repository synthetic fixture",
-      "wall_time_seconds": 1.53023,
+      "wall_time_seconds": 1.09967,
       "comparison": {
         "schema_version": "indicia-stage4-shadow-comparison-v1",
         "scope": "structural production shadow; no model-quality inference",
@@ -121,6 +147,32 @@
           "legacy_candidate_count_delta": 0,
           "legacy_candidate_type_delta": []
         },
+        "comparison_outcomes": {
+          "same_conclusion": {
+            "status": "NOT_MEASURED",
+            "reason": "Neither deterministic path owns a final conclusion."
+          },
+          "new_system_additional_evidence": {
+            "status": "OBSERVED",
+            "items": [
+              "auxiliary field inventory",
+              "relationship-loss metadata",
+              "typed retrieval and query capabilities"
+            ]
+          },
+          "new_system_correct_abstention": {
+            "status": "NOT_MEASURED",
+            "reason": "Requires a blinded agent investigation and adjudication."
+          },
+          "legacy_finds_new_system_misses": {
+            "status": "NONE_AT_CANDIDATE_LAYER",
+            "evidence": "candidate IDs and types are routed unchanged into the new card"
+          },
+          "disagreement": {
+            "status": "STRUCTURAL_ONLY",
+            "finding_disagreement": "NOT_MEASURED"
+          }
+        },
         "structural_disagreements": [
           {
             "topic": "unknown operational columns",
@@ -144,8 +196,8 @@
         },
         "failures": [],
         "timings_seconds": {
-          "legacy_candidate_detection": 0.815177,
-          "evidence_snapshot_and_card": 0.200217
+          "legacy_candidate_detection": 0.507373,
+          "evidence_snapshot_and_card": 0.150194
         },
         "rollback": {
           "available": true,
@@ -158,7 +210,7 @@
     {
       "case_id": "unknown_context_fixture",
       "source_kind": "repository synthetic fixture",
-      "wall_time_seconds": 0.234886,
+      "wall_time_seconds": 0.167466,
       "comparison": {
         "schema_version": "indicia-stage4-shadow-comparison-v1",
         "scope": "structural production shadow; no model-quality inference",
@@ -194,6 +246,32 @@
           "legacy_candidate_count_delta": 0,
           "legacy_candidate_type_delta": []
         },
+        "comparison_outcomes": {
+          "same_conclusion": {
+            "status": "NOT_MEASURED",
+            "reason": "Neither deterministic path owns a final conclusion."
+          },
+          "new_system_additional_evidence": {
+            "status": "OBSERVED",
+            "items": [
+              "auxiliary field inventory",
+              "relationship-loss metadata",
+              "typed retrieval and query capabilities"
+            ]
+          },
+          "new_system_correct_abstention": {
+            "status": "NOT_MEASURED",
+            "reason": "Requires a blinded agent investigation and adjudication."
+          },
+          "legacy_finds_new_system_misses": {
+            "status": "NONE_AT_CANDIDATE_LAYER",
+            "evidence": "candidate IDs and types are routed unchanged into the new card"
+          },
+          "disagreement": {
+            "status": "STRUCTURAL_ONLY",
+            "finding_disagreement": "NOT_MEASURED"
+          }
+        },
         "structural_disagreements": [
           {
             "topic": "unknown operational columns",
@@ -217,8 +295,8 @@
         },
         "failures": [],
         "timings_seconds": {
-          "legacy_candidate_detection": 0.028959,
-          "evidence_snapshot_and_card": 0.019542
+          "legacy_candidate_detection": 0.023885,
+          "evidence_snapshot_and_card": 0.017904
         },
         "rollback": {
           "available": true,

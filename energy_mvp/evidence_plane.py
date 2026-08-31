@@ -349,6 +349,8 @@ def contrast_surface(
         raise ValueError("Les deux valeurs du contraste doivent être différentes.")
     if not 2 <= minimum_group_rows <= 100_000:
         raise ValueError("minimum_group_rows doit être compris entre 2 et 100000.")
+    if not 1 <= maximum_categories <= 200:
+        raise ValueError("maximum_categories doit être compris entre 1 et 200.")
     left = [row for row in rows if row.get(group_field) == left_value]
     right = [row for row in rows if row.get(group_field) == right_value]
     if len(left) < minimum_group_rows or len(right) < minimum_group_rows:
@@ -674,6 +676,8 @@ def boundary_ledger(
         raise ValueError("minimum_segment_rows doit être au moins 5.")
     if not 1 <= maximum_coarse_boundaries <= 2048 or not 1 <= maximum_candidates <= 50:
         raise ValueError("Budgets de frontières invalides.")
+    if not 1 <= maximum_field_evidence <= 64:
+        raise ValueError("maximum_field_evidence doit être compris entre 1 et 64.")
     if not 1 <= candidate_stride <= 100_000:
         raise ValueError("candidate_stride doit être positif et borné.")
     selected = list(dict.fromkeys(fields))
@@ -693,7 +697,9 @@ def boundary_ledger(
     valid = list(range(minimum_segment_rows, len(ordered) - minimum_segment_rows + 1, candidate_stride))
     coarse_step = max(1, math.ceil(len(valid) / maximum_coarse_boundaries))
     coarse = valid[::coarse_step]
-    coarse_window = max(window, coarse_step * candidate_stride)
+    # La fenêtre reste celle déclarée par l’agent. L’élargir avec une grille
+    # grossière rendrait le coût et la sémantique dépendants de la taille totale.
+    coarse_window = window
 
     def evaluate(index: int, evaluation_window: int) -> dict[str, Any]:
         before = ordered[max(0, index - evaluation_window):index]
@@ -724,6 +730,17 @@ def boundary_ledger(
                 if candidate in valid_set and candidate not in evaluated:
                     evaluated[candidate] = evaluate(candidate, window)
     candidates = sorted(evaluated.values(), key=lambda item: (-float(item["aggregate_exploratory_score"]), item["boundary_index"]))
+    suppression_radius = max(1, min(window, minimum_segment_rows) // 2)
+    diverse_candidates: list[dict[str, Any]] = []
+    for candidate in candidates:
+        if all(
+            abs(int(candidate["boundary_index"]) - int(selected["boundary_index"]))
+            >= suppression_radius
+            for selected in diverse_candidates
+        ):
+            diverse_candidates.append(candidate)
+        if len(diverse_candidates) >= maximum_candidates:
+            break
     return {
         "schema_version": "indicia-boundary-ledger-v1",
         "status": "decision_neutral_query_candidates",
@@ -732,7 +749,8 @@ def boundary_ledger(
         "minimum_segment_rows": minimum_segment_rows,
         "comparison_window_rows": window,
         "candidate_boundaries_evaluated": len(candidates),
-        "candidates": candidates[:maximum_candidates],
+        "candidate_suppression_radius_rows": suppression_radius,
+        "candidates": diverse_candidates,
         "mandatory_alternatives": [
             "seasonality",
             "operating-regime change",
