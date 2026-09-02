@@ -106,8 +106,8 @@ sont ignorées par Git ; les résultats consolidés sont versionnés.
 
 Après commit du moteur afin de satisfaire les contrôles d'intégrité HOLDOUT :
 
-- `python -m pytest -q` → **309 passed** en 70,23 s ;
-- `python -m pytest -q tests prospecting/tests research/indicia_rnd research/indicia_rnd_stage2 research/indicia_rnd_stage3` → **367 passed** en 143,35 s.
+- `python -m pytest -q` → **310 passed** en 73,48 s ;
+- `python -m pytest -q tests prospecting/tests research/indicia_rnd research/indicia_rnd_stage2 research/indicia_rnd_stage3` → **368 passed** en 170,88 s.
 
 ## Limites empêchant une revendication supérieure
 
@@ -125,4 +125,3 @@ Les actions et livrables définis pour cette **phase R&D** sont présents, exéc
 Le résultat de la phase n'est pas « attribution résolue » : c'est un prototype falsifiable qui
 progresse vers l'actif lorsqu'une ancre le permet et refuse sinon. L'intégration durable est
 recommandée uniquement en shadow mode jusqu'à validation prospective indépendante.
-
