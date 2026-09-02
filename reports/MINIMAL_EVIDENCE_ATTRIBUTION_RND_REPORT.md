@@ -48,6 +48,8 @@ DEVELOPMENT : 75/100 décisions correctes ; HOLDOUT : 75/100. Aucun écart de se
 
 La stratégie VOI corrigée de la réponse disponible et de l'effort choisit la question cible dans 100.0 % des cas applicables, contre 33,3 % pour l'information gain pure. Le gain sélectionné moyen est 0.792481 bit et la réduction réalisée moyenne 0.792482 bit, avec 1.0 interaction lorsque la question est répondue.
 
+Une falsification supplémentaire altère la partition candidat→réponse. Avec 50 % d'erreurs non déclarées, la stratégie VOI choisit encore la question fragile dans 100.0 % des cas et son gain réalisé tombe à 0.976 bit. Lorsque le risque est déclaré, elle abandonne cette question (sélection fragile 0.0 %) et obtient 1.000 bit. Elle ne peut donc pas auto-corriger un modèle de réponses faux mais présenté comme certain.
+
 ## Falsifications
 
 | Méthode | Attributions correctes | Refus sûrs | Fausses attributions |
@@ -81,7 +83,7 @@ Une première distance moyenne a été falsifiée : elle diluait une forte déri
 
 ## PX-201
 
-Le scanner reproductible a examiné 2154 fichiers ou archives dans les emplacements de fixtures et n'a trouvé aucune donnée PX-201 exploitable. Le cas réel n'a donc pas été reproduit et aucune valeur réelle `+2.7 kW`, `06:00–22:00` ou attribution n'est revendiquée. Les scénarios synthétiques qui ressemblent à ce format restent explicitement synthétiques.
+Le scanner reproductible a examiné 2155 fichiers ou archives dans les emplacements de fixtures et n'a trouvé aucune donnée PX-201 exploitable. Le cas réel n'a donc pas été reproduit et aucune valeur réelle `+2.7 kW`, `06:00–22:00` ou attribution n'est revendiquée. Les scénarios synthétiques qui ressemblent à ce format restent explicitement synthétiques.
 
 ## Ce qui fonctionne et ce qui ne fonctionne pas
 

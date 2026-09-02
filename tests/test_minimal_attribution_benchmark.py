@@ -11,6 +11,7 @@ from benchmarking.minimal_attribution_benchmark import (
     run_benchmark,
     run_falsification_suite,
     run_historical_anchor_drift_experiment,
+    run_question_misspecification_experiment,
     run_registry_corruption_experiment,
     scan_px201_fixture_sources,
 )
@@ -113,3 +114,18 @@ def test_decision_examples_keep_unknown_and_forbid_mechanism():
         assert "unknown" in {item["asset_id"] for item in candidates}
         assert example["expected_boundary"]["physical_mechanism"] is None
         assert example["expected_boundary"]["prognosis"] is None
+
+
+def test_question_partition_error_is_only_mitigated_when_risk_is_declared():
+    result = run_question_misspecification_experiment(seeds=[2, 3], cases_per_seed=50)
+    rows = {
+        (row["mapping_error_rate"], row["risk_disclosure"], row["strategy"]): row
+        for row in result["results"]
+    }
+    hidden = rows[(0.5, "unlabelled", "reliability_adjusted_voi")]
+    declared = rows[(0.5, "declared", "reliability_adjusted_voi")]
+    assert hidden["fragile_question_selection_rate"] == 1.0
+    assert declared["fragile_question_selection_rate"] == 0.0
+    assert declared["mean_realized_information_gain_bits"] == 1.0
+    assert hidden["mean_realized_information_gain_bits"] != 2.0
+    assert result["limit"].startswith("Le planificateur optimise")

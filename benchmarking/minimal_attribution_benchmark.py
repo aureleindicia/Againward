@@ -1078,6 +1078,81 @@ def run_historical_anchor_drift_experiment(
     }
 
 
+def run_question_misspecification_experiment(
+    *,
+    seeds: Sequence[int] = (13, 31, 47, 73, 97),
+    cases_per_seed: int = 100,
+) -> dict[str, Any]:
+    """Falsifie le planificateur lorsque sa partition d'hypothèses est erronée."""
+
+    hypotheses = ("A", "B", "C", UNKNOWN_ASSET_ID)
+    results = []
+    for mapping_error_rate in (0.0, 0.1, 0.25, 0.5):
+        for risk_disclosure in ("unlabelled", "declared"):
+            for strategy in ("information_gain", "reliability_adjusted_voi"):
+                chosen_fragile = best_actual = 0
+                realized_gains: list[float] = []
+                for seed in seeds:
+                    rng = random.Random(seed * 1000 + int(mapping_error_rate * 100))
+                    for _ in range(cases_per_seed):
+                        mapping_wrong = rng.random() < mapping_error_rate
+                        fragile_reliability = (
+                            max(0.05, (1 - mapping_error_rate) ** 2)
+                            if risk_disclosure == "declared" else 1.0
+                        )
+                        questions = [
+                            MicroQuestion(
+                                "Q-fragile",
+                                "Question fondée sur une nomenclature possiblement erronée ?",
+                                {"A": "a", "B": "b", "C": "c", UNKNOWN_ASSET_ID: "u"},
+                                effort=1.0,
+                                availability=1.0,
+                                reliability=fragile_reliability,
+                            ),
+                            MicroQuestion(
+                                "Q-robust",
+                                "Un arrêt observable sépare-t-il les deux groupes ?",
+                                {"A": "left", "B": "left", "C": "right", UNKNOWN_ASSET_ID: "right"},
+                                effort=1.0,
+                                availability=1.0,
+                                reliability=0.95,
+                            ),
+                        ]
+                        ranked = rank_micro_questions(hypotheses, questions, strategy=strategy)
+                        selected = ranked[0]["question_id"]
+                        chosen_fragile += int(selected == "Q-fragile")
+                        actual_fragile_gain = 0.0 if mapping_wrong else 2.0
+                        actual_robust_gain = 1.0
+                        actual_best = "Q-fragile" if actual_fragile_gain > actual_robust_gain else "Q-robust"
+                        best_actual += int(selected == actual_best)
+                        realized_gains.append(
+                            actual_fragile_gain if selected == "Q-fragile" else actual_robust_gain
+                        )
+                total = len(seeds) * cases_per_seed
+                results.append(
+                    {
+                        "mapping_error_rate": mapping_error_rate,
+                        "risk_disclosure": risk_disclosure,
+                        "strategy": strategy,
+                        "cases": total,
+                        "fragile_question_selection_rate": round(chosen_fragile / total, 6),
+                        "actual_best_question_rate": round(best_actual / total, 6),
+                        "mean_realized_information_gain_bits": round(sum(realized_gains) / total, 6),
+                    }
+                )
+    return {
+        "schema_version": "indicia-question-misspecification-experiment-v1",
+        "status": "controlled_synthetic_question_model_falsification",
+        "independent_seeds": list(seeds),
+        "cases_per_seed_per_condition": cases_per_seed,
+        "results": results,
+        "limit": (
+            "Le planificateur optimise la partition fournie; il ne peut détecter une partition "
+            "fausse dont le risque n'est pas déclaré."
+        ),
+    }
+
+
 def scan_px201_fixture_sources(repository: str | Path) -> dict[str, Any]:
     """Inventorie PX-201 dans les emplacements de fixtures, y compris les ZIP racine."""
 
@@ -1161,6 +1236,7 @@ def build_rnd_result(
     falsifications: dict[str, Any],
     robustness: dict[str, Any],
     anchor_drift: dict[str, Any],
+    question_misspecification: dict[str, Any],
     px201_scan: dict[str, Any],
 ) -> dict[str, Any]:
     """Consolide uniquement des résultats déjà calculés par Python."""
@@ -1201,6 +1277,7 @@ def build_rnd_result(
         "registry_corruption_focus": robustness_focus,
         "registry_corruption_full_experiment": robustness,
         "historical_anchor_drift": anchor_drift,
+        "question_misspecification": question_misspecification,
         "px201": px201_scan,
         "evidence_ladder_boundary": {
             "implemented_maximum": "ROBUST_ATTRIBUTION",
@@ -1273,6 +1350,18 @@ def render_rnd_report(result: dict[str, Any]) -> str:
     selected_anchor = next(
         row for row in anchor["threshold_results"]
         if row["maximum_distance"] == anchor["selected_threshold"]
+    )
+    question_hidden = next(
+        row for row in result["question_misspecification"]["results"]
+        if row["mapping_error_rate"] == 0.5
+        and row["risk_disclosure"] == "unlabelled"
+        and row["strategy"] == "reliability_adjusted_voi"
+    )
+    question_declared = next(
+        row for row in result["question_misspecification"]["results"]
+        if row["mapping_error_rate"] == 0.5
+        and row["risk_disclosure"] == "declared"
+        and row["strategy"] == "reliability_adjusted_voi"
     )
     px = result["px201"]
     return "\n".join(
@@ -1348,6 +1437,15 @@ def render_rnd_report(result: dict[str, Any]) -> str:
             f"{questions['mean_selected_information_gain_bits']:.6f} bit et la réduction réalisée moyenne "
             f"{questions['mean_realized_uncertainty_reduction_bits']:.6f} bit, avec "
             f"{questions['mean_interactions_when_answered']:.1f} interaction lorsque la question est répondue.",
+            "",
+            "Une falsification supplémentaire altère la partition candidat→réponse. Avec 50 % d'erreurs "
+            "non déclarées, la stratégie VOI choisit encore la question fragile dans "
+            f"{percent(question_hidden['fragile_question_selection_rate'])} des cas et son gain réalisé "
+            f"tombe à {question_hidden['mean_realized_information_gain_bits']:.3f} bit. Lorsque le risque "
+            "est déclaré, elle abandonne cette question (sélection fragile "
+            f"{percent(question_declared['fragile_question_selection_rate'])}) et obtient "
+            f"{question_declared['mean_realized_information_gain_bits']:.3f} bit. Elle ne peut donc pas "
+            "auto-corriger un modèle de réponses faux mais présenté comme certain.",
             "",
             "## Falsifications",
             "",

@@ -1,10 +1,10 @@
 {
   "schema_version": "indicia-minimal-evidence-attribution-rnd-results-v1",
-  "generated_at_utc": "2026-09-02T20:52:35.178813+00:00",
+  "generated_at_utc": "2026-09-02T21:00:34.780163+00:00",
   "status": "prototype_validated_on_synthetic_data_not_field_validated",
   "benchmark_manifest": {
     "schema_version": "indicia-minimal-attribution-benchmark-v1",
-    "generated_at_utc": "2026-09-02T20:52:31.444206+00:00",
+    "generated_at_utc": "2026-09-02T21:00:30.797367+00:00",
     "case_count": 200,
     "independent_seeds": 10,
     "scenario_type_count": 20,
@@ -1288,10 +1288,169 @@
     "selection_rule": "minimum_asymmetric_loss_then_smallest_threshold",
     "limit": "Les régimes synthétiques ne calibrent pas un seuil universel terrain."
   },
+  "question_misspecification": {
+    "schema_version": "indicia-question-misspecification-experiment-v1",
+    "status": "controlled_synthetic_question_model_falsification",
+    "independent_seeds": [
+      13,
+      31,
+      47,
+      73,
+      97
+    ],
+    "cases_per_seed_per_condition": 100,
+    "results": [
+      {
+        "mapping_error_rate": 0.0,
+        "risk_disclosure": "unlabelled",
+        "strategy": "information_gain",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 1.0,
+        "mean_realized_information_gain_bits": 2.0
+      },
+      {
+        "mapping_error_rate": 0.0,
+        "risk_disclosure": "unlabelled",
+        "strategy": "reliability_adjusted_voi",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 1.0,
+        "mean_realized_information_gain_bits": 2.0
+      },
+      {
+        "mapping_error_rate": 0.0,
+        "risk_disclosure": "declared",
+        "strategy": "information_gain",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 1.0,
+        "mean_realized_information_gain_bits": 2.0
+      },
+      {
+        "mapping_error_rate": 0.0,
+        "risk_disclosure": "declared",
+        "strategy": "reliability_adjusted_voi",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 1.0,
+        "mean_realized_information_gain_bits": 2.0
+      },
+      {
+        "mapping_error_rate": 0.1,
+        "risk_disclosure": "unlabelled",
+        "strategy": "information_gain",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 0.904,
+        "mean_realized_information_gain_bits": 1.808
+      },
+      {
+        "mapping_error_rate": 0.1,
+        "risk_disclosure": "unlabelled",
+        "strategy": "reliability_adjusted_voi",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 0.904,
+        "mean_realized_information_gain_bits": 1.808
+      },
+      {
+        "mapping_error_rate": 0.1,
+        "risk_disclosure": "declared",
+        "strategy": "information_gain",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 0.904,
+        "mean_realized_information_gain_bits": 1.808
+      },
+      {
+        "mapping_error_rate": 0.1,
+        "risk_disclosure": "declared",
+        "strategy": "reliability_adjusted_voi",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 0.904,
+        "mean_realized_information_gain_bits": 1.808
+      },
+      {
+        "mapping_error_rate": 0.25,
+        "risk_disclosure": "unlabelled",
+        "strategy": "information_gain",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 0.738,
+        "mean_realized_information_gain_bits": 1.476
+      },
+      {
+        "mapping_error_rate": 0.25,
+        "risk_disclosure": "unlabelled",
+        "strategy": "reliability_adjusted_voi",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 0.738,
+        "mean_realized_information_gain_bits": 1.476
+      },
+      {
+        "mapping_error_rate": 0.25,
+        "risk_disclosure": "declared",
+        "strategy": "information_gain",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 0.738,
+        "mean_realized_information_gain_bits": 1.476
+      },
+      {
+        "mapping_error_rate": 0.25,
+        "risk_disclosure": "declared",
+        "strategy": "reliability_adjusted_voi",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 0.738,
+        "mean_realized_information_gain_bits": 1.476
+      },
+      {
+        "mapping_error_rate": 0.5,
+        "risk_disclosure": "unlabelled",
+        "strategy": "information_gain",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 0.488,
+        "mean_realized_information_gain_bits": 0.976
+      },
+      {
+        "mapping_error_rate": 0.5,
+        "risk_disclosure": "unlabelled",
+        "strategy": "reliability_adjusted_voi",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 0.488,
+        "mean_realized_information_gain_bits": 0.976
+      },
+      {
+        "mapping_error_rate": 0.5,
+        "risk_disclosure": "declared",
+        "strategy": "information_gain",
+        "cases": 500,
+        "fragile_question_selection_rate": 1.0,
+        "actual_best_question_rate": 0.488,
+        "mean_realized_information_gain_bits": 0.976
+      },
+      {
+        "mapping_error_rate": 0.5,
+        "risk_disclosure": "declared",
+        "strategy": "reliability_adjusted_voi",
+        "cases": 500,
+        "fragile_question_selection_rate": 0.0,
+        "actual_best_question_rate": 0.512,
+        "mean_realized_information_gain_bits": 1.0
+      }
+    ],
+    "limit": "Le planificateur optimise la partition fournie; il ne peut détecter une partition fausse dont le risque n'est pas déclaré."
+  },
   "px201": {
     "schema_version": "indicia-px201-fixture-scan-v1",
     "repository": "/data/data/com.termux/files/home/projects/energy-analyzer",
-    "scanned_files_or_archives": 2154,
+    "scanned_files_or_archives": 2155,
     "matches": [],
     "data_fixture_matches": [],
     "fixture_available": false,

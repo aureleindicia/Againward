@@ -15,6 +15,7 @@ from benchmarking.minimal_attribution_benchmark import (
     run_benchmark,
     run_falsification_suite,
     run_historical_anchor_drift_experiment,
+    run_question_misspecification_experiment,
 )
 
 
@@ -65,12 +66,18 @@ def main() -> int:
         json.dumps(anchor_drift, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    question_misspecification = run_question_misspecification_experiment()
+    Path(args.output, "question_misspecification_experiment.json").write_text(
+        json.dumps(question_misspecification, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
     if args.report_json:
         consolidated = build_rnd_result(
             result,
             falsifications,
             robustness,
             anchor_drift,
+            question_misspecification,
             scan_px201_fixture_sources(Path.cwd()),
         )
         report_path = Path(args.report_json)
