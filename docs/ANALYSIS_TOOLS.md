@@ -416,3 +416,73 @@ knowledge/physical_diagnostics. validate_physical_differential verifie seulement
 Codex documente mecanisme, preuves, predictions, discriminant, falsificateur et securite.
 rank_discriminating_measurements donne un ordre consultatif derogeable ou ignorable et
 ne publie aucune question. Une cause ou un protocole absent reste autorise.
+
+## Attribution sous preuves minimales
+
+Ces outils consomment une signature déjà détectée. Ils ne remplacent ni le détecteur, ni
+les outils physiques et économiques.
+
+### `build_anonymous_component(component_id, occurrences, overlap_suspected=False)`
+
+- Objectif : résumer des occurrences en signature électrique anonyme reproductible.
+- Entrée : `ComponentOccurrence` avec début, fin, amplitude kW, état de production et référence source.
+- Sortie : amplitude/plage, heures circulaires, durée, fréquence, jours observés, stabilité,
+  répétabilité, relation production et incertitudes.
+- Hypothèses : les occurrences ont été sélectionnées par une investigation séparée.
+- Limitations : ne prouve pas un actif unique et ne remplace pas un sous-compteur. Mettre
+  `overlap_suspected=True` lorsque plusieurs charges peuvent former le motif.
+- Exemple : voir `tests/test_minimal_attribution.py`.
+
+### `assess_attribution(component, inventory, evidence=(), method="guarded_evidence")`
+
+- Objectif : classer les actifs compatibles et déterminer l'identifiabilité sans forcer un nom.
+- Entrée : `AnonymousElectricalComponent`, liste partielle d'`EquipmentRecord`, preuves datées.
+- Sortie : candidats dont `unknown`, scores de compatibilité, éliminations, niveau de preuve,
+  confiance, alternatives et plafond de claim.
+- Hypothèses : le registre et la provenance des preuves sont évalués explicitement.
+- Limitations : score non probabiliste ; la politique gardée exige `anchor_verified=True` avant
+  de nommer ; mécanisme, pronostic et économie récupérable sont interdits.
+- Exemple : `assess_attribution(component, inventory, method="guarded_evidence")`.
+
+### `rank_micro_questions(candidate_ids, questions, strategy="reliability_adjusted_voi")`
+
+- Objectif : choisir une information discriminante avec peu d'effort client.
+- Entrée : hypothèses et `MicroQuestion` contenant la réponse attendue par hypothèse, l'effort,
+  la disponibilité et la fiabilité.
+- Sortie : entropie avant/après, information gain, élimination attendue et utilité classée.
+- Hypothèses : les partitions de réponse sont préparées par Codex à partir du contexte local.
+- Limitations : prior uniforme décisionnel, pas posterior physique ; une mauvaise partition
+  produit une mauvaise question.
+- Exemple : comparer `information_gain` et `reliability_adjusted_voi` dans le benchmark.
+
+### `evidence_from_natural_event(...)` et `EvidenceLedger`
+
+- Objectif : convertir une quasi-expérience non confondue en preuve traçable et mémoriser les révisions.
+- Entrée : événement, candidats, audit de portée et preuves favorables/défavorables.
+- Sortie : preuve discriminante seulement si la portée des co-événements est vérifiée ; journal append-only.
+- Hypothèses : identité, date et exhaustivité opérationnelle raisonnables.
+- Limitations : un événement absent du journal est indétectable ; une révision doit superséder
+  explicitement l'entrée antérieure.
+
+### `plan_temporary_measurement(...)`
+
+- Objectif : proposer une ancre minimale seulement après épuisement des micro-questions utiles.
+- Entrée : assessment, questions classées, fréquence/répétabilité et décision visée.
+- Sortie : ambiguïté, instrument générique, cycles requis, durée seulement si justifiable et limite de sécurité.
+- Hypothèses : enjeu suffisant et pose par une personne habilitée.
+- Limitations : durée heuristique ; aucune instruction de câblage ni garantie de résolution.
+
+### `reuse_historical_anchor(...)`
+
+- Objectif : rechercher prudemment une signature historiquement compatible avec une ancre locale.
+- Entrée : signature de référence et nouvelle signature.
+- Sortie : distances par dimension et acceptation/refus explicite.
+- Hypothèses : au moins trois dimensions communes, occurrences et répétabilité suffisantes.
+- Limitations : seuils synthétiques (`0.10` moyen, `0.25` par dimension), non calibrés terrain.
+
+### `build_evidence_finding(...)` / `validate_evidence_finding(...)`
+
+- Objectif : sérialiser observé, inféré, preuves, alternatives et niveau, puis empêcher toute
+  promotion rédactionnelle.
+- Sortie : finding machine-readable avec `posterior_probability=null` et claims interdits.
+- Limitations : protège le format et le plafond calculé, pas la véracité d'une preuve source.

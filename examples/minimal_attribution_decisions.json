@@ -1,0 +1,580 @@
+{
+  "schema_version": "indicia-minimal-attribution-decision-examples-v1",
+  "status": "synthetic_examples_not_client_findings",
+  "examples": [
+    {
+      "example_id": "D01",
+      "synthetic": true,
+      "scenario_type": "useful_micro_question",
+      "decision": {
+        "case_id": "useful_micro_question__s70001",
+        "scenario_type": "useful_micro_question",
+        "split": "EXAMPLE",
+        "method": "guarded_evidence",
+        "question_strategy": "reliability_adjusted_voi",
+        "assessment": {
+          "schema_version": "indicia-minimal-attribution-assessment-v1",
+          "component_id": "S70001-C01",
+          "method": "guarded_evidence",
+          "candidates": [
+            {
+              "asset_id": "A",
+              "family": "pump",
+              "compatibility_score": 0.994781,
+              "feature_scores": {
+                "amplitude": 0.995144,
+                "start_hour": 0.992683,
+                "stop_hour": 0.996733,
+                "duration": 0.980092,
+                "operating_days": 1.0,
+                "production_relation": 1.0
+              },
+              "supporting_evidence": [],
+              "contradicting_evidence": [],
+              "eliminated": false,
+              "elimination_reasons": []
+            },
+            {
+              "asset_id": "B",
+              "family": "pump",
+              "compatibility_score": 0.994781,
+              "feature_scores": {
+                "amplitude": 0.995144,
+                "start_hour": 0.992683,
+                "stop_hour": 0.996733,
+                "duration": 0.980092,
+                "operating_days": 1.0,
+                "production_relation": 1.0
+              },
+              "supporting_evidence": [],
+              "contradicting_evidence": [],
+              "eliminated": false,
+              "elimination_reasons": []
+            },
+            {
+              "asset_id": "unknown",
+              "family": null,
+              "compatibility_score": 0.35,
+              "feature_scores": {},
+              "supporting_evidence": [],
+              "contradicting_evidence": [],
+              "eliminated": false,
+              "elimination_reasons": []
+            }
+          ],
+          "selected_asset_id": null,
+          "identifiability": "observationally_equivalent",
+          "evidence_level": {
+            "code": "COMPATIBLE_ASSET_FAMILY",
+            "ordinal": 4
+          },
+          "confidence": "moderate",
+          "confidence_scope": "confidence_in_the_assessment_not_asset_probability",
+          "posterior_probability": null,
+          "posterior_status": "not_computed_compatibility_scores_are_not_probabilities",
+          "more_same_type_data_will_help": false,
+          "observed": [
+            "signature S70001-C01 observée 24 fois",
+            "amplitude agrégée: 5.0244 kW"
+          ],
+          "inferred": [
+            "plusieurs actifs connus restent compatibles"
+          ],
+          "alternatives": [
+            "A",
+            "B",
+            "unknown"
+          ],
+          "claim_limit": "famille_compatible_sans_actif_unique",
+          "limitations": [
+            "Le compteur agrégé ne constitue pas un sous-comptage d'actif.",
+            "La compatibilité ne démontre ni causalité, ni mécanisme physique, ni pronostic."
+          ]
+        },
+        "ranked_questions": [
+          {
+            "question_id": "Q-weekend",
+            "prompt": "Lequel des deux actifs fonctionne habituellement le week-end ?",
+            "strategy": "reliability_adjusted_voi",
+            "prior_entropy_bits": 1.584963,
+            "expected_entropy_bits": 0.0,
+            "information_gain_bits": 1.584963,
+            "expected_hypothesis_elimination": 2.0,
+            "effort": 1.0,
+            "availability": 0.95,
+            "reliability": 0.9,
+            "utility": 1.355143,
+            "discriminating": true,
+            "answer_groups": {
+              "inconnu": [
+                "unknown"
+              ],
+              "non": [
+                "A"
+              ],
+              "oui": [
+                "B"
+              ]
+            }
+          },
+          {
+            "question_id": "Q-serial",
+            "prompt": "Quel était le numéro de série exact à la date de l'événement ?",
+            "strategy": "reliability_adjusted_voi",
+            "prior_entropy_bits": 1.584963,
+            "expected_entropy_bits": 0.0,
+            "information_gain_bits": 1.584963,
+            "expected_hypothesis_elimination": 2.0,
+            "effort": 6.0,
+            "availability": 0.15,
+            "reliability": 0.9,
+            "utility": 0.035662,
+            "discriminating": true,
+            "answer_groups": {
+              "A": [
+                "A"
+              ],
+              "B": [
+                "B"
+              ],
+              "autre": [
+                "unknown"
+              ]
+            }
+          },
+          {
+            "question_id": "Q-colour",
+            "prompt": "Les actifs sont-ils dans le même atelier ?",
+            "strategy": "reliability_adjusted_voi",
+            "prior_entropy_bits": 1.584963,
+            "expected_entropy_bits": 1.584963,
+            "information_gain_bits": 0.0,
+            "expected_hypothesis_elimination": 0.0,
+            "effort": 1.0,
+            "availability": 1.0,
+            "reliability": 0.95,
+            "utility": 0.0,
+            "discriminating": false,
+            "answer_groups": {
+              "oui": [
+                "A",
+                "B",
+                "unknown"
+              ]
+            }
+          }
+        ],
+        "natural_event_audit": null,
+        "temporary_measurement": null,
+        "historical_anchor_reuse": null
+      },
+      "expected_boundary": {
+        "target_hidden_during_decision": true,
+        "should_name_asset": false,
+        "physical_mechanism": null,
+        "prognosis": null
+      }
+    },
+    {
+      "example_id": "D02",
+      "synthetic": true,
+      "scenario_type": "discriminating_natural_event",
+      "decision": {
+        "case_id": "discriminating_natural_event__s70002",
+        "scenario_type": "discriminating_natural_event",
+        "split": "EXAMPLE",
+        "method": "guarded_evidence",
+        "question_strategy": "reliability_adjusted_voi",
+        "assessment": {
+          "schema_version": "indicia-minimal-attribution-assessment-v1",
+          "component_id": "S70002-C01",
+          "method": "guarded_evidence",
+          "candidates": [
+            {
+              "asset_id": "A",
+              "family": "pump",
+              "compatibility_score": 1.0,
+              "feature_scores": {
+                "amplitude": 0.976048,
+                "start_hour": 0.98985,
+                "stop_hour": 0.9879,
+                "duration": 0.990418,
+                "operating_days": 1.0,
+                "production_relation": 1.0
+              },
+              "supporting_evidence": [
+                "N-70002:S70002-C01"
+              ],
+              "contradicting_evidence": [],
+              "eliminated": false,
+              "elimination_reasons": []
+            },
+            {
+              "asset_id": "B",
+              "family": "pump",
+              "compatibility_score": 0.988542,
+              "feature_scores": {
+                "amplitude": 0.976048,
+                "start_hour": 0.98985,
+                "stop_hour": 0.9879,
+                "duration": 0.990418,
+                "operating_days": 1.0,
+                "production_relation": 1.0
+              },
+              "supporting_evidence": [],
+              "contradicting_evidence": [],
+              "eliminated": false,
+              "elimination_reasons": []
+            },
+            {
+              "asset_id": "unknown",
+              "family": null,
+              "compatibility_score": 0.35,
+              "feature_scores": {},
+              "supporting_evidence": [],
+              "contradicting_evidence": [],
+              "eliminated": false,
+              "elimination_reasons": []
+            }
+          ],
+          "selected_asset_id": "A",
+          "identifiability": "identifiable",
+          "evidence_level": {
+            "code": "PROBABLE_ASSET",
+            "ordinal": 5
+          },
+          "confidence": "low",
+          "confidence_scope": "confidence_in_the_assessment_not_asset_probability",
+          "posterior_probability": null,
+          "posterior_status": "not_computed_compatibility_scores_are_not_probabilities",
+          "more_same_type_data_will_help": false,
+          "observed": [
+            "signature S70002-C01 observée 24 fois",
+            "amplitude agrégée: 5.1227 kW"
+          ],
+          "inferred": [
+            "A est l'actif connu le plus compatible"
+          ],
+          "alternatives": [
+            "B",
+            "unknown"
+          ],
+          "claim_limit": "actif_probablement_responsable_sans_mecanisme",
+          "limitations": [
+            "Le compteur agrégé ne constitue pas un sous-comptage d'actif.",
+            "La compatibilité ne démontre ni causalité, ni mécanisme physique, ni pronostic."
+          ]
+        },
+        "ranked_questions": [],
+        "natural_event_audit": {
+          "event_id": "N-70002",
+          "discriminating": true,
+          "reason": "single_affected_candidate_without_concurrent_event",
+          "claim_effect": "compatibility_evidence_only"
+        },
+        "temporary_measurement": null,
+        "historical_anchor_reuse": null
+      },
+      "expected_boundary": {
+        "target_hidden_during_decision": true,
+        "should_name_asset": true,
+        "physical_mechanism": null,
+        "prognosis": null
+      }
+    },
+    {
+      "example_id": "D03",
+      "synthetic": true,
+      "scenario_type": "temporary_measurement_resolves",
+      "decision": {
+        "case_id": "temporary_measurement_resolves__s70003",
+        "scenario_type": "temporary_measurement_resolves",
+        "split": "EXAMPLE",
+        "method": "guarded_evidence",
+        "question_strategy": "reliability_adjusted_voi",
+        "assessment": {
+          "schema_version": "indicia-minimal-attribution-assessment-v1",
+          "component_id": "S70003-C01",
+          "method": "guarded_evidence",
+          "candidates": [
+            {
+              "asset_id": "A",
+              "family": "pump",
+              "compatibility_score": 1.0,
+              "feature_scores": {
+                "amplitude": 0.954126,
+                "start_hour": 0.981417,
+                "stop_hour": 0.967883,
+                "duration": 0.994642,
+                "operating_days": 1.0,
+                "production_relation": 1.0
+              },
+              "supporting_evidence": [
+                "E-clamp-70003"
+              ],
+              "contradicting_evidence": [],
+              "eliminated": false,
+              "elimination_reasons": []
+            },
+            {
+              "asset_id": "B",
+              "family": "pump",
+              "compatibility_score": 0.978301,
+              "feature_scores": {
+                "amplitude": 0.954126,
+                "start_hour": 0.981417,
+                "stop_hour": 0.967883,
+                "duration": 0.994642,
+                "operating_days": 1.0,
+                "production_relation": 1.0
+              },
+              "supporting_evidence": [],
+              "contradicting_evidence": [],
+              "eliminated": false,
+              "elimination_reasons": []
+            },
+            {
+              "asset_id": "unknown",
+              "family": null,
+              "compatibility_score": 0.35,
+              "feature_scores": {},
+              "supporting_evidence": [],
+              "contradicting_evidence": [],
+              "eliminated": false,
+              "elimination_reasons": []
+            }
+          ],
+          "selected_asset_id": "A",
+          "identifiability": "identifiable",
+          "evidence_level": {
+            "code": "ROBUST_ATTRIBUTION",
+            "ordinal": 6
+          },
+          "confidence": "low",
+          "confidence_scope": "confidence_in_the_assessment_not_asset_probability",
+          "posterior_probability": null,
+          "posterior_status": "not_computed_compatibility_scores_are_not_probabilities",
+          "more_same_type_data_will_help": false,
+          "observed": [
+            "signature S70003-C01 observée 24 fois",
+            "amplitude agrégée: 5.2404 kW"
+          ],
+          "inferred": [
+            "A est l'actif connu le plus compatible"
+          ],
+          "alternatives": [
+            "B",
+            "unknown"
+          ],
+          "claim_limit": "attribution_robuste_sans_mecanisme_ni_pronostic",
+          "limitations": [
+            "Le compteur agrégé ne constitue pas un sous-comptage d'actif.",
+            "La compatibilité ne démontre ni causalité, ni mécanisme physique, ni pronostic."
+          ]
+        },
+        "ranked_questions": [],
+        "natural_event_audit": null,
+        "temporary_measurement": null,
+        "historical_anchor_reuse": null
+      },
+      "expected_boundary": {
+        "target_hidden_during_decision": true,
+        "should_name_asset": true,
+        "physical_mechanism": null,
+        "prognosis": null
+      }
+    },
+    {
+      "example_id": "D04",
+      "synthetic": true,
+      "scenario_type": "simultaneous_loads",
+      "decision": {
+        "case_id": "simultaneous_loads__s70004",
+        "scenario_type": "simultaneous_loads",
+        "split": "EXAMPLE",
+        "method": "guarded_evidence",
+        "question_strategy": "reliability_adjusted_voi",
+        "assessment": {
+          "schema_version": "indicia-minimal-attribution-assessment-v1",
+          "component_id": "S70004-C01",
+          "method": "guarded_evidence",
+          "candidates": [
+            {
+              "asset_id": "A",
+              "family": "pump",
+              "compatibility_score": 0.847167,
+              "feature_scores": {
+                "amplitude": 0.5,
+                "start_hour": 0.971617,
+                "stop_hour": 0.9969,
+                "duration": 0.999817,
+                "operating_days": 1.0,
+                "production_relation": 1.0
+              },
+              "supporting_evidence": [],
+              "contradicting_evidence": [],
+              "eliminated": false,
+              "elimination_reasons": []
+            },
+            {
+              "asset_id": "B",
+              "family": "pump",
+              "compatibility_score": 0.847167,
+              "feature_scores": {
+                "amplitude": 0.5,
+                "start_hour": 0.971617,
+                "stop_hour": 0.9969,
+                "duration": 0.999817,
+                "operating_days": 1.0,
+                "production_relation": 1.0
+              },
+              "supporting_evidence": [],
+              "contradicting_evidence": [],
+              "eliminated": false,
+              "elimination_reasons": []
+            },
+            {
+              "asset_id": "unknown",
+              "family": null,
+              "compatibility_score": 0.35,
+              "feature_scores": {},
+              "supporting_evidence": [],
+              "contradicting_evidence": [],
+              "eliminated": false,
+              "elimination_reasons": []
+            }
+          ],
+          "selected_asset_id": null,
+          "identifiability": "insufficient_evidence",
+          "evidence_level": {
+            "code": "ANONYMOUS_COMPONENT",
+            "ordinal": 3
+          },
+          "confidence": "moderate",
+          "confidence_scope": "confidence_in_the_assessment_not_asset_probability",
+          "posterior_probability": null,
+          "posterior_status": "not_computed_compatibility_scores_are_not_probabilities",
+          "more_same_type_data_will_help": false,
+          "observed": [
+            "signature S70004-C01 observée 24 fois",
+            "amplitude agrégée: 10.0 kW"
+          ],
+          "inferred": [
+            "plusieurs actifs connus restent compatibles"
+          ],
+          "alternatives": [
+            "A",
+            "B",
+            "unknown"
+          ],
+          "claim_limit": "composant_electrique_anonyme_sans_actif",
+          "limitations": [
+            "Le compteur agrégé ne constitue pas un sous-comptage d'actif.",
+            "La compatibilité ne démontre ni causalité, ni mécanisme physique, ni pronostic."
+          ]
+        },
+        "ranked_questions": [],
+        "natural_event_audit": null,
+        "temporary_measurement": {
+          "status": "last_resort_targeted_measurement",
+          "component_id": "S70004-C01",
+          "ambiguity": [
+            "A",
+            "B",
+            "unknown"
+          ],
+          "instrument": "temporary_current_clamp_or_mobile_submeter",
+          "why_needed": "Les données agrégées et les micro-questions disponibles ne séparent pas les hypothèses restantes.",
+          "minimum_repeated_cycles": 3,
+          "approximate_duration_days": 3,
+          "duration_basis": "heuristic_repeated_cycle_requirement",
+          "short_measurement_may_be_insufficient": false,
+          "decision_enabled": "cibler la vérification terrain sur l'actif départagé",
+          "safety_boundary": "Installation par une personne habilitée; aucune instruction de câblage fournie."
+        },
+        "historical_anchor_reuse": null
+      },
+      "expected_boundary": {
+        "target_hidden_during_decision": true,
+        "should_name_asset": false,
+        "physical_mechanism": null,
+        "prognosis": null
+      }
+    },
+    {
+      "example_id": "D05",
+      "synthetic": true,
+      "scenario_type": "best_conclusion_unknown",
+      "decision": {
+        "case_id": "best_conclusion_unknown__s70005",
+        "scenario_type": "best_conclusion_unknown",
+        "split": "EXAMPLE",
+        "method": "guarded_evidence",
+        "question_strategy": "reliability_adjusted_voi",
+        "assessment": {
+          "schema_version": "indicia-minimal-attribution-assessment-v1",
+          "component_id": "S70005-C01",
+          "method": "guarded_evidence",
+          "candidates": [
+            {
+              "asset_id": "unknown",
+              "family": null,
+              "compatibility_score": 0.55,
+              "feature_scores": {},
+              "supporting_evidence": [],
+              "contradicting_evidence": [],
+              "eliminated": false,
+              "elimination_reasons": []
+            },
+            {
+              "asset_id": "A",
+              "family": null,
+              "compatibility_score": 0.5,
+              "feature_scores": {},
+              "supporting_evidence": [],
+              "contradicting_evidence": [],
+              "eliminated": false,
+              "elimination_reasons": []
+            }
+          ],
+          "selected_asset_id": null,
+          "identifiability": "likely_absent_from_inventory",
+          "evidence_level": {
+            "code": "ANONYMOUS_COMPONENT",
+            "ordinal": 3
+          },
+          "confidence": "moderate",
+          "confidence_scope": "confidence_in_the_assessment_not_asset_probability",
+          "posterior_probability": null,
+          "posterior_status": "not_computed_compatibility_scores_are_not_probabilities",
+          "more_same_type_data_will_help": false,
+          "observed": [
+            "signature S70005-C01 observée 24 fois",
+            "amplitude agrégée: 5.1056 kW"
+          ],
+          "inferred": [
+            "aucun actif connu n'est suffisamment compatible"
+          ],
+          "alternatives": [
+            "unknown"
+          ],
+          "claim_limit": "composant_electrique_anonyme_sans_actif",
+          "limitations": [
+            "Le compteur agrégé ne constitue pas un sous-comptage d'actif.",
+            "La compatibilité ne démontre ni causalité, ni mécanisme physique, ni pronostic."
+          ]
+        },
+        "ranked_questions": [],
+        "natural_event_audit": null,
+        "temporary_measurement": null,
+        "historical_anchor_reuse": null
+      },
+      "expected_boundary": {
+        "target_hidden_during_decision": true,
+        "should_name_asset": false,
+        "physical_mechanism": null,
+        "prognosis": null
+      }
+    }
+  ]
+}

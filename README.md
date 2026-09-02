@@ -276,6 +276,25 @@ motifs synthétiques. Il obtient **0 %** en attribution d'actif, mécanisme phys
 capacité complète. Voir [`docs/SIGNAL_INTELLIGENCE_BENCHMARK_V2.md`](docs/SIGNAL_INTELLIGENCE_BENCHMARK_V2.md)
 et [`reports/SIGNAL_INTELLIGENCE_BENCHMARK_V2_COMPLETION_AUDIT.md`](reports/SIGNAL_INTELLIGENCE_BENCHMARK_V2_COMPLETION_AUDIT.md).
 
+## Attribution sous preuves minimales (R&D)
+
+La couche `MinimalEvidenceAttribution` transforme une signature déjà reproductible en
+compatibilités explicables avec un registre incomplet. Elle conserve toujours `unknown`,
+distingue l'équivalence observationnelle de l'historique insuffisant et choisit une
+micro-question à forte valeur informationnelle. La politique gardée ne nomme un actif
+qu'après une ancre discriminante vérifiée.
+
+```sh
+python run_minimal_attribution_benchmark.py --help
+```
+
+La validation actuelle est exclusivement synthétique : 20 scénarios, dix seeds et un
+protocole de réponse verrouillée avant lecture de la vérité. Elle démontre les garde-fous
+logiciels, pas une précision d'attribution terrain. Le moteur ne produit ni mécanisme
+physique, ni pronostic, ni probabilité postérieure. Voir
+[`docs/MINIMAL_EVIDENCE_ATTRIBUTION.md`](docs/MINIMAL_EVIDENCE_ATTRIBUTION.md) et
+[`reports/MINIMAL_EVIDENCE_ATTRIBUTION_RND_REPORT.md`](reports/MINIMAL_EVIDENCE_ATTRIBUTION_RND_REPORT.md).
+
 ## Tests
 
 ```sh
@@ -301,10 +320,12 @@ energy_mvp/case_lifecycle.py cycle questions/reponses et verrou de livraison
 energy_mvp/positioning.py    positionnement canonique exposé aux dossiers client
 energy_mvp/tariffs.py        plages tarifaires et puissance mensuelle
 energy_mvp/validation.py     appariement d'evenements temporels
+energy_mvp/minimal_attribution.py compatibilité, identifiabilité, preuves et micro-questions
 energy_mvp/charts.py         PNG standard-library
 benchmarking/signal_intelligence.py protocole, verrouillage, scoring et agrégation V2
 benchmarking/signal_deterministic_baseline.py contrôles et ablations sans attribution
 benchmarking/signal_intelligence_generator.py corpus synthétique privé multi-réalisations
+benchmarking/minimal_attribution_benchmark.py benchmark aveugle, falsifications et robustesse
 docs/ANALYSIS_TOOLS.md       catalogue des outils
 docs/CLIENT_WORKFLOW.md      procédure nouveau client et contrats JSON
 docs/POSITIONING.md          proposition de valeur et frontière réglementaire

@@ -18,6 +18,11 @@ workspaces/*/human_review.json
 workspace/*/input/
 workspace/*/processed/
 workspace/*/outputs/
+workspace/minimal_attribution_benchmark*/
+
+# Minimal attribution: cas publics/privés et réponses générées restent des artefacts locaux.
+benchmarks/minimal_attribution/runs/*
+!benchmarks/minimal_attribution/runs/.gitkeep
 
 # Physical expertise benchmark: private cases and run artefacts never enter Git.
 benchmarks/physical_expertise/cases/DEV/*

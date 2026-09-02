@@ -1,0 +1,1320 @@
+{
+  "schema_version": "indicia-minimal-evidence-attribution-rnd-results-v1",
+  "generated_at_utc": "2026-09-02T20:52:35.178813+00:00",
+  "status": "prototype_validated_on_synthetic_data_not_field_validated",
+  "benchmark_manifest": {
+    "schema_version": "indicia-minimal-attribution-benchmark-v1",
+    "generated_at_utc": "2026-09-02T20:52:31.444206+00:00",
+    "case_count": 200,
+    "independent_seeds": 10,
+    "scenario_type_count": 20,
+    "public_cases_sha256": "9d060a671bdcf5214b6471ae57bee15646578f29a27e2432a535d08f4df40765",
+    "private_truth_sha256": "d87078ccc2672f5cc8251f9d06ab5649324018fd63ecd60c6a4e6fbcc51a2d53",
+    "protocol": "response_locked_before_private_truth_scoring"
+  },
+  "approach_comparison": [
+    {
+      "method": "amplitude_only",
+      "question_strategy": "information_gain",
+      "precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "correct_refusal_rate": 1.0,
+      "coverage": 0.2,
+      "asymmetric_mean_loss": 0.15,
+      "identifiability_status_accuracy": 0.75,
+      "best_question_accuracy": 0.333333
+    },
+    {
+      "method": "amplitude_only",
+      "question_strategy": "expected_elimination",
+      "precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "correct_refusal_rate": 1.0,
+      "coverage": 0.2,
+      "asymmetric_mean_loss": 0.15,
+      "identifiability_status_accuracy": 0.75,
+      "best_question_accuracy": 0.333333
+    },
+    {
+      "method": "amplitude_only",
+      "question_strategy": "reliability_adjusted_voi",
+      "precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "correct_refusal_rate": 1.0,
+      "coverage": 0.2,
+      "asymmetric_mean_loss": 0.15,
+      "identifiability_status_accuracy": 0.75,
+      "best_question_accuracy": 1.0
+    },
+    {
+      "method": "contextual",
+      "question_strategy": "information_gain",
+      "precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "correct_refusal_rate": 1.0,
+      "coverage": 0.25,
+      "asymmetric_mean_loss": 0.1,
+      "identifiability_status_accuracy": 0.85,
+      "best_question_accuracy": 0.333333
+    },
+    {
+      "method": "contextual",
+      "question_strategy": "expected_elimination",
+      "precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "correct_refusal_rate": 1.0,
+      "coverage": 0.25,
+      "asymmetric_mean_loss": 0.1,
+      "identifiability_status_accuracy": 0.85,
+      "best_question_accuracy": 0.333333
+    },
+    {
+      "method": "contextual",
+      "question_strategy": "reliability_adjusted_voi",
+      "precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "correct_refusal_rate": 1.0,
+      "coverage": 0.25,
+      "asymmetric_mean_loss": 0.1,
+      "identifiability_status_accuracy": 0.85,
+      "best_question_accuracy": 1.0
+    },
+    {
+      "method": "evidence_aware",
+      "question_strategy": "information_gain",
+      "precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "correct_refusal_rate": 1.0,
+      "coverage": 0.35,
+      "asymmetric_mean_loss": 0.0,
+      "identifiability_status_accuracy": 0.95,
+      "best_question_accuracy": 0.333333
+    },
+    {
+      "method": "evidence_aware",
+      "question_strategy": "expected_elimination",
+      "precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "correct_refusal_rate": 1.0,
+      "coverage": 0.35,
+      "asymmetric_mean_loss": 0.0,
+      "identifiability_status_accuracy": 0.95,
+      "best_question_accuracy": 0.333333
+    },
+    {
+      "method": "evidence_aware",
+      "question_strategy": "reliability_adjusted_voi",
+      "precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "correct_refusal_rate": 1.0,
+      "coverage": 0.35,
+      "asymmetric_mean_loss": 0.0,
+      "identifiability_status_accuracy": 0.95,
+      "best_question_accuracy": 1.0
+    },
+    {
+      "method": "guarded_evidence",
+      "question_strategy": "information_gain",
+      "precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "correct_refusal_rate": 1.0,
+      "coverage": 0.1,
+      "asymmetric_mean_loss": 0.25,
+      "identifiability_status_accuracy": 0.7,
+      "best_question_accuracy": 0.333333
+    },
+    {
+      "method": "guarded_evidence",
+      "question_strategy": "expected_elimination",
+      "precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "correct_refusal_rate": 1.0,
+      "coverage": 0.1,
+      "asymmetric_mean_loss": 0.25,
+      "identifiability_status_accuracy": 0.7,
+      "best_question_accuracy": 0.333333
+    },
+    {
+      "method": "guarded_evidence",
+      "question_strategy": "reliability_adjusted_voi",
+      "precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "correct_refusal_rate": 1.0,
+      "coverage": 0.1,
+      "asymmetric_mean_loss": 0.25,
+      "identifiability_status_accuracy": 0.7,
+      "best_question_accuracy": 1.0
+    }
+  ],
+  "raw_evidence_aware_diagnostic": {
+    "schema_version": "indicia-minimal-attribution-benchmark-v1",
+    "method": "evidence_aware",
+    "question_strategy": "reliability_adjusted_voi",
+    "cases": 200,
+    "attribution": {
+      "named": 70,
+      "correct_named": 70,
+      "false_attributions": 0,
+      "precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "coverage": 0.35,
+      "correct_refusal_rate": 1.0,
+      "abstention_on_identifiable_rate": 0.0,
+      "asymmetric_mean_loss": 0.0,
+      "loss_definition": {
+        "correct": 0,
+        "unnecessary_abstention": 1,
+        "false_attribution": 5
+      }
+    },
+    "ranking": {
+      "applicable": 170,
+      "mean_reciprocal_rank": 0.961765,
+      "top1_accuracy": 0.923529,
+      "top3_compatibility": 1.0
+    },
+    "identifiability_status_accuracy": 0.95,
+    "micro_questions": {
+      "applicable": 30,
+      "best_question_accuracy": 1.0,
+      "mean_selected_information_gain_bits": 0.792481,
+      "mean_realized_uncertainty_reduction_bits": 0.792482,
+      "mean_interactions_when_answered": 1.0
+    },
+    "natural_events": {
+      "applicable": 20,
+      "accuracy": 1.0
+    },
+    "historical_reuse": {
+      "applicable": 20,
+      "accuracy": 1.0
+    },
+    "temporary_measurement": {
+      "applicable": 20,
+      "accuracy": 1.0
+    },
+    "confidence_calibration_diagnostic": {
+      "low": {
+        "count": 80,
+        "empirical_decision_accuracy": 1.0,
+        "not_a_posterior_probability": true
+      },
+      "moderate": {
+        "count": 120,
+        "empirical_decision_accuracy": 1.0,
+        "not_a_posterior_probability": true
+      },
+      "high": {
+        "count": 0,
+        "empirical_decision_accuracy": null,
+        "not_a_posterior_probability": true
+      }
+    },
+    "per_scenario": {
+      "easy_asset": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "two_distinct_assets": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "two_nearly_identical": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "observationally_equivalent": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "real_asset_absent_inventory": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "plausible_wrong_candidate": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "wrong_field_information": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "contradictory_field_information": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "signature_drift": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "simultaneous_loads": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "weak_signature_in_aggregate": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "discriminating_natural_event": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "non_discriminating_natural_event": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "useful_micro_question": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "useless_micro_question": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "temporary_measurement_resolves": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "short_measurement_insufficient": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "insufficient_history": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "noisy_missing_data": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      },
+      "best_conclusion_unknown": {
+        "cases": 10,
+        "correct_decision": 10,
+        "false_attribution": 0
+      }
+    },
+    "per_split": {
+      "DEVELOPMENT": {
+        "cases": 100,
+        "correct_decision": 100,
+        "false_attribution": 0,
+        "named": 35
+      },
+      "HOLDOUT": {
+        "cases": 100,
+        "correct_decision": 100,
+        "false_attribution": 0,
+        "named": 35
+      }
+    },
+    "response_sha256": "a0ade10071a6437c3f524c18e302d7f68707ad4f484eea078e23ea60b43731a5"
+  },
+  "retained_policy": {
+    "compatibility_method": "guarded_evidence",
+    "micro_question_strategy": "reliability_adjusted_voi",
+    "reason": "La politique brute augmente la couverture synthétique mais échoue sous métadonnées trompeuses; la politique gardée exige une ancre discriminante vérifiée.",
+    "benchmark_metrics": {
+      "schema_version": "indicia-minimal-attribution-benchmark-v1",
+      "method": "guarded_evidence",
+      "question_strategy": "reliability_adjusted_voi",
+      "cases": 200,
+      "attribution": {
+        "named": 20,
+        "correct_named": 20,
+        "false_attributions": 0,
+        "precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "coverage": 0.1,
+        "correct_refusal_rate": 1.0,
+        "abstention_on_identifiable_rate": 0.714286,
+        "asymmetric_mean_loss": 0.25,
+        "loss_definition": {
+          "correct": 0,
+          "unnecessary_abstention": 1,
+          "false_attribution": 5
+        }
+      },
+      "ranking": {
+        "applicable": 170,
+        "mean_reciprocal_rank": 0.961765,
+        "top1_accuracy": 0.923529,
+        "top3_compatibility": 1.0
+      },
+      "identifiability_status_accuracy": 0.7,
+      "micro_questions": {
+        "applicable": 30,
+        "best_question_accuracy": 1.0,
+        "mean_selected_information_gain_bits": 0.792481,
+        "mean_realized_uncertainty_reduction_bits": 0.792482,
+        "mean_interactions_when_answered": 1.0
+      },
+      "natural_events": {
+        "applicable": 20,
+        "accuracy": 1.0
+      },
+      "historical_reuse": {
+        "applicable": 20,
+        "accuracy": 1.0
+      },
+      "temporary_measurement": {
+        "applicable": 20,
+        "accuracy": 1.0
+      },
+      "confidence_calibration_diagnostic": {
+        "low": {
+          "count": 80,
+          "empirical_decision_accuracy": 1.0,
+          "not_a_posterior_probability": true
+        },
+        "moderate": {
+          "count": 120,
+          "empirical_decision_accuracy": 0.583333,
+          "not_a_posterior_probability": true
+        },
+        "high": {
+          "count": 0,
+          "empirical_decision_accuracy": null,
+          "not_a_posterior_probability": true
+        }
+      },
+      "per_scenario": {
+        "easy_asset": {
+          "cases": 10,
+          "correct_decision": 0,
+          "false_attribution": 0
+        },
+        "two_distinct_assets": {
+          "cases": 10,
+          "correct_decision": 0,
+          "false_attribution": 0
+        },
+        "two_nearly_identical": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        },
+        "observationally_equivalent": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        },
+        "real_asset_absent_inventory": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        },
+        "plausible_wrong_candidate": {
+          "cases": 10,
+          "correct_decision": 0,
+          "false_attribution": 0
+        },
+        "wrong_field_information": {
+          "cases": 10,
+          "correct_decision": 0,
+          "false_attribution": 0
+        },
+        "contradictory_field_information": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        },
+        "signature_drift": {
+          "cases": 10,
+          "correct_decision": 0,
+          "false_attribution": 0
+        },
+        "simultaneous_loads": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        },
+        "weak_signature_in_aggregate": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        },
+        "discriminating_natural_event": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        },
+        "non_discriminating_natural_event": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        },
+        "useful_micro_question": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        },
+        "useless_micro_question": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        },
+        "temporary_measurement_resolves": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        },
+        "short_measurement_insufficient": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        },
+        "insufficient_history": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        },
+        "noisy_missing_data": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        },
+        "best_conclusion_unknown": {
+          "cases": 10,
+          "correct_decision": 10,
+          "false_attribution": 0
+        }
+      },
+      "per_split": {
+        "DEVELOPMENT": {
+          "cases": 100,
+          "correct_decision": 75,
+          "false_attribution": 0,
+          "named": 10
+        },
+        "HOLDOUT": {
+          "cases": 100,
+          "correct_decision": 75,
+          "false_attribution": 0,
+          "named": 10
+        }
+      },
+      "response_sha256": "26c3956aea1897c260445de7ff1af38d3e4699aee8f353ba7117ecbd4f0e425e"
+    },
+    "production_status": "research_only_requires_field_validation"
+  },
+  "falsifications": {
+    "schema_version": "indicia-minimal-attribution-falsification-v1",
+    "status": "adversarial_synthetic_failures_not_field_validation",
+    "cases": [
+      {
+        "case": "aggregation_overlap_mimics_large_asset",
+        "target_asset_id": null,
+        "expected_limit": "Refuser: deux charges de 5 kW peuvent imiter un actif de 10 kW.",
+        "results": [
+          {
+            "method": "amplitude_only",
+            "selected_asset_id": null,
+            "identifiability": "insufficient_evidence",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          },
+          {
+            "method": "contextual",
+            "selected_asset_id": null,
+            "identifiability": "insufficient_evidence",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          },
+          {
+            "method": "evidence_aware",
+            "selected_asset_id": null,
+            "identifiability": "insufficient_evidence",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          },
+          {
+            "method": "guarded_evidence",
+            "selected_asset_id": null,
+            "identifiability": "insufficient_evidence",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          }
+        ]
+      },
+      {
+        "case": "outdated_schedule_points_to_wrong_asset",
+        "target_asset_id": "A",
+        "expected_limit": "Un horaire faux non signalé est indétectable depuis les mêmes données.",
+        "results": [
+          {
+            "method": "amplitude_only",
+            "selected_asset_id": null,
+            "identifiability": "observationally_equivalent",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          },
+          {
+            "method": "contextual",
+            "selected_asset_id": "B",
+            "identifiability": "identifiable",
+            "confidence": "moderate",
+            "outcome": "false_attribution",
+            "event_audit": null
+          },
+          {
+            "method": "evidence_aware",
+            "selected_asset_id": "B",
+            "identifiability": "identifiable",
+            "confidence": "moderate",
+            "outcome": "false_attribution",
+            "event_audit": null
+          },
+          {
+            "method": "guarded_evidence",
+            "selected_asset_id": null,
+            "identifiability": "partially_identifiable",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          }
+        ]
+      },
+      {
+        "case": "misleading_nominal_power",
+        "target_asset_id": "A",
+        "expected_limit": "La puissance de plaque peut différer de la puissance incrémentale agrégée.",
+        "results": [
+          {
+            "method": "amplitude_only",
+            "selected_asset_id": "B",
+            "identifiability": "identifiable",
+            "confidence": "moderate",
+            "outcome": "false_attribution",
+            "event_audit": null
+          },
+          {
+            "method": "contextual",
+            "selected_asset_id": "B",
+            "identifiability": "identifiable",
+            "confidence": "moderate",
+            "outcome": "false_attribution",
+            "event_audit": null
+          },
+          {
+            "method": "evidence_aware",
+            "selected_asset_id": "B",
+            "identifiability": "identifiable",
+            "confidence": "moderate",
+            "outcome": "false_attribution",
+            "event_audit": null
+          },
+          {
+            "method": "guarded_evidence",
+            "selected_asset_id": null,
+            "identifiability": "partially_identifiable",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          }
+        ]
+      },
+      {
+        "case": "unreported_concurrent_event",
+        "target_asset_id": "B",
+        "expected_limit": "Un co-événement absent du journal peut produire une fausse quasi-expérience.",
+        "results": [
+          {
+            "method": "amplitude_only",
+            "selected_asset_id": null,
+            "identifiability": "observationally_equivalent",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          },
+          {
+            "method": "contextual",
+            "selected_asset_id": null,
+            "identifiability": "observationally_equivalent",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          },
+          {
+            "method": "evidence_aware",
+            "selected_asset_id": null,
+            "identifiability": "observationally_equivalent",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": {
+              "event_id": "N-hidden-confounder",
+              "discriminating": false,
+              "reason": "confounded_or_non_discriminating_event",
+              "claim_effect": "compatibility_evidence_only"
+            }
+          },
+          {
+            "method": "guarded_evidence",
+            "selected_asset_id": null,
+            "identifiability": "observationally_equivalent",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": {
+              "event_id": "N-hidden-confounder",
+              "discriminating": false,
+              "reason": "confounded_or_non_discriminating_event",
+              "claim_effect": "compatibility_evidence_only"
+            }
+          }
+        ]
+      },
+      {
+        "case": "mislabelled_temporary_sensor",
+        "target_asset_id": "A",
+        "expected_limit": "Une ancre mal étiquetée propage une attribution robuste mais fausse.",
+        "results": [
+          {
+            "method": "amplitude_only",
+            "selected_asset_id": null,
+            "identifiability": "observationally_equivalent",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          },
+          {
+            "method": "contextual",
+            "selected_asset_id": null,
+            "identifiability": "observationally_equivalent",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          },
+          {
+            "method": "evidence_aware",
+            "selected_asset_id": null,
+            "identifiability": "observationally_equivalent",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          },
+          {
+            "method": "guarded_evidence",
+            "selected_asset_id": null,
+            "identifiability": "observationally_equivalent",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          }
+        ]
+      },
+      {
+        "case": "declared_low_reliability_schedule",
+        "target_asset_id": "A",
+        "expected_limit": "La fiabilité déclarée réduit l'influence mais ne crée pas la vraie valeur.",
+        "results": [
+          {
+            "method": "amplitude_only",
+            "selected_asset_id": null,
+            "identifiability": "observationally_equivalent",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          },
+          {
+            "method": "contextual",
+            "selected_asset_id": "B",
+            "identifiability": "identifiable",
+            "confidence": "moderate",
+            "outcome": "false_attribution",
+            "event_audit": null
+          },
+          {
+            "method": "evidence_aware",
+            "selected_asset_id": "B",
+            "identifiability": "identifiable",
+            "confidence": "moderate",
+            "outcome": "false_attribution",
+            "event_audit": null
+          },
+          {
+            "method": "guarded_evidence",
+            "selected_asset_id": null,
+            "identifiability": "partially_identifiable",
+            "confidence": "moderate",
+            "outcome": "safe_refusal",
+            "event_audit": null
+          }
+        ]
+      }
+    ],
+    "counts": {
+      "amplitude_only": {
+        "correct_attribution": 0,
+        "safe_refusal": 5,
+        "false_attribution": 1
+      },
+      "contextual": {
+        "correct_attribution": 0,
+        "safe_refusal": 3,
+        "false_attribution": 3
+      },
+      "evidence_aware": {
+        "correct_attribution": 0,
+        "safe_refusal": 3,
+        "false_attribution": 3
+      },
+      "guarded_evidence": {
+        "correct_attribution": 0,
+        "safe_refusal": 6,
+        "false_attribution": 0
+      }
+    },
+    "retained_limits": [
+      "Un registre erroné mais présenté comme fiable peut rendre le contexte trompeur.",
+      "Un événement naturel n'est probant que si les co-événements sont raisonnablement exhaustifs.",
+      "Une mesure temporaire exige une identité de canal vérifiée; sa présence seule ne garantit pas la vérité.",
+      "L'agrégation marquée ambiguë interdit l'attribution sans ancre indépendante."
+    ]
+  },
+  "registry_corruption_focus": [
+    {
+      "corruption_rate": 0.0,
+      "registry_condition": "unlabelled_error",
+      "method": "contextual",
+      "cases": 500,
+      "verified_anchor_rate": 0.228,
+      "coverage": 1.0,
+      "attribution_precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "abstention_rate": 0.0,
+      "asymmetric_mean_loss": 0.0
+    },
+    {
+      "corruption_rate": 0.0,
+      "registry_condition": "unlabelled_error",
+      "method": "evidence_aware",
+      "cases": 500,
+      "verified_anchor_rate": 0.228,
+      "coverage": 1.0,
+      "attribution_precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "abstention_rate": 0.0,
+      "asymmetric_mean_loss": 0.0
+    },
+    {
+      "corruption_rate": 0.0,
+      "registry_condition": "unlabelled_error",
+      "method": "guarded_evidence",
+      "cases": 500,
+      "verified_anchor_rate": 0.228,
+      "coverage": 0.228,
+      "attribution_precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "abstention_rate": 0.772,
+      "asymmetric_mean_loss": 0.772
+    },
+    {
+      "corruption_rate": 0.25,
+      "registry_condition": "unlabelled_error",
+      "method": "contextual",
+      "cases": 500,
+      "verified_anchor_rate": 0.2,
+      "coverage": 1.0,
+      "attribution_precision": 0.752,
+      "false_attribution_rate": 0.248,
+      "abstention_rate": 0.0,
+      "asymmetric_mean_loss": 2.48
+    },
+    {
+      "corruption_rate": 0.25,
+      "registry_condition": "unlabelled_error",
+      "method": "evidence_aware",
+      "cases": 500,
+      "verified_anchor_rate": 0.2,
+      "coverage": 1.0,
+      "attribution_precision": 0.798,
+      "false_attribution_rate": 0.202,
+      "abstention_rate": 0.0,
+      "asymmetric_mean_loss": 2.02
+    },
+    {
+      "corruption_rate": 0.25,
+      "registry_condition": "unlabelled_error",
+      "method": "guarded_evidence",
+      "cases": 500,
+      "verified_anchor_rate": 0.2,
+      "coverage": 0.2,
+      "attribution_precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "abstention_rate": 0.8,
+      "asymmetric_mean_loss": 0.8
+    },
+    {
+      "corruption_rate": 0.5,
+      "registry_condition": "unlabelled_error",
+      "method": "contextual",
+      "cases": 500,
+      "verified_anchor_rate": 0.214,
+      "coverage": 1.0,
+      "attribution_precision": 0.49,
+      "false_attribution_rate": 0.51,
+      "abstention_rate": 0.0,
+      "asymmetric_mean_loss": 5.1
+    },
+    {
+      "corruption_rate": 0.5,
+      "registry_condition": "unlabelled_error",
+      "method": "evidence_aware",
+      "cases": 500,
+      "verified_anchor_rate": 0.214,
+      "coverage": 1.0,
+      "attribution_precision": 0.602,
+      "false_attribution_rate": 0.398,
+      "abstention_rate": 0.0,
+      "asymmetric_mean_loss": 3.98
+    },
+    {
+      "corruption_rate": 0.5,
+      "registry_condition": "unlabelled_error",
+      "method": "guarded_evidence",
+      "cases": 500,
+      "verified_anchor_rate": 0.214,
+      "coverage": 0.214,
+      "attribution_precision": 1.0,
+      "false_attribution_rate": 0.0,
+      "abstention_rate": 0.786,
+      "asymmetric_mean_loss": 0.786
+    }
+  ],
+  "registry_corruption_full_experiment": {
+    "schema_version": "indicia-registry-corruption-experiment-v1",
+    "status": "controlled_synthetic_robustness_experiment",
+    "independent_seeds": [
+      11,
+      23,
+      37,
+      51,
+      79
+    ],
+    "cases_per_seed_per_condition": 100,
+    "false_attribution_cost": 10,
+    "abstention_cost": 1,
+    "results": [
+      {
+        "corruption_rate": 0.0,
+        "registry_condition": "unlabelled_error",
+        "method": "contextual",
+        "cases": 500,
+        "verified_anchor_rate": 0.228,
+        "coverage": 1.0,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.0,
+        "asymmetric_mean_loss": 0.0
+      },
+      {
+        "corruption_rate": 0.0,
+        "registry_condition": "unlabelled_error",
+        "method": "evidence_aware",
+        "cases": 500,
+        "verified_anchor_rate": 0.228,
+        "coverage": 1.0,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.0,
+        "asymmetric_mean_loss": 0.0
+      },
+      {
+        "corruption_rate": 0.0,
+        "registry_condition": "unlabelled_error",
+        "method": "guarded_evidence",
+        "cases": 500,
+        "verified_anchor_rate": 0.228,
+        "coverage": 0.228,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.772,
+        "asymmetric_mean_loss": 0.772
+      },
+      {
+        "corruption_rate": 0.0,
+        "registry_condition": "declared_unreliable",
+        "method": "contextual",
+        "cases": 500,
+        "verified_anchor_rate": 0.228,
+        "coverage": 1.0,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.0,
+        "asymmetric_mean_loss": 0.0
+      },
+      {
+        "corruption_rate": 0.0,
+        "registry_condition": "declared_unreliable",
+        "method": "evidence_aware",
+        "cases": 500,
+        "verified_anchor_rate": 0.228,
+        "coverage": 1.0,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.0,
+        "asymmetric_mean_loss": 0.0
+      },
+      {
+        "corruption_rate": 0.0,
+        "registry_condition": "declared_unreliable",
+        "method": "guarded_evidence",
+        "cases": 500,
+        "verified_anchor_rate": 0.228,
+        "coverage": 0.228,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.772,
+        "asymmetric_mean_loss": 0.772
+      },
+      {
+        "corruption_rate": 0.1,
+        "registry_condition": "unlabelled_error",
+        "method": "contextual",
+        "cases": 500,
+        "verified_anchor_rate": 0.224,
+        "coverage": 1.0,
+        "attribution_precision": 0.894,
+        "false_attribution_rate": 0.106,
+        "abstention_rate": 0.0,
+        "asymmetric_mean_loss": 1.06
+      },
+      {
+        "corruption_rate": 0.1,
+        "registry_condition": "unlabelled_error",
+        "method": "evidence_aware",
+        "cases": 500,
+        "verified_anchor_rate": 0.224,
+        "coverage": 1.0,
+        "attribution_precision": 0.906,
+        "false_attribution_rate": 0.094,
+        "abstention_rate": 0.0,
+        "asymmetric_mean_loss": 0.94
+      },
+      {
+        "corruption_rate": 0.1,
+        "registry_condition": "unlabelled_error",
+        "method": "guarded_evidence",
+        "cases": 500,
+        "verified_anchor_rate": 0.224,
+        "coverage": 0.224,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.776,
+        "asymmetric_mean_loss": 0.776
+      },
+      {
+        "corruption_rate": 0.1,
+        "registry_condition": "declared_unreliable",
+        "method": "contextual",
+        "cases": 500,
+        "verified_anchor_rate": 0.224,
+        "coverage": 0.894,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.106,
+        "asymmetric_mean_loss": 0.106
+      },
+      {
+        "corruption_rate": 0.1,
+        "registry_condition": "declared_unreliable",
+        "method": "evidence_aware",
+        "cases": 500,
+        "verified_anchor_rate": 0.224,
+        "coverage": 0.906,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.094,
+        "asymmetric_mean_loss": 0.094
+      },
+      {
+        "corruption_rate": 0.1,
+        "registry_condition": "declared_unreliable",
+        "method": "guarded_evidence",
+        "cases": 500,
+        "verified_anchor_rate": 0.224,
+        "coverage": 0.224,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.776,
+        "asymmetric_mean_loss": 0.776
+      },
+      {
+        "corruption_rate": 0.25,
+        "registry_condition": "unlabelled_error",
+        "method": "contextual",
+        "cases": 500,
+        "verified_anchor_rate": 0.2,
+        "coverage": 1.0,
+        "attribution_precision": 0.752,
+        "false_attribution_rate": 0.248,
+        "abstention_rate": 0.0,
+        "asymmetric_mean_loss": 2.48
+      },
+      {
+        "corruption_rate": 0.25,
+        "registry_condition": "unlabelled_error",
+        "method": "evidence_aware",
+        "cases": 500,
+        "verified_anchor_rate": 0.2,
+        "coverage": 1.0,
+        "attribution_precision": 0.798,
+        "false_attribution_rate": 0.202,
+        "abstention_rate": 0.0,
+        "asymmetric_mean_loss": 2.02
+      },
+      {
+        "corruption_rate": 0.25,
+        "registry_condition": "unlabelled_error",
+        "method": "guarded_evidence",
+        "cases": 500,
+        "verified_anchor_rate": 0.2,
+        "coverage": 0.2,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.8,
+        "asymmetric_mean_loss": 0.8
+      },
+      {
+        "corruption_rate": 0.25,
+        "registry_condition": "declared_unreliable",
+        "method": "contextual",
+        "cases": 500,
+        "verified_anchor_rate": 0.2,
+        "coverage": 0.752,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.248,
+        "asymmetric_mean_loss": 0.248
+      },
+      {
+        "corruption_rate": 0.25,
+        "registry_condition": "declared_unreliable",
+        "method": "evidence_aware",
+        "cases": 500,
+        "verified_anchor_rate": 0.2,
+        "coverage": 0.798,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.202,
+        "asymmetric_mean_loss": 0.202
+      },
+      {
+        "corruption_rate": 0.25,
+        "registry_condition": "declared_unreliable",
+        "method": "guarded_evidence",
+        "cases": 500,
+        "verified_anchor_rate": 0.2,
+        "coverage": 0.2,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.8,
+        "asymmetric_mean_loss": 0.8
+      },
+      {
+        "corruption_rate": 0.5,
+        "registry_condition": "unlabelled_error",
+        "method": "contextual",
+        "cases": 500,
+        "verified_anchor_rate": 0.214,
+        "coverage": 1.0,
+        "attribution_precision": 0.49,
+        "false_attribution_rate": 0.51,
+        "abstention_rate": 0.0,
+        "asymmetric_mean_loss": 5.1
+      },
+      {
+        "corruption_rate": 0.5,
+        "registry_condition": "unlabelled_error",
+        "method": "evidence_aware",
+        "cases": 500,
+        "verified_anchor_rate": 0.214,
+        "coverage": 1.0,
+        "attribution_precision": 0.602,
+        "false_attribution_rate": 0.398,
+        "abstention_rate": 0.0,
+        "asymmetric_mean_loss": 3.98
+      },
+      {
+        "corruption_rate": 0.5,
+        "registry_condition": "unlabelled_error",
+        "method": "guarded_evidence",
+        "cases": 500,
+        "verified_anchor_rate": 0.214,
+        "coverage": 0.214,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.786,
+        "asymmetric_mean_loss": 0.786
+      },
+      {
+        "corruption_rate": 0.5,
+        "registry_condition": "declared_unreliable",
+        "method": "contextual",
+        "cases": 500,
+        "verified_anchor_rate": 0.214,
+        "coverage": 0.49,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.51,
+        "asymmetric_mean_loss": 0.51
+      },
+      {
+        "corruption_rate": 0.5,
+        "registry_condition": "declared_unreliable",
+        "method": "evidence_aware",
+        "cases": 500,
+        "verified_anchor_rate": 0.214,
+        "coverage": 0.602,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.398,
+        "asymmetric_mean_loss": 0.398
+      },
+      {
+        "corruption_rate": 0.5,
+        "registry_condition": "declared_unreliable",
+        "method": "guarded_evidence",
+        "cases": 500,
+        "verified_anchor_rate": 0.214,
+        "coverage": 0.214,
+        "attribution_precision": 1.0,
+        "false_attribution_rate": 0.0,
+        "abstention_rate": 0.786,
+        "asymmetric_mean_loss": 0.786
+      }
+    ],
+    "interpretation_boundary": "Les taux de corruption sont expérimentaux et ne représentent pas une fréquence terrain."
+  },
+  "historical_anchor_drift": {
+    "schema_version": "indicia-historical-anchor-drift-experiment-v1",
+    "status": "controlled_synthetic_temporal_stability_experiment",
+    "independent_seeds": [
+      17,
+      29,
+      43,
+      61,
+      83
+    ],
+    "case_count": 25,
+    "false_reuse_cost": 10,
+    "false_refusal_cost": 1,
+    "threshold_results": [
+      {
+        "maximum_distance": 0.1,
+        "true_accept": 10,
+        "false_accept": 0,
+        "true_refusal": 15,
+        "false_refusal": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "correct_refusal_rate": 1.0,
+        "asymmetric_loss": 0.0,
+        "mean_distance": 0.175528
+      },
+      {
+        "maximum_distance": 0.15,
+        "true_accept": 10,
+        "false_accept": 5,
+        "true_refusal": 10,
+        "false_refusal": 0,
+        "precision": 0.666667,
+        "recall": 1.0,
+        "correct_refusal_rate": 0.666667,
+        "asymmetric_loss": 2.0,
+        "mean_distance": 0.175528
+      },
+      {
+        "maximum_distance": 0.2,
+        "true_accept": 10,
+        "false_accept": 5,
+        "true_refusal": 10,
+        "false_refusal": 0,
+        "precision": 0.666667,
+        "recall": 1.0,
+        "correct_refusal_rate": 0.666667,
+        "asymmetric_loss": 2.0,
+        "mean_distance": 0.175528
+      },
+      {
+        "maximum_distance": 0.25,
+        "true_accept": 10,
+        "false_accept": 5,
+        "true_refusal": 10,
+        "false_refusal": 0,
+        "precision": 0.666667,
+        "recall": 1.0,
+        "correct_refusal_rate": 0.666667,
+        "asymmetric_loss": 2.0,
+        "mean_distance": 0.175528
+      },
+      {
+        "maximum_distance": 0.3,
+        "true_accept": 10,
+        "false_accept": 5,
+        "true_refusal": 10,
+        "false_refusal": 0,
+        "precision": 0.666667,
+        "recall": 1.0,
+        "correct_refusal_rate": 0.666667,
+        "asymmetric_loss": 2.0,
+        "mean_distance": 0.175528
+      }
+    ],
+    "selected_threshold": 0.1,
+    "selection_rule": "minimum_asymmetric_loss_then_smallest_threshold",
+    "limit": "Les régimes synthétiques ne calibrent pas un seuil universel terrain."
+  },
+  "px201": {
+    "schema_version": "indicia-px201-fixture-scan-v1",
+    "repository": "/data/data/com.termux/files/home/projects/energy-analyzer",
+    "scanned_files_or_archives": 2154,
+    "matches": [],
+    "data_fixture_matches": [],
+    "fixture_available": false,
+    "decision": "not_reproducible_no_fixture_do_not_fabricate_real_px201"
+  },
+  "evidence_ladder_boundary": {
+    "implemented_maximum": "ROBUST_ATTRIBUTION",
+    "physical_mechanism": "not_produced_by_this_layer",
+    "prognosis": "not_produced_by_this_layer",
+    "posterior_probability": "not_computed_not_calibrated"
+  },
+  "demonstrated": [
+    "Représentation explicite d'un registre incomplet et d'une signature anonyme.",
+    "Refus déterministe en cas d'équivalence observationnelle, chevauchement déclaré ou support insuffisant.",
+    "Classement de micro-questions avec information, disponibilité, fiabilité et effort.",
+    "Révision append-only des preuves et refus de réutilisation en cas de dérive multidimensionnelle.",
+    "Performance mesurée seulement sur cas synthétiques contrôlés et seeds indépendantes."
+  ],
+  "not_demonstrated": [
+    "Attribution fiable sur un site industriel réel.",
+    "Désagrégation générale de charges agrégées.",
+    "Calibration probabiliste d'un actif responsable.",
+    "Mécanisme physique, causalité, économie récupérable ou pronostic.",
+    "Reproduction de PX-201 en l'absence de fixture locale."
+  ]
+}
