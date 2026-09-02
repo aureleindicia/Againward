@@ -26,3 +26,13 @@ benchmarks/physical_expertise/cases/HOLDOUT/*
 !benchmarks/physical_expertise/cases/HOLDOUT/.gitkeep
 benchmarks/physical_expertise/runs/*
 !benchmarks/physical_expertise/runs/.gitkeep
+
+# Signal intelligence V2: generated truth, cases and runs stay private.
+benchmarks/signal_intelligence_v2/cases/DEV/*
+!benchmarks/signal_intelligence_v2/cases/DEV/.gitkeep
+benchmarks/signal_intelligence_v2/cases/HOLDOUT/*
+!benchmarks/signal_intelligence_v2/cases/HOLDOUT/.gitkeep
+benchmarks/signal_intelligence_v2/runs/*
+!benchmarks/signal_intelligence_v2/runs/.gitkeep
+benchmarks/signal_intelligence_v2/private_suites/*
+!benchmarks/signal_intelligence_v2/private_suites/.gitkeep

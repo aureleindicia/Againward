@@ -1,0 +1,51 @@
+{
+  "schema_version": 2,
+  "case_id": "CASE_ID",
+  "analysis_cutoff": "2026-01-01T00:00:00+01:00",
+  "data_assessment": {
+    "usable": true,
+    "measurement_tier": "L0_E15",
+    "quality_issues": [],
+    "limitations": ["Limite démontrée par les données."],
+    "coverage_summary": "Période, cadence et couverture calculées."
+  },
+  "signatures": [],
+  "findings": [],
+  "primary_assessment": {
+    "finding_id": null,
+    "event_class": "UNRESOLVED",
+    "abnormal_probability": 0.5,
+    "onset": null,
+    "target_assets": [],
+    "mechanisms": [],
+    "observed_excess_energy_kwh": null,
+    "evidence_refs": []
+  },
+  "prognosis": {
+    "issued": false,
+    "target_asset_id": null,
+    "outcome_code": "UNRESOLVED",
+    "horizon_days": 14,
+    "outcome_within_horizon_probability": 0.5,
+    "evidence_refs": [],
+    "abstention_reason": "Preuve insuffisante à ce stade."
+  },
+  "next_action": {
+    "action_code": "NO_ACTION",
+    "target_asset_id": null,
+    "priority": "NONE",
+    "action": "Aucune modification physique sans preuve supplémentaire.",
+    "competent_person": "Responsable de site",
+    "preconditions": [],
+    "risks": [],
+    "stop_conditions": [],
+    "validation": "Définir une mesure avant/après si une action est autorisée."
+  },
+  "overall_decision": "INSUFFICIENT_INFORMATION",
+  "adversarial_review": {
+    "best_reason_wrong": "Meilleure explication concurrente.",
+    "test_performed": "Test quantitatif effectué ou raison précise de son impossibilité.",
+    "result": "Résultat du test.",
+    "decision_after_review": "Conclusion conservée, réduite ou rejetée."
+  }
+}

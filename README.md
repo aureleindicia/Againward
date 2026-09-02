@@ -260,10 +260,26 @@ Un dataset normal sans anomalies peut etre genere avec `--without-anomalies`.
 Les donnees mensuelles restent acceptables pour les totaux, mais le moteur desactive
 explicitement les conclusions horaires, nocturnes et de demarrage.
 
+## Benchmark Signal Intelligence V2
+
+Le dépôt contient un protocole privé local pour tester séparément : détection, classe du
+phénomène, signature reproductible, attribution d'actif, mécanisme physique, quantification
+et pronostic. Les cas synthétiques appariés existent aux niveaux énergie 15 minutes, P/Q minute
+et événements électriques centraux.
+
+```sh
+python run_signal_intelligence_benchmark.py --help
+```
+
+Le contrôle déterministe actuel démontre seulement une détection candidate partielle et des
+motifs synthétiques. Il obtient **0 %** en attribution d'actif, mécanisme physique, pronostic et
+capacité complète. Voir [`docs/SIGNAL_INTELLIGENCE_BENCHMARK_V2.md`](docs/SIGNAL_INTELLIGENCE_BENCHMARK_V2.md)
+et [`reports/SIGNAL_INTELLIGENCE_BENCHMARK_V2_COMPLETION_AUDIT.md`](reports/SIGNAL_INTELLIGENCE_BENCHMARK_V2_COMPLETION_AUDIT.md).
+
 ## Tests
 
 ```sh
-python -m unittest discover -s tests -v
+python -m pytest -q
 ```
 
 La suite couvre notamment unites, integration kW/kWh, index cumulatif, timestamps, doublons,
@@ -286,6 +302,9 @@ energy_mvp/positioning.py    positionnement canonique exposé aux dossiers clien
 energy_mvp/tariffs.py        plages tarifaires et puissance mensuelle
 energy_mvp/validation.py     appariement d'evenements temporels
 energy_mvp/charts.py         PNG standard-library
+benchmarking/signal_intelligence.py protocole, verrouillage, scoring et agrégation V2
+benchmarking/signal_deterministic_baseline.py contrôles et ablations sans attribution
+benchmarking/signal_intelligence_generator.py corpus synthétique privé multi-réalisations
 docs/ANALYSIS_TOOLS.md       catalogue des outils
 docs/CLIENT_WORKFLOW.md      procédure nouveau client et contrats JSON
 docs/POSITIONING.md          proposition de valeur et frontière réglementaire

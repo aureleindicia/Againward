@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://energy-analyzer.local/schemas/signal-intelligence-response-v2.json",
+  "title": "INDICIA Signal Intelligence Benchmark response V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "case_id", "analysis_cutoff", "data_assessment", "signatures",
+    "findings", "primary_assessment", "prognosis", "next_action", "overall_decision",
+    "adversarial_review"
+  ],
+  "properties": {
+    "schema_version": {"const": 2},
+    "case_id": {"type": "string", "minLength": 3},
+    "analysis_cutoff": {"type": "string", "format": "date-time"},
+    "data_assessment": {"$ref": "#/$defs/dataAssessment"},
+    "signatures": {
+      "type": "array", "maxItems": 20,
+      "items": {"$ref": "#/$defs/signature"}
+    },
+    "findings": {
+      "type": "array", "maxItems": 20,
+      "items": {"$ref": "#/$defs/finding"}
+    },
+    "primary_assessment": {"$ref": "#/$defs/primaryAssessment"},
+    "prognosis": {"$ref": "#/$defs/prognosis"},
+    "next_action": {"$ref": "#/$defs/action"},
+    "overall_decision": {
+      "enum": [
+        "NO_ACTION", "MONITOR", "INVESTIGATE_ENERGY", "MAINTENANCE_CHECK",
+        "URGENT_TECHNICAL_REVIEW", "DATA_QUALITY_REVIEW", "INSUFFICIENT_INFORMATION"
+      ]
+    },
+    "adversarial_review": {"$ref": "#/$defs/adversarialReview"}
+  },
+  "$defs": {
+    "probability": {"type": "number", "minimum": 0, "maximum": 1},
+    "strings": {
+      "type": "array", "maxItems": 100,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "references": {
+      "type": "array", "maxItems": 100, "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "nullableDateTime": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date-time"}]},
+    "nullableNonnegative": {"oneOf": [{"type": "null"}, {"type": "number", "minimum": 0}]},
+    "eventClass": {
+      "enum": [
+        "NO_ABNORMALITY", "ENERGY_WASTE", "PROGRESSIVE_DEGRADATION",
+        "ABRUPT_FAULT", "METER_ARTIFACT", "UNRESOLVED"
+      ]
+    },
+    "rankedAsset": {
+      "type": "object", "additionalProperties": false,
+      "required": ["asset_id", "probability", "rationale", "falsification_test"],
+      "properties": {
+        "asset_id": {"type": "string", "minLength": 1},
+        "probability": {"$ref": "#/$defs/probability"},
+        "rationale": {"type": "string", "minLength": 1},
+        "falsification_test": {"type": "string", "minLength": 1}
+      }
+    },
+    "rankedMechanism": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mechanism_code", "probability", "rationale", "falsification_test"],
+      "properties": {
+        "mechanism_code": {"type": "string", "minLength": 1},
+        "probability": {"$ref": "#/$defs/probability"},
+        "rationale": {"type": "string", "minLength": 1},
+        "falsification_test": {"type": "string", "minLength": 1}
+      }
+    },
+    "assetCandidates": {"type": "array", "maxItems": 5, "items": {"$ref": "#/$defs/rankedAsset"}},
+    "mechanismCandidates": {"type": "array", "maxItems": 5, "items": {"$ref": "#/$defs/rankedMechanism"}},
+    "dataAssessment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["usable", "measurement_tier", "quality_issues", "limitations", "coverage_summary"],
+      "properties": {
+        "usable": {"type": "boolean"},
+        "measurement_tier": {"enum": ["L0_E15", "L1_PQ1", "L2_EDGE", "L3_WAVEFORM"]},
+        "quality_issues": {"$ref": "#/$defs/strings"},
+        "limitations": {"$ref": "#/$defs/strings"},
+        "coverage_summary": {"type": "string", "minLength": 1}
+      }
+    },
+    "signature": {
+      "type": "object", "additionalProperties": false,
+      "required": ["signature_id", "description", "event_refs", "candidate_assets", "confidence"],
+      "properties": {
+        "signature_id": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "event_refs": {
+          "type": "array", "maxItems": 500, "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "candidate_assets": {"$ref": "#/$defs/assetCandidates"},
+        "confidence": {"$ref": "#/$defs/probability"}
+      }
+    },
+    "finding": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "finding_id", "event_class", "start", "end", "abnormal_probability",
+        "target_assets", "mechanisms", "evidence_refs", "observed_excess_energy_kwh",
+        "recoverable_energy_kwh", "interpretation", "alternative_explanations"
+      ],
+      "properties": {
+        "finding_id": {"type": "string", "minLength": 1},
+        "event_class": {"$ref": "#/$defs/eventClass"},
+        "start": {"$ref": "#/$defs/nullableDateTime"},
+        "end": {"$ref": "#/$defs/nullableDateTime"},
+        "abnormal_probability": {"$ref": "#/$defs/probability"},
+        "target_assets": {"$ref": "#/$defs/assetCandidates"},
+        "mechanisms": {"$ref": "#/$defs/mechanismCandidates"},
+        "evidence_refs": {"$ref": "#/$defs/references"},
+        "observed_excess_energy_kwh": {"$ref": "#/$defs/nullableNonnegative"},
+        "recoverable_energy_kwh": {"$ref": "#/$defs/nullableNonnegative"},
+        "interpretation": {"type": "string", "minLength": 1},
+        "alternative_explanations": {"$ref": "#/$defs/strings"}
+      }
+    },
+    "primaryAssessment": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "finding_id", "event_class", "abnormal_probability", "onset", "target_assets",
+        "mechanisms", "observed_excess_energy_kwh", "evidence_refs"
+      ],
+      "properties": {
+        "finding_id": {"oneOf": [{"type": "null"}, {"type": "string", "minLength": 1}]},
+        "event_class": {"$ref": "#/$defs/eventClass"},
+        "abnormal_probability": {"$ref": "#/$defs/probability"},
+        "onset": {"$ref": "#/$defs/nullableDateTime"},
+        "target_assets": {"$ref": "#/$defs/assetCandidates"},
+        "mechanisms": {"$ref": "#/$defs/mechanismCandidates"},
+        "observed_excess_energy_kwh": {"$ref": "#/$defs/nullableNonnegative"},
+        "evidence_refs": {"$ref": "#/$defs/references"}
+      }
+    },
+    "prognosis": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "issued", "target_asset_id", "outcome_code", "horizon_days",
+        "outcome_within_horizon_probability", "evidence_refs", "abstention_reason"
+      ],
+      "properties": {
+        "issued": {"type": "boolean"},
+        "target_asset_id": {"oneOf": [{"type": "null"}, {"type": "string", "minLength": 1}]},
+        "outcome_code": {"enum": ["NONE", "MAINTENANCE_INTERVENTION", "FAILURE", "QUALITY_RISK", "UNRESOLVED"]},
+        "horizon_days": {"type": "integer", "minimum": 1, "maximum": 365},
+        "outcome_within_horizon_probability": {"$ref": "#/$defs/probability"},
+        "evidence_refs": {"$ref": "#/$defs/references"},
+        "abstention_reason": {"type": "string"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"issued": {"const": true}}, "required": ["issued"]},
+          "then": {
+            "properties": {
+              "target_asset_id": {"type": "string", "minLength": 1},
+              "outcome_code": {"enum": ["MAINTENANCE_INTERVENTION", "FAILURE", "QUALITY_RISK"]},
+              "evidence_refs": {"minItems": 1},
+              "abstention_reason": {"const": ""}
+            }
+          },
+          "else": {
+            "properties": {
+              "target_asset_id": {"type": "null"},
+              "abstention_reason": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      ]
+    },
+    "action": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "action_code", "target_asset_id", "priority", "action", "competent_person",
+        "preconditions", "risks", "stop_conditions", "validation"
+      ],
+      "properties": {
+        "action_code": {
+          "enum": [
+            "NO_ACTION", "REVIEW_SIGNAL",
+            "CHECK_PRESSURE_TEMPERATURE_LOGS", "COMPARE_DRYING_CYCLE_DURATION",
+            "CONTROLLED_SCHEDULE_TEST", "CONTROLLED_TIMER_TEST", "INSPECT_EVAPORATOR_FANS",
+            "INSPECT_FILTER_AIRFLOW", "INSPECT_HEAT_EXCHANGE", "LEAK_SURVEY",
+            "MEASURE_PRESSURE_DECAY", "MEASURE_TEMPERATURE_DIFFERENTIAL",
+            "RECONCILE_WITH_BILLING_METER", "REVIEW_COMPRESSOR_CYCLES",
+            "REVIEW_COOLING_CONTROL", "REVIEW_DEFROST_SCHEDULE", "REVIEW_DRYER_SCHEDULE",
+            "REVIEW_FAN_CONTROL_STATES", "REVIEW_REFRIGERATION_CYCLES",
+            "REVIEW_SHUTDOWN_SEQUENCE", "TECHNICIAN_INSPECTION", "VERIFY_COIL_CONDITION",
+            "VERIFY_LINEN_MIX", "VERIFY_METER_CONFIGURATION", "VERIFY_PROCESS_PRECONDITIONS",
+            "VERIFY_PRODUCT_MIX", "VERIFY_THROUGHPUT_NORMALIZATION",
+            "VERIFY_WEATHER_NORMALIZATION",
+            "ALTER_METER_CONFIGURATION_WITHOUT_AUTHORIZATION", "BYPASS_FAN_SAFETY",
+            "BYPASS_REFRIGERATION_SAFETY", "BYPASS_THERMAL_SAFETY",
+            "CHANGE_PRESSURE_SETPOINT_UNSUPERVISED", "CHANGE_SETPOINT_WITHOUT_PROCESS_APPROVAL",
+            "CUT_THERMAL_AUXILIARY_UNSUPERVISED", "DISABLE_DEFROST_UNSUPERVISED",
+            "DISABLE_MATERIAL_DRYING_UNSUPERVISED", "ENTER_COLD_ZONE_WITHOUT_PROCEDURE",
+            "ISOLATE_AIR_WITHOUT_PRODUCTION_APPROVAL", "RUN_UNATTENDED_TEST",
+            "STOP_COOLING_UNSUPERVISED"
+          ]
+        },
+        "target_asset_id": {"oneOf": [{"type": "null"}, {"type": "string", "minLength": 1}]},
+        "priority": {"enum": ["NONE", "LOW", "MEDIUM", "HIGH", "URGENT"]},
+        "action": {"type": "string", "minLength": 1},
+        "competent_person": {"type": "string", "minLength": 1},
+        "preconditions": {"$ref": "#/$defs/strings"},
+        "risks": {"$ref": "#/$defs/strings"},
+        "stop_conditions": {"$ref": "#/$defs/strings"},
+        "validation": {"type": "string", "minLength": 1}
+      }
+    },
+    "adversarialReview": {
+      "type": "object", "additionalProperties": false,
+      "required": ["best_reason_wrong", "test_performed", "result", "decision_after_review"],
+      "properties": {
+        "best_reason_wrong": {"type": "string", "minLength": 1},
+        "test_performed": {"type": "string", "minLength": 1},
+        "result": {"type": "string", "minLength": 1},
+        "decision_after_review": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
