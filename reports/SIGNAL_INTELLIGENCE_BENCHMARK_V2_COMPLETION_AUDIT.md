@@ -50,13 +50,16 @@ Engagements de reproduction :
 
 ```text
 suite_manifest_sha256:
-a7138c98355a03b411e127b42cc8bf487dfaf71bac1f28c4bb22c4d5a7029da0
+c3bdfeeb0b6a1d435542a08512a53f4320be0a85c431db84b717bb230fe94695
 
 protocol_snapshot_commitment_sha256:
-5be0dceb4574a8f5b61ae27952683b0d41ce52d5c069ac317a41399c7cdcc2cc
+fdd50966ba2e30799c782cfbf81c05d5a3d8077b47f5984cf5a88a8316fcbd55
 
 generator_sha256:
 1009bcc5f220685e949bbe4cb5467f5826917bee40c287f36b707c144fa047c4
+
+engine_git_commit:
+7c0e887
 ```
 
 ## Falsifications qui ont modifié le système
