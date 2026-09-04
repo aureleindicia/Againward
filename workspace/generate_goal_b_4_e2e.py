@@ -13,8 +13,10 @@ from operational_economics import (
     economic_handoff,
     initialize_economic_state,
     persist_economic_packet,
+    publish_economic_request_batch,
     record_goal_b_evidence,
 )
+from energy_mvp.client_lifecycle import complete_resume, record_existing_data_exhaustion
 
 
 def _write(path: Path, payload: dict) -> None:
@@ -118,17 +120,21 @@ def generate(root: str | Path = "examples") -> Path:
         "python_calculates_and_validates": True, "not_a_deterministic_recommendation": True,
     })
     initialize_economic_state(case)
+    record_existing_data_exhaustion(case, analysis_inventory_ref="derived/canonical_case.json", reviewed_sources=["evidence/intake_inventory.json", "investigation/structured_findings.json"])
     requests = [
         {"request_id": "ECO-REQ-QUOTE", "request_type": "REQUEST_QUOTE", "client_question": "Pouvez-vous transmettre le devis de l'inspection ciblée ?", "internal_reason": "Le coût conditionne la priorité économique.", "target_role": "dirigeant", "decision_impact": "Comparer coût et bénéfice.", "expected_effort": "Envoyer le devis."},
         {"request_id": "ECO-REQ-DOWNTIME", "request_type": "ASK_CLIENT", "client_question": "La machine peut-elle être arrêtée pendant les heures de production ?", "internal_reason": "La fenêtre d'arrêt conditionne la faisabilité.", "target_role": "responsable site", "decision_impact": "Planifier ou différer.", "expected_effort": "Réponse simple."},
     ]
+    requests[0].update({"related_hypothesis_ids": ["H-CAPEX"], "hypotheses_distinguished": ["coût compatible", "coût incompatible"], "plausible_answers": [{"answer_id": "LOW", "label": "Coût compatible", "decision_effects": ["Intervention économiquement plausible."]}, {"answer_id": "HIGH", "label": "Coût trop élevé", "decision_effects": ["Intervention à différer."]}], "decision_impact_dimensions": ["economic_materiality"], "effort": 1, "availability": .9, "reliability": .9, "expected_source_type": "EXISTING_DOCUMENT", "importance": "BLOCKING"})
+    requests[1].update({"related_hypothesis_ids": ["H-DOWNTIME"], "hypotheses_distinguished": ["arrêt possible", "arrêt impossible"], "plausible_answers": [{"answer_id": "YES", "label": "Arrêt possible", "decision_effects": ["Planifier pendant la production."]}, {"answer_id": "NO", "label": "Arrêt impossible", "decision_effects": ["Planifier hors production."]}], "decision_impact_dimensions": ["field_action"], "effort": 1, "availability": .9, "reliability": .7, "importance": "BLOCKING"})
     initial_packet = {
         "technical_finding_refs": [{"finding_id": "FIND-EXCESS-01"}], "economic_inputs": [_tariff_input(artifact_ids["tariff.txt"])],
         "scenario_assumptions": [], "candidate_actions": [_action()], "operational_constraints": [],
         "relationships": [], "combined_effects": {}, "scenario_calculations": {"ACT-INSPECT-01": _calculation(None, None)},
-        "economic_requests": requests, "decision": _decision(),
+        "economic_requests": [], "decision": _decision(),
     }
     persist_economic_packet(case, initial_packet)
+    publish_economic_request_batch(case, requests)
     quote = record_goal_b_evidence(case, {
         "evidence_id": "GBE-QUOTE-01", "evidence_type": "GOAL_B_CLIENT_RESPONSE",
         "content": {"response_text": "Le devis est de 450 EUR."},
@@ -168,6 +174,7 @@ def generate(root: str | Path = "examples") -> Path:
         "economic_input_ref": "CAP-QUOTE-01", "constraint_ref": "CONS-PROD-01",
         "final_decision": final_state["decisions"][0]["decision"],
     })
+    complete_resume(case, recalculation_refs=["investigation/economic_decision_state.json"], adversarial_review_ref="investigation/goal_b_4_e2e_trace.json", before_after=[{"hypothesis_id": "H-CAPEX", "before": "coût inconnu", "after": "devis 450 EUR"}, {"hypothesis_id": "H-DOWNTIME", "before": "fenêtre inconnue", "after": "arrêt hors production requis"}])
     return case
 
 

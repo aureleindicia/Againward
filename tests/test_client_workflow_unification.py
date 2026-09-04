@@ -48,6 +48,8 @@ def test_answer_append_only_and_resume_required(tmp_path):
     resume(tmp_path)
 def test_contradictions_preserved(tmp_path):
     ready(tmp_path); publish_client_requests(tmp_path,[candidate("Q1"),candidate("Q2",related="H2")]); record_canonical_answers(tmp_path,[answer("Q1")]); record_canonical_answers(tmp_path,[answer("Q2",source_type="EXISTING_DOCUMENT",contradicts_answer_ids=["A-Q1"])]); assert len(json.loads((tmp_path/"questions.json").read_text())["responses"])==2
+def test_correction_is_append_only_and_linked(tmp_path):
+    ready(tmp_path); publish_client_requests(tmp_path,[candidate()]); record_canonical_answers(tmp_path,[answer()]); corrected=record_canonical_answers(tmp_path,[answer(answer_id="A-Q1-CORR",answer="Correction: le site était ouvert.",supersedes_answer_id="A-Q1")]); responses=json.loads((tmp_path/"questions.json").read_text())["responses"]; assert len(responses)==2 and corrected["recorded_answers"][0]["supersedes_answer_id"]=="A-Q1"
 def test_operator_never_verified_anchor():
     with pytest.raises(ValueError,match="ancre vérifiée"): EvidenceItem("E","answer","supports",("P1",),1,"2026","call","P1",source_class="CLIENT_DECLARATION",anchor_verified=True)
 def test_ledger_roundtrip_correction():

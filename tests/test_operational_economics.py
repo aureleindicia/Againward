@@ -16,6 +16,7 @@ from operational_economics import (
     economic_handoff,
     initialize_economic_state,
     persist_economic_packet,
+    publish_economic_request_batch,
     record_goal_b_evidence,
     validate_candidate_action,
     validate_constraint,
@@ -24,6 +25,7 @@ from operational_economics import (
     validate_energy_effect,
     validate_relationship,
 )
+from energy_mvp.client_lifecycle import record_existing_data_exhaustion
 from workspace.generate_goal_b_2_e2e import generate as generate_goal_b_2_e2e
 from workspace.generate_goal_b_4_e2e import generate as generate_goal_b_4_e2e
 
@@ -84,6 +86,7 @@ class OperationalEconomicsB2Tests(unittest.TestCase):
         self._real_artifact_id = inventory["artifacts"][0]["artifact_id"]
         self._real_dataset_id = inventory["artifacts"][0]["extracted_dataset_ids"][0]
         record_structured_findings(case, [{"finding_id": "FIND-01", "observation": "Excès confirmé.", "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "confidence": "MEDIUM", "possible_explanations": ["A", "B"], "provenance": ["evidence/dataset_provenance.json"], "recommended_next_analytical_step": "Comparer régimes."}])
+        record_existing_data_exhaustion(case, analysis_inventory_ref="derived/canonical_case.json", reviewed_sources=["evidence/intake_inventory.json", "investigation/structured_findings.json"])
         return case, directory
 
     def _packet(self, calculation: dict | None = None) -> dict:
@@ -419,6 +422,8 @@ class OperationalEconomicsB2Tests(unittest.TestCase):
         with directory:
             initialize_economic_state(case)
             request = {"request_id": "ECO-REQ-QUOTE", "request_type": "REQUEST_QUOTE", "client_question": "Pouvez-vous transmettre le devis récent de cette intervention ?", "internal_reason": "Le CAPEX conditionne la comparaison économique.", "target_role": "dirigeant", "decision_impact": "Comparer coût et bénéfice.", "expected_effort": "Envoyer le devis."}
+            request.update({"related_hypothesis_ids": ["H-CAPEX"], "hypotheses_distinguished": ["CAPEX compatible", "CAPEX incompatible"], "plausible_answers": [{"answer_id": "LOW", "label": "Devis compatible", "decision_effects": ["L'action peut rester rentable."]}, {"answer_id": "HIGH", "label": "Devis trop élevé", "decision_effects": ["L'action peut être différée."]}], "decision_impact_dimensions": ["economic_materiality"], "effort": 1, "availability": .9, "reliability": .9, "expected_source_type": "EXISTING_DOCUMENT"})
+            publish_economic_request_batch(case, [request])
             first = self._packet()
             first["economic_requests"] = [request]
             persist_economic_packet(case, first)
@@ -437,6 +442,8 @@ class OperationalEconomicsB2Tests(unittest.TestCase):
         with directory:
             initialize_economic_state(case)
             request = {"request_id": "ECO-REQ-DOWNTIME", "request_type": "ASK_CLIENT", "client_question": "La machine peut-elle être arrêtée pendant les heures de production ?", "internal_reason": "La contrainte d'arrêt conditionne l'intervention.", "target_role": "responsable site", "decision_impact": "Planifier ou différer.", "expected_effort": "Réponse simple."}
+            request.update({"related_hypothesis_ids": ["H-DOWNTIME"], "hypotheses_distinguished": ["arrêt possible", "arrêt impossible"], "plausible_answers": [{"answer_id": "YES", "label": "Arrêt possible", "decision_effects": ["Planifier en production."]}, {"answer_id": "NO", "label": "Arrêt impossible", "decision_effects": ["Planifier hors production."]}], "decision_impact_dimensions": ["field_action"], "effort": 1, "availability": .9, "reliability": .7})
+            publish_economic_request_batch(case, [request])
             first = self._packet()
             first["economic_requests"] = [request]
             persist_economic_packet(case, first)

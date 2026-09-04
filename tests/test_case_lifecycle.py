@@ -13,7 +13,7 @@ from energy_mvp.case_lifecycle import (
     validate_adversarial_review,
     validate_investigation_document,
 )
-from energy_mvp.client_lifecycle import record_existing_data_exhaustion
+from energy_mvp.client_lifecycle import mark_finalizable, record_existing_data_exhaustion
 from energy_mvp.evidence_cli import execute_case_query
 from energy_mvp.investigation import information_request
 from energy_mvp.workflow import prepare_investigation
@@ -200,6 +200,8 @@ class CaseLifecycleTests(unittest.TestCase):
                 "reviewer_role": "ingénieur énergie",
                 "reviewed_at_utc": "2026-08-31T12:00:00+00:00",
             }), encoding="utf-8")
+            record_existing_data_exhaustion(case, analysis_inventory_ref="prepared_analysis.json", reviewed_sources=["prepared_analysis.json", "evidence_card.json"])
+            mark_finalizable(case, conclusion_ref="investigation.json")
 
             blocked = evaluate_delivery_gate(case)
             self.assertIn("agent_findings.json", " ".join(blocked["blocking_reasons"]))

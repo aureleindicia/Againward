@@ -53,7 +53,18 @@ def record_attribution_answer(case_directory:str|Path,*,answer:dict[str,Any],evi
     root=lifecycle_directory(case_directory); workflow=_read(root/"minimal_attribution.json")
     if workflow.get("status")!="assessed": raise ValueError("MinimalEvidenceAttribution non applicable.")
     component=_component(workflow["component"]); inventory=[_asset(x) for x in workflow["inventory"]]
-    item=EvidenceItem(str(evidence["evidence_id"]),str(evidence.get("kind","client_answer")),str(evidence["direction"]),tuple(evidence["candidate_ids"]),float(answer.get("reliability",evidence.get("reliability",.6))),str(answer["provided_at_utc"]),str(answer["source_or_evidence"]),str(evidence.get("statement",answer["answer"])),str(evidence.get("observed_or_inferred","observed")),str(answer["source_type"]),bool(answer.get("verified_anchor",False)),evidence.get("supersedes_evidence_id"),"active",False,str(answer["request_id"]),tuple(evidence.get("finding_ids",())),tuple(evidence.get("hypothesis_ids",workflow.get("related_hypothesis_ids",()))))
+    item=EvidenceItem(
+        evidence_id=str(evidence["evidence_id"]), kind=str(evidence.get("kind","client_answer")),
+        direction=str(evidence["direction"]), candidate_ids=tuple(evidence["candidate_ids"]),
+        reliability=float(answer.get("reliability",evidence.get("reliability",.6))),
+        observed_at=str(answer["provided_at_utc"]), provenance=str(answer["source_or_evidence"]),
+        statement=str(evidence.get("statement",answer["answer"])),
+        observed_or_inferred=str(evidence.get("observed_or_inferred","observed")),
+        source_class=str(answer["source_type"]), anchor_verified=bool(answer.get("verified_anchor",False)),
+        supersedes_evidence_id=evidence.get("supersedes_evidence_id"), request_id=str(answer["request_id"]),
+        finding_ids=tuple(evidence.get("finding_ids",())),
+        hypothesis_ids=tuple(evidence.get("hypothesis_ids",workflow.get("related_hypothesis_ids",()))),
+    )
     ledger_path=root/workflow["ledger_ref"]; ledger=EvidenceLedger.from_dict(_read(ledger_path)); ledger.append(item)
     answer_result=record_canonical_answers(case_directory,[answer]); assessment=assess_attribution(component,inventory,evidence=ledger.active_items(),method="guarded_evidence"); ledger.record_assessment(assessment); _write(ledger_path,ledger.to_dict())
     workflow.update({"previous_assessment":workflow["assessment"],"assessment":assessment.to_dict(),"last_answer_id":answer_result["recorded_answers"][0]["answer_id"],"reassessment_required":True}); _write(root/"minimal_attribution.json",workflow)

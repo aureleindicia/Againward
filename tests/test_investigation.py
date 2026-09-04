@@ -32,6 +32,13 @@ class InvestigationFollowUpTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "decision tranchee"):
             validate_follow_up_logic([{"hypothesis_id": "H1", "decision": "CONFIRME", "follow_up_requests": [request()]}])
 
+    def test_terminal_unknown_does_not_force_a_low_value_question(self) -> None:
+        validate_follow_up_logic([{
+            "hypothesis_id": "H-UNKNOWN", "decision": "INSUFFISAMMENT_ETAYE",
+            "follow_up_requests": [], "terminal_status": "non_identifiable",
+            "why_no_further_request": "Aucune information proportionnée ne départage les actifs.",
+        }])
+
     def test_vague_request_is_rejected(self) -> None:
         values = request()
         values["ask_client"] = "Plus de donnees"

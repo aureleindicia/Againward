@@ -21,6 +21,7 @@ from .signals import detect_candidate_events
 from .shadow import build_shadow_comparison
 from .tariffs import calculate_tariff_cost, tariff_plan_from_dict
 from .toolbox import inspect_dataset
+from .client_lifecycle import initialize_client_lifecycle
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -351,6 +352,9 @@ def prepare_investigation(
             "answer": "REMPLACER",
             "provided_by_role": "REMPLACER",
             "source_or_evidence": "REMPLACER",
+            "source_type": "CLIENT_DECLARATION",
+            "provided_at_utc": "REMPLACER",
+            "reliability": 0.6,
         }],
     })
     (output / "ANALYST_BRIEF.md").write_text(_brief(state), encoding="utf-8")
@@ -378,4 +382,4 @@ def prepare_investigation(
             "evidence_plane_mode": evidence_plane_mode,
         }],
     })
-    return state
+    return initialize_client_lifecycle(output)

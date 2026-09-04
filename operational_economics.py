@@ -779,7 +779,15 @@ def build_economic_request_batch(requests: list[dict[str, Any]]) -> dict[str, An
 def publish_economic_request_batch(case_directory: str | Path, requests: list[dict[str, Any]], *, new_material_branch: dict[str, Any] | None = None) -> dict[str, Any]:
     """Adaptateur Goal B vers l'unique `questions.json`."""
     from energy_mvp.client_lifecycle import publish_client_requests
-    return publish_client_requests(case_directory,[x for x in requests if x.get("request_type")!="INFER_AUTOMATICALLY"],new_material_branch=new_material_branch)
+    result = publish_client_requests(case_directory,[x for x in requests if x.get("request_type")!="INFER_AUTOMATICALLY"],new_material_branch=new_material_branch)
+    case = Path(case_directory)
+    state_path = case / "investigation" / "economic_decision_state.json"
+    if state_path.exists():
+        state = _read(state_path)
+        state["economic_requests"] = build_economic_request_batch(requests)["requests"]
+        state.setdefault("history", []).append({"at_utc": _now(), "action": "economic_requests_mirrored_from_canonical", "request_ids": [item["request_id"] for item in result["selected"]]})
+        _write(state_path, state)
+    return result
 
 
 def record_goal_b_evidence(case_directory: str | Path, evidence: dict[str, Any]) -> dict[str, Any]:
@@ -947,6 +955,18 @@ def persist_economic_packet(case_directory: str | Path, packet: dict[str, Any]) 
             raise ValueError("Décision référence une contrainte inconnue.")
     request_payload = packet["economic_requests"] if "economic_requests" in packet else state.get("economic_requests", [])
     requests = build_economic_request_batch(request_payload)["requests"] if request_payload else []
+    lifecycle_path = case / "investigation" / "investigation_state.json"
+    if lifecycle_path.exists() and _read(lifecycle_path).get("client_lifecycle") is not None:
+        canonical_ids = {
+            item.get("request_id")
+            for item in _read(case / "investigation" / "questions.json").get("questions", [])
+        }
+        external_ids = {item.get("request_id") for item in requests if item.get("request_type") != "INFER_AUTOMATICALLY"}
+        if external_ids - canonical_ids:
+            raise ValueError(
+                "Les demandes Goal B doivent être publiées via publish_economic_request_batch/"
+                "questions.json avant persistance."
+            )
     provenance_chain = _build_recommendation_provenance(decisions, actions, calculations, value_sources, constraints)
     state.update({"status": "economic_reasoning_recorded", "technical_finding_refs": resolved_technical_refs, "economic_inputs": inputs, "scenario_assumptions": assumptions, "operational_constraints": constraints, "candidate_actions": actions, "relationships": relationships, "combined_effects": combined_effects, "scenario_calculations": calculations, "decisions": decisions, "economic_requests": requests, "unresolved_blockers": packet.get("unresolved_blockers", state["unresolved_blockers"]), "recommendation_provenance": provenance_chain})
     state["history"].append({"at_utc": _now(), "action": "economic_packet_persisted", "action_ids": sorted(action_ids), "decision_ids": sorted(decision_ids), "decision_classes": [item["decision"] for item in decisions]})

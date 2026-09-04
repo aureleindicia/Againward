@@ -73,9 +73,10 @@ def publish_client_requests(case_directory:str|Path,candidates:list[dict[str,Any
     _write(root/"questions.json",questions); _write(root/"investigation_state.json",state); return {**selection,"cycle":cycle,"must_stop":stop,"state":life["state"]}
 def record_canonical_answers(case_directory:str|Path,answers:list[dict[str,Any]]):
     root,state,questions=_load(case_directory); life=state["client_lifecycle"]; by_id={x.get("request_id"):x for x in questions["questions"]}
-    duplicates=[str(x.get("request_id")) for x in answers if x.get("request_id") in by_id and by_id[x.get("request_id")].get("status")=="answered"]
+    existing_answers={x.get("answer_id"):x for x in questions["responses"]}
+    duplicates=[str(x.get("request_id")) for x in answers if x.get("request_id") in by_id and by_id[x.get("request_id")].get("status")=="answered" and not x.get("supersedes_answer_id")]
     if duplicates: raise ValueError("La réponse "+", ".join(duplicates)+" est déjà enregistrée.")
-    if life["state"] not in {"WAITING_FOR_REQUIRED_INFORMATION","ANALYZING"}: raise ValueError("Réponses recevables seulement pour un cycle ouvert.")
+    if life["state"] not in {"WAITING_FOR_REQUIRED_INFORMATION","ANALYZING","RESUMING"}: raise ValueError("Réponses recevables seulement pour un cycle ouvert ou une correction de reprise.")
     recorded=[]
     for raw in answers:
         rid=raw.get("request_id")
@@ -85,6 +86,10 @@ def record_canonical_answers(case_directory:str|Path,answers:list[dict[str,Any]]
         if raw["source_type"] not in {"CLIENT_DECLARATION","EXISTING_DOCUMENT","FIELD_OBSERVATION","PREREGISTERED_TEST","INSTRUMENT_MEASUREMENT"}: raise ValueError(f"{rid}: source_type invalide.")
         aid=str(raw.get("answer_id") or f"ANS-{len(questions['responses'])+len(recorded)+1:03d}")
         if any(x.get("answer_id")==aid for x in questions["responses"]): raise ValueError(f"answer_id déjà enregistré: {aid}.")
+        reference_ids=set(raw.get("contradicts_answer_ids",[]))
+        supersedes=raw.get("supersedes_answer_id")
+        if reference_ids-set(existing_answers) or (supersedes is not None and supersedes not in existing_answers): raise ValueError("Contradiction/correction référence une réponse inconnue.")
+        if supersedes is not None and existing_answers[supersedes].get("request_id")!=rid: raise ValueError("Une correction doit viser une réponse de la même demande.")
         request=by_id[rid]; reliability=float(raw.get("reliability",.6))
         if not 0<=reliability<=1: raise ValueError("reliability invalide.")
         entry={"answer_id":aid,"request_id":rid,"answer":str(raw["answer"]).strip(),"provided_by_role":str(raw["provided_by_role"]).strip(),
@@ -93,7 +98,7 @@ def record_canonical_answers(case_directory:str|Path,answers:list[dict[str,Any]]
           "supersedes_answer_id":raw.get("supersedes_answer_id"),"related_hypothesis_ids":request["related_hypothesis_ids"],
           "related_finding_ids":request["related_finding_ids"],"related_component_ids":request["related_component_ids"],
           "verified_anchor":raw["source_type"] in {"FIELD_OBSERVATION","PREREGISTERED_TEST","INSTRUMENT_MEASUREMENT"} and bool(raw.get("verified_anchor",False))}
-        request.update({"status":"answered","answer_id":aid}); questions["responses"].append(entry); recorded.append(entry)
+        request.update({"status":"answered","answer_id":aid}); questions["responses"].append(entry); recorded.append(entry); existing_answers[aid]=entry
     life["open_request_ids"]=[x["request_id"] for x in questions["questions"] if x.get("status")!="answered"]
     life["blocking_request_ids"]=[x["request_id"] for x in questions["questions"] if x.get("status")!="answered" and x["importance"]=="BLOCKING"]
     life["answered_request_ids"]=list(dict.fromkeys([*life["answered_request_ids"],*(x["request_id"] for x in recorded)]))
@@ -106,6 +111,7 @@ def complete_resume(case_directory:str|Path,*,recalculation_refs:list[str],adver
     if life["state"]!="RESUMING": raise ValueError("Aucune reprise requise.")
     if not recalculation_refs or not str(adversarial_review_ref).strip() or not before_after: raise ValueError("Recalculs, review et avant/après requis.")
     if any(not isinstance(x,dict) or not x.get("hypothesis_id") or "before" not in x or "after" not in x for x in before_after): raise ValueError("before_after invalide.")
+    if set(life["suspended_hypothesis_ids"])-{x["hypothesis_id"] for x in before_after}: raise ValueError("Chaque hypothèse suspendue doit être réévaluée avant/après.")
     life.update({"state":"ANALYZING","resume_required":False,"suspended_hypothesis_ids":[],"last_resume":{"recalculation_refs":recalculation_refs,"adversarial_review_ref":adversarial_review_ref,"before_after":before_after}})
     if terminal_limitations: life["terminal_limitations"].extend(terminal_limitations)
     life["history"].append({"at_utc":_now(),"action":"resume_completed"}); _write(root/"investigation_state.json",state); return state

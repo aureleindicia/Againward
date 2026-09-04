@@ -533,6 +533,8 @@ def build_client_report_model(case_directory: str | Path, narrative: dict[str, A
     actions = {item["action_id"]: item for item in state.get("candidate_actions", [])}
     constraints = {item["constraint_id"]: item for item in state.get("operational_constraints", [])}
     canonical = _read(case / "derived" / "canonical_case.json")
+    lifecycle_path = case / "investigation" / "investigation_state.json"
+    lifecycle_state = _read(lifecycle_path).get("client_lifecycle", {}).get("state") if lifecycle_path.exists() else None
     dataset_ids = {item["dataset_id"] for item in canonical.get("available_datasets", [])}
     _validate_narrative(narrative, decisions=decisions_by_id, actions=actions, findings=findings, constraints=constraints, calculations=state.get("scenario_calculations", {}), dataset_ids=dataset_ids, no_finding=no_finding)
     decision = decisions[0] if decisions else None
@@ -548,15 +550,19 @@ def build_client_report_model(case_directory: str | Path, narrative: dict[str, A
     no_action_items = [{"title": item["title"], "explanation": item["claim"]["text"], "claim": item["claim"]} for item in narrative.get("no_action_items", [])]
     if not findings and not no_action_items:
         raise ValueError("Un rapport no-finding exige une explication client utile.")
-    evidence_by_request = {item.get("request_id") for item in state.get("goal_b_evidence", []) if item.get("request_id")}
-    pending_questions = [
-        {"request_ref": item["request_id"], "question": item["client_question"], "decision_impact": item["decision_impact"]}
-        for item in state.get("economic_requests", []) if item.get("request_id") not in evidence_by_request
-    ]
+    canonical_questions = case / "investigation" / "questions.json"
+    if canonical_questions.exists():
+        pending_questions = [{"request_ref": item["request_id"], "question": item["client_question"],
+            "decision_impact": ", ".join(item.get("decision_impact_dimensions", []))}
+            for item in _read(canonical_questions).get("questions", []) if item.get("status") == "open"]
+    else:
+        evidence_by_request = {item.get("request_id") for item in state.get("goal_b_evidence", []) if item.get("request_id")}
+        pending_questions = [{"request_ref": item["request_id"], "question": item["client_question"], "decision_impact": item["decision_impact"]}
+            for item in state.get("economic_requests", []) if item.get("request_id") not in evidence_by_request]
     model = {
         "schema_version": 3,
         "kind": "CLIENT_REPORT_MODEL",
-        "metadata": {"case_id": _read(case / "case_manifest.json")["case_id"], "site_name": narrative["site_name"], "report_title": narrative.get("report_title", "Analyse de performance énergétique"), "analysis_period": narrative.get("analysis_period", "Période disponible dans les données"), "regulatory_notice": "Cette prestation ne constitue pas un audit énergétique réglementaire."},
+        "metadata": {"case_id": _read(case / "case_manifest.json")["case_id"], "site_name": narrative["site_name"], "report_title": narrative.get("report_title", "Analyse de performance énergétique"), "analysis_period": narrative.get("analysis_period", "Période disponible dans les données"), "regulatory_notice": "Cette prestation ne constitue pas un audit énergétique réglementaire.", "client_lifecycle_state": lifecycle_state},
         "executive_summary": {"message": narrative["executive_message"], "important_subjects": len(cards), "recommended_actions": sum(card["decision"] == "ACT_NOW" for card in cards), "verify_first": sum(card["decision"] == "INVESTIGATE_FIRST" for card in cards), "monitor": sum(card["decision"] == "MONITOR" for card in cards), "no_action_items": len(no_action_items), "economic_total": _portfolio_total(state), "priority_card_refs": [card["card_id"] for card in priority_cards]},
         "decision_cards": cards,
         "alternative_groups": _alternative_groups(state),
@@ -588,6 +594,12 @@ def validate_client_report_model(model: dict[str, Any], case_directory: str | Pa
     metadata = model.get("metadata", {})
     for field in ("site_name", "report_title", "analysis_period", "regulatory_notice"):
         _require_text(metadata.get(field), f"metadata/{field}", max_length=220, allow_numbers=True)
+    lifecycle_path = case / "investigation" / "investigation_state.json"
+    expected_lifecycle = _read(lifecycle_path).get("client_lifecycle", {}).get("state") if lifecycle_path.exists() else None
+    if metadata.get("client_lifecycle_state") != expected_lifecycle and not (
+        expected_lifecycle == "DELIVERABLE" and metadata.get("client_lifecycle_state") == "FINALIZABLE"
+    ):
+        raise ValueError("Le rapport doit conserver l'état du lifecycle client canonique.")
     _require_text(model.get("executive_summary", {}).get("message"), "executive_summary/message", max_length=500)
     expected_cards = {
         (decision["decision_id"], action_id)
