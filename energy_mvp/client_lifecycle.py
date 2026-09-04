@@ -8,6 +8,7 @@ from .client_requests import select_minimum_requests
 
 STATES={"ANALYZING","WAITING_FOR_REQUIRED_INFORMATION","RESUMING","FINALIZABLE","DELIVERABLE"}
 MAX_CYCLES=2; MAX_REQUESTS=3
+RESUME_DIMENSIONS={"evidence_level","asset_attribution","alternatives","confidence","economic_materiality","investigation_priority","field_action","false_conclusion_risk"}
 def _now(): return datetime.now(timezone.utc).isoformat()
 def _read(path:Path):
     try: value=json.loads(path.read_text(encoding="utf-8"))
@@ -110,7 +111,7 @@ def complete_resume(case_directory:str|Path,*,recalculation_refs:list[str],adver
     root,state,_=_load(case_directory); life=state["client_lifecycle"]
     if life["state"]!="RESUMING": raise ValueError("Aucune reprise requise.")
     if not recalculation_refs or not str(adversarial_review_ref).strip() or not before_after: raise ValueError("Recalculs, review et avant/après requis.")
-    if any(not isinstance(x,dict) or not x.get("hypothesis_id") or "before" not in x or "after" not in x for x in before_after): raise ValueError("before_after invalide.")
+    if any(not isinstance(x,dict) or not x.get("hypothesis_id") or "before" not in x or "after" not in x or not isinstance(x.get("decision_dimensions"),dict) or set(x["decision_dimensions"])!=RESUME_DIMENSIONS for x in before_after): raise ValueError("before_after doit réévaluer toutes les dimensions décisionnelles.")
     if set(life["suspended_hypothesis_ids"])-{x["hypothesis_id"] for x in before_after}: raise ValueError("Chaque hypothèse suspendue doit être réévaluée avant/après.")
     life.update({"state":"ANALYZING","resume_required":False,"suspended_hypothesis_ids":[],"last_resume":{"recalculation_refs":recalculation_refs,"adversarial_review_ref":adversarial_review_ref,"before_after":before_after}})
     if terminal_limitations: life["terminal_limitations"].extend(terminal_limitations)

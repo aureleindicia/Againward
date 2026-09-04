@@ -33,7 +33,7 @@ Déterminer le mode depuis les fichiers : `INITIAL`, ou `REPRISE` si
 2. Mettre à jour l'EvidenceLedger si concerné. Une `CLIENT_DECLARATION` ou un
    `EXISTING_DOCUMENT` n'est jamais automatiquement une ancre vérifiée.
 3. Recalculer avec Python, revoir alternatives, attribution, confiance, économie, priorité/action;
-   tracer avant/après et refaire la review.
+   tracer avant/après pour les huit dimensions exigées par `complete_resume` et refaire la review.
 4. Fermer via `complete-resume`. Second cycle seulement pour une branche matérielle nouvelle; deux
    cycles maximum, jamais de question équivalente.
 5. Si insuffisant, `close-budget` puis finaliser unknown/non identifiable/cause non démontrée.

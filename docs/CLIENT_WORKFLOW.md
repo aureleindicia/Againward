@@ -65,6 +65,11 @@ python manage_investigation.py record-answers workspaces/usine_01/processed answ
 En `RESUMING`, relire demande/provenance, mettre à jour les ledgers, recalculer, revoir
 alternatives/attribution/confiance/économie/priorité/action, tracer avant/après et refaire la review :
 
+Chaque entrée `before_after` contient `decision_dimensions` avec exactement : `evidence_level`,
+`asset_attribution`, `alternatives`, `confidence`, `economic_materiality`,
+`investigation_priority`, `field_action`, `false_conclusion_risk` (utiliser `not_applicable` si une
+dimension ne concerne réellement pas la piste).
+
 ```sh
 python manage_investigation.py complete-resume workspaces/usine_01/processed resume.json
 ```

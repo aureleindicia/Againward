@@ -174,7 +174,8 @@ def generate(root: str | Path = "examples") -> Path:
         "economic_input_ref": "CAP-QUOTE-01", "constraint_ref": "CONS-PROD-01",
         "final_decision": final_state["decisions"][0]["decision"],
     })
-    complete_resume(case, recalculation_refs=["investigation/economic_decision_state.json"], adversarial_review_ref="investigation/goal_b_4_e2e_trace.json", before_after=[{"hypothesis_id": "H-CAPEX", "before": "coût inconnu", "after": "devis 450 EUR"}, {"hypothesis_id": "H-DOWNTIME", "before": "fenêtre inconnue", "after": "arrêt hors production requis"}])
+    resume_dimensions = {key: "reassessed" for key in ("evidence_level", "asset_attribution", "alternatives", "confidence", "economic_materiality", "investigation_priority", "field_action", "false_conclusion_risk")}
+    complete_resume(case, recalculation_refs=["investigation/economic_decision_state.json"], adversarial_review_ref="investigation/goal_b_4_e2e_trace.json", before_after=[{"hypothesis_id": "H-CAPEX", "before": "coût inconnu", "after": "devis 450 EUR", "decision_dimensions": resume_dimensions}, {"hypothesis_id": "H-DOWNTIME", "before": "fenêtre inconnue", "after": "arrêt hors production requis", "decision_dimensions": resume_dimensions}])
     return case
 
 
