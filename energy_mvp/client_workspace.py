@@ -32,7 +32,7 @@ def create_client_workspace(
         (target / directory).mkdir()
 
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "workspace_id": identifier,
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "status": "awaiting_input",
@@ -41,6 +41,9 @@ def create_client_workspace(
             "processed": "processed/",
             "scratch": "scratch/",
             "outputs": "outputs/",
+            "lifecycle": "processed/investigation_state.json",
+            "client_questions": "processed/questions.json",
+            "human_review": "processed/human_review.json",
         },
         "investigation_rules": {
             "ground_truth_available": False,
@@ -55,30 +58,16 @@ def create_client_workspace(
         json.dumps(intake_template(), ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    (target / "questions.json").write_text(
-        json.dumps({"schema_version": 1, "questions": [], "responses": []}, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    (target / "human_review.json").write_text(
-        json.dumps({
-            "schema_version": 1,
-            "status": "not_reviewed",
-            "reviewer_role": None,
-            "reviewed_at_utc": None,
-            "approved_for_delivery": False,
-            "reservations": [],
-        }, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
     (target / "README.md").write_text(
         "# Workspace d'analyse\n\n"
         "1. Completer `intake.json` avec le client.\n"
         "2. Placer une copie locale des donnees brutes dans `input/`.\n"
         "3. Lancer `python investigate.py input/<fichier> --output-dir processed/`.\n"
-        "4. Conserver les questions/reponses dans `questions.json`.\n"
-        "5. Utiliser `scratch/` pour les tests ad hoc de Codex.\n"
-        "6. Ecrire les JSON, graphiques et rapports dans `outputs/`.\n"
-        "7. Faire completer `human_review.json` avant toute livraison.\n\n"
+        "4. Piloter le dossier avec `python manage_investigation.py status .`.\n"
+        "5. Conserver l'etat, les questions et la revue humaine dans `processed/`.\n"
+        "6. Utiliser `scratch/` pour les tests ad hoc de Codex.\n"
+        "7. Ecrire les livrables finaux et graphiques dans `outputs/`.\n"
+        "8. Faire completer `processed/human_review.json` avant toute livraison.\n\n"
         "Aucun signal automatique n'est une opportunite confirmee. Les donnees brutes "
         "ne doivent jamais etre modifiees en place.\n",
         encoding="utf-8",

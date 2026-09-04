@@ -52,6 +52,17 @@ Le script cree `input/`, `processed/`, `scratch/` et `outputs/`, refuse d'ecrase
 existant et ne copie ni n'analyse aucune donnee. Placer ensuite une copie du fichier source dans
 `workspaces/usine_01/input/` avant l'exploration Codex.
 
+Afficher à tout moment le layout détecté, l'état canonique, les artefacts présents et la prochaine
+action permise (commande strictement en lecture seule) :
+
+```sh
+python manage_investigation.py status workspaces/usine_01
+```
+
+Les commandes du lifecycle acceptent la racine du workspace; le résolveur trouve automatiquement
+`processed/`. Voir [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md) pour la convention de
+dossiers et les garanties de publication GitHub/confidentialité.
+
 ```sh
 python analyze.py donnees.csv --price-per-kwh 0.175
 ```
@@ -94,14 +105,14 @@ les query IDs et handles qui l’étayent ; une abstention explicite est valide.
 reste explicite et vérifiable :
 
 ```sh
-# Publie seulement la prochaine question minimale de chaque piste incertaine
-python manage_investigation.py questions workspaces/usine_01/processed
+# Publie seulement les demandes retenues par le contrat canonique
+python manage_investigation.py publish-candidates workspaces/usine_01 candidates.json
 
 # Enregistre des réponses préparées dans answers.json, sans pouvoir les réécrire
-python manage_investigation.py answers workspaces/usine_01/processed answers.json
+python manage_investigation.py record-answers workspaces/usine_01 answers.json
 
 # Refuse la livraison tant que review contradictoire et revue humaine ne sont pas valides
-python manage_investigation.py check workspaces/usine_01/processed
+python manage_investigation.py check workspaces/usine_01
 ```
 
 Le workflow canonique utilise `investigation_state.json.client_lifecycle` et `questions.json` :

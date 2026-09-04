@@ -11,3 +11,9 @@ adaptateurs dépréciés. Goal A et le workflow générique délèguent au canon
 Chemin : `ANALYZING → WAITING_FOR_REQUIRED_INFORMATION → RESUMING → ANALYZING → FINALIZABLE →
 DELIVERABLE`. Deux cycles maximum. Le second référence la réponse créant une branche matérielle; la
 troisième tentative et les doublons sémantiques sont refusés.
+
+`energy_mvp.workflow_paths` résout sans écriture les trois layouts supportés : workspace standard
+(`processed/`), cas Goal A (`investigation/`) et dossier d'analyse direct. Pour les nouveaux
+workspaces, les anciennes copies racine `questions.json` et `human_review.json` ne sont plus créées.
+Les dossiers déjà existants ne sont ni déplacés ni réécrits; le contenu canonique reste celui du
+répertoire d'analyse résolu. Vérifier avec `python manage_investigation.py status <dossier>`.

@@ -2032,3 +2032,9 @@ Python, alternatives, avant/après et review. Deux cycles, trois demandes/cycle,
 Distinguer `CLIENT_DECLARATION`, `EXISTING_DOCUMENT`, `FIELD_OBSERVATION`, `PREREGISTERED_TEST`,
 `INSTRUMENT_MEASUREMENT`. Une déclaration opérateur n'est pas une ancre terrain. Préserver :
 détection → signature → composant anonyme → compatibilité → attribution → mécanisme → pronostic.
+
+Pour naviguer dans un cas, commencer par `python manage_investigation.py status <dossier>` et lire
+`docs/REPOSITORY_LAYOUT.md`. Les commandes acceptent une racine de workspace, un cas Goal A ou un
+dossier d'analyse direct. Ne pas recréer `questions.json`, `investigation_state.json` ou
+`human_review.json` dans un second emplacement. Le code versionné doit rester portable : aucun
+chemin Android/Termux codé en dur; Download n'est qu'une source locale de contexte pour Codex.

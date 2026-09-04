@@ -9,6 +9,8 @@ Reconstruis le contexte sans mémoire conversationnelle depuis l'intégralité d
 
 Dossier client : <CHEMIN_DOSSIER_CLIENT>. Si le placeholder subsiste, localise le dossier pertinent dans le dépôt et Download; ne demande le chemin que si le mauvais choix reste un risque réel.
 
+Commence par exécuter `python manage_investigation.py status <CHEMIN_DOSSIER_CLIENT>`. Cette commande ne modifie rien et résout automatiquement une racine de workspace vers `processed/`, un cas Goal A vers `investigation/`, ou un dossier d'analyse direct. Respecte `docs/REPOSITORY_LAYOUT.md`; ne crée aucune copie concurrente de l'état, des questions ou de la revue humaine.
+
 Détermine le mode depuis les artefacts : INITIAL, ou REPRISE si investigation_state.json.client_lifecycle.state vaut RESUMING.
 
 INITIAL : analyse exhaustivement toutes les données et documents existants avant toute demande; trace les sources examinées. Conduis observations, hypothèses concurrentes, tests Python, falsification, quantification, décision et review adversariale. Préserve strictement détection → signature reproductible → composant anonyme → compatibilité → attribution → mécanisme physique → pronostic. Utilise l'intégration MinimalEvidenceAttribution/EvidenceLedger si applicable, sinon consigne not_applicable.

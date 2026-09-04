@@ -6,15 +6,9 @@ __pycache__/
 client_data/
 client_cases/
 scratch/
-workspaces/*/input/
-workspaces/*/processed/
-workspaces/*/scratch/
-workspaces/*/outputs/
-workspaces/*/README.md
-workspaces/*/workspace.json
-workspaces/*/intake.json
-workspaces/*/questions.json
-workspaces/*/human_review.json
+# Tous les dossiers client sont privés par défaut. Seul le guide racine est publié.
+workspaces/*
+!workspaces/README.md
 workspace/*/input/
 workspace/*/processed/
 workspace/*/outputs/

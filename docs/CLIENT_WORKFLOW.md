@@ -3,7 +3,17 @@
 Workflow local-first : Codex choisit les investigations et interprète; Python calcule et applique
 les contrats; un humain autorise la livraison. Un signal automatique n'est jamais une opportunité.
 Prompt autonome : [`CLIENT_INVESTIGATION_PROMPT.md`](CLIENT_INVESTIGATION_PROMPT.md). Migration :
-[`CLIENT_WORKFLOW_MIGRATION.md`](CLIENT_WORKFLOW_MIGRATION.md).
+[`CLIENT_WORKFLOW_MIGRATION.md`](CLIENT_WORKFLOW_MIGRATION.md). Organisation des dossiers :
+[`REPOSITORY_LAYOUT.md`](REPOSITORY_LAYOUT.md).
+
+Commencer ou reprendre par cette commande en lecture seule :
+
+```sh
+python manage_investigation.py status workspaces/usine_01
+```
+
+Elle accepte aussi un dossier Goal A ou un répertoire d'analyse direct et indique le propriétaire
+canonique des artefacts. Les exemples ci-dessous utilisent la racine du workspace.
 
 ## 1. Contexte et intake
 
@@ -14,13 +24,13 @@ placer une copie des données dans son `input/`, compléter l'intake puis exécu
 python investigate.py workspaces/usine_01/input/mesures.csv \
   --intake workspaces/usine_01/intake.json \
   --output-dir workspaces/usine_01/processed
-python manage_investigation.py init workspaces/usine_01/processed
+python manage_investigation.py init workspaces/usine_01
 ```
 
 Avant toute demande, analyser toutes les données/documents disponibles, puis tracer les sources :
 
 ```sh
-python manage_investigation.py data-exhausted workspaces/usine_01/processed \
+python manage_investigation.py data-exhausted workspaces/usine_01 \
   analysis_inventory.json prepared_analysis.json candidate_signals.json evidence_card.json
 ```
 
@@ -42,7 +52,7 @@ plausibles et leurs effets distincts sur preuve, attribution, économie, priorit
 
 ```sh
 python manage_investigation.py publish-candidates \
-  workspaces/usine_01/processed candidates.json
+  workspaces/usine_01 candidates.json
 ```
 
 Python classe globalement, déduplique et retient zéro à trois demandes (cible une), en préférant
@@ -59,7 +69,7 @@ Une réponse fournit `answer`, `provided_by_role`, `source_or_evidence`, `source
 des ancres terrain. Enregistrer :
 
 ```sh
-python manage_investigation.py record-answers workspaces/usine_01/processed answers.json
+python manage_investigation.py record-answers workspaces/usine_01 answers.json
 ```
 
 En `RESUMING`, relire demande/provenance, mettre à jour les ledgers, recalculer, revoir
@@ -71,7 +81,7 @@ Chaque entrée `before_after` contient `decision_dimensions` avec exactement : `
 dimension ne concerne réellement pas la piste).
 
 ```sh
-python manage_investigation.py complete-resume workspaces/usine_01/processed resume.json
+python manage_investigation.py complete-resume workspaces/usine_01 resume.json
 ```
 
 Deux cycles maximum; le second référence la réponse créant une branche matérielle. Aucun doublon.
@@ -83,8 +93,8 @@ La review contrôle calculs, qualité, baseline, alternatives, causalité, annua
 récupérable et double comptage. Sans BLOCKING/reprise :
 
 ```sh
-python manage_investigation.py finalizable workspaces/usine_01/processed investigation.json
-python manage_investigation.py check workspaces/usine_01/processed
+python manage_investigation.py finalizable workspaces/usine_01 investigation.json
+python manage_investigation.py check workspaces/usine_01
 ```
 
 Le gate exige investigation, review, rapport et approbation humaine puis passe à `DELIVERABLE`.

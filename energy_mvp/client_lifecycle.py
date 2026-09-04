@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from .client_requests import select_minimum_requests
+from .workflow_paths import resolve_analysis_directory
 
 STATES={"ANALYZING","WAITING_FOR_REQUIRED_INFORMATION","RESUMING","FINALIZABLE","DELIVERABLE"}
 MAX_CYCLES=2; MAX_REQUESTS=3
@@ -18,8 +19,7 @@ def _read(path:Path):
 def _write(path:Path,value:dict):
     path.parent.mkdir(parents=True,exist_ok=True); path.write_text(json.dumps(value,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 def lifecycle_directory(case_directory:str|Path)->Path:
-    root=Path(case_directory)
-    return root/"investigation" if (root/"investigation").is_dir() and ((root/"case_manifest.json").exists() or (root/"derived").is_dir() or (root/"investigation/case_state.json").exists()) else root
+    return resolve_analysis_directory(case_directory)
 def _fresh(action="client_lifecycle_initialized"):
     return {"state":"ANALYZING","cycle_count":0,"max_cycles":MAX_CYCLES,"max_requests_per_cycle":MAX_REQUESTS,
       "existing_data_exhausted":False,"analysis_inventory_ref":None,"open_request_ids":[],"blocking_request_ids":[],

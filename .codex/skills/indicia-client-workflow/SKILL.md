@@ -12,6 +12,9 @@ Lire `AGENTS.md`, `docs/CLIENT_WORKFLOW.md`, `docs/CLIENT_INFORMATION_REQUEST_PO
 `docs/VALUE_OF_INFORMATION_POLICY.md` et, si pertinent, `docs/MINIMAL_EVIDENCE_ATTRIBUTION.md`.
 Déterminer le mode depuis les fichiers : `INITIAL`, ou `REPRISE` si
 `investigation_state.json.client_lifecycle.state == RESUMING`.
+Commencer par `python manage_investigation.py status <dossier>` : la commande est en lecture seule,
+reconnaît racine de workspace, cas Goal A ou dossier direct, et indique le chemin canonique et la
+prochaine action. Lire aussi `docs/REPOSITORY_LAYOUT.md` en cas d'ambiguïté de navigation.
 
 ## INITIAL
 

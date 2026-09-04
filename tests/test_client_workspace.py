@@ -20,6 +20,9 @@ class ClientWorkspaceTests(unittest.TestCase):
             stored = json.loads((target / "workspace.json").read_text(encoding="utf-8"))
             self.assertEqual(stored["workspace_id"], "client_demo")
             self.assertFalse(stored["investigation_rules"]["ground_truth_available"])
+            self.assertEqual(stored["paths"]["client_questions"], "processed/questions.json")
+            self.assertFalse((target / "questions.json").exists())
+            self.assertFalse((target / "human_review.json").exists())
 
     def test_existing_workspace_is_never_overwritten(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

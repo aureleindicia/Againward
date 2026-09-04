@@ -170,7 +170,7 @@ def publish_minimum_questions(
 ) -> dict[str, Any]:
     """Adaptateur v1 vers la sélection globale canonique."""
 
-    root = Path(case_directory)
+    root = lifecycle_directory(case_directory)
     investigation_path = root / investigation_name
     investigation = _read_json(investigation_path)
     validate_investigation_document(investigation)
@@ -192,7 +192,7 @@ def record_client_answers(
 ) -> dict[str, Any]:
     """Adaptateur fichier v1 vers les réponses canoniques."""
 
-    root = Path(case_directory)
+    root = lifecycle_directory(case_directory)
     supplied = _read_json(Path(answers_path))
     answers = supplied.get("answers")
     if not isinstance(answers, list) or not answers:
@@ -210,7 +210,7 @@ def record_client_answers(
 def archive_answered_question_cycle(case_directory: str | Path) -> Path:
     """Archive un cycle entièrement répondu avant une nouvelle série de questions."""
 
-    root = Path(case_directory)
+    root = lifecycle_directory(case_directory)
     path = root / "questions.json"
     payload = _read_json(path)
     questions = payload.get("questions")
@@ -291,9 +291,9 @@ def validate_adversarial_review(
 def evaluate_delivery_gate(case_directory: str | Path) -> dict[str, Any]:
     """Évalue la livrabilité; ne crée jamais une approbation humaine."""
 
-    root = Path(case_directory)
+    root = lifecycle_directory(case_directory)
     reasons: list[str] = []
-    lifecycle_path = lifecycle_directory(root) / "investigation_state.json"
+    lifecycle_path = root / "investigation_state.json"
     lifecycle_state = None
     if lifecycle_path.exists():
         lifecycle_payload = _read_json(lifecycle_path)
