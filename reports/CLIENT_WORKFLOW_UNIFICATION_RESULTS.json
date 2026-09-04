@@ -1,14 +1,14 @@
 {
   "schema_version": "indicia-client-workflow-unification-results-v1",
   "generated_at_utc": "2026-09-04T10:47:30Z",
-  "validated_commit": "12881c28b0515c5fed1555e961a05dc653b541ba",
+  "validated_commit": "58e8f6a348fd834b757e021cadc17cea87b4027e",
   "scope": "synthetic_and_repository_validation_only",
   "validation": {
     "full_test_suite": {
       "command": "python -m pytest -q",
       "passed": 350,
       "failed": 0,
-      "elapsed_seconds": 76.85
+      "elapsed_seconds": 74.83
     },
     "workflow_focused_suite": {
       "command": "python -m pytest -q tests/test_client_workflow_unification.py tests/test_workflow_paths.py",
