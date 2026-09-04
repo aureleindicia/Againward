@@ -13,6 +13,7 @@ from .client_lifecycle import (
     assert_workflow_action_allowed, close_clarification_budget, complete_resume,
     initialize_client_lifecycle, lifecycle_directory, mark_finalizable,
     publish_client_requests, record_canonical_answers, record_existing_data_exhaustion,
+    validate_client_lifecycle_artifacts,
 )
 
 
@@ -299,8 +300,12 @@ def evaluate_delivery_gate(case_directory: str | Path) -> dict[str, Any]:
         lifecycle_payload = _read_json(lifecycle_path)
         lifecycle_state = lifecycle_payload.get("client_lifecycle")
         if lifecycle_state is not None:
-            if not isinstance(lifecycle_state, dict): reasons.append("Cycle client canonique invalide.")
-            elif lifecycle_state.get("state") not in {"FINALIZABLE", "DELIVERABLE"}: reasons.append(f"Cycle client non finalisable: état {lifecycle_state.get('state','inconnu')}.")
+            try:
+                lifecycle_state = validate_client_lifecycle_artifacts(root)
+            except ValueError as exc:
+                reasons.append(str(exc))
+            if isinstance(lifecycle_state, dict) and lifecycle_state.get("state") not in {"FINALIZABLE", "DELIVERABLE"}:
+                reasons.append(f"Cycle client non finalisable: état {lifecycle_state.get('state','inconnu')}.")
             if isinstance(lifecycle_state,dict) and lifecycle_state.get("blocking_request_ids"): reasons.append("Des demandes BLOCKING restent ouvertes.")
     required = ("investigation.json", "review.json", "report.md", "human_review.json")
     for name in required:

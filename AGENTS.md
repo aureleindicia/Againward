@@ -2038,3 +2038,16 @@ Pour naviguer dans un cas, commencer par `python manage_investigation.py status 
 dossier d'analyse direct. Ne pas recréer `questions.json`, `investigation_state.json` ou
 `human_review.json` dans un second emplacement. Le code versionné doit rester portable : aucun
 chemin Android/Termux codé en dur; Download n'est qu'une source locale de contexte pour Codex.
+
+Responsabilités : `energy_mvp/client_lifecycle.py` possède l'état et la reprise;
+`energy_mvp/client_requests.py` le contrat, la VOI et la déduplication;
+`energy_mvp/minimal_attribution.py` les preuves/plafonds;
+`energy_mvp/attribution_workflow.py` l'intégration MEA; `energy_mvp/case_lifecycle.py` le gate.
+`question_batch.json`, `publish_minimum_questions()` et les batches Goal B sont dépréciés comme
+autorités et restent seulement des adaptateurs/vues. Valider avec :
+
+```sh
+python -m pytest -q tests/test_client_workflow_unification.py tests/test_workflow_paths.py
+python benchmarks/client_workflow/benchmark.py
+python -m pytest -q
+```

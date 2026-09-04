@@ -9,24 +9,24 @@
       "unique_semantic_branches": 10,
       "selected_count": 3,
       "rejected_count": 7,
-      "median_elapsed_ms": 5.288,
-      "max_peak_traced_bytes": 26358
+      "median_elapsed_ms": 2.956,
+      "max_peak_traced_bytes": 26574
     },
     {
       "candidate_count": 100,
       "unique_semantic_branches": 37,
       "selected_count": 3,
       "rejected_count": 97,
-      "median_elapsed_ms": 48.828,
-      "max_peak_traced_bytes": 235158
+      "median_elapsed_ms": 32.12,
+      "max_peak_traced_bytes": 235286
     },
     {
       "candidate_count": 1000,
       "unique_semantic_branches": 37,
       "selected_count": 3,
       "rejected_count": 997,
-      "median_elapsed_ms": 508.979,
-      "max_peak_traced_bytes": 2410685
+      "median_elapsed_ms": 333.216,
+      "max_peak_traced_bytes": 2410813
     }
   ],
   "assertions": {

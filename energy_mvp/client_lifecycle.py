@@ -10,6 +10,7 @@ from .workflow_paths import resolve_analysis_directory
 STATES={"ANALYZING","WAITING_FOR_REQUIRED_INFORMATION","RESUMING","FINALIZABLE","DELIVERABLE"}
 MAX_CYCLES=2; MAX_REQUESTS=3
 RESUME_DIMENSIONS={"evidence_level","asset_attribution","alternatives","confidence","economic_materiality","investigation_priority","field_action","false_conclusion_risk"}
+LIFECYCLE_LIST_FIELDS={"open_request_ids","blocking_request_ids","suspended_hypothesis_ids","answered_request_ids","terminal_limitations","history"}
 def _now(): return datetime.now(timezone.utc).isoformat()
 def _read(path:Path):
     try: value=json.loads(path.read_text(encoding="utf-8"))
@@ -25,12 +26,54 @@ def _fresh(action="client_lifecycle_initialized"):
       "existing_data_exhausted":False,"analysis_inventory_ref":None,"open_request_ids":[],"blocking_request_ids":[],
       "suspended_hypothesis_ids":[],"answered_request_ids":[],"exhausted":False,"terminal_limitations":[],
       "resume_required":False,"history":[{"at_utc":_now(),"action":action}]}
+def _validate_lifecycle(life:Any,questions:dict[str,Any]|None=None)->None:
+    if not isinstance(life,dict) or life.get("state") not in STATES:
+        raise ValueError("client_lifecycle invalide.")
+    missing=LIFECYCLE_LIST_FIELDS-set(life)
+    if missing or any(not isinstance(life.get(key),list) for key in LIFECYCLE_LIST_FIELDS):
+        raise ValueError("client_lifecycle incomplet ou types invalides.")
+    for key,maximum in (("max_cycles",MAX_CYCLES),("max_requests_per_cycle",MAX_REQUESTS)):
+        value=life.get(key)
+        if not isinstance(value,int) or isinstance(value,bool) or not 1<=value<=maximum:
+            raise ValueError(f"client_lifecycle: {key} invalide.")
+    cycle=life.get("cycle_count")
+    if not isinstance(cycle,int) or isinstance(cycle,bool) or not 0<=cycle<=life["max_cycles"]:
+        raise ValueError("client_lifecycle: cycle_count invalide.")
+    if not isinstance(life.get("existing_data_exhausted"),bool) or not isinstance(life.get("resume_required"),bool) or not isinstance(life.get("exhausted"),bool):
+        raise ValueError("client_lifecycle: drapeaux invalides.")
+    state=life["state"]
+    if state=="WAITING_FOR_REQUIRED_INFORMATION" and (not life["blocking_request_ids"] or not life["resume_required"]):
+        raise ValueError("État WAITING incohérent sans demande BLOCKING et reprise requise.")
+    if state=="RESUMING" and (life["blocking_request_ids"] or not life["resume_required"]):
+        raise ValueError("État RESUMING incohérent.")
+    if state in {"FINALIZABLE","DELIVERABLE"}:
+        if life["blocking_request_ids"] or life["resume_required"] or not life["existing_data_exhausted"] or not str(life.get("conclusion_ref","")).strip():
+            raise ValueError(f"État {state} incohérent avec les préconditions de finalisation.")
+    if questions is None or questions.get("schema_version")!="indicia-client-questions-v2":
+        return
+    current=questions.get("questions")
+    responses=questions.get("responses")
+    history=questions.get("cycle_history",[])
+    if not isinstance(current,list) or not isinstance(responses,list) or not isinstance(history,list):
+        raise ValueError("questions.json canonique invalide.")
+    open_ids={x.get("request_id") for x in current if isinstance(x,dict) and x.get("status")=="open"}
+    blocking_ids={x.get("request_id") for x in current if isinstance(x,dict) and x.get("status")=="open" and x.get("importance")=="BLOCKING"}
+    if set(life["open_request_ids"])!=open_ids or set(life["blocking_request_ids"])!=blocking_ids:
+        raise ValueError("Lifecycle et questions.json sont incohérents.")
+    all_questions=[x for x in current if isinstance(x,dict)]
+    for cycle_payload in history:
+        if isinstance(cycle_payload,dict) and isinstance(cycle_payload.get("questions"),list):
+            all_questions.extend(x for x in cycle_payload["questions"] if isinstance(x,dict))
+    known_request_ids={x.get("request_id") for x in all_questions}
+    response_request_ids={x.get("request_id") for x in responses if isinstance(x,dict)}
+    if not set(life["answered_request_ids"])<=response_request_ids or not response_request_ids<=known_request_ids:
+        raise ValueError("Historique des réponses incohérent avec les demandes.")
 def initialize_client_lifecycle(case_directory:str|Path)->dict[str,Any]:
     root=lifecycle_directory(case_directory); root.mkdir(parents=True,exist_ok=True); path=root/"investigation_state.json"
     if path.exists():
         state=_read(path)
         if state.get("client_lifecycle") is None: state["client_lifecycle"]=_fresh("legacy_investigation_state_migrated"); _write(path,state)
-        if not isinstance(state.get("client_lifecycle"),dict) or state["client_lifecycle"].get("state") not in STATES: raise ValueError("client_lifecycle invalide.")
+        _validate_lifecycle(state.get("client_lifecycle"))
     else: state={"schema_version":"indicia-investigation-state-v2","client_lifecycle":_fresh()}; _write(path,state)
     q=root/"questions.json"
     if not q.exists(): _write(q,{"schema_version":"indicia-client-questions-v2","questions":[],"responses":[],"cycle_history":[]})
@@ -38,6 +81,7 @@ def initialize_client_lifecycle(case_directory:str|Path)->dict[str,Any]:
 def _load(case):
     root=lifecycle_directory(case); state=initialize_client_lifecycle(case); questions=_read(root/"questions.json")
     if not isinstance(questions.get("questions",[]),list) or not isinstance(questions.get("responses",[]),list): raise ValueError("questions.json invalide.")
+    _validate_lifecycle(state["client_lifecycle"],questions)
     return root,state,questions
 def record_existing_data_exhaustion(case_directory:str|Path,*,analysis_inventory_ref:str,reviewed_sources:list[str]):
     if not str(analysis_inventory_ref).strip() or not reviewed_sources or any(not str(x).strip() for x in reviewed_sources): raise ValueError("Inventaire et sources examinées requis.")
@@ -129,10 +173,18 @@ def mark_finalizable(case_directory:str|Path,*,conclusion_ref:str):
     if not life["existing_data_exhausted"] or not str(conclusion_ref).strip(): raise ValueError("Analyse existante et conclusion traçable requises.")
     if life["exhausted"] and not life["terminal_limitations"]: raise ValueError("Budget épuisé sans limites.")
     life.update({"state":"FINALIZABLE","conclusion_ref":conclusion_ref}); life["history"].append({"at_utc":_now(),"action":"marked_finalizable"}); _write(root/"investigation_state.json",state); return state
+def validate_client_lifecycle_artifacts(case_directory:str|Path)->dict[str,Any]|None:
+    root=lifecycle_directory(case_directory); path=root/"investigation_state.json"
+    if not path.exists(): return None
+    state=_read(path); life=state.get("client_lifecycle")
+    if life is None: return None
+    questions=_read(root/"questions.json")
+    _validate_lifecycle(life,questions)
+    return life
 def assert_workflow_action_allowed(case_directory:str|Path,action:str):
     path=lifecycle_directory(case_directory)/"investigation_state.json"
     if not path.exists(): return
-    life=_read(path).get("client_lifecycle")
+    life=validate_client_lifecycle_artifacts(case_directory)
     if life is None: return
     if life.get("state")=="WAITING_FOR_REQUIRED_INFORMATION": raise ValueError(f"STOP: {action} interdit pendant une demande BLOCKING.")
     if action in {"report_generation","delivery"} and life.get("state") not in {"FINALIZABLE","DELIVERABLE"}: raise ValueError(f"{action} exige FINALIZABLE ou DELIVERABLE.")

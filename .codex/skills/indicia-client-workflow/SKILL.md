@@ -16,6 +16,14 @@ Commencer par `python manage_investigation.py status <dossier>` : la commande es
 reconnaît racine de workspace, cas Goal A ou dossier direct, et indique le chemin canonique et la
 prochaine action. Lire aussi `docs/REPOSITORY_LAYOUT.md` en cas d'ambiguïté de navigation.
 
+Sources de vérité : `energy_mvp/client_lifecycle.py` possède l'état/reprise,
+`energy_mvp/client_requests.py` le contrat/VOI/dédoublonnage,
+`energy_mvp/minimal_attribution.py` les preuves et plafonds,
+`energy_mvp/attribution_workflow.py` le branchement MEA, et `energy_mvp/case_lifecycle.py` le gate.
+Artefacts canoniques : `investigation_state.json.client_lifecycle`, `questions.json`, puis
+`minimal_attribution.json` et son ledger seulement lorsque MEA est applicable. `question_batch.json`
+et les batches Goal B sont des adaptateurs/vues dépréciés, jamais une seconde autorité.
+
 ## INITIAL
 
 1. Inventorier et analyser toutes les sources existantes; calculer avec Python et tracer
@@ -43,3 +51,14 @@ prochaine action. Lire aussi `docs/REPOSITORY_LAYOUT.md` en cas d'ambiguïté de
 
 Toujours séparer détection, signature, composant anonyme, compatibilité, attribution, mécanisme et
 pronostic. Python porte les chiffres; Codex choisit et interprète les tests.
+
+Avant livraison ou modification du workflow, exécuter au minimum :
+
+```sh
+python -m pytest -q tests/test_client_workflow_unification.py tests/test_workflow_paths.py
+python benchmarks/client_workflow/benchmark.py
+python -m pytest -q
+```
+
+Ne jamais contourner un échec de validation, inventer une réponse, traiter une déclaration comme
+ancre terrain, exposer une donnée client à Git ou confondre compatibilité, attribution et cause.

@@ -88,6 +88,17 @@ def test_goal_b_uses_canonical_questions(tmp_path):
 def test_incoherent_state_fails_safely(tmp_path):
     (tmp_path/"investigation_state.json").write_text(json.dumps({"client_lifecycle":{"state":"MAGIC"}}))
     with pytest.raises(ValueError,match="invalide"): initialize_client_lifecycle(tmp_path)
+def test_valid_state_name_with_incoherent_waiting_fails_safely(tmp_path):
+    state=initialize_client_lifecycle(tmp_path); state["client_lifecycle"].update({"state":"WAITING_FOR_REQUIRED_INFORMATION","resume_required":True,"blocking_request_ids":[]}); (tmp_path/"investigation_state.json").write_text(json.dumps(state))
+    with pytest.raises(ValueError,match="WAITING incohérent"): initialize_client_lifecycle(tmp_path)
+def test_tampered_clarification_budget_fails_safely(tmp_path):
+    state=initialize_client_lifecycle(tmp_path); state["client_lifecycle"]["max_cycles"]=99; (tmp_path/"investigation_state.json").write_text(json.dumps(state))
+    with pytest.raises(ValueError,match="max_cycles invalide"): initialize_client_lifecycle(tmp_path)
+def test_lifecycle_and_question_artifacts_must_agree(tmp_path):
+    ready(tmp_path); publish_client_requests(tmp_path,[candidate()]); state=json.loads((tmp_path/"investigation_state.json").read_text()); state["client_lifecycle"]["open_request_ids"]=[]; (tmp_path/"investigation_state.json").write_text(json.dumps(state))
+    with pytest.raises(ValueError,match="incohérents"): assert_workflow_action_allowed(tmp_path,"report_generation")
 def test_skill_and_prompt_paths():
-    root=Path(__file__).resolve().parents[1]; texts=[(root/".codex/skills/indicia-client-workflow/SKILL.md").read_text(),(root/"docs/CLIENT_INVESTIGATION_PROMPT.md").read_text()]
+    root=Path(__file__).resolve().parents[1]; skill=root/".codex/skills/indicia-client-workflow/SKILL.md"; texts=[skill.read_text(),(root/"docs/CLIENT_INVESTIGATION_PROMPT.md").read_text()]
     assert all("/storage/emulated/0/Download" in x and "questions.json" in x and "RESUMING" in x for x in texts)
+    for relative in ("docs/CLIENT_WORKFLOW.md","docs/CLIENT_INFORMATION_REQUEST_POLICY.md","docs/VALUE_OF_INFORMATION_POLICY.md","docs/MINIMAL_EVIDENCE_ATTRIBUTION.md","docs/REPOSITORY_LAYOUT.md","energy_mvp/client_lifecycle.py","energy_mvp/client_requests.py","energy_mvp/attribution_workflow.py","energy_mvp/case_lifecycle.py"):
+        assert (root/relative).is_file(), relative
