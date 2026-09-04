@@ -25,9 +25,11 @@ def test_must_exhaust_existing_data(tmp_path):
     initialize_client_lifecycle(tmp_path)
     with pytest.raises(ValueError,match="exhaustivement"): publish_client_requests(tmp_path,[candidate()])
 def test_low_value_rejected(tmp_path):
-    ready(tmp_path); assert not publish_client_requests(tmp_path,[candidate(availability=0)])["selected"]
+    ready(tmp_path); assert not publish_client_requests(tmp_path,[candidate(availability=.05)])["selected"]
 def test_micro_beats_export_and_instrumentation():
     result=select_minimum_requests([candidate("M",request_type="TEMPORARY_INSTRUMENTATION",effort=20),candidate("E",request_type="REQUEST_DATA_EXPORT",effort=5),candidate("Q")]); assert [x["request_id"] for x in result["selected"]]==["Q"]
+def test_micro_question_is_not_overvalued_when_unreliable_or_unavailable():
+    result=select_minimum_requests([candidate("Q",availability=.4),candidate("I",request_type="TEMPORARY_INSTRUMENTATION",effort=2)]); assert [x["request_id"] for x in result["selected"]]==["I"]
 def test_global_rank_max_three():
     result=select_minimum_requests([candidate(f"Q{i}",related=f"H{i}",effort=i) for i in range(1,6)]); assert len(result["selected"])==3 and len(result["rejected"])==2
 def test_counterfactual_must_differ():

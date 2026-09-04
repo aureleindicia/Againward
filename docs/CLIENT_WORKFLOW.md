@@ -57,6 +57,9 @@ python manage_investigation.py publish-candidates \
 
 Python classe globalement, déduplique et retient zéro à trois demandes (cible une), en préférant
 inférence, micro-question, document, observation, test terrain, export, puis instrumentation.
+La préférence de source sert de départage après la valeur ajustée par disponibilité, fiabilité et
+effort; une micro-question faible ne gagne donc pas automatiquement. Une VOI inférieure à `0.05`
+est rejetée par défaut (seuil conservateur à recalibrer sur les pilotes).
 `questions.json` est l'unique autorité. Un `BLOCKING` passe à
 `WAITING_FOR_REQUIRED_INFORMATION`. STOP complet : aucune réponse inventée, promotion, économie ou
 action finale, rapport ou livraison.

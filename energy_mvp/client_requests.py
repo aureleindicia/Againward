@@ -10,8 +10,17 @@ from .minimal_attribution import MicroQuestion, rank_micro_questions
 REQUEST_TYPES = {"INFER_AUTOMATICALLY", "MICRO_QUESTION", "REQUEST_EXISTING_DOCUMENT",
                  "FIELD_OBSERVATION", "FIELD_VERIFICATION", "REQUEST_DATA_EXPORT",
                  "TEMPORARY_INSTRUMENTATION"}
-DECISION_DIMENSIONS = {"evidence_level", "asset_attribution", "economic_materiality",
-                       "investigation_priority", "field_action", "false_conclusion_risk"}
+DECISION_DIMENSIONS = {
+    "evidence_level",
+    "asset_attribution",
+    "alternatives",
+    "confidence",
+    "economic_materiality",
+    "investigation_priority",
+    "field_action",
+    "false_conclusion_risk",
+}
+MIN_VOI_SCORE = 0.05
 SOURCE_TYPES = {"CLIENT_DECLARATION", "EXISTING_DOCUMENT", "FIELD_OBSERVATION",
                 "PREREGISTERED_TEST", "INSTRUMENT_MEASUREMENT"}
 SOURCE_PRIORITY = {name: index for index, name in enumerate(("INFER_AUTOMATICALLY",
@@ -112,18 +121,32 @@ def select_minimum_requests(candidates: Iterable[dict[str, Any]], *, max_request
         try: item = normalize_request(raw)
         except (TypeError,ValueError) as exc: rejected.append({"request_id":str(raw.get("request_id","?")),"reason":str(exc)}); continue
         item["voi_score"] = round(_voi(item),9)
-        if item["voi_score"] <= 0: rejected.append({"request_id":item["request_id"],"reason":"aucune valeur décisionnelle positive"}); continue
+        if item["voi_score"] < MIN_VOI_SCORE:
+            rejected.append({
+                "request_id": item["request_id"],
+                "reason": "valeur décisionnelle insuffisante après effort et fiabilité",
+            })
+            continue
         accepted.append(item)
     by_key = {}
     for item in accepted:
         old = by_key.get(item["semantic_key"])
-        rank = (SOURCE_PRIORITY[item["request_type"]],item["effort"]+item["source_cost"],-item["voi_score"])
+        rank = (
+            -item["voi_score"],
+            SOURCE_PRIORITY[item["request_type"]],
+            item["effort"] + item["source_cost"],
+        )
         if old is None: by_key[item["semantic_key"]] = item
-        elif rank < (SOURCE_PRIORITY[old["request_type"]],old["effort"]+old["source_cost"],-old["voi_score"]):
+        elif rank < (
+            -old["voi_score"],
+            SOURCE_PRIORITY[old["request_type"]],
+            old["effort"] + old["source_cost"],
+        ):
             rejected.append({"request_id":old["request_id"],"reason":f"doublon remplacé par {item['request_id']}"}); by_key[item["semantic_key"]]=item
         else: rejected.append({"request_id":item["request_id"],"reason":f"doublon de {old['request_id']}"})
     ranked = sorted(by_key.values(),key=lambda x:(-x["voi_score"],SOURCE_PRIORITY[x["request_type"]],x["effort"],x["request_id"]))
     for item in ranked[max_requests:]: rejected.append({"request_id":item["request_id"],"reason":"hors ensemble minimal global"})
     return {"schema_version":"indicia-client-request-selection-v2","default_question_count":0,
+            "minimum_voi_score":MIN_VOI_SCORE,
             "selected":ranked[:max_requests],"rejected":rejected,
             "selection_basis":"global_counterfactual_decision_value_then_lowest_burden"}

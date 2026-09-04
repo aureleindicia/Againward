@@ -13,7 +13,10 @@ externes ; tout type inconnu est rejeté.
 
 Chaque demande explicite réponses plausibles et effets distincts. `select_minimum_requests()`
 réutilise `rank_micro_questions()` lorsque la partition est complète, puis classe et déduplique
-globalement. Ordre : inférence, micro-question, document, observation, test, export, instrumentation.
+globalement. La valeur ajustée par disponibilité, fiabilité, effort et coût est prioritaire; à
+valeur comparable seulement, l'ordre est : inférence, micro-question, document, observation, test,
+export, instrumentation. Le seuil de publication par défaut est `0.05`. C'est un garde-fou
+conservateur non calibré sur des dossiers réels, à réévaluer après les premiers pilotes.
 
 Une demande `INVESTIGATE_FIRST` doit expliciter : ce qu'elle peut départager,
 la décision qui pourrait changer, son coût/effort et pourquoi elle est justifiée.
