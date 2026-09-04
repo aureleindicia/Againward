@@ -18,6 +18,12 @@ from typing import Any, Iterable, Sequence
 
 
 UNKNOWN_ASSET_ID = "unknown"
+EVIDENCE_SOURCE_TYPES = {"CLIENT_DECLARATION", "EXISTING_DOCUMENT", "FIELD_OBSERVATION",
+    "PREREGISTERED_TEST", "INSTRUMENT_MEASUREMENT", "NATURAL_EVENT"}
+LEGACY_EVIDENCE_SOURCE_TYPES = {"operator_observation":"CLIENT_DECLARATION", "operator_question":"CLIENT_DECLARATION",
+    "direct_observation":"FIELD_OBSERVATION", "temporary_measurement":"INSTRUMENT_MEASUREMENT",
+    "preregistered_field_test":"PREREGISTERED_TEST", "natural_event":"NATURAL_EVENT"}
+VERIFIABLE_ANCHOR_SOURCE_TYPES = {"FIELD_OBSERVATION", "PREREGISTERED_TEST", "INSTRUMENT_MEASUREMENT", "NATURAL_EVENT"}
 
 
 class EvidenceLevel(IntEnum):
@@ -278,6 +284,9 @@ class EvidenceItem:
     supersedes_evidence_id: str | None = None
     status: str = "active"
     synthetic: bool = False
+    request_id: str | None = None
+    finding_ids: tuple[str, ...] = ()
+    hypothesis_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.evidence_id.strip() or not self.provenance.strip() or not self.statement.strip():
@@ -292,6 +301,22 @@ class EvidenceItem:
             raise ValueError("observed_or_inferred invalide.")
         if self.status not in {"active", "superseded", "invalidated"}:
             raise ValueError("Statut de preuve inconnu.")
+        canonical = LEGACY_EVIDENCE_SOURCE_TYPES.get(self.source_class, self.source_class)
+        if canonical not in EVIDENCE_SOURCE_TYPES:
+            raise ValueError(f"source_class de preuve inconnu: {self.source_class}.")
+        if self.anchor_verified and canonical not in VERIFIABLE_ANCHOR_SOURCE_TYPES:
+            raise ValueError("Une déclaration client ou un document ne peut pas devenir une ancre vérifiée.")
+
+    @property
+    def source_type(self) -> str:
+        return LEGACY_EVIDENCE_SOURCE_TYPES.get(self.source_class, self.source_class)
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "EvidenceItem":
+        values = dict(payload)
+        for field_name in ("candidate_ids", "finding_ids", "hypothesis_ids"):
+            values[field_name] = tuple(values.get(field_name, ()))
+        return cls(**values)
 
 
 @dataclass(slots=True)
@@ -333,6 +358,18 @@ class EvidenceLedger:
             "items": [asdict(item) for item in self.items],
             "assessment_history": self.assessment_history,
         }
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "EvidenceLedger":
+        if payload.get("schema_version") != "indicia-minimal-evidence-ledger-v1":
+            raise ValueError("Version de journal de preuves inconnue.")
+        if not isinstance(payload.get("component_id"), str) or not payload["component_id"].strip():
+            raise ValueError("component_id absent du journal.")
+        if not isinstance(payload.get("items", []), list) or not isinstance(payload.get("assessment_history", []), list):
+            raise ValueError("Journal de preuves invalide.")
+        ledger = cls(payload["component_id"], assessment_history=list(payload.get("assessment_history", [])))
+        for item in payload.get("items", []): ledger.append(EvidenceItem.from_dict(item))
+        return ledger
 
 
 @dataclass(frozen=True, slots=True)
@@ -517,15 +554,17 @@ def _observable_fingerprint(
     return tuple(values)
 
 
+def _is_verified_anchor(item: EvidenceItem) -> bool:
+    return item.anchor_verified and item.observed_or_inferred == "observed" and item.source_type in VERIFIABLE_ANCHOR_SOURCE_TYPES
+
+
 def _direct_anchor_ids(items: Sequence[EvidenceItem]) -> set[str]:
     return {
         candidate
         for item in items
         if item.status == "active"
         and item.direction == "supports"
-        and item.observed_or_inferred == "observed"
-        and item.source_class in {"direct_observation", "temporary_measurement", "preregistered_field_test"}
-        and item.anchor_verified
+        and _is_verified_anchor(item)
         and item.reliability >= 0.8
         for candidate in item.candidate_ids
     }
@@ -590,8 +629,7 @@ def assess_attribution(
             if asset.asset_id in item.candidate_ids
             and item.direction == "contradicts"
             and item.reliability >= 0.9
-            and item.observed_or_inferred == "observed"
-            and item.anchor_verified
+            and _is_verified_anchor(item)
             and strongest_support < item.reliability - 0.1
         ]
         candidates.append(
@@ -646,7 +684,7 @@ def assess_attribution(
     verified_supported_ids = {
         candidate
         for item in active_evidence
-        if item.direction == "supports" and item.anchor_verified and item.reliability >= 0.8
+        if item.direction == "supports" and _is_verified_anchor(item) and item.reliability >= 0.8
         for candidate in item.candidate_ids
     }
     unique_verified_id = (
@@ -683,7 +721,7 @@ def assess_attribution(
             and top.asset_id in item.candidate_ids
             and second.asset_id not in item.candidate_ids
             and item.reliability >= 0.8
-            and item.anchor_verified
+            and _is_verified_anchor(item)
             for item in active_evidence
         )
         equivalent = (
@@ -709,7 +747,7 @@ def assess_attribution(
             and top.asset_id in item.candidate_ids
             and second.asset_id not in item.candidate_ids
             and item.reliability >= 0.8
-            and item.anchor_verified
+            and _is_verified_anchor(item)
             for item in active_evidence
         )
     ):
@@ -769,7 +807,7 @@ def assess_attribution(
             item.direction == "supports"
             and selected in item.candidate_ids
             and item.reliability >= 0.8
-            and item.anchor_verified
+            and _is_verified_anchor(item)
             for item in active_evidence
         )
         if not has_verified_discriminator:

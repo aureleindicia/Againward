@@ -4,12 +4,16 @@ La question par défaut est l'absence de question. Codex demande de l'informatio
 économique seulement si elle peut changer une décision matérielle et si son coût
 ou effort est proportionné à l'enjeu.
 
-Types contrôlés : `INFER_AUTOMATICALLY`, `ASK_CLIENT`,
-`REQUEST_EXISTING_DOCUMENT`, `REQUEST_TECHNICAL_EVIDENCE`,
-`OPTIONAL_FUTURE_INSTRUMENTATION` et `REQUEST_QUOTE`. Le premier est une
+Types contrôlés : `INFER_AUTOMATICALLY`, `MICRO_QUESTION`, `REQUEST_EXISTING_DOCUMENT`,
+`FIELD_OBSERVATION`, `FIELD_VERIFICATION`, `REQUEST_DATA_EXPORT` et
+`TEMPORARY_INSTRUMENTATION`. Le premier est une
 opération interne : il peut être journalisé avec son motif et son impact, mais
 ne comporte aucune question client. Un batch normal est limité à trois demandes
 externes ; tout type inconnu est rejeté.
+
+Chaque demande explicite réponses plausibles et effets distincts. `select_minimum_requests()`
+réutilise `rank_micro_questions()` lorsque la partition est complète, puis classe et déduplique
+globalement. Ordre : inférence, micro-question, document, observation, test, export, instrumentation.
 
 Une demande `INVESTIGATE_FIRST` doit expliciter : ce qu'elle peut départager,
 la décision qui pourrait changer, son coût/effort et pourquoi elle est justifiée.

@@ -59,6 +59,10 @@ provenance, origine observée/inférée, type de source et marqueur synthétique
 n'est discriminante que si `anchor_verified=True` : cela signifie que l'identité du canal
 ou la portée de l'événement a été contrôlée, pas seulement que l'observation paraît fiable.
 
+Sources canoniques : `CLIENT_DECLARATION`, `EXISTING_DOCUMENT`, `FIELD_OBSERVATION`,
+`PREREGISTERED_TEST`, `INSTRUMENT_MEASUREMENT`, `NATURAL_EVENT`. Seules les sources terrain/mesure
+observées peuvent porter une ancre vérifiée; déclaration et document restent contextuels.
+
 Le ledger est append-only. Une correction utilise `supersedes_evidence_id`; l'ancienne
 entrée reste auditable mais ne participe plus au calcul courant. Chaque assessment peut
 être ajouté à `assessment_history`, ce qui rend une révision ultérieure visible.
@@ -141,6 +145,11 @@ solidité de l'assessment, pas la probabilité qu'un actif soit responsable.
 
 ## Intégration avec INDICIA
 
+`attribution_workflow.run_minimal_attribution()` est le chemin production conditionnel :
+`not_applicable` sans signature/inventaire, sinon `guarded_evidence`, ledger, assessment et
+micro-questions candidates. `record_attribution_answer()` ajoute la preuve puis recalcule; une
+simple déclaration ne franchit pas le plafond d'une ancre terrain.
+
 La couche réutilise sans les modifier :
 
 - les timestamps, unités et lectures normalisées ;
@@ -177,4 +186,3 @@ assert assessment.selected_asset_id is None  # aucune ancre vérifiée
 ```
 
 Cet exemple est conceptuel et synthétique. Il ne reproduit pas PX-201.
-

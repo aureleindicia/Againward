@@ -13,6 +13,7 @@ from energy_mvp.case_lifecycle import (
     validate_adversarial_review,
     validate_investigation_document,
 )
+from energy_mvp.client_lifecycle import record_existing_data_exhaustion
 from energy_mvp.evidence_cli import execute_case_query
 from energy_mvp.investigation import information_request
 from energy_mvp.workflow import prepare_investigation
@@ -90,6 +91,7 @@ class CaseLifecycleTests(unittest.TestCase):
             _initialize_case(root, {"ground_truth_used": False, "hypotheses": [_hypothesis(
                 "A_CONSERVER_AVEC_RESERVES", request=True
             )]})
+            record_existing_data_exhaustion(root,analysis_inventory_ref="investigation.json",reviewed_sources=["investigation.json"])
             published = publish_minimum_questions(root)
             self.assertEqual([item["request_id"] for item in published["questions"]], ["H1-Q1"])
             answers = root / "answers.json"

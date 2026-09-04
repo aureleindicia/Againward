@@ -17,6 +17,7 @@ source CSV/XLSX locale
             - récupération de lignes par handle
             - contre-explications
             - constat lié aux preuves ou abstention
+  -> cycle client canonique (questions.json + client_lifecycle; STOP si BLOCKING)
   -> review adversariale
   -> revue humaine
   -> rapport client simple inchangé
@@ -132,7 +133,9 @@ sont mis à jour atomiquement.
 
 ## Boucle agentique et constats
 
-`investigation_state.json` décrit désormais une boucle : hypothèses concurrentes, demande bornée,
+`investigation_state.json.client_lifecycle` porte `ANALYZING`,
+`WAITING_FOR_REQUIRED_INFORMATION`, `RESUMING`, `FINALIZABLE`, `DELIVERABLE`; une attente BLOCKING
+interdit rapport et livraison. Le reste de `investigation_state.json` décrit une boucle : hypothèses concurrentes, demande bornée,
 inspection des handles, test de la meilleure alternative, nouvelle requête seulement si elle peut
 changer la décision, constat ou abstention, puis review.
 

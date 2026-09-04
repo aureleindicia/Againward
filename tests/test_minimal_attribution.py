@@ -221,7 +221,7 @@ def test_direct_anchor_can_reach_robust_attribution_but_never_mechanism():
 
 def test_high_reliability_contradiction_eliminates_candidate():
     contradiction = evidence(
-        "E-no", "contradicts", ["pump_1"], reliability=0.95, anchor_verified=True
+        "E-no", "contradicts", ["pump_1"], reliability=0.95, source_class="FIELD_OBSERVATION", anchor_verified=True
     )
     assessment = assess_attribution(
         component(), [asset()], evidence=[contradiction], method="evidence_aware"

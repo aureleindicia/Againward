@@ -1,150 +1,86 @@
-# Workflow d'un nouveau client
+# Workflow d'un dossier client INDICIA
 
-Ce workflow est local-first et conçu pour une petite entreprise. Python prépare et vérifie les
-preuves quantitatives ; Codex choisit les investigations et rédige ; un humain autorise la
-livraison. Aucun stade automatique ne transforme un signal candidat en économie.
+Workflow local-first : Codex choisit les investigations et interprète; Python calcule et applique
+les contrats; un humain autorise la livraison. Un signal automatique n'est jamais une opportunité.
+Prompt autonome : [`CLIENT_INVESTIGATION_PROMPT.md`](CLIENT_INVESTIGATION_PROMPT.md). Migration :
+[`CLIENT_WORKFLOW_MIGRATION.md`](CLIENT_WORKFLOW_MIGRATION.md).
 
-La prestation est une investigation de performance énergétique autonome sur données : elle doit
-détecter et quantifier les dérives, éliminer les fausses pistes, cibler les vérifications terrain
-et mesurer l'effet après correction. Elle n'est pas limitée à la préparation d'un autre audit.
-Elle peut néanmoins fournir à un auditeur, frigoriste, électricien ou mainteneur les périodes,
-preuves et hypothèses qui indiquent précisément où chercher.
+## 1. Contexte et intake
 
-Cette prestation ne constitue pas un audit énergétique réglementaire.
-
-## 1. Créer et renseigner le dossier
-
-Avant de créer un espace client ou de demander un fichier, envoyer la fiche
-[`CLIENT_DATA_FEASIBILITY_REQUEST.md`](CLIENT_DATA_FEASIBILITY_REQUEST.md). Elle permet au client
-de confirmer l'existence d'un export et son périmètre sans fabriquer de données manuellement. Les
-critères de cette fiche correspondent aux contrôles d'intake ci-dessous.
-
-```sh
-python create_workspace.py usine_01
-```
-
-Compléter `workspaces/usine_01/intake.json`, puis déposer une copie du fichier dans `input/`.
-Les informations réellement critiques sont le périmètre du compteur, la nature et l'unité de la
-mesure, la convention début/fin d'intervalle et le fuseau du site. Les horaires, fermetures,
-maintenance, production, météo et tarif augmentent les analyses possibles mais une absence est
-conservée comme limite, jamais inventée.
-
-Si le contrat contient des plages ou une puissance facturée, renseigner
-`cost.time_of_use_periods` et `cost.demand_charge_per_kw_month`. Le paquet produit alors
-`tariff_cost.json`. Ce coût contractuel reste distinct d'une économie récupérable.
-
-## 2. Préparer l'investigation générique
+Reconstruire le contexte depuis le dépôt et `/storage/emulated/0/Download`. Créer le workspace,
+placer une copie des données dans son `input/`, compléter l'intake puis exécuter :
 
 ```sh
 python investigate.py workspaces/usine_01/input/mesures.csv \
   --intake workspaces/usine_01/intake.json \
   --output-dir workspaces/usine_01/processed
+python manage_investigation.py init workspaces/usine_01/processed
 ```
 
-Le paquet contient notamment `prepared_analysis.json`, `candidate_signals.json`,
-`intake_assessment.json`, `investigation_state.json`, `questions.json`, `human_review.json`,
-`trace.json` et `ANALYST_BRIEF.md`. Les événements automatiques restent `candidate_signal`.
-
-## 3. Investigation Codex
-
-Codex écrit `investigation.json`. Chaque piste doit contenir : observation, hypothèse, test(s),
-résultat provenant de Python, contre-explication, meilleure raison d'être fausse, décision,
-confiance, statut explicite de la cause physique et éventuelle demande minimale. Une décision
-incertaine exige une demande précise ; une décision tranchée ne déclenche pas de question par
-réflexe. Les recommandations sont validées séparément et ne peuvent annoncer une économie
-récupérable lorsque la cause n'est pas prouvée. Elles définissent toujours une mesure après
-intervention. Si le comportement mérite un suivi durable, elles peuvent aussi définir un bloc
-`continuous_monitoring` avec condition d'activation, cadence, règle d'alerte et responsable.
-
-## 4. Questions et réponses
+Avant toute demande, analyser toutes les données/documents disponibles, puis tracer les sources :
 
 ```sh
-python manage_investigation.py questions workspaces/usine_01/processed
+python manage_investigation.py data-exhausted workspaces/usine_01/processed \
+  analysis_inventory.json prepared_analysis.json candidate_signals.json evidence_card.json
 ```
 
-Le fichier `questions.json` ne publie que la prochaine demande prioritaire de chaque piste. Pour
-enregistrer les réponses, créer par exemple :
+## 2. Investigation
 
-```json
-{
-  "answers": [
-    {
-      "request_id": "H01-Q1",
-      "answer": "Le site était fermé et aucun nettoyage n'était planifié.",
-      "provided_by_role": "responsable de production",
-      "source_or_evidence": "Planning signé de la semaine 12"
-    }
-  ]
-}
-```
+Pour chaque piste : observation, hypothèses concurrentes, tests Python, résultat quantifié,
+contre-explication, meilleure raison d'être fausse, décision et limites. Codex peut conclure
+`unknown`, non identifiable ou information insuffisante sans question si aucune acquisition ne
+justifie l'effort. Détection, signature, composant anonyme, compatibilité, attribution, mécanisme et
+pronostic restent des niveaux distincts.
 
-Puis :
+Avec signature reproductible et inventaire, utiliser `attribution_workflow`; sinon consigner
+`not_applicable`. Les scores de compatibilité ne sont pas des probabilités.
+
+## 3. Demandes externes
+
+Rassembler les candidats Goal A, attribution et Goal B. Chaque candidat décrit deux réponses
+plausibles et leurs effets distincts sur preuve, attribution, économie, priorité, action ou risque :
 
 ```sh
-python manage_investigation.py answers workspaces/usine_01/processed answers.json
+python manage_investigation.py publish-candidates \
+  workspaces/usine_01/processed candidates.json
 ```
 
-Une réponse déjà consignée ne peut pas être réécrite. Codex peut alors demander un nouveau calcul,
-réviser `investigation.json` et archiver le cycle entièrement répondu avant d'en publier un autre :
+Python classe globalement, déduplique et retient zéro à trois demandes (cible une), en préférant
+inférence, micro-question, document, observation, test terrain, export, puis instrumentation.
+`questions.json` est l'unique autorité. Un `BLOCKING` passe à
+`WAITING_FOR_REQUIRED_INFORMATION`. STOP complet : aucune réponse inventée, promotion, économie ou
+action finale, rapport ou livraison.
+
+## 4. Réponse et reprise
+
+Une réponse fournit `answer`, `provided_by_role`, `source_or_evidence`, `source_type`,
+`provided_at_utc`, `reliability`. Types : `CLIENT_DECLARATION`, `EXISTING_DOCUMENT`,
+`FIELD_OBSERVATION`, `PREREGISTERED_TEST`, `INSTRUMENT_MEASUREMENT`. Déclaration/document ne sont pas
+des ancres terrain. Enregistrer :
 
 ```sh
-python manage_investigation.py next-cycle workspaces/usine_01/processed
-python manage_investigation.py questions workspaces/usine_01/processed
+python manage_investigation.py record-answers workspaces/usine_01/processed answers.json
 ```
 
-Les archives numérotées restent dans `question_cycles/` avec leur empreinte dans `trace.json`.
-
-## 5. Review contradictoire
-
-Codex écrit `review.json` avec `ground_truth_used: false` et une entrée pour chaque hypothèse non
-rejetée. Chaque entrée répond à la question « quelle est la meilleure raison de penser que cette
-conclusion pourrait être fausse ? » et contrôle exactement :
-
-- calculs ;
-- qualité des données ;
-- robustesse de la baseline ;
-- explications alternatives ;
-- causalité ;
-- annualisation ;
-- économie récupérable ;
-- double comptage.
-
-Chaque contrôle porte un statut `passed`, `failed` ou `not_applicable` et une preuve. Une conclusion
-avec un contrôle échoué ne peut pas rester `CONFIRME`.
-
-## 6. Rapport et validation humaine
-
-Après rédaction de `report.md`, le relecteur complète `human_review.json` :
-
-```json
-{
-  "schema_version": 1,
-  "status": "approved",
-  "reviewer_role": "ingénieur énergie",
-  "reviewed_at_utc": "2026-08-27T13:00:00+00:00",
-  "approved_for_delivery": true,
-  "reservations": ["La cause physique H01 reste à vérifier sur site."]
-}
-```
-
-Le logiciel ne remplit jamais cette approbation lui-même. Le contrôle final est :
+En `RESUMING`, relire demande/provenance, mettre à jour les ledgers, recalculer, revoir
+alternatives/attribution/confiance/économie/priorité/action, tracer avant/après et refaire la review :
 
 ```sh
+python manage_investigation.py complete-resume workspaces/usine_01/processed resume.json
+```
+
+Deux cycles maximum; le second référence la réponse créant une branche matérielle. Aucun doublon.
+Après épuisement, `close-budget` exige une limite honnête.
+
+## 5. Review, finalisation et livraison
+
+La review contrôle calculs, qualité, baseline, alternatives, causalité, annualisation, économie
+récupérable et double comptage. Sans BLOCKING/reprise :
+
+```sh
+python manage_investigation.py finalizable workspaces/usine_01/processed investigation.json
 python manage_investigation.py check workspaces/usine_01/processed
 ```
 
-`delivery_gate.json` contient le statut, les blocages et l'empreinte des quatre livrables. Un code
-de sortie `3` signifie que le dossier n'est pas livrable ; ce n'est pas une erreur de calcul.
-
-
-## Contrat physique Candidate V2
-
-Pour chaque piste physique importante, utiliser aussi physical_differential_template.json
-et docs/PHYSICAL_DIAGNOSTICS.md. Codex explicite la chaine
-energie-equipment-service-sortie, examine la demande de service avant de conclure a une
-degradation d efficacite, distingue commande et etat reel, puis decrit pour les causes
-concurrentes leurs predictions et la mesure qui les separe.
-
-Ce canevas n impose aucun ordre. Codex peut utiliser une cause, une variable, un outil ou
-un protocole absent des fiches. Python ne choisit ni cause, ni question, ni intervention,
-ni decision finale.
+Le gate exige investigation, review, rapport et approbation humaine puis passe à `DELIVERABLE`.
+Cette prestation n'est ni audit réglementaire ni diagnostic mécanique garanti.

@@ -13,6 +13,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from client_delivery import generate_client_report
+from energy_mvp.client_lifecycle import mark_finalizable,record_existing_data_exhaustion
+
+def _allow_report(case):
+    record_existing_data_exhaustion(case,analysis_inventory_ref="derived/canonical_case.json",reviewed_sources=["evidence/intake_inventory.json","investigation/structured_findings.json"])
+    mark_finalizable(case,conclusion_ref="investigation/economic_decision_state.json")
 from client_intake_pipeline import create_client_case, ingest_client_drop, record_structured_findings
 from operational_economics import calculate_economic_scenarios, initialize_economic_state, persist_economic_packet
 
@@ -136,14 +141,14 @@ def generate(root: str | Path) -> dict[str, Path]:
             "C-I": "Le petit gain potentiel ne compense pas une consigne quotidienne supplémentaire ni la coordination durable demandée au personnel.",
         }
         narrative = _narrative(f"Fixture {fixture_id}", {action_id: (title, decision_id, finding_id, claim_type, constraint_ids)}, dataset_id, no_action=no_action, checked_finding=finding_id, why_by_action={action_id: context[fixture_id]} if fixture_id in context else None)
-        generate_client_report(case, narrative)
+        _allow_report(case); generate_client_report(case, narrative)
         outputs[fixture_id] = case
 
     # C-E : no-finding Goal A réel et décision Goal B explicitement vide.
     case, _, dataset_id = _case(root, "C-E", findings=[], no_finding={"what_was_analyzed": "Données disponibles", "usable_period": "Période fournie", "operating_regimes": "Régime stable", "limitations": "Période courte", "monitoring_baseline_meaningful": True})
     persist_economic_packet(case, {"technical_finding_refs": [], "economic_inputs": [], "scenario_assumptions": [], "candidate_actions": [], "operational_constraints": [], "relationships": [], "combined_effects": {}, "scenario_calculations": {}, "economic_requests": [], "decision": _decision("D-C-E", "DO_NOTHING", [])})
     narrative = {"site_name": "Fixture C-E", "report_title": "Analyse de performance énergétique", "analysis_period": "Période de données fournie", "executive_message": "Aucune anomalie significative ne justifie une dépense corrective.", "cards": {}, "no_action_items": [{"title": "Aucune action corrective", "claim": {"claim_type": "NO_ACTION_REQUIRED", "decision_ref": "D-C-E", "action_ref": None, "finding_refs": [], "constraint_refs": [], "economic_refs": [], "evidence_refs": [], "no_finding_ref": "GOAL_A_NO_FINDING", "text": "Le fonctionnement observé ne justifie pas une intervention supplémentaire."}}], "what_we_checked": [{"claim_type": "WHAT_WAS_CHECKED", "decision_ref": "D-C-E", "action_ref": None, "finding_refs": [], "constraint_refs": [], "economic_refs": [], "evidence_refs": [dataset_id], "no_finding_ref": "GOAL_A_NO_FINDING", "text": "Les régimes disponibles et leur stabilité."}], "chart_requests": [], "limitations": ["La période servira de référence si l activité change."], "method": "La conclusion préserve le résultat no finding de Goal A."}
-    generate_client_report(case, narrative)
+    _allow_report(case); generate_client_report(case, narrative)
     outputs["C-E"] = case
 
     # C-F : alternatives mutuellement exclusives, comparées sans somme.
@@ -157,7 +162,7 @@ def generate(root: str | Path) -> dict[str, Path]:
     packet["decision"]["selected_action_ids"] = [repair["action_id"]]
     persist_economic_packet(case, packet)
     narrative = _narrative("Fixture C-F", {repair["action_id"]: ("Réparer avant de remplacer", "D-C-F", finding_id, "ACTION_RECOMMENDED", [])}, dataset_id, checked_finding=finding_id)
-    generate_client_report(case, narrative)
+    _allow_report(case); generate_client_report(case, narrative)
     outputs["C-F"] = case
 
     # C-J : une réponse client Goal B.4 est persistée, puis la livraison est
@@ -166,7 +171,7 @@ def generate(root: str | Path) -> dict[str, Path]:
     case = generate_b4(root / "C-J")
     dataset_id = json.loads((case / "derived" / "canonical_case.json").read_text(encoding="utf-8"))["available_datasets"][0]["dataset_id"]
     narrative = _narrative("Fixture C-J", {"ACT-INSPECT-01": ("Inspection avant intervention", "DEC-B4-01", "FIND-EXCESS-01", "VERIFY_BEFORE_INVESTING", ["CONS-PROD-01"])}, dataset_id, checked_finding="FIND-EXCESS-01")
-    generate_client_report(case, narrative)
+    _allow_report(case); generate_client_report(case, narrative)
     outputs["C-J"] = case
 
     # E2E C.1 : un même site porte quatre décisions distinctes et non sommées.
@@ -182,7 +187,7 @@ def generate(root: str | Path) -> dict[str, Path]:
     packet = {"technical_finding_refs": [{"finding_id": item} for item in finding_ids], "economic_inputs": inputs, "scenario_assumptions": [], "candidate_actions": actions, "operational_constraints": [ops_constraint], "relationships": [], "combined_effects": {}, "scenario_calculations": {action_id: _calculation(effect, action_id, capex, f"CAP-{index}") for index, (action_id, effect, capex) in enumerate(zip(action_ids, effects, (450, 12000, 0, 500)), start=1)}, "economic_requests": [], "decisions": decisions}
     persist_economic_packet(case, packet)
     narrative = _narrative("Fixture multi-décision", {"A-MULTI-NOW": ("Réparer maintenant", "D-MULTI-NOW", "F-MULTI-NOW", "ACTION_RECOMMENDED", []), "A-MULTI-CHECK": ("Vérifier avant investissement", "D-MULTI-CHECK", "F-MULTI-CHECK", "VERIFY_BEFORE_INVESTING", []), "A-MULTI-MONITOR": ("Surveiller ce régime", "D-MULTI-MONITOR", "F-MULTI-MONITOR", "MONITOR", []), "A-MULTI-OPS": ("Ne pas modifier les horaires", "D-MULTI-OPS", "F-MULTI-OPS", "NO_ACTION_OPERATIONAL", ["K-MULTI-OPS"])}, dataset_id, no_action=[{"title": "Optimisation des horaires non retenue", "claim": {"claim_type": "NO_ACTION_OPERATIONAL", "decision_ref": "D-MULTI-OPS", "action_ref": "A-MULTI-OPS", "finding_refs": ["F-MULTI-OPS"], "constraint_refs": ["K-MULTI-OPS"], "economic_refs": ["A-MULTI-OPS"], "evidence_refs": [], "text": "Le gain potentiel ne justifie pas de perturber la production quotidienne."}}], checked_finding="F-MULTI-NOW")
-    generate_client_report(case, narrative)
+    _allow_report(case); generate_client_report(case, narrative)
     outputs["C-MULTI"] = case
     return outputs
 

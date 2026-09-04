@@ -776,6 +776,11 @@ def build_economic_request_batch(requests: list[dict[str, Any]]) -> dict[str, An
         normalized.append({**request, "request_id": request.get("request_id", f"ECO-REQ-{index:02d}"), "analysis_can_continue_without_answer": request.get("importance", "NON_BLOCKING") != "BLOCKING"})
     return {"schema_version": 2, "requests": normalized, "default_question_count": 0, "generated_by": "Codex; Python validated schema only"}
 
+def publish_economic_request_batch(case_directory: str | Path, requests: list[dict[str, Any]], *, new_material_branch: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Adaptateur Goal B vers l'unique `questions.json`."""
+    from energy_mvp.client_lifecycle import publish_client_requests
+    return publish_client_requests(case_directory,[x for x in requests if x.get("request_type")!="INFER_AUTOMATICALLY"],new_material_branch=new_material_branch)
+
 
 def record_goal_b_evidence(case_directory: str | Path, evidence: dict[str, Any]) -> dict[str, Any]:
     """Ajoute une réponse post-Goal A immuable, sans la déguiser en artefact Goal A.
@@ -818,6 +823,17 @@ def record_goal_b_evidence(case_directory: str | Path, evidence: dict[str, Any])
         "acquisition_order": len(indexed) + 1,
         "recorded_at_utc": _now(),
     }
+    canonical_path=case/"investigation/questions.json"
+    if request_id is not None and canonical_path.exists():
+        canonical=_read(canonical_path); target=next((x for x in canonical.get("questions",[]) if x.get("request_id")==request_id and x.get("status")=="open"),None)
+        if target is not None:
+            from energy_mvp.client_lifecycle import record_canonical_answers
+            response=evidence.get("content",{}).get("response_text")
+            if not isinstance(response,str) or not response.strip(): raise ValueError("Une réponse Goal B canonique exige content.response_text.")
+            result=record_canonical_answers(case,[{"answer_id":f"ANS-{evidence['evidence_id']}","request_id":request_id,"answer":response,
+              "provided_by_role":evidence.get("provided_by_role","interlocuteur client Goal B"),"source_or_evidence":evidence.get("provenance",f"investigation/economic_decision_state.json#{evidence['evidence_id']}"),
+              "source_type":"EXISTING_DOCUMENT" if evidence["evidence_type"]=="GOAL_B_DOCUMENT_RESPONSE" else "CLIENT_DECLARATION","provided_at_utc":evidence.get("provided_at_utc",_now()),"reliability":float(evidence.get("reliability",.65))}])
+            recorded["canonical_answer_id"]=result["recorded_answers"][0]["answer_id"]
     state.setdefault("goal_b_evidence", []).append(recorded)
     state.setdefault("history", []).append({"at_utc": _now(), "action": "goal_b_evidence_recorded", "evidence_id": recorded["evidence_id"], "request_id": request_id})
     _write(path, state)
@@ -826,6 +842,8 @@ def record_goal_b_evidence(case_directory: str | Path, evidence: dict[str, Any])
 
 def persist_economic_packet(case_directory: str | Path, packet: dict[str, Any]) -> dict[str, Any]:
     """Persiste un paquet Codex seulement après recalcul et vérification complète."""
+    from energy_mvp.client_lifecycle import assert_workflow_action_allowed
+    assert_workflow_action_allowed(case_directory,"economic_promotion")
     case = Path(case_directory)
     path = case / "investigation" / "economic_decision_state.json"
     state = _read(path)

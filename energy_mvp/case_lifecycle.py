@@ -9,6 +9,11 @@ from typing import Any, Iterable
 from .evidence_protocol import EvidenceQuerySession, validate_finding_provenance
 from .investigation import next_information_request, validate_follow_up_logic
 from .recommendations import validate_recommendations
+from .client_lifecycle import (
+    assert_workflow_action_allowed, close_clarification_budget, complete_resume,
+    initialize_client_lifecycle, lifecycle_directory, mark_finalizable,
+    publish_client_requests, record_canonical_answers, record_existing_data_exhaustion,
+)
 
 
 DECISIONS = {
@@ -163,34 +168,20 @@ def publish_minimum_questions(
     *,
     investigation_name: str = "investigation.json",
 ) -> dict[str, Any]:
-    """Publie au plus la prochaine demande de chaque piste, jamais une collecte vague."""
+    """Adaptateur v1 vers la sélection globale canonique."""
 
     root = Path(case_directory)
     investigation_path = root / investigation_name
     investigation = _read_json(investigation_path)
     validate_investigation_document(investigation)
-    path = root / "questions.json"
-    existing = _read_json(path)
-    if existing.get("questions"):
-        raise ValueError(
-            "questions.json contient déjà des questions; répondez ou archivez le cycle avant d'en publier un autre."
-        )
-    published_at = datetime.now(timezone.utc).isoformat()
-    questions = [
-        {**question, "status": "open", "published_at_utc": published_at}
-        for question in _question_candidates(investigation)
-    ]
-    payload = {
-        "schema_version": 1,
-        "investigation_sha256": _sha256(investigation_path),
-        "published_at_utc": published_at,
-        "questions": questions,
-        "responses": [],
-    }
-    _write_json(path, payload)
+    candidates=[{**q,"related_hypothesis_ids":[q["finding_id"]],"related_finding_ids":[q["finding_id"]],
+        "importance":"BLOCKING","effort":{"tres_faible":1,"faible":2,"modere":3}.get(q.get("effort_level"),2),
+        "availability":.8,"reliability":.65} for q in _question_candidates(investigation)]
+    publish_client_requests(root,candidates)
+    payload=_read_json(root/"questions.json"); payload["investigation_sha256"]=_sha256(investigation_path); _write_json(root/"questions.json",payload)
     _append_trace(root, "publish_minimum_questions", {
         "investigation_sha256": payload["investigation_sha256"],
-        "question_ids": [item["request_id"] for item in questions],
+        "question_ids": [item["request_id"] for item in payload["questions"]],
     })
     return payload
 
@@ -199,46 +190,19 @@ def record_client_answers(
     case_directory: str | Path,
     answers_path: str | Path,
 ) -> dict[str, Any]:
-    """Enregistre des réponses sans permettre de réécrire une réponse déjà reçue."""
+    """Adaptateur fichier v1 vers les réponses canoniques."""
 
     root = Path(case_directory)
-    path = root / "questions.json"
-    questions_payload = _read_json(path)
     supplied = _read_json(Path(answers_path))
     answers = supplied.get("answers")
     if not isinstance(answers, list) or not answers:
         raise ValueError("Le fichier de réponses doit contenir une liste answers non vide.")
-    questions = questions_payload.get("questions")
-    if not isinstance(questions, list):
-        raise ValueError("questions.json: questions doit être une liste.")
-    by_id = {item.get("request_id"): item for item in questions}
     now = datetime.now(timezone.utc).isoformat()
-    received_ids: list[str] = []
-    for answer in answers:
-        request_id = answer.get("request_id")
-        if request_id not in by_id:
-            raise ValueError(f"Réponse reçue pour une question inconnue: {request_id}.")
-        question = by_id[request_id]
-        if question.get("status") == "answered":
-            raise ValueError(f"La réponse {request_id} est déjà enregistrée et ne sera pas réécrite.")
-        for field in ("answer", "provided_by_role", "source_or_evidence"):
-            if not str(answer.get(field, "")).strip():
-                raise ValueError(f"{request_id}: le champ {field} est requis.")
-        recorded = {
-            "request_id": request_id,
-            "answer": answer["answer"],
-            "provided_by_role": answer["provided_by_role"],
-            "source_or_evidence": answer["source_or_evidence"],
-            "received_at_utc": now,
-        }
-        question["status"] = "answered"
-        question["answer"] = recorded
-        questions_payload.setdefault("responses", []).append(recorded)
-        received_ids.append(request_id)
-    _write_json(path, questions_payload)
+    result=record_canonical_answers(root,[{**x,"source_type":x.get("source_type","CLIENT_DECLARATION"),"provided_at_utc":x.get("provided_at_utc",now)} for x in answers])
+    questions_payload=_read_json(root/"questions.json")
     _append_trace(root, "record_client_answers", {
         "answers_sha256": _sha256(Path(answers_path)),
-        "request_ids": received_ids,
+        "request_ids": [x["request_id"] for x in result["recorded_answers"]],
     })
     return questions_payload
 
@@ -266,14 +230,10 @@ def archive_answered_question_cycle(case_directory: str | Path) -> Path:
         index += 1
     target = archive_directory / f"questions_cycle_{index:03d}.json"
     _write_json(target, payload)
-    _write_json(path, {
-        "schema_version": 1,
-        "investigation_sha256": None,
-        "published_at_utc": None,
-        "questions": [],
-        "responses": [],
-        "previous_cycle": str(target.relative_to(root)),
-    })
+    payload.setdefault("cycle_history", []).append({"cycle": payload["questions"][0].get("cycle"), "questions": payload["questions"]})
+    payload["questions"] = []
+    payload["previous_cycle"] = str(target.relative_to(root))
+    _write_json(path, payload)
     _append_trace(root, "archive_answered_question_cycle", {
         "archive": str(target.relative_to(root)),
         "archive_sha256": _sha256(target),
@@ -333,6 +293,15 @@ def evaluate_delivery_gate(case_directory: str | Path) -> dict[str, Any]:
 
     root = Path(case_directory)
     reasons: list[str] = []
+    lifecycle_path = lifecycle_directory(root) / "investigation_state.json"
+    lifecycle_state = None
+    if lifecycle_path.exists():
+        lifecycle_payload = _read_json(lifecycle_path)
+        lifecycle_state = lifecycle_payload.get("client_lifecycle")
+        if lifecycle_state is not None:
+            if not isinstance(lifecycle_state, dict): reasons.append("Cycle client canonique invalide.")
+            elif lifecycle_state.get("state") not in {"FINALIZABLE", "DELIVERABLE"}: reasons.append(f"Cycle client non finalisable: état {lifecycle_state.get('state','inconnu')}.")
+            if isinstance(lifecycle_state,dict) and lifecycle_state.get("blocking_request_ids"): reasons.append("Des demandes BLOCKING restent ouvertes.")
     required = ("investigation.json", "review.json", "report.md", "human_review.json")
     for name in required:
         if not (root / name).is_file():
@@ -392,6 +361,9 @@ def evaluate_delivery_gate(case_directory: str | Path) -> dict[str, Any]:
         },
     }
     _write_json(root / "delivery_gate.json", payload)
+    if not reasons and lifecycle_state is not None:
+        lifecycle_payload=_read_json(lifecycle_path); lifecycle_payload["client_lifecycle"]["state"]="DELIVERABLE"
+        lifecycle_payload["client_lifecycle"]["history"].append({"at_utc":payload["evaluated_at_utc"],"action":"marked_deliverable"}); _write_json(lifecycle_path,lifecycle_payload)
     _append_trace(root, "evaluate_delivery_gate", {
         "status": payload["status"],
         "blocking_reasons": reasons,

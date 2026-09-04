@@ -13,6 +13,7 @@ from client_intake_pipeline import (
     publish_question_batch,
     record_structured_findings,
 )
+from energy_mvp.client_lifecycle import record_existing_data_exhaustion
 
 
 class ClientIntakePipelineTests(unittest.TestCase):
@@ -145,6 +146,7 @@ class ClientIntakePipelineTests(unittest.TestCase):
                 encoding="utf-8",
             )
             self._ingest(drop, case)
+            record_existing_data_exhaustion(case,analysis_inventory_ref="derived/canonical_case.json",reviewed_sources=["evidence/intake_inventory.json"])
             batch = publish_question_batch(case, [{
                 "request_id": "REQ-HOURS",
                 "request_type": "ASK_CLIENT",
@@ -170,6 +172,7 @@ class ClientIntakePipelineTests(unittest.TestCase):
                 encoding="utf-8",
             )
             self._ingest(drop, case)
+            record_existing_data_exhaustion(case,analysis_inventory_ref="derived/canonical_case.json",reviewed_sources=["evidence/intake_inventory.json"])
             batch = publish_question_batch(case, [{
                 "request_id": "REQ-TECH",
                 "request_type": "REQUEST_TECHNICAL_EVIDENCE",
@@ -180,8 +183,9 @@ class ClientIntakePipelineTests(unittest.TestCase):
                 "decision_impact": "Détermine si une intervention physique est justifiée.",
                 "expected_effort": "À inclure dans une visite déjà prévue.",
                 "importance": "NON_BLOCKING",
+                "field_verification": {"what_to_check":"Relever pression et consigne.","asset_or_group":"circuit concerné","period_or_regime":"régime signalé","why_discriminating":"sépare les hypothèses","competent_role":"technicien compétent","safety_constraints":"procédures du site","stop_condition":"arrêter si accès dangereux","confirming_result":"pression différente","refuting_result":"pression conforme","before_after_comparison":"mesure et consigne au même instant"},
             }])
-            self.assertEqual(batch["requests"][0]["request_type"], "REQUEST_TECHNICAL_EVIDENCE")
+            self.assertEqual(batch["requests"][0]["request_type"], "FIELD_VERIFICATION")
 
     def test_case_i_no_finding_has_a_complete_structured_output(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -226,6 +230,7 @@ class ClientIntakePipelineTests(unittest.TestCase):
             drop, case = self._case(root)
             (drop / "energy.csv").write_text("timestamp,energy_kwh\n2026-01-01 00:00,1\n", encoding="utf-8")
             self._ingest(drop, case)
+            record_existing_data_exhaustion(case,analysis_inventory_ref="derived/canonical_case.json",reviewed_sources=["evidence/intake_inventory.json"])
             request = {
                 "request_id": "REQ-1", "request_type": "ASK_CLIENT",
                 "client_question": "Le site était-il ouvert à cette heure-là ?",

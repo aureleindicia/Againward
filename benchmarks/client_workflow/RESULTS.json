@@ -1,0 +1,36 @@
+{
+  "schema_version": "indicia-client-workflow-benchmark-v1",
+  "synthetic_only": true,
+  "python": "3.14.6",
+  "runs_per_size": 5,
+  "measurements": [
+    {
+      "candidate_count": 10,
+      "unique_semantic_branches": 10,
+      "selected_count": 3,
+      "rejected_count": 7,
+      "median_elapsed_ms": 5.288,
+      "max_peak_traced_bytes": 26358
+    },
+    {
+      "candidate_count": 100,
+      "unique_semantic_branches": 37,
+      "selected_count": 3,
+      "rejected_count": 97,
+      "median_elapsed_ms": 48.828,
+      "max_peak_traced_bytes": 235158
+    },
+    {
+      "candidate_count": 1000,
+      "unique_semantic_branches": 37,
+      "selected_count": 3,
+      "rejected_count": 997,
+      "median_elapsed_ms": 508.979,
+      "max_peak_traced_bytes": 2410685
+    }
+  ],
+  "assertions": {
+    "bounded_selection": true,
+    "semantic_deduplication_exercised": true
+  }
+}

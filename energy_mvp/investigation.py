@@ -67,10 +67,11 @@ def validate_follow_up_logic(hypotheses: Iterable[dict[str, Any]]) -> None:
     for hypothesis in hypotheses:
         decision = hypothesis.get("decision")
         requests = hypothesis.get("follow_up_requests", [])
-        if decision in UNCERTAIN_DECISIONS and not requests:
+        terminal_unknown = hypothesis.get("terminal_status") in {"unknown","non_identifiable","information_insuffisante","cause_non_demontrable"} and bool(str(hypothesis.get("why_no_further_request","")).strip())
+        if decision in UNCERTAIN_DECISIONS and not requests and not terminal_unknown:
             raise ValueError(
                 f"{hypothesis.get('hypothesis_id', '?')}: une decision incertaine exige "
-                "une demande de poursuite minimale."
+                "une demande de poursuite minimale ou une clôture terminale honnête."
             )
         if decision not in UNCERTAIN_DECISIONS and requests:
             raise ValueError(

@@ -20,6 +20,7 @@ from statistics import median
 from typing import Any, Iterable
 
 from energy_mvp.io import ALIASES, parse_date, parse_number
+from energy_mvp.client_lifecycle import initialize_client_lifecycle,publish_client_requests,record_canonical_answers
 
 
 CASE_DIRECTORIES = (
@@ -527,6 +528,7 @@ def ingest_client_drop(source_directory: str | Path, case_directory: str | Path)
     manifest["intake_completed_at_utc"] = _utc_now()
     _write_json(case / "case_manifest.json", manifest)
     engine_handoff(case)
+    initialize_client_lifecycle(case)
     return canonical
 
 
@@ -600,56 +602,23 @@ def _empty_question_batch(case_id: str) -> dict[str, Any]:
 
 
 def publish_question_batch(case_directory: str | Path, requests: list[dict[str, Any]], *, exceptional_second_batch_reason: str | None = None) -> dict[str, Any]:
-    """Publie une demande fournie par Codex, sans en générer une automatiquement."""
-
-    case = Path(case_directory)
-    if not 1 <= len(requests) <= MAX_DEFAULT_QUESTIONS:
-        raise ValueError("Un batch client comporte normalement de 1 à 3 demandes ciblées.")
-    path = case / "investigation" / "question_batch.json"
-    current = _read_json(path)
-    if current.get("requests") and not exceptional_second_batch_reason:
-        raise ValueError("Un second batch exige une justification matérielle explicite.")
+    """Adaptateur Goal A déprécié vers `investigation/questions.json`."""
+    case=Path(case_directory); life=initialize_client_lifecycle(case)["client_lifecycle"]; branch=None
+    if life["cycle_count"]:
+        if not exceptional_second_batch_reason: raise ValueError("Un second batch exige une justification matérielle explicite.")
+        branch={"trigger_response_ids":list(life["answered_request_ids"]),"decision_change":exceptional_second_batch_reason}
+    selection=publish_client_requests(case,requests,new_material_branch=branch)
+    normalized=[{**x,"analysis_can_continue_without_answer":x["importance"]!="BLOCKING","created_at_utc":_utc_now()} for x in selection["selected"]]
+    path=case/"investigation/question_batch.json"; current=_read_json(path)
     if current.get("requests"):
-        archive_directory = case / "investigation" / "question_batch_history"
-        archive_directory.mkdir(exist_ok=True)
-        index = 1
-        while (archive_directory / f"batch_{index:03d}.json").exists():
-            index += 1
-        _write_json(archive_directory / f"batch_{index:03d}.json", current)
-    normalized: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for position, request in enumerate(requests, start=1):
-        request_id = str(request.get("request_id") or f"REQ-{position:02d}")
-        if request_id in seen:
-            raise ValueError("request_id dupliqué.")
-        seen.add(request_id)
-        request_type = request.get("request_type")
-        importance = request.get("importance", "NON_BLOCKING")
-        for field in ("client_question", "internal_reason", "target_role", "decision_impact", "expected_effort"):
-            if not str(request.get(field, "")).strip():
-                raise ValueError(f"{request_id}: {field} est requis.")
-        if request_type not in REQUEST_TYPES or request_type == "INFER_AUTOMATICALLY":
-            raise ValueError(f"{request_id}: type de demande client invalide.")
-        if importance not in REQUEST_IMPORTANCE:
-            raise ValueError(f"{request_id}: importance invalide.")
-        text = str(request["client_question"]).strip()
-        if _slug(text) in {"plus_de_donnees", "davantage_de_donnees"} or len(text) < 12:
-            raise ValueError(f"{request_id}: demande client trop vague.")
-        normalized.append({
-            "request_id": request_id, "request_type": request_type, "client_question": text,
-            "internal_reason": str(request["internal_reason"]).strip(), "target_role": str(request["target_role"]).strip(),
-            "hypotheses_distinguished": list(request.get("hypotheses_distinguished") or []), "decision_impact": str(request["decision_impact"]).strip(),
-            "expected_effort": str(request["expected_effort"]).strip(), "importance": importance,
-            "analysis_can_continue_without_answer": importance != "BLOCKING", "created_at_utc": _utc_now(),
-        })
-    payload = {"schema_version": 1, "case_id": case.name, "batch_status": "published", "requests": normalized, "client_facing_text": "\n".join(f"- {item['client_question']}" for item in normalized), "exceptional_second_batch_reason": exceptional_second_batch_reason}
-    _write_json(path, payload)
-    state_path = case / "investigation" / "case_state.json"
-    state = _read_json(state_path)
-    state["unresolved_requests"] = normalized
-    state["history"].append({"at_utc": _utc_now(), "action": "question_batch_published", "request_ids": [item["request_id"] for item in normalized]})
-    _write_json(state_path, state)
-    return payload
+        archive=case/"investigation/question_batch_history"; archive.mkdir(exist_ok=True); index=1
+        while (archive/f"batch_{index:03d}.json").exists(): index+=1
+        _write_json(archive/f"batch_{index:03d}.json",current)
+    payload={"schema_version":2,"deprecated_adapter_for":"investigation/questions.json","case_id":case.name,
+      "batch_status":"published" if normalized else "not_needed","requests":normalized,
+      "client_facing_text":"\n".join(f"- {x['client_question']}" for x in normalized),"exceptional_second_batch_reason":exceptional_second_batch_reason,"must_stop":selection["must_stop"]}
+    _write_json(path,payload); state_path=case/"investigation/case_state.json"; state=_read_json(state_path); state["unresolved_requests"]=normalized
+    state["history"].append({"at_utc":_utc_now(),"action":"question_batch_adapter_published","request_ids":[x["request_id"] for x in normalized]}); _write_json(state_path,state); return payload
 
 
 def record_structured_findings(case_directory: str | Path, findings: list[dict[str, Any]], *, no_finding: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -680,43 +649,13 @@ def record_structured_findings(case_directory: str | Path, findings: list[dict[s
 
 
 def record_client_answers(case_directory: str | Path, answers: list[dict[str, Any]]) -> dict[str, Any]:
-    """Enregistre des réponses reçues sans autoriser leur réécriture."""
-
-    case = Path(case_directory)
-    batch_path = case / "investigation" / "question_batch.json"
-    batch = _read_json(batch_path)
-    requests = {item["request_id"]: item for item in batch.get("requests", [])}
-    if not answers:
-        raise ValueError("Au moins une réponse est requise.")
-    state_path = case / "investigation" / "case_state.json"
-    state = _read_json(state_path)
-    answered_ids = {item.get("request_id") for item in state.get("client_answers", [])}
-    recorded: list[dict[str, Any]] = []
-    for answer in answers:
-        request_id = answer.get("request_id")
-        if request_id not in requests:
-            raise ValueError(f"Réponse pour une demande inconnue: {request_id}.")
-        if request_id in answered_ids:
-            raise ValueError(f"La réponse {request_id} est déjà enregistrée et ne sera pas réécrite.")
-        for field in ("answer", "provided_by_role", "source_or_evidence"):
-            if not str(answer.get(field, "")).strip():
-                raise ValueError(f"{request_id}: {field} est requis.")
-        item = {
-            "request_id": request_id,
-            "answer": str(answer["answer"]).strip(),
-            "provided_by_role": str(answer["provided_by_role"]).strip(),
-            "source_or_evidence": str(answer["source_or_evidence"]).strip(),
-            "received_at_utc": _utc_now(),
-        }
-        requests[request_id]["status"] = "answered"
-        requests[request_id]["answer"] = item
-        recorded.append(item)
-    state["client_answers"].extend(recorded)
-    state["unresolved_requests"] = [item for item in batch["requests"] if item.get("status") != "answered"]
-    state["history"].append({"at_utc": _utc_now(), "action": "client_answers_recorded", "request_ids": [item["request_id"] for item in recorded]})
-    _write_json(batch_path, batch)
-    _write_json(state_path, state)
-    return {"schema_version": 1, "recorded_answers": recorded, "analysis_may_continue": any(item.get("importance") != "BLOCKING" for item in state["unresolved_requests"])}
+    """Adaptateur Goal A vers le journal canonique append-only."""
+    case=Path(case_directory); result=record_canonical_answers(case,[{**x,"source_type":x.get("source_type","CLIENT_DECLARATION"),"provided_at_utc":x.get("provided_at_utc",_utc_now())} for x in answers])
+    batch_path=case/"investigation/question_batch.json"; batch=_read_json(batch_path); by_id={x["request_id"]:x for x in batch.get("requests",[])}
+    for item in result["recorded_answers"]:
+        if item["request_id"] in by_id: by_id[item["request_id"]].update({"status":"answered","answer":item})
+    state_path=case/"investigation/case_state.json"; state=_read_json(state_path); state.setdefault("client_answers",[]).extend(result["recorded_answers"]); state["unresolved_requests"]=[x for x in batch.get("requests",[]) if x.get("status")!="answered"]
+    state["history"].append({"at_utc":_utc_now(),"action":"client_answers_adapter_recorded","request_ids":[x["request_id"] for x in result["recorded_answers"]]}); _write_json(batch_path,batch); _write_json(state_path,state); return {"schema_version":2,**result}
 
 
 def engine_handoff(case_directory: str | Path) -> dict[str, Any]:

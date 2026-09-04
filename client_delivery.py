@@ -520,6 +520,8 @@ def build_client_report_model(case_directory: str | Path, narrative: dict[str, A
     `narrative` est un contrat d'explication fourni par Codex. Toute valeur,
     décision, référence et relation vient exclusivement des états Goal A/B.
     """
+    from energy_mvp.client_lifecycle import assert_workflow_action_allowed
+    assert_workflow_action_allowed(case_directory,"report_generation")
     case = Path(case_directory)
     findings, no_finding = _goal_a_findings(case)
     state_path = case / "investigation" / "economic_decision_state.json"

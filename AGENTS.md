@@ -2013,3 +2013,22 @@ Chercher à obtenir un système :
 La finalité n’est pas de construire un logiciel qui remplace Codex.
 
 La finalité est de construire **le laboratoire spécialisé qui permet à Codex de devenir progressivement un analyste énergétique industriel extrêmement performant**.
+
+---
+
+## 67. Contexte et cycle client canonique
+
+Pour INDICIA, reconstruire le contexte depuis le dépôt courant **et** tout
+`/storage/emulated/0/Download`, qui peut contenir objectifs, handoffs, R&D, benchmarks et pièces
+client absents du dépôt. Le dépôt reste autoritatif pour le code; ne jamais versionner les données
+client de Download ni considérer automatiquement un ancien clone comme plus récent.
+
+Lire `docs/CLIENT_WORKFLOW.md` et `.codex/skills/indicia-client-workflow/SKILL.md`. Les sources de
+vérité sont `investigation_state.json.client_lifecycle` et `questions.json`. États : `ANALYZING`,
+`WAITING_FOR_REQUIRED_INFORMATION`, `RESUMING`, `FINALIZABLE`, `DELIVERABLE`. Un BLOCKING impose
+STOP : pas de promotion, économie/action finale, rapport ou livraison. Après réponse : recalcul
+Python, alternatives, avant/après et review. Deux cycles, trois demandes/cycle, zéro par défaut.
+
+Distinguer `CLIENT_DECLARATION`, `EXISTING_DOCUMENT`, `FIELD_OBSERVATION`, `PREREGISTERED_TEST`,
+`INSTRUMENT_MEASUREMENT`. Une déclaration opérateur n'est pas une ancre terrain. Préserver :
+détection → signature → composant anonyme → compatibilité → attribution → mécanisme → pronostic.
