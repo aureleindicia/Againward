@@ -1,0 +1,101 @@
+{
+  "schema_version": "indicia-client-workflow-unification-results-v1",
+  "generated_at_utc": "2026-09-04T10:47:30Z",
+  "validated_commit": "12881c28b0515c5fed1555e961a05dc653b541ba",
+  "scope": "synthetic_and_repository_validation_only",
+  "validation": {
+    "full_test_suite": {
+      "command": "python -m pytest -q",
+      "passed": 350,
+      "failed": 0,
+      "elapsed_seconds": 76.85
+    },
+    "workflow_focused_suite": {
+      "command": "python -m pytest -q tests/test_client_workflow_unification.py tests/test_workflow_paths.py",
+      "passed": 39,
+      "failed": 0,
+      "elapsed_seconds": 0.37
+    },
+    "skill_validation": {
+      "command": "python /data/data/com.termux/files/home/.codex/skills/.system/skill-creator/scripts/quick_validate.py .codex/skills/indicia-client-workflow",
+      "passed": true
+    },
+    "github_workflow_yaml_valid": true,
+    "python_compileall_passed": true
+  },
+  "benchmark": {
+    "artifact": "benchmarks/client_workflow/RESULTS.json",
+    "synthetic_only": true,
+    "candidate_counts": [10, 100, 1000],
+    "largest_median_elapsed_ms": 333.216,
+    "bounded_selection": true,
+    "semantic_deduplication_exercised": true
+  },
+  "required_test_matrix": [
+    {"id": 1, "requirement": "no question then normal finalization", "status": "passed", "evidence": "test_zero_question_and_normal_finalization"},
+    {"id": 2, "requirement": "blocking question forces stop", "status": "passed", "evidence": "test_blocking_stops_and_suspends"},
+    {"id": 3, "requirement": "report forbidden with open blocking", "status": "passed", "evidence": "test_blocking_stops_and_suspends plus client delivery gate tests"},
+    {"id": 4, "requirement": "mixed blocking and non-blocking batch", "status": "passed", "evidence": "test_mixed_batch_still_stops"},
+    {"id": 5, "requirement": "resume after answer", "status": "passed", "evidence": "test_answer_append_only_and_resume_required"},
+    {"id": 6, "requirement": "contradictory answer retained", "status": "passed", "evidence": "test_contradictions_preserved and test_correction_is_append_only_and_linked"},
+    {"id": 7, "requirement": "operator declaration is not strong field proof", "status": "passed", "evidence": "test_operator_never_verified_anchor"},
+    {"id": 8, "requirement": "reliable document changes assessment without becoming field anchor", "status": "passed", "evidence": "test_document_changes_score_not_anchor"},
+    {"id": 9, "requirement": "micro-question preferred to equivalent heavy export", "status": "passed", "evidence": "test_micro_beats_export_and_instrumentation"},
+    {"id": 10, "requirement": "instrumentation rejected when equivalent micro-question is better", "status": "passed", "evidence": "test_micro_beats_export_and_instrumentation"},
+    {"id": 11, "requirement": "global ranking", "status": "passed", "evidence": "test_global_rank_max_three"},
+    {"id": 12, "requirement": "semantic deduplication", "status": "passed", "evidence": "test_no_semantic_reask and benchmark"},
+    {"id": 13, "requirement": "low-value request rejected", "status": "passed", "evidence": "test_low_value_rejected"},
+    {"id": 14, "requirement": "maximum two cycles", "status": "passed", "evidence": "test_two_cycles_max"},
+    {"id": 15, "requirement": "exhausted budget closes honestly", "status": "passed", "evidence": "test_budget_exhaustion_unknown"},
+    {"id": 16, "requirement": "no equivalent re-question after complete answer", "status": "passed", "evidence": "test_no_semantic_reask"},
+    {"id": 17, "requirement": "unknown retained", "status": "passed", "evidence": "test_e2e_two_insufficient_answers_finalize"},
+    {"id": 18, "requirement": "MinimalEvidenceAttribution invoked when applicable", "status": "passed", "evidence": "test_e2e_mea_stop_answer_ledger_resume"},
+    {"id": 19, "requirement": "MinimalEvidenceAttribution can be not applicable", "status": "passed", "evidence": "test_mea_not_applicable"},
+    {"id": 20, "requirement": "EvidenceLedger updated on resume", "status": "passed", "evidence": "test_e2e_mea_stop_answer_ledger_resume"},
+    {"id": 21, "requirement": "delivery gate coherent", "status": "passed", "evidence": "CaseLifecycleTests.test_delivery_gate_requires_adversarial_and_human_review and WorkflowPathTests.test_delivery_gate_output_uses_resolved_analysis_directory"},
+    {"id": 22, "requirement": "legacy artifact compatibility", "status": "passed", "evidence": "CaseLifecycleTests.test_question_cycle_publishes_only_next_request_and_never_rewrites_answer and test_goal_b_uses_canonical_questions"},
+    {"id": 23, "requirement": "incoherent state or artifacts fail safely", "status": "passed", "evidence": "test_incoherent_state_fails_safely, test_valid_state_name_with_incoherent_waiting_fails_safely, test_tampered_clarification_budget_fails_safely, test_lifecycle_and_question_artifacts_must_agree"},
+    {"id": 24, "requirement": "resume from fresh process context", "status": "passed", "evidence": "test_resume_from_files"},
+    {"id": 25, "requirement": "operational skill locates canonical workflow", "status": "passed", "evidence": "test_skill_and_prompt_paths plus WorkflowPathTests.test_status_cli_accepts_workspace_root"},
+    {"id": 26, "requirement": "production prompt matches code guarantees", "status": "passed", "evidence": "test_skill_and_prompt_paths"}
+  ],
+  "end_to_end_scenarios": [
+    {
+      "name": "ambiguous_asset_micro_question_resume",
+      "status": "passed",
+      "synthetic": true,
+      "test": "test_e2e_mea_stop_answer_ledger_resume"
+    },
+    {
+      "name": "two_insufficient_answers_honest_finalization",
+      "status": "passed",
+      "synthetic": true,
+      "test": "test_e2e_two_insufficient_answers_finalize"
+    }
+  ],
+  "adversarial_fixes": [
+    "mixed batches can no longer bypass blocking stop",
+    "operator declarations and existing documents cannot become verified field anchors",
+    "a low-value micro-question cannot win solely because of source-type priority",
+    "valid-looking but inconsistent lifecycle states fail closed",
+    "tampered clarification budgets fail closed",
+    "lifecycle and canonical question artifacts must agree",
+    "workspace roots resolve to a single canonical analysis directory"
+  ],
+  "capability_boundaries": {
+    "demonstrated": [
+      "repository-enforced lifecycle and delivery blocking",
+      "synthetic MinimalEvidenceAttribution integration",
+      "typed append-only answer provenance",
+      "bounded clarification and deterministic file-based resume",
+      "portable workspace discovery and Git privacy defaults"
+    ],
+    "not_demonstrated": [
+      "decision-value threshold calibration on real client cases",
+      "real-world reliability calibration for human answers",
+      "physical asset attribution without adequate field evidence",
+      "mechanism diagnosis or prognosis from aggregate signatures",
+      "unattended production performance on real pilot data"
+    ]
+  }
+}
