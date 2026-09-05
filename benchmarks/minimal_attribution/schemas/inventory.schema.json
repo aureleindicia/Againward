@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "indicia-minimal-equipment-inventory-v1",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["asset_id"],
+    "properties": {
+      "asset_id": {"type": "string", "minLength": 1, "not": {"const": "unknown"}},
+      "name": {"type": ["string", "null"]},
+      "family": {"type": ["string", "null"]},
+      "nominal_power_kw": {"type": ["number", "null"], "minimum": 0},
+      "nominal_power_range_kw": {
+        "oneOf": [
+          {"type": "null"},
+          {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0}}
+        ]
+      },
+      "usual_start_hour": {"type": ["number", "null"], "minimum": 0, "exclusiveMaximum": 24},
+      "usual_stop_hour": {"type": ["number", "null"], "minimum": 0, "exclusiveMaximum": 24},
+      "operating_days": {
+        "oneOf": [
+          {"type": "null"},
+          {"type": "array", "uniqueItems": true, "items": {"type": "integer", "minimum": 0, "maximum": 6}}
+        ]
+      },
+      "operation_mode": {"enum": ["continuous", "intermittent", "batch", null]},
+      "production_dependency": {"enum": ["dependent", "independent", "mixed", null]},
+      "metadata": {"type": "object"}
+    },
+    "additionalProperties": true
+  }
+}
+

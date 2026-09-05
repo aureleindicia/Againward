@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "benchmark": "INDICIA_SIGNAL_INTELLIGENCE_V2",
+  "protocol_version": "2.3",
+  "generated_at": "2026-09-02",
+  "status": "synthetic_controls_only",
+  "provenance": {
+    "suite_seed": 260902,
+    "replicates": 3,
+    "suite_manifest_sha256": "c3bdfeeb0b6a1d435542a08512a53f4320be0a85c431db84b717bb230fe94695",
+    "protocol_snapshot_commitment_sha256": "fdd50966ba2e30799c782cfbf81c05d5a3d8077b47f5984cf5a88a8316fcbd55",
+    "generator_sha256": "1009bcc5f220685e949bbe4cb5467f5826917bee40c287f36b707c144fa047c4",
+    "engine_git_commit": "7c0e887",
+    "case_count_including_tier_ablations": 126,
+    "independent_physical_realisations": 42,
+    "measurement_tiers": ["L0_E15", "L1_PQ1", "L2_EDGE"],
+    "public_pack_bytes": 263470599,
+    "future_outcome_cases_including_tier_ablations": 36,
+    "private_suite_audit_status": "valid",
+    "private_suite_audit_issues": []
+  },
+  "selected_deterministic_control": {
+    "model": "detection-and-motif-v2",
+    "detection_method": "production_temperature",
+    "energy_method": "production",
+    "signature_method": "morphology",
+    "claim_scope": ["candidate_detection", "synthetic_reproducible_signature"],
+    "explicitly_excluded_claims": [
+      "asset_attribution",
+      "physical_mechanism",
+      "prognosis",
+      "field_validity"
+    ],
+    "mean_score": 45.667,
+    "mean_score_warning": "Le score composite n'est pas une preuve de capacité; utiliser les couches séparées.",
+    "per_independent_tier_detection": {
+      "cases": 42,
+      "true_positives": 21,
+      "false_positives": 0,
+      "false_negatives": 9,
+      "true_negatives": 12,
+      "precision": 1.0,
+      "precision_wilson_lower_95": 0.845361,
+      "recall": 0.7,
+      "recall_wilson_lower_95": 0.521242,
+      "f1": 0.823529,
+      "anomaly_brier": 0.174944,
+      "anomaly_ece": 0.228618
+    },
+    "per_independent_tier_high_confidence_alerts": {
+      "threshold": 0.9,
+      "alerts": 12,
+      "true_alerts": 12,
+      "precision": 1.0,
+      "precision_wilson_lower_95": 0.757506,
+      "coverage": 0.285714
+    },
+    "layer_results_including_tier_ablations": {
+      "detection": {"passed": 99, "applicable": 126, "rate": 0.785714},
+      "event_classification": {"passed": 36, "applicable": 126, "rate": 0.285714},
+      "reproducible_signature": {"passed": 42, "applicable": 42, "rate": 1.0},
+      "asset_attribution": {"passed": 0, "applicable": 72, "rate": 0.0},
+      "physical_mechanism": {"passed": 0, "applicable": 72, "rate": 0.0},
+      "energy_quantification_within_25_percent": {"passed": 42, "applicable": 90, "rate": 0.466667},
+      "prognosis": {"passed": 0, "applicable": 36, "rate": 0.0},
+      "complete_capability": {"rate": 0.0}
+    },
+    "per_independent_tier_energy_quantification": {
+      "passed_within_25_percent": 14,
+      "applicable": 30,
+      "rate": 0.466667,
+      "mean_relative_error_among_emitted_estimates": 0.286769
+    },
+    "l2_signature_diagnostics": {
+      "applicable_cases": 42,
+      "referenced_events": 131090,
+      "eligible_events": 299389,
+      "event_coverage": 0.437858,
+      "weighted_cluster_purity": 0.995476,
+      "candidate_asset_top1_accuracy": 0.502006,
+      "candidate_asset_top3_accuracy": 0.973942,
+      "warning": "Les candidats d'actifs sont un diagnostic synthétique de shortlist, pas une attribution démontrée."
+    }
+  },
+  "null_control": {
+    "mean_score": 33.991,
+    "detection": {"true_positives": 0, "false_positives": 0, "false_negatives": 90, "true_negatives": 36},
+    "all_positive_capability_layers_pass_rate": 0.0
+  },
+  "development_ablations_protocol_2_2": {
+    "independent_l0_realisations": 42,
+    "detection": {
+      "unconditional": {"precision": 0.73913, "recall": 0.566667, "f1": 0.641509, "brier": 0.310023},
+      "production": {"precision": 0.777778, "recall": 0.7, "f1": 0.736842, "brier": 0.29148},
+      "production_temperature": {"precision": 1.0, "recall": 0.7, "f1": 0.823529, "brier": 0.174944}
+    },
+    "energy_with_production_temperature_detection": {
+      "production_temperature": {"passed_within_25_percent": 0, "applicable": 30, "mean_relative_error": 0.447689},
+      "production": {"passed_within_25_percent": 14, "applicable": 30, "mean_relative_error": 0.286769},
+      "unconditional": {"passed_within_25_percent": 13, "applicable": 30, "mean_relative_error": 0.268997}
+    },
+    "l2_signatures": {
+      "magnitude": {"event_coverage": 0.404283, "weighted_cluster_purity": 0.968547},
+      "pq": {"event_coverage": 0.429147, "weighted_cluster_purity": 0.986948},
+      "morphology": {"event_coverage": 0.437858, "weighted_cluster_purity": 0.995476}
+    },
+    "selection": "Production+température pour détecter, production pour quantifier, morphologie pour les signatures."
+  },
+  "falsifications": [
+    "Le corpus 2.0 débordait d'une heure à la transition DST: 42 cas sur 42 contenaient des mesures du 13 avril sans contexte journalier.",
+    "Les références d'événements dupliquées pouvaient gonfler les métriques de signature.",
+    "Le code de résultat pronostique n'était pas scoré.",
+    "Les niveaux appariés pouvaient être pseudo-répliqués dans un intervalle de Wilson global.",
+    "Une abstention correcte sur un cas négatif était comptée à tort comme attribution ou quantification réussie.",
+    "Détection binaire et classification détaillée étaient confondues.",
+    "Signature reproductible et attribution d'actif étaient confondues.",
+    "Les options CLI d'ablation n'étaient initialement pas transmises au runner.",
+    "Les identifiants de run construits avec deux noms de méthodes longs dépassaient le contrat.",
+    "Le corpus 2.2 ne contenait aucun outcome futur en HOLDOUT et a été invalidé pour le pronostic.",
+    "Un action_code libre pouvait contourner le hard fail des actions dangereuses."
+  ],
+  "limitations": [
+    "Tous les résultats sont synthétiques et ne démontrent aucune validité terrain.",
+    "Les familles et le générateur ont été vus pendant cette R&D; le label HOLDOUT ne représente pas une session cognitivement aveugle.",
+    "Trois réalisations réduisent le risque d'un seed unique mais ne couvrent pas la diversité industrielle réelle.",
+    "La bonne pureté des motifs dépend de morphologies synthétiques construites par le générateur.",
+    "La précision observée sans faux positif porte sur seulement 42 réalisations indépendantes par niveau.",
+    "Le contrôle déterministe n'utilise pas les données L1 pour améliorer la détection; l'égalité L0/L1/L2 n'est donc pas une preuve que ces niveaux sont équivalents.",
+    "Aucun run agentique indépendant ni analyste humain n'a encore été scoré sur le protocole 2.3."
+  ]
+}

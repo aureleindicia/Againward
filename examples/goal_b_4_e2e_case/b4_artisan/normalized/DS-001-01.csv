@@ -1,0 +1,3 @@
+timestamp,energy_kwh,production,temperature,tariff,shift,product_type,production_active,source_row
+2026-07-01T05:00:00,5.0,0.0,,,,,,2
+2026-07-01T06:30:00,2.0,10.0,,,,,,3

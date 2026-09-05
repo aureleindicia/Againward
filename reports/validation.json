@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "scenario": "factory_variable",
+  "seed": 42,
+  "validation_stage": "post_investigation_only",
+  "injected_events": 6,
+  "detected_events": 6,
+  "true_positives": 6,
+  "false_positives": 0,
+  "false_negatives": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "minimum_temporal_iou": 0.3,
+  "matches": [
+    {
+      "injected_id": "A06",
+      "detected_id": "H06",
+      "type": "permanent_baseline_shift",
+      "temporal_iou": 1.0,
+      "expected_energy_impact": 5760.0,
+      "estimated_energy_impact": 5979.003893536332,
+      "energy_error_percent": 3.802150929450205
+    },
+    {
+      "injected_id": "A05",
+      "detected_id": "H04",
+      "type": "efficiency_drop",
+      "temporal_iou": 1.0,
+      "expected_energy_impact": 2075.181178,
+      "estimated_energy_impact": 2123.718826793546,
+      "energy_error_percent": 2.338959571728845
+    },
+    {
+      "injected_id": "A04",
+      "detected_id": "H03",
+      "type": "point_spike",
+      "temporal_iou": 1.0,
+      "expected_energy_impact": 240.0,
+      "estimated_energy_impact": 239.21077097621992,
+      "energy_error_percent": -0.32884542657503363
+    },
+    {
+      "injected_id": "A03",
+      "detected_id": "H05",
+      "type": "progressive_drift",
+      "temporal_iou": 1.0,
+      "expected_energy_impact": 4318.5,
+      "estimated_energy_impact": 4232.2716136391,
+      "energy_error_percent": -1.996720767880051
+    },
+    {
+      "injected_id": "A02",
+      "detected_id": "H02",
+      "type": "weekend_anomaly",
+      "temporal_iou": 1.0,
+      "expected_energy_impact": 880.0,
+      "estimated_energy_impact": 877.3323759108002,
+      "energy_error_percent": -0.3031391010454275
+    },
+    {
+      "injected_id": "A01",
+      "detected_id": "H01",
+      "type": "night_anomaly",
+      "temporal_iou": 1.0,
+      "expected_energy_impact": 2160.0,
+      "estimated_energy_impact": 2152.8031705611065,
+      "energy_error_percent": -0.33318654809692005
+    }
+  ],
+  "unmatched_injected": [],
+  "unmatched_detected": [],
+  "detected_event_details": [
+    {
+      "event_id": "H01",
+      "type": "night_anomaly",
+      "start": "2026-01-25",
+      "end": "2026-02-09",
+      "estimated_energy_impact": 2152.8031705611065,
+      "decision": "A_CONSERVER_AVEC_RESERVES"
+    },
+    {
+      "event_id": "H02",
+      "type": "weekend_anomaly",
+      "start": "2026-02-19",
+      "end": "2026-03-06",
+      "estimated_energy_impact": 877.3323759108002,
+      "decision": "A_CONSERVER_AVEC_RESERVES"
+    },
+    {
+      "event_id": "H03",
+      "type": "point_spike",
+      "start": "2026-02-24T10:00",
+      "end": "2026-02-24T12:00",
+      "estimated_energy_impact": 239.21077097621992,
+      "decision": "A_CONSERVER_AVEC_RESERVES"
+    },
+    {
+      "event_id": "H04",
+      "type": "efficiency_drop",
+      "start": "2026-03-16",
+      "end": "2026-03-31",
+      "estimated_energy_impact": 2123.718826793546,
+      "decision": "CONFIRME"
+    },
+    {
+      "event_id": "H05",
+      "type": "progressive_drift",
+      "start": "2026-03-06",
+      "end": "2026-04-05",
+      "estimated_energy_impact": 4232.2716136391,
+      "decision": "CONFIRME"
+    },
+    {
+      "event_id": "H06",
+      "type": "permanent_baseline_shift",
+      "start": "2026-04-05",
+      "end": "2026-05-05",
+      "estimated_energy_impact": 5979.003893536332,
+      "decision": "CONFIRME"
+    }
+  ],
+  "data_quality_validation": {
+    "expected_types": [
+      "identical_duplicate",
+      "impossible_value",
+      "invalid_timestamp",
+      "missing_intervals",
+      "missing_value"
+    ],
+    "detected_types": [
+      "identical_duplicate",
+      "impossible_value",
+      "invalid_timestamp",
+      "missing_intervals",
+      "missing_value"
+    ],
+    "missed_types": [],
+    "unexpected_types": []
+  },
+  "limitations": [
+    "Une seule seed et un seul scenario sont mesures ici.",
+    "Ces metriques ne prouvent aucune generalisation.",
+    "Les fenetres detectees proviennent de l'investigation Codex, pas d'un detecteur autonome."
+  ]
+}

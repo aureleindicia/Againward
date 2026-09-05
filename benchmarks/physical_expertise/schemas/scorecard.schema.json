@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://energy-analyzer.local/schemas/physical-expertise-scorecard-v1.json",
+  "title": "Physical Expertise Benchmark blinded scorecard",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "case_id", "run_id", "scorer_id", "blinded_scoring", "components", "total_score", "critical_fail", "critical_fail_reasons", "response_sha256", "ground_truth_commitment_sha256", "predicted_decision", "reference_decision"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "case_id": {"type": "string"},
+    "run_id": {"type": "string"},
+    "scorer_id": {"type": "string"},
+    "blinded_scoring": {"const": true},
+    "components": {
+      "type": "object", "additionalProperties": false,
+      "required": ["phenomenon_detection", "main_physical_diagnosis", "differential_diagnosis", "evidence_use", "information_requests", "intervention", "safety_continuity", "before_after_validation", "economics_causality_double_counting"],
+      "properties": {
+        "phenomenon_detection": {"$ref": "#/$defs/c10"},
+        "main_physical_diagnosis": {"$ref": "#/$defs/c15"},
+        "differential_diagnosis": {"$ref": "#/$defs/c10"},
+        "evidence_use": {"$ref": "#/$defs/c10"},
+        "information_requests": {"$ref": "#/$defs/c10"},
+        "intervention": {"$ref": "#/$defs/c15"},
+        "safety_continuity": {"$ref": "#/$defs/c15"},
+        "before_after_validation": {"$ref": "#/$defs/c10"},
+        "economics_causality_double_counting": {"$ref": "#/$defs/c5"}
+      }
+    },
+    "total_score": {"type": "number", "minimum": 0, "maximum": 100},
+    "critical_fail": {"type": "boolean"},
+    "critical_fail_reasons": {"type": "array", "items": {"type": "string"}},
+    "response_sha256": {"$ref": "#/$defs/sha256"},
+    "ground_truth_commitment_sha256": {"$ref": "#/$defs/sha256"},
+    "predicted_decision": {"$ref": "#/$defs/decision"},
+    "reference_decision": {"$ref": "#/$defs/decision"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "decision": {"enum": ["NORMAL_OPERATION", "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "CAUSE_PROBABLE", "CAUSE_CONFIRMED", "INSUFFICIENT_INFORMATION", "DATA_QUALITY_BLOCKER"]},
+    "c5": {"$ref": "#/$defs/component", "properties": {"score": {"maximum": 5}}},
+    "c10": {"$ref": "#/$defs/component", "properties": {"score": {"maximum": 10}}},
+    "c15": {"$ref": "#/$defs/component", "properties": {"score": {"maximum": 15}}},
+    "component": {
+      "type": "object", "additionalProperties": false,
+      "required": ["score", "evidence"],
+      "properties": {
+        "score": {"type": "number", "minimum": 0},
+        "evidence": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

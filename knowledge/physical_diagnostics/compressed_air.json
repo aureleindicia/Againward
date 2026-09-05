@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "family": "compressed_air",
+  "label": "Air comprimé",
+  "energy_chain": [
+    "électricité",
+    "compresseur, sécheur, stockage et réseau",
+    "débit d'air à une pression et une qualité données",
+    "actionnement, soufflage ou service pneumatique du procédé"
+  ],
+  "variables": {
+    "energy_input": ["puissance compresseur", "énergie", "puissance spécifique", "états charge/à vide"],
+    "demand": ["débit utile", "cycle des consommateurs", "nouveau poste", "air de purge ou régénération requis"],
+    "command": ["consigne pression", "séquencement", "ordre marche", "programme sécheur"],
+    "feedback": ["pression collecteur", "pression point d'usage", "débit", "état réel charge/à vide"],
+    "environment": ["température d'aspiration", "ventilation local", "conditions de séchage"],
+    "process_output": ["pression minimale au point d'usage", "qualité d'air", "cycle machine", "qualité produit"]
+  },
+  "degradation_mechanisms": [
+    {
+      "mechanism": "fuite ou demande résiduelle hors production",
+      "predictions": ["décroissance de pression ou cyclage quand les usages légitimes sont isolés", "débit non nul sans service utile"],
+      "discriminators": ["test de décroissance sécurisé", "débit et états du compresseur hors production", "inspection ultrasonique"]
+    },
+    {
+      "mechanism": "pression centrale ou pertes de charge excessives",
+      "predictions": ["écart collecteur-point d'usage ou marge au point d'usage", "puissance spécifique variant avec la consigne"],
+      "discriminators": ["pressions dynamiques simultanées", "débit", "paliers de consigne autorisés"]
+    },
+    {
+      "mechanism": "rendement ou séquencement compresseur dégradé",
+      "predictions": ["kW par débit accru à pression comparable", "temps à vide, cycles courts ou partage de charge anormal"],
+      "discriminators": ["puissance, débit, pression et états synchronisés", "comparaison à une référence propre"]
+    },
+    {
+      "mechanism": "purge ou régénération normale ou mal réglée",
+      "predictions": ["séquence périodique reliée à l'état du sécheur", "impact pression/compresseur cohérent avec le cycle"],
+      "discriminators": ["phase réelle du sécheur", "pression et état compresseur pendant un cycle"]
+    }
+  ],
+  "legitimate_service_changes": [
+    "nouveau poste pneumatique",
+    "cadence ou cycle de soufflage accru",
+    "qualité d'air ou séchage imposé",
+    "besoin temporaire de purge",
+    "pression minimale documentée au point d'usage"
+  ],
+  "diagnostic_paths": [
+    {
+      "observation_class": "puissance ou énergie active en hausse",
+      "mechanisms": ["nouvelle demande utile", "consigne plus élevée", "pertes de charge", "rendement spécifique dégradé"],
+      "predictions": ["la demande utile suit débit et cycles procédé", "le rendement se compare en kW par débit à pression comparable", "la pression demandée doit être distinguée de la pression réelle au point d'usage"],
+      "discriminating_measurements": ["puissance-débit-pression simultanés", "pression collecteur et point d'usage", "cycle du consommateur"],
+      "interpretation_limits": ["la puissance seule ne sépare pas débit et rendement", "un nouveau besoin légitime peut augmenter fortement l'énergie sans défaut"]
+    },
+    {
+      "observation_class": "cyclage ou pointe hors production",
+      "mechanisms": ["fuite", "usage légitime résiduel", "purge/régénération", "cycle court de régulation"],
+      "predictions": ["les événements produisent des signatures différentes de pression, débit et états", "une demande vaguement hors horaires ne prouve pas une fuite"],
+      "discriminating_measurements": ["une séquence synchronisée pression-états-débit", "test de décroissance sur volume connu", "phase du sécheur"],
+      "interpretation_limits": ["l'isolement du réseau doit être réel et sûr"]
+    }
+  ],
+  "field_tests": [
+    {
+      "test": "enregistrement puissance, débit, pression et états charge/à vide",
+      "effort": "faible si contrôleur et débitmètre existent, sinon technicien requis",
+      "expected_interpretation": "sépare demande, pression et rendement spécifique"
+    },
+    {
+      "test": "décroissance de pression sur période autorisée sans consommateur",
+      "effort": "modéré et planifié",
+      "expected_interpretation": "quantifie une perte globale seulement si volume, isolement et température sont maîtrisés"
+    }
+  ],
+  "safety": [
+    "ne jamais neutraliser purge, sécheur, protection ou soupape",
+    "toute isolation ou variation de consigne requiert un technicien air comprimé et l'accord procédé",
+    "arrêter si la pression point d'usage, la qualité d'air ou la production sort des limites"
+  ]
+}

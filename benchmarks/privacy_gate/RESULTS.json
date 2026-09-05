@@ -1,0 +1,38 @@
+{
+  "schema_version": "indicia-privacy-benchmark-v1",
+  "synthetic_only": true,
+  "python": "3.14.6",
+  "measurements": [
+    {
+      "rows": 10000,
+      "input_bytes": 325691,
+      "elapsed_seconds": 0.131,
+      "rows_per_second": 76152,
+      "max_rss_kib_process": 75300,
+      "status": "PASS",
+      "approved_for_analysis": true
+    },
+    {
+      "rows": 100000,
+      "input_bytes": 3256561,
+      "elapsed_seconds": 0.408,
+      "rows_per_second": 245353,
+      "max_rss_kib_process": 75300,
+      "status": "PASS",
+      "approved_for_analysis": true
+    },
+    {
+      "rows": 500000,
+      "input_bytes": 16282648,
+      "elapsed_seconds": 2.342,
+      "rows_per_second": 213514,
+      "max_rss_kib_process": 242972,
+      "status": "PASS",
+      "approved_for_analysis": true
+    }
+  ],
+  "assertions": {
+    "all_approved": true,
+    "largest_size_exercised": true
+  }
+}

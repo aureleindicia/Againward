@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "indicia-minimal-evidence-finding-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "finding_id",
+    "component",
+    "observed",
+    "inferred",
+    "supporting_evidence",
+    "contradicting_evidence",
+    "alternatives",
+    "identifiability",
+    "confidence",
+    "evidence_level",
+    "selected_asset_id",
+    "posterior_probability",
+    "claim_limit",
+    "next_information",
+    "forbidden_claims"
+  ],
+  "properties": {
+    "schema_version": {"const": "indicia-minimal-evidence-finding-v1"},
+    "finding_id": {"type": "string", "minLength": 1},
+    "component": {"type": "object"},
+    "observed": {"type": "array", "items": {"type": "string"}},
+    "inferred": {"type": "array", "items": {"type": "string"}},
+    "supporting_evidence": {"type": "array", "items": {"type": "string"}},
+    "contradicting_evidence": {"type": "array", "items": {"type": "string"}},
+    "alternatives": {"type": "array", "items": {"type": "string"}},
+    "identifiability": {
+      "enum": [
+        "identifiable",
+        "partially_identifiable",
+        "multiple_compatible_candidates",
+        "observationally_equivalent",
+        "insufficient_evidence",
+        "likely_absent_from_inventory"
+      ]
+    },
+    "confidence": {"enum": ["low", "moderate", "high"]},
+    "evidence_level": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "ordinal"],
+      "properties": {
+        "code": {
+          "enum": [
+            "DETECTABLE_CHANGE",
+            "REPRODUCIBLE_SIGNATURE",
+            "ANONYMOUS_COMPONENT",
+            "COMPATIBLE_ASSET_FAMILY",
+            "PROBABLE_ASSET",
+            "ROBUST_ATTRIBUTION"
+          ]
+        },
+        "ordinal": {"type": "integer", "minimum": 1, "maximum": 6}
+      }
+    },
+    "selected_asset_id": {"type": ["string", "null"]},
+    "posterior_probability": {"type": "null"},
+    "claim_limit": {"type": "string", "minLength": 1},
+    "next_information": {"type": ["object", "null"]},
+    "forbidden_claims": {
+      "type": "array",
+      "allOf": [
+        {"contains": {"const": "physical_mechanism"}},
+        {"contains": {"const": "failure_prognosis"}},
+        {"contains": {"const": "recoverable_saving"}}
+      ]
+    }
+  }
+}
+

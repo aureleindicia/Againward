@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "case_id": "case_opaque_id",
+  "entries": [
+    {
+      "oracle_id": "item_001",
+      "accepted_concepts": ["neutral_concept_key"],
+      "question_terms": ["specific term"],
+      "minimum_term_matches": 1,
+      "availability": "available",
+      "cost": 1,
+      "response": "Client response revealed only after a matching request.",
+      "responder_role": "client role",
+      "payload_files": ["payloads/payload_001.csv"]
+    }
+  ]
+}

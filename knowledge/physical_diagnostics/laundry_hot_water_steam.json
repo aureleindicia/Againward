@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "family": "laundry_hot_water_steam",
+  "label": "Blanchisserie, eau chaude et vapeur",
+  "energy_chain": [
+    "électricité, gaz ou vapeur",
+    "chauffage d'eau, échangeur, chaudière, séchoir et distribution",
+    "chaleur sensible, vapeur ou évaporation d'eau",
+    "lavage, sanitation et séchage conformes du textile ou du procédé"
+  ],
+  "variables": {
+    "energy_input": ["énergie par cycle", "débit vapeur", "puissance chauffage", "temps de marche"],
+    "demand": ["masse humide et sèche", "eau par cycle", "humidité entrante", "programme", "température requise"],
+    "command": ["programme", "consigne température", "ordre vapeur", "position demandée bypass ou vanne"],
+    "feedback": ["températures amont/aval", "débit réel", "pression vapeur", "position réelle", "fin de séchage"],
+    "environment": ["température eau d'alimentation", "température ambiante", "humidité ambiante"],
+    "process_output": ["température de lavage", "humidité résiduelle", "kg traités", "conformité sanitaire"]
+  },
+  "degradation_mechanisms": [
+    {
+      "mechanism": "récupération de chaleur dégradée ou bypassée",
+      "predictions": ["gain de température ou chaleur récupérée réduit à débits comparables", "appoint énergétique accru"],
+      "discriminators": ["quatre températures et débits synchronisés", "état réel pompe/bypass", "bilan thermique"]
+    },
+    {
+      "mechanism": "fuite ou perte de distribution eau chaude/vapeur",
+      "predictions": ["débit ou énergie hors service utile", "température, condensat ou perte de pression anormale"],
+      "discriminators": ["débit hors cycle", "inspection vapeur/condensat", "bilan entrée-sortie"]
+    },
+    {
+      "mechanism": "charge de séchage ou thermique accrue",
+      "predictions": ["masse d'eau à chauffer/évaporer ou programme accru", "énergie suivant cette grandeur plutôt que les seuls lots"],
+      "discriminators": ["masses humide/sèche", "eau et températures", "programme et durée"]
+    }
+  ],
+  "legitimate_service_changes": [
+    "plus de kilogrammes ou d'eau",
+    "textile plus humide ou mix différent",
+    "programme plus chaud",
+    "relavage documenté",
+    "cycle sanitaire ou nettoyage obligatoire"
+  ],
+  "diagnostic_paths": [
+    {
+      "observation_class": "énergie par lot ou kg en hausse",
+      "mechanisms": ["demande thermique réelle accrue", "récupération réduite", "perte de distribution", "autre charge électrique"],
+      "predictions": ["la demande suit masse d'eau, humidité et température", "la récupération se mesure par bilan thermique", "une note de maintenance seule ne quantifie pas le mécanisme"],
+      "discriminating_measurements": ["masse humide/sèche et durée", "températures-débits récupérateur", "débit vapeur/eau hors cycle"],
+      "interpretation_limits": ["le nombre de lots ne décrit pas la charge physique", "un bilan incomplet ne prouve pas la récupérabilité"]
+    },
+    {
+      "observation_class": "palier périodique après production",
+      "mechanisms": ["sanitation légitime", "maintien thermique", "charge laissée active", "cycle de nettoyage"],
+      "predictions": ["une opération légitime est reliée à un protocole et un résultat sanitaire", "une charge inutile ne rend pas de service documenté"],
+      "discriminating_measurements": ["fonction et obligation du cycle", "état réel des équipements", "température ou résultat sanitaire"] ,
+      "interpretation_limits": ["ne jamais réduire un cycle sanitaire sur le seul compteur"]
+    }
+  ],
+  "field_tests": [
+    {
+      "test": "bilan thermique sur cycles appariés avec masses, débits et quatre températures",
+      "effort": "modéré, sans modification de réglage",
+      "expected_interpretation": "sépare demande thermique et performance de récupération"
+    },
+    {
+      "test": "pesée humide/sèche et suivi du temps de séchage",
+      "effort": "faible à modéré avec production",
+      "expected_interpretation": "teste la charge d'évaporation réelle"
+    }
+  ],
+  "safety": [
+    "ne pas abaisser une température ou durée sanitaire sans responsable qualité",
+    "vapeur, eau chaude et surfaces chaudes exigent un technicien compétent et protections adaptées",
+    "arrêter en cas de pression, température, fuite, qualité ou humidité produit hors limites"
+  ]
+}

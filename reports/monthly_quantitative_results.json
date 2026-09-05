@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "source": "examples/sample_energy.csv",
+  "ground_truth_read": false,
+  "dataset": {
+    "rows": 12,
+    "coverage_start": "2026-01-01T00:00:00",
+    "coverage_end": "2027-01-01T00:00:00",
+    "frequency_minutes": 44640.0,
+    "intraday_analysis_allowed": false
+  },
+  "tests": {
+    "M01_zero_production_months": {
+      "months": [
+        "2026-01",
+        "2026-06",
+        "2026-08"
+      ],
+      "count": 3,
+      "observed_energy_kwh": 41100.0,
+      "associated_cost": 7192.5,
+      "recoverable_saving_kwh": null,
+      "missing_context": [
+        "heures reellement actives dans chaque mois",
+        "charge incompressible",
+        "arrets planifies et jours couverts"
+      ]
+    },
+    "M02_declared_power": {
+      "maximum_month": "2026-10",
+      "maximum_power_kw": 198.0,
+      "median_other_months_kw": 119.0,
+      "duration_available": false,
+      "timestamp_granularity_supports_startup_test": false
+    },
+    "M03_intensity": {
+      "months_with_positive_production": 9,
+      "median_kwh_per_unit": 5.596153846153846,
+      "mad_kwh_per_unit": 0.038628762541806694,
+      "october_kwh_per_unit": 5.817427385892116,
+      "october_delta_percent_vs_median": 3.9540288887938306,
+      "minimum_kwh_per_unit": 5.424657534246576,
+      "maximum_kwh_per_unit": 5.817427385892116,
+      "validated_baseline_available": false,
+      "reason": "neuf points actifs seulement; aucune validation temporelle robuste"
+    }
+  },
+  "forbidden_tests": [
+    "profil nocturne",
+    "demarrage d'equipement",
+    "recurrence journaliere",
+    "duree du pic de puissance",
+    "integration d'un exces infra-mensuel"
+  ]
+}

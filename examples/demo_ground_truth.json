@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "scenario": "factory_variable",
+  "seed": 42,
+  "start": "2026-01-05T00:00",
+  "end": "2026-05-05T00:00",
+  "days": 120,
+  "interval_minutes": 15,
+  "nominal_rows": 11520,
+  "written_rows": 11519,
+  "scenario_parameters": {
+    "production_mean": 26.0,
+    "production_sd": 5.0,
+    "noise_sd_kw": 1.6,
+    "temperature_coefficient": 0.7,
+    "fixed_load_kw": 22.0
+  },
+  "anomalies_enabled": true,
+  "anomalies": [
+    {
+      "anomaly_id": "A01",
+      "type": "night_anomaly",
+      "start": "2026-01-25T00:00",
+      "end": "2026-02-09T00:00",
+      "magnitude": 18.0,
+      "expected_energy_impact": 2160.0,
+      "description": "Charge additionnelle recurrente pendant les nuits de la fenetre."
+    },
+    {
+      "anomaly_id": "A02",
+      "type": "weekend_anomaly",
+      "start": "2026-02-19T00:00",
+      "end": "2026-03-06T00:00",
+      "magnitude": 22.0,
+      "expected_energy_impact": 880.0,
+      "description": "Charge additionnelle le week-end entre 08:00 et 18:00."
+    },
+    {
+      "anomaly_id": "A03",
+      "type": "progressive_drift",
+      "start": "2026-03-06T00:00",
+      "end": "2026-04-05T00:00",
+      "magnitude": "0->12 kW",
+      "expected_energy_impact": 4318.5,
+      "description": "Derive lineaire de la charge sur trente jours."
+    },
+    {
+      "anomaly_id": "A04",
+      "type": "point_spike",
+      "start": "2026-02-24T10:00",
+      "end": "2026-02-24T12:00",
+      "magnitude": 120.0,
+      "expected_energy_impact": 240.0,
+      "description": "Pic ponctuel de deux heures."
+    },
+    {
+      "anomaly_id": "A05",
+      "type": "efficiency_drop",
+      "start": "2026-03-16T00:00",
+      "end": "2026-03-31T00:00",
+      "magnitude": "+0.45 kW/unite_intervalle",
+      "expected_energy_impact": 2075.181178,
+      "description": "Production comparable mais coefficient energie-production degrade."
+    },
+    {
+      "anomaly_id": "A06",
+      "type": "permanent_baseline_shift",
+      "start": "2026-04-05T00:00",
+      "end": "2026-05-05T00:00",
+      "magnitude": 8.0,
+      "expected_energy_impact": 5760.0,
+      "description": "Changement permanent de charge fixe."
+    }
+  ],
+  "data_quality_issues": [
+    {
+      "anomaly_id": "DQ01",
+      "type": "missing_intervals",
+      "start": "2026-01-10T12:00",
+      "end": "2026-01-10T12:30",
+      "magnitude": 2,
+      "expected_energy_impact": null,
+      "description": "Deux intervalles consecutifs retires."
+    },
+    {
+      "anomaly_id": "DQ02",
+      "type": "identical_duplicate",
+      "start": "2026-01-15T09:00",
+      "end": "2026-01-15T09:15",
+      "magnitude": 1,
+      "expected_energy_impact": null,
+      "description": "Une ligne strictement identique dupliquee."
+    },
+    {
+      "anomaly_id": "DQ03",
+      "type": "missing_value",
+      "start": "2026-01-17T11:00",
+      "end": "2026-01-17T11:15",
+      "magnitude": 1,
+      "expected_energy_impact": null,
+      "description": "Valeur energy_kwh manquante."
+    },
+    {
+      "anomaly_id": "DQ04",
+      "type": "invalid_timestamp",
+      "start": "2026-01-18T11:00",
+      "end": "2026-01-18T11:15",
+      "magnitude": 1,
+      "expected_energy_impact": null,
+      "description": "Timestamp remplace (2026-01-18T11:00)."
+    },
+    {
+      "anomaly_id": "DQ05",
+      "type": "impossible_value",
+      "start": "2026-01-19T11:00",
+      "end": "2026-01-19T11:15",
+      "magnitude": -5.0,
+      "expected_energy_impact": null,
+      "description": "Energie negative impossible injectee."
+    }
+  ],
+  "investigation_access": "forbidden"
+}

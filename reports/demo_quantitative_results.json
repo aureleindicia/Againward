@@ -1,0 +1,553 @@
+{
+  "method": {
+    "ground_truth_read": false,
+    "price_per_kwh": 0.175,
+    "reference_period": [
+      "2026-01-05T00:00:00",
+      "2026-01-25T00:00:00"
+    ],
+    "selected_baseline": "production_temperature_activity_product_interaction",
+    "baseline_selection_reason": "Lowest validation RMSE among tested interpretable models, with production, temperature, activity and product mix controlled."
+  },
+  "dataset": {
+    "rows": 11515,
+    "start": "2026-01-05T00:00:00",
+    "end": "2026-05-04T23:45:00",
+    "coverage_start": "2026-01-05T00:00:00",
+    "coverage_end": "2026-05-05T00:00:00",
+    "timestamp_position": "start",
+    "site_timezone": null,
+    "coverage_bounds_method": "inferred_nominal_interval",
+    "measurement_kind": "energy_per_interval",
+    "source_units": {
+      "energy": "kwh",
+      "power": "kw"
+    },
+    "columns": {
+      "date": "timestamp",
+      "energy": "energy_kwh",
+      "production": "production",
+      "production_active": "production_active",
+      "temperature": "outside_temperature_c",
+      "shift": "shift",
+      "product_type": "product_type",
+      "power": "power_kw"
+    },
+    "frequency_minutes": 15.0,
+    "coverage_ratio": 0.9995659722222222,
+    "quality": {
+      "invalid_timestamps": 1,
+      "missing_measurements": 1,
+      "impossible_values": 1,
+      "identical_duplicates_removed": 1,
+      "conflicting_duplicates": 0,
+      "out_of_order_rows": 0,
+      "timezone_normalized_rows": 0,
+      "naive_timezone_localized_rows": 0,
+      "missing_values_by_column": {},
+      "invalid_values_by_column": {},
+      "detected_frequencies_minutes": [
+        15.0
+      ],
+      "frequency_changes": 0,
+      "irregular_intervals": 4,
+      "gaps": 4
+    }
+  },
+  "baseload": {
+    "samples": 6012,
+    "q10_kw": 20.883337299999997,
+    "q25_kw": 22.405410500000002,
+    "median_lowest_20_percent_kw": 20.883304,
+    "absolute_minimum_kw": 17.484452
+  },
+  "baseline_candidates": {
+    "production": {
+      "kind": "linear",
+      "target": "power_kw",
+      "predictors": [
+        "production"
+      ],
+      "coefficients": {
+        "intercept": 22.450618036625066,
+        "production": 2.0362934693911776
+      },
+      "calibration_rows": 1340,
+      "validation_rows": 575,
+      "calibration_start": "2026-01-05T00:00:00",
+      "calibration_end": "2026-01-18T23:45:00",
+      "validation_start": "2026-01-19T00:00:00",
+      "validation_end": "2026-01-24T23:45:00",
+      "calibration_metrics": {
+        "mae": 2.1032697648911673,
+        "rmse": 2.766849880898814,
+        "r_squared": 0.9898314208150908,
+        "mape": 5.122787877636441
+      },
+      "validation_metrics": {
+        "mae": 2.191572647151223,
+        "rmse": 2.8642764176868734,
+        "r_squared": 0.9890999328296811,
+        "mape": 4.87759114881569
+      }
+    },
+    "production_temperature": {
+      "kind": "linear",
+      "target": "power_kw",
+      "predictors": [
+        "production",
+        "outside_temperature_c"
+      ],
+      "coefficients": {
+        "intercept": 22.88761895800709,
+        "production": 2.035966238955885,
+        "outside_temperature_c": -0.03429597950145748
+      },
+      "calibration_rows": 1340,
+      "validation_rows": 575,
+      "calibration_start": "2026-01-05T00:00:00",
+      "calibration_end": "2026-01-18T23:45:00",
+      "validation_start": "2026-01-19T00:00:00",
+      "validation_end": "2026-01-24T23:45:00",
+      "calibration_metrics": {
+        "mae": 2.1032000225683167,
+        "rmse": 2.7661148961465525,
+        "r_squared": 0.9898368224511122,
+        "mape": 5.127787075427977
+      },
+      "validation_metrics": {
+        "mae": 2.1934721101714953,
+        "rmse": 2.8719015071965983,
+        "r_squared": 0.9890418206882444,
+        "mape": 4.866650352416071
+      }
+    },
+    "production_temperature_activity": {
+      "kind": "linear",
+      "target": "power_kw",
+      "predictors": [
+        "production",
+        "outside_temperature_c",
+        "production_active"
+      ],
+      "coefficients": {
+        "intercept": 22.292207772409412,
+        "production": 1.622391004338938,
+        "outside_temperature_c": -0.019551158731629603,
+        "production_active": 11.538426467682035
+      },
+      "calibration_rows": 1340,
+      "validation_rows": 575,
+      "calibration_start": "2026-01-05T00:00:00",
+      "calibration_end": "2026-01-18T23:45:00",
+      "validation_start": "2026-01-19T00:00:00",
+      "validation_end": "2026-01-24T23:45:00",
+      "calibration_metrics": {
+        "mae": 1.7895228931876392,
+        "rmse": 2.27941425068909,
+        "r_squared": 0.9930986254174153,
+        "mape": 4.539454401449802
+      },
+      "validation_metrics": {
+        "mae": 1.7806619648211035,
+        "rmse": 2.275827766778562,
+        "r_squared": 0.9931185794003082,
+        "mape": 4.109509509341613
+      }
+    },
+    "production_temperature_activity_product": {
+      "kind": "linear",
+      "target": "power_kw",
+      "predictors": [
+        "production",
+        "outside_temperature_c",
+        "production_active",
+        "product_type_b"
+      ],
+      "coefficients": {
+        "intercept": 20.9340983598464,
+        "production": 1.6165510805278331,
+        "outside_temperature_c": 0.010919810212593643,
+        "production_active": 11.957437973924959,
+        "product_type_b": 2.364851795073265
+      },
+      "calibration_rows": 1340,
+      "validation_rows": 575,
+      "calibration_start": "2026-01-05T00:00:00",
+      "calibration_end": "2026-01-18T23:45:00",
+      "validation_start": "2026-01-19T00:00:00",
+      "validation_end": "2026-01-24T23:45:00",
+      "calibration_metrics": {
+        "mae": 1.587171808855405,
+        "rmse": 1.982869485332032,
+        "r_squared": 0.9947775133244785,
+        "mape": 4.71621714658099
+      },
+      "validation_metrics": {
+        "mae": 1.501080027833231,
+        "rmse": 1.9090944931988467,
+        "r_squared": 0.9951576723804176,
+        "mape": 4.134496139949835
+      }
+    },
+    "production_temperature_activity_product_interaction": {
+      "kind": "linear",
+      "target": "power_kw",
+      "predictors": [
+        "production",
+        "outside_temperature_c",
+        "production_active",
+        "product_type_b",
+        "production_product_b"
+      ],
+      "coefficients": {
+        "intercept": 21.636942705351814,
+        "production": 1.5499972795505805,
+        "outside_temperature_c": 0.02434866092535975,
+        "production_active": 11.991681343881885,
+        "product_type_b": 0.23297631973966215,
+        "production_product_b": 0.1859608357679756
+      },
+      "calibration_rows": 1340,
+      "validation_rows": 575,
+      "calibration_start": "2026-01-05T00:00:00",
+      "calibration_end": "2026-01-18T23:45:00",
+      "validation_start": "2026-01-19T00:00:00",
+      "validation_end": "2026-01-24T23:45:00",
+      "calibration_metrics": {
+        "mae": 1.2670080755222395,
+        "rmse": 1.590732262703324,
+        "r_squared": 0.9966388858627254,
+        "mape": 3.8674563154432513
+      },
+      "validation_metrics": {
+        "mae": 1.2373004271384556,
+        "rmse": 1.5581497000146611,
+        "r_squared": 0.9967743467471146,
+        "mape": 3.4271464287650995
+      }
+    }
+  },
+  "hypotheses": {
+    "H01": {
+      "signal": "night_load_window",
+      "period": [
+        "2026-01-25",
+        "2026-02-09"
+      ],
+      "window_duration_hours": 360,
+      "reference": {
+        "rows": 640,
+        "days": 20,
+        "evaluated_hours": 160.0,
+        "energy_kwh": 3520.310641,
+        "mean_power_kw": 22.0019414765625,
+        "mean_residual_kw": -0.03331403547059265,
+        "mean_production_per_interval": 0.0,
+        "total_production": 0.0,
+        "production_zero_share": 1.0,
+        "mean_temperature_c": 13.0097953125,
+        "product_b_share": 0.35,
+        "mean_production_product_b": 0.0
+      },
+      "candidate": {
+        "rows": 480,
+        "days": 15,
+        "evaluated_hours": 120.0,
+        "energy_kwh": 4797.732517,
+        "mean_power_kw": 39.9811042875,
+        "mean_residual_kw": 17.906712385871963,
+        "mean_production_per_interval": 0.0,
+        "total_production": 0.0,
+        "production_zero_share": 1.0,
+        "mean_temperature_c": 14.7766,
+        "product_b_share": 0.3333333333333333,
+        "mean_production_product_b": 0.0
+      },
+      "post_window": {
+        "rows": 320,
+        "days": 10,
+        "evaluated_hours": 80.0,
+        "energy_kwh": 1761.437826,
+        "mean_power_kw": 22.017972834375,
+        "mean_residual_kw": -0.07921707482363734,
+        "mean_production_per_interval": 0.0,
+        "total_production": 0.0,
+        "production_zero_share": 1.0,
+        "mean_temperature_c": 16.031859375,
+        "product_b_share": 0.3,
+        "mean_production_product_b": 0.0
+      },
+      "recurrence": {
+        "days_tested": 15,
+        "days_detected": 15,
+        "recurrence_ratio": 1.0
+      },
+      "temperature_explained_delta_kw": 0.043019328257273705,
+      "excess_energy_kwh": 2152.8031705611065,
+      "cost": 376.7405548481936
+    },
+    "H02": {
+      "signal": "weekend_day_load_window",
+      "period": [
+        "2026-02-19",
+        "2026-03-06"
+      ],
+      "window_duration_hours": 360,
+      "reference": {
+        "rows": 476,
+        "days": 12,
+        "evaluated_hours": 119.0,
+        "energy_kwh": 2623.143949,
+        "mean_power_kw": 22.043226334033612,
+        "mean_residual_kw": -0.007169852141216878,
+        "mean_production_per_interval": 0.0,
+        "total_production": 0.0,
+        "production_zero_share": 1.0,
+        "mean_temperature_c": 13.784394957983194,
+        "product_b_share": 0.33403361344537813,
+        "mean_production_product_b": 0.0
+      },
+      "candidate": {
+        "rows": 160,
+        "days": 4,
+        "evaluated_hours": 40.0,
+        "energy_kwh": 1763.227156,
+        "mean_power_kw": 44.0806788375,
+        "mean_residual_kw": 21.926139545628786,
+        "mean_production_per_interval": 0.0,
+        "total_production": 0.0,
+        "production_zero_share": 1.0,
+        "mean_temperature_c": 16.47353125,
+        "product_b_share": 0.5,
+        "mean_production_product_b": 0.0
+      },
+      "post_window": {
+        "rows": 160,
+        "days": 4,
+        "evaluated_hours": 40.0,
+        "energy_kwh": 972.132323,
+        "mean_power_kw": 24.30330814375,
+        "mean_residual_kw": 2.178420908005576,
+        "mean_production_per_interval": 0.0,
+        "total_production": 0.0,
+        "production_zero_share": 1.0,
+        "mean_temperature_c": 17.64780625,
+        "product_b_share": 0.25,
+        "mean_production_product_b": 0.0
+      },
+      "recurrence": {
+        "days_tested": 4,
+        "days_detected": 4,
+        "recurrence_ratio": 1.0
+      },
+      "temperature_explained_delta_kw": 0.06547686775639643,
+      "excess_energy_kwh": 877.3323759108002,
+      "cost": 153.53316578439004
+    },
+    "H03": {
+      "signal": "two_hour_point_spike",
+      "period": [
+        "2026-02-24T10:00",
+        "2026-02-24T12:00"
+      ],
+      "window_duration_hours": 2,
+      "candidate": {
+        "rows": 8,
+        "days": 1,
+        "evaluated_hours": 2.0,
+        "energy_kwh": 393.41914099999997,
+        "mean_power_kw": 196.70957075,
+        "mean_residual_kw": 119.60538548810996,
+        "mean_production_per_interval": 27.807644125,
+        "total_production": 222.461153,
+        "production_zero_share": 0.0,
+        "mean_temperature_c": 15.3515,
+        "product_b_share": 0.0,
+        "mean_production_product_b": 0.0
+      },
+      "comparable_tuesdays": {
+        "rows": 128,
+        "days": 16,
+        "evaluated_hours": 32.0,
+        "energy_kwh": 2660.620472,
+        "mean_power_kw": 83.14438965625,
+        "mean_residual_kw": 4.621098734887875,
+        "mean_production_per_interval": 27.5979679453125,
+        "total_production": 3532.539897,
+        "production_zero_share": 0.0,
+        "mean_temperature_c": 15.181359375,
+        "product_b_share": 0.3125,
+        "mean_production_product_b": 9.0096431171875
+      },
+      "events_over_80_kw_residual": [
+        {
+          "event_id": "E0001",
+          "start": "2026-02-24T10:00:00",
+          "end": "2026-02-24T11:45:00",
+          "points": 8,
+          "peak_residual_kw": 122.30472999243125,
+          "excess_energy_kwh": 239.21077097621992
+        }
+      ],
+      "excess_energy_kwh": 239.21077097621992,
+      "cost": 41.861884920838484
+    },
+    "H04": {
+      "signal": "active_efficiency_drop",
+      "period": [
+        "2026-03-16",
+        "2026-03-31"
+      ],
+      "window_duration_hours": 360,
+      "prior": {
+        "rows": 640,
+        "days": 10,
+        "evaluated_hours": 160.0,
+        "energy_kwh": 12405.714706,
+        "mean_power_kw": 77.5357169859375,
+        "mean_residual_kw": 1.016637512062272,
+        "mean_production_per_interval": 26.0750120859375,
+        "total_production": 16688.007735,
+        "production_zero_share": 0.0,
+        "mean_temperature_c": 17.9181234375,
+        "product_b_share": 0.4,
+        "mean_production_product_b": 10.4580342375
+      },
+      "candidate": {
+        "rows": 704,
+        "days": 11,
+        "evaluated_hours": 176.0,
+        "energy_kwh": 16747.426889,
+        "mean_power_kw": 95.15583449715909,
+        "mean_residual_kw": 18.614227667560026,
+        "mean_production_per_interval": 26.20178255965909,
+        "total_production": 18446.054922,
+        "production_zero_share": 0.0,
+        "mean_temperature_c": 18.90491903409091,
+        "product_b_share": 0.36363636363636365,
+        "mean_production_product_b": 9.438885134943181
+      },
+      "modelled_context_delta_kw": 0.022527355723831313,
+      "prior_active_minus_inactive_residual_kw": 0.1086867242240459,
+      "candidate_active_minus_inactive_residual_kw": 12.175270967369194,
+      "days_tested": 11,
+      "days_detected": 11,
+      "excess_after_fixed_drift_removal_kwh": 2123.718826793546,
+      "cost": 371.6507946888706
+    },
+    "H05": {
+      "signal": "progressive_fixed_load_drift",
+      "period": [
+        "2026-03-06",
+        "2026-04-05"
+      ],
+      "window_duration_hours": 720,
+      "candidate": {
+        "rows": 2880,
+        "days": 30,
+        "evaluated_hours": 720.0,
+        "energy_kwh": 40610.599155,
+        "mean_power_kw": 56.40360992777778,
+        "mean_residual_kw": 8.894896982475595,
+        "mean_production_per_interval": 12.18021863611111,
+        "total_production": 35079.029672,
+        "production_zero_share": 0.5333333333333333,
+        "mean_temperature_c": 18.789532291666667,
+        "product_b_share": 0.3333333333333333,
+        "mean_production_product_b": 4.631017072222222
+      },
+      "inactive_residual_start_kw": -0.22134254395597897,
+      "inactive_residual_end_kw": 12.508513068981546,
+      "inactive_trend": {
+        "slope_per_day": 0.4141503431462498,
+        "r_squared": 0.9922699929238414
+      },
+      "active_trend": {
+        "slope_per_day": 0.7457718326523324,
+        "r_squared": 0.3711489694480089
+      },
+      "temperature_trend": {
+        "slope_per_day": 0.06045910038932145,
+        "r_squared": 0.9847200038821837
+      },
+      "baseline_temperature_coefficient_kw_per_c": 0.02434866092535975,
+      "temperature_implied_residual_slope_kw_per_day": 0.0014720981352318737,
+      "excess_energy_kwh": 4232.2716136391,
+      "cost": 740.6475323868425
+    },
+    "H06": {
+      "signal": "persistent_fixed_load_level",
+      "period": [
+        "2026-04-05",
+        "2026-05-05"
+      ],
+      "window_duration_hours": 720,
+      "reference_inactive_residual_kw": -0.0004452248336572975,
+      "post_inactive_residual_mean_kw": 8.30372684952236,
+      "post_inactive_residual_sd_kw": 0.22562894276227793,
+      "days_tested": 30,
+      "days_over_reference_plus_5kw": 30,
+      "reference": {
+        "rows": 956,
+        "days": 20,
+        "evaluated_hours": 239.0,
+        "energy_kwh": 5267.308709,
+        "mean_power_kw": 22.03894855334728,
+        "mean_residual_kw": -0.0004452248336572975,
+        "mean_production_per_interval": 0.0,
+        "total_production": 0.0,
+        "production_zero_share": 1.0,
+        "mean_temperature_c": 13.015610878661088,
+        "product_b_share": 0.36715481171548114,
+        "mean_production_product_b": 0.0
+      },
+      "candidate": {
+        "rows": 2880,
+        "days": 30,
+        "evaluated_hours": 720.0,
+        "energy_kwh": 40055.122338,
+        "mean_power_kw": 55.632114360069444,
+        "mean_residual_kw": 8.318782591029207,
+        "mean_production_per_interval": 12.17159174826389,
+        "total_production": 35054.184235,
+        "production_zero_share": 0.5333333333333333,
+        "mean_temperature_c": 19.88748263888889,
+        "product_b_share": 0.3333333333333333,
+        "mean_production_product_b": 3.508505746527778
+      },
+      "candidate_inactive": {
+        "rows": 1536,
+        "days": 30,
+        "evaluated_hours": 384.0,
+        "energy_kwh": 11725.424293,
+        "mean_power_kw": 30.534959123697917,
+        "mean_residual_kw": 8.325769986840607,
+        "mean_production_per_interval": 0.0,
+        "total_production": 0.0,
+        "production_zero_share": 1.0,
+        "mean_temperature_c": 19.914044270833333,
+        "product_b_share": 0.375,
+        "mean_production_product_b": 0.0
+      },
+      "temperature_explained_delta_kw": 0.16796761558218126,
+      "excess_energy_kwh": 5979.003893536332,
+      "cost": 1046.325681368858
+    }
+  },
+  "double_counting": {
+    "automatic_spike_and_peak_signal_same_event": {
+      "naive_total_kwh": 478.42154195243984,
+      "deduplicated_total_kwh": 239.21077097621992,
+      "double_counted_kwh": 239.21077097621992,
+      "overlapping_points": 8
+    },
+    "confirmed_temporal_overlap_audit": {
+      "naive_total_kwh": 15604.340651417104,
+      "deduplicated_total_kwh": 14485.247658248649,
+      "double_counted_kwh": 1119.092993168455,
+      "overlapping_points": 704
+    },
+    "note": "H04 retranche deja le residu inactif journalier de H05. Aucun total portefeuille n'est publie sans allocation causale."
+  }
+}

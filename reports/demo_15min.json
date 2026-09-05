@@ -1,0 +1,184 @@
+{
+  "source": "examples/demo_15min.csv",
+  "start": "2026-01-05T00:00:00",
+  "end": "2026-05-05T00:00:00",
+  "input_rows": 11519,
+  "valid_rows": 11515,
+  "discarded_rows": 4,
+  "total_energy_kwh": 153411.408084,
+  "total_cost": 26846.9964147,
+  "total_production": 143191.641732,
+  "energy_intensity": 1.0713712492460106,
+  "off_production_kwh": 41708.09072,
+  "off_production_share": 0.27187085524410837,
+  "peak_power_kw": 215.182047,
+  "average_power_kw": 53.290979780981324,
+  "anomaly_count": 9,
+  "monthly": [
+    {
+      "month": "2026-01",
+      "energy_kwh": 32385.470155999978,
+      "cost": 5667.457277299995,
+      "production": 33001.21018699997,
+      "intensity": 0.9813418954180491
+    },
+    {
+      "month": "2026-02",
+      "energy_kwh": 34021.73186000003,
+      "cost": 5953.8030754999945,
+      "production": 33277.16472200004,
+      "intensity": 1.0223747168432216
+    },
+    {
+      "month": "2026-03",
+      "energy_kwh": 41102.41665599994,
+      "cost": 7192.922914799998,
+      "production": 36805.64582299999,
+      "intensity": 1.1167421665051964
+    },
+    {
+      "month": "2026-04",
+      "energy_kwh": 41316.93134300011,
+      "cost": 7230.462985025014,
+      "production": 36846.21405000006,
+      "intensity": 1.121334509074211
+    },
+    {
+      "month": "2026-05",
+      "energy_kwh": 4584.858068999999,
+      "cost": 802.3501620749995,
+      "production": 3261.4069499999982,
+      "intensity": 1.4057914695374036
+    }
+  ],
+  "findings": [
+    {
+      "level": "eleve",
+      "title": "Consommation importante hors production",
+      "detail": "27.2% de l'energie est consommee sur des lignes ou la production renseignee est <= 0. Ce volume est une consommation observee, pas une economie recuperable.",
+      "status": "candidate_signal",
+      "basis": [
+        "energie_hors_production_kwh=41708.1",
+        "part_sur_couverture_production=0.271871"
+      ],
+      "limitations": [
+        "La charge incompressible n'est pas encore estimee.",
+        "La cause physique et la part evitable exigent une investigation."
+      ],
+      "estimated_saving_kwh": null,
+      "estimated_saving_cost": null
+    },
+    {
+      "level": "moyen",
+      "title": "Pics de consommation atypiques",
+      "detail": "9 point(s) depassent le seuil robuste mediane + 3 x ecart absolu median. Ce sont des candidats a regrouper et comparer a des periodes equivalentes.",
+      "status": "candidate_signal",
+      "basis": [
+        "points_candidats=9"
+      ],
+      "limitations": [
+        "Le seuil ne controle pas encore la production, l'heure ou la temperature."
+      ],
+      "estimated_saving_kwh": null,
+      "estimated_saving_cost": null
+    },
+    {
+      "level": "moyen",
+      "title": "Intensite energetique variable",
+      "detail": "L'intensite mensuelle la plus haute depasse d'au moins 25 % la plus basse. Comparer le mix produit, les cadences, les arrets et les conditions meteo.",
+      "status": "candidate_signal",
+      "basis": [
+        "intensite_min=0.981342",
+        "intensite_max=1.40579"
+      ],
+      "limitations": [
+        "Un ratio kWh/unite se degrade mecaniquement a faible production."
+      ],
+      "estimated_saving_kwh": null,
+      "estimated_saving_cost": null
+    },
+    {
+      "level": "moyen",
+      "title": "Pointe de puissance notable",
+      "detail": "La pointe (215.2 kW) atteint au moins 150 % de la puissance moyenne mesuree. Examiner sa duree, la production et les demarrages avant toute interpretation.",
+      "status": "candidate_signal",
+      "basis": [
+        "pointe_kw=215.182",
+        "moyenne_kw=53.291"
+      ],
+      "limitations": [
+        "Une pointe peut etre normale et n'implique pas automatiquement un surcout."
+      ],
+      "estimated_saving_kwh": null,
+      "estimated_saving_cost": null
+    }
+  ],
+  "warnings": [
+    "1 doublon(s) strictement identique(s) supprime(s).",
+    "4 intervalle(s) different de la frequence nominale.",
+    "4 trou(s) temporel(s) probable(s) detecte(s).",
+    "4 ligne(s) ecartee(s) de l'analyse (vides, invalides, incompletes, references ou dedupliquees)."
+  ],
+  "metadata": {
+    "energy_mode": "interval",
+    "measurement_kind": "energy_per_interval",
+    "timestamp_position": "start",
+    "site_timezone": null,
+    "coverage_bounds_available": true,
+    "coverage_bounds_method": "inferred_nominal_interval",
+    "columns": {
+      "date": "timestamp",
+      "energy": "energy_kwh",
+      "production": "production",
+      "production_active": "production_active",
+      "temperature": "outside_temperature_c",
+      "shift": "shift",
+      "product_type": "product_type",
+      "power": "power_kw"
+    },
+    "source_units": {
+      "energy": "kwh",
+      "power": "kw"
+    },
+    "tariff_coverage": 11515,
+    "tariff_coverage_ratio": 1.0,
+    "covered_cost": 26846.9964147,
+    "production_coverage": 11515,
+    "production_coverage_ratio": 1.0,
+    "power_average_method": "sample_mean",
+    "capabilities": {
+      "intraday_analysis": true,
+      "night_analysis": true,
+      "startup_analysis": true
+    },
+    "data_quality": {
+      "blank_rows": 0,
+      "invalid_timestamp_rows": 1,
+      "missing_measurement_rows": 1,
+      "impossible_value_rows": 1,
+      "identical_duplicates_removed": 1,
+      "conflicting_duplicates": 0,
+      "out_of_order_rows": 0,
+      "timezone_normalized_rows": 0,
+      "naive_timezone_localized_rows": 0,
+      "missing_values_by_column": {},
+      "invalid_values_by_column": {},
+      "inferred_frequency_minutes": 15.0,
+      "detected_frequencies_minutes": [
+        15.0
+      ],
+      "frequency_change_count": 0,
+      "irregular_interval_count": 4,
+      "gap_count": 4,
+      "coverage_ratio": 0.9995659722222222,
+      "processing_log": [
+        "1 doublon(s) strictement identique(s) supprime(s).",
+        "Frequence nominale detectee: 15 minute(s).",
+        "Les timestamps sont traites par defaut comme debuts d'intervalles; utiliser --timestamp-position end si la source suit l'autre convention.",
+        "1 ligne(s) avec valeur impossible ecartee(s).",
+        "1 ligne(s) avec timestamp invalide ecartee(s).",
+        "1 ligne(s) sans mesure energetique ecartee(s)."
+      ]
+    }
+  }
+}

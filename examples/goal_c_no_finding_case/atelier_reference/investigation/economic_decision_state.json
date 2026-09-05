@@ -1,0 +1,55 @@
+{
+  "schema_version": 5,
+  "created_at_utc": "2026-08-30T13:56:43.491045+00:00",
+  "status": "economic_reasoning_recorded",
+  "technical_finding_refs": [],
+  "economic_inputs": [],
+  "scenario_assumptions": [],
+  "operational_constraints": [],
+  "candidate_actions": [],
+  "relationships": [],
+  "combined_effects": {},
+  "scenario_calculations": {},
+  "decisions": [
+    {
+      "decision_id": "DEC-NO-FINDING-01",
+      "decision": "DO_NOTHING",
+      "selected_action_ids": [],
+      "considered_action_ids": [],
+      "reason": "Aucune anomalie significative établie.",
+      "priority_reasoning": "Aucune dépense corrective justifiée.",
+      "technical_confidence": "MEDIUM",
+      "economic_importance": "LOW"
+    }
+  ],
+  "economic_requests": [],
+  "goal_b_evidence": [],
+  "recommendation_provenance": {
+    "schema_version": 1,
+    "decision_id": "DEC-NO-FINDING-01",
+    "selected_action_chains": [],
+    "economic_sources": [],
+    "chain_is_reference_validated": true
+  },
+  "unresolved_blockers": [],
+  "provenance_context": {
+    "canonical_case": "derived/canonical_case.json",
+    "dataset_provenance": "evidence/dataset_provenance.json",
+    "technical_findings": "investigation/structured_findings.json",
+    "goal_b_evidence": "investigation/economic_decision_state.json#goal_b_evidence"
+  },
+  "history": [
+    {
+      "at_utc": "2026-08-30T13:56:43.491058+00:00",
+      "action": "economic_state_initialized"
+    },
+    {
+      "at_utc": "2026-08-30T13:56:43.492023+00:00",
+      "action": "economic_packet_persisted",
+      "action_ids": [],
+      "decision": "DO_NOTHING"
+    }
+  ],
+  "ground_truth_used": false,
+  "deterministic_recommendation_engine": false
+}

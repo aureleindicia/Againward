@@ -1,0 +1,267 @@
+{
+  "schema_version": 1,
+  "scope": {
+    "country": "France",
+    "retrieved_at": "2026-08-28",
+    "purpose": "veille publique pré-scoring sans contact ni envoi"
+  },
+  "prospects": [
+    {
+      "prospect_id": "FR-BSA-001",
+      "entity_key": "blanchisseriesteannebsa",
+      "name": "Blanchisserie Sainte Anne (BSA)",
+      "sector": "blanchisserie industrielle professionnelle",
+      "site_url": "https://www.bsam.fr/notre-blanchisserie/",
+      "discovered_at": "2026-08-28",
+      "prequalification_status": "CANDIDATE",
+      "facts": [
+        {"field": "employee_count", "value": "environ 20 salariés", "source_id": "BSA-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "production_site", "value": "site industriel d'environ 2 000 m² à Aubagne, zone industrielle de Saint-Mitre", "source_id": "BSA-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "activity", "value": "location-entretien industriel de textiles et vêtements professionnels", "source_id": "BSA-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "energy_related_public_statement", "value": "l'entreprise cite la diminution des consommations d'eau et d'énergie parmi ses engagements", "source_id": "BSA-1", "observed_at": "2026-08-28", "confidence": "high"}
+      ],
+      "inferences": [
+        {"statement": "Le procédé de blanchisserie industrielle est un candidat plausible à une investigation énergétique temporelle, sans preuve publique de facture ou de compteur disponible.", "basis_source_ids": ["BSA-1"], "confidence": "medium"}
+      ],
+      "sources": [
+        {"source_id": "BSA-1", "title": "Notre blanchisserie — BSA", "url": "https://www.bsam.fr/notre-blanchisserie/", "retrieved_at": "2026-08-28", "source_type": "company_website", "confidence": "high"}
+      ],
+      "missing_information": ["horaires et équipes", "énergies utilisées", "données de compteur disponibles", "fonction exploitation ou maintenance publique"],
+      "negative_signals": [],
+      "related_entities": [],
+      "public_contact": {"decision_maker_or_role": null, "professional_email": null, "collection_note": "non collecté pendant la phase pré-scoring"}
+    },
+    {
+      "prospect_id": "FR-AGRONOVAE-002",
+      "entity_key": "agronovaeindustrie",
+      "name": "Agro'Novae Industrie / Comtes de Provence", 
+      "sector": "transformation et conservation de fruits",
+      "site_url": "https://www.comtes-de-provence.fr/",
+      "discovered_at": "2026-08-28",
+      "prequalification_status": "CANDIDATE",
+      "facts": [
+        {"field": "employee_count", "value": "20 à 49 salariés en 2023", "source_id": "AGN-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "registered_activity", "value": "transformation et conservation de fruits", "source_id": "AGN-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "site_address", "value": "11 espace Saint-Pierre, 04310 Peyruis", "source_id": "AGN-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "production_scale_reported", "value": "document d'entreprise de 2021 : 2 000 tonnes/an de confiture, 40 salariés et 11,5 M€ de chiffre d'affaires", "source_id": "AGN-2", "observed_at": "2026-08-28", "confidence": "medium"},
+        {"field": "manufacturing_offer", "value": "développement et fabrication de produits finis et semi-finis à base de fruits", "source_id": "AGN-3", "observed_at": "2026-08-28", "confidence": "high"}
+      ],
+      "inferences": [
+        {"statement": "La transformation de fruits et la production déclarée de confitures suggèrent un procédé thermique potentiellement significatif ; l'équipement exact et la facture restent inconnus.", "basis_source_ids": ["AGN-1", "AGN-2", "AGN-3"], "confidence": "medium"}
+      ],
+      "sources": [
+        {"source_id": "AGN-1", "title": "Annuaire des Entreprises — Agro'Novae Industrie", "url": "https://annuaire-entreprises.data.gouv.fr/entreprise/338635063", "retrieved_at": "2026-08-28", "source_type": "official_public_registry", "confidence": "high"},
+        {"source_id": "AGN-2", "title": "Notre manufacture familiale depuis 1986 — Agro'Novae", "url": "https://www.comtes-de-provence.fr/wp-content/uploads/2021/12/DP-Agronovae.pdf", "retrieved_at": "2026-08-28", "source_type": "company_document", "confidence": "medium"},
+        {"source_id": "AGN-3", "title": "Agro'Novae Industrie — fiche de présentation", "url": "https://www.comtes-de-provence.fr/wp-content/uploads/2024/03/Les-Comtes-de-Provence-Fiche-presentation-Industrie-2023.pdf", "retrieved_at": "2026-08-28", "source_type": "company_document", "confidence": "high"}
+      ],
+      "missing_information": ["horaires de production", "type de cuisson et auxiliaires", "réfrigération", "courbes de charge", "fonction production ou maintenance publique"],
+      "negative_signals": [],
+      "related_entities": [{"name": "Comtes de Provence", "relationship": "marque citée dans le document de présentation", "source_id": "AGN-2"}],
+      "public_contact": {"decision_maker_or_role": null, "professional_email": null, "collection_note": "non collecté pendant la phase pré-scoring"}
+    },
+    {
+      "prospect_id": "FR-BISCPROV-003",
+      "entity_key": "biscuiteriedeprovence",
+      "name": "Biscuiterie de Provence", 
+      "sector": "biscuiterie, chocolaterie et confiserie",
+      "site_url": "https://www.biscuiterie-de-provence.com/fr/content/4-nous-decouvrir",
+      "discovered_at": "2026-08-28",
+      "prequalification_status": "UNCERTAIN",
+      "facts": [
+        {"field": "employee_count", "value": "20 à 49 salariés, donnée 2022", "source_id": "BPR-1", "observed_at": "2026-08-28", "confidence": "medium"},
+        {"field": "registered_activity", "value": "fabrication de cacao, chocolat et produits de confiserie ; production de biscuits et confitures également déclarée", "source_id": "BPR-1", "observed_at": "2026-08-28", "confidence": "medium"},
+        {"field": "site_address", "value": "ZA Les Grands Prés, 26110 Saint-Maurice-sur-Eygues", "source_id": "BPR-1", "observed_at": "2026-08-28", "confidence": "medium"},
+        {"field": "company_history", "value": "savoir-faire autour des amandes transmis depuis six générations", "source_id": "BPR-2", "observed_at": "2026-08-28", "confidence": "high"}
+      ],
+      "inferences": [
+        {"statement": "Une activité manufacturière alimentaire de cette taille peut justifier une investigation, mais aucun four, horaire, volume ou signal de consommation n'est documenté publiquement dans ce lot.", "basis_source_ids": ["BPR-1", "BPR-2"], "confidence": "low"}
+      ],
+      "sources": [
+        {"source_id": "BPR-1", "title": "Biscuiterie de Provence — fiche entreprise", "url": "https://www.pappers.fr/entreprise/biscuiterie-de-provence-382381366", "retrieved_at": "2026-08-28", "source_type": "public_registry_republisher", "confidence": "medium"},
+        {"source_id": "BPR-2", "title": "Nous découvrir — Biscuiterie de Provence", "url": "https://www.biscuiterie-de-provence.com/fr/content/4-nous-decouvrir", "retrieved_at": "2026-08-28", "source_type": "company_website", "confidence": "high"}
+      ],
+      "missing_information": ["procédés et équipements", "surface ou volume de production", "horaires", "énergie disponible", "données de compteur"],
+      "negative_signals": [{"kind": "public_evidence_gap", "detail": "Le lot public ne permet pas d'établir la présence d'un procédé énergétique précis.", "source_id": "BPR-1"}],
+      "related_entities": [],
+      "public_contact": {"decision_maker_or_role": null, "professional_email": null, "collection_note": "non collecté pendant la phase pré-scoring"}
+    },
+    {
+      "prospect_id": "FR-TAGLAB-004",
+      "entity_key": "taglab",
+      "name": "Taglab", 
+      "sector": "fabrication de glaces premium",
+      "site_url": "https://www.glaces-moustache.fr/histoire/",
+      "discovered_at": "2026-08-28",
+      "prequalification_status": "CANDIDATE",
+      "facts": [
+        {"field": "activity", "value": "Taglab conçoit et fabrique à Saint-Malo des glaces premium vendues sous l'enseigne Glaces Moustache", "source_id": "TAG-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "employee_count", "value": "une trentaine d'employés, donnée publiée en 2023", "source_id": "TAG-1", "observed_at": "2026-08-28", "confidence": "medium"},
+        {"field": "production_site", "value": "nouvel atelier de 1 200 m² annoncé pour augmenter la capacité et les conditions de production", "source_id": "TAG-1", "observed_at": "2026-08-28", "confidence": "medium"},
+        {"field": "recent_change", "value": "fabrique de 1 500 m² récemment agrandie de 250 m² selon une publication de 2023", "source_id": "TAG-2", "observed_at": "2026-08-28", "confidence": "medium"}
+      ],
+      "inferences": [
+        {"statement": "La fabrication de glaces et l'agrandissement d'atelier rendent plausible un enjeu de froid et de production, mais aucun niveau de consommation, équipement ou jeu de données n'est public.", "basis_source_ids": ["TAG-1", "TAG-2", "TAG-3"], "confidence": "medium"}
+      ],
+      "sources": [
+        {"source_id": "TAG-1", "title": "Glaces Moustache accueille à son capital UNEXO", "url": "https://www.unexo.fr/capital-investissement/glaces-moustache-accueille-a-son-capital-unexo/", "retrieved_at": "2026-08-28", "source_type": "investor_announcement", "confidence": "high"},
+        {"source_id": "TAG-2", "title": "Le fabricant de glaces malouin Taglab ouvre son capital", "url": "https://www.lejournaldesentreprises.com/article/le-fabricant-de-glaces-malouin-taglab-ouvre-son-capital-2069643", "retrieved_at": "2026-08-28", "source_type": "business_press", "confidence": "medium"},
+        {"source_id": "TAG-3", "title": "Histoire — Glaces Moustache", "url": "https://www.glaces-moustache.fr/histoire/", "retrieved_at": "2026-08-28", "source_type": "company_website", "confidence": "high"}
+      ],
+      "missing_information": ["profil de froid et de stockage", "saisonnalité", "horaires de fabrication", "données de compteur", "fonction de site accessible"],
+      "negative_signals": [],
+      "related_entities": [{"name": "Glaces Moustache", "relationship": "enseigne sous laquelle les glaces Taglab sont vendues", "source_id": "TAG-1"}],
+      "public_contact": {"decision_maker_or_role": null, "professional_email": null, "collection_note": "non collecté pendant la phase pré-scoring"}
+    },
+    {
+      "prospect_id": "FR-MECAFORGING-005",
+      "entity_key": "mecaforging",
+      "name": "Meca Forging", 
+      "sector": "frappe à froid et fabrication de pièces métalliques",
+      "site_url": "https://www.meca-forging.fr/fr/la-societe",
+      "discovered_at": "2026-08-28",
+      "prequalification_status": "UNCERTAIN",
+      "facts": [
+        {"field": "employee_count", "value": "28 employés", "source_id": "MFG-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "production_equipment", "value": "trois presses de frappe de 220 tonnes, deux machines de contrôle par vision et deux machines de roulage robotisées", "source_id": "MFG-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "production_scale", "value": "capacité installée de 40 millions de pièces par an", "source_id": "MFG-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "recent_change", "value": "travaux d'extension annoncés en 2024 pour un gain de 1 850 m²", "source_id": "MFG-1", "observed_at": "2026-08-28", "confidence": "high"}
+      ],
+      "inferences": [
+        {"statement": "Un cycle de production en série équipé de presses et machines robotisées peut être analysable temporellement, mais aucune donnée publique ne prouve le périmètre compteur ou l'autonomie de décision du site.", "basis_source_ids": ["MFG-1"], "confidence": "medium"}
+      ],
+      "sources": [
+        {"source_id": "MFG-1", "title": "La société — Meca Forging", "url": "https://www.meca-forging.fr/fr/la-societe", "retrieved_at": "2026-08-28", "source_type": "company_website", "confidence": "high"}
+      ],
+      "missing_information": ["périmètre de décision du site", "compteur et granularité", "horaires et équipes", "part d'énergie électrique ou thermique", "fonction maintenance publique"],
+      "negative_signals": [{"kind": "group_structure", "detail": "La société est issue de groupes industriels ; l'autonomie de décision et l'existence d'une équipe énergie ne sont pas établies.", "source_id": "MFG-1"}],
+      "related_entities": [
+        {"name": "Ardec Industries", "relationship": "groupe cité comme associé puis actionnaire", "source_id": "MFG-1"},
+        {"name": "Camelin Décolletage", "relationship": "groupe cité comme associé", "source_id": "MFG-1"}
+      ],
+      "public_contact": {"decision_maker_or_role": null, "professional_email": null, "collection_note": "non collecté pendant la phase pré-scoring"}
+    },
+    {
+      "prospect_id": "FR-GILLET-006",
+      "entity_key": "nouvellefonderiegilletindustries",
+      "name": "Nouvelle Fonderie Gillet Industries", 
+      "sector": "fonderie de métaux légers et usinage",
+      "site_url": "https://www.sn-gillet.fr/",
+      "discovered_at": "2026-08-28",
+      "prequalification_status": "CANDIDATE",
+      "facts": [
+        {"field": "employee_count", "value": "20 à 49 salariés en 2023", "source_id": "GIL-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "registered_activity", "value": "fonderie de métaux légers", "source_id": "GIL-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "processes", "value": "fonderie d'alliages d'aluminium et cuivreux, usinage et finition", "source_id": "GIL-2", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "organisation", "value": "entreprise coopérative (SCOP) basée à Albi", "source_id": "GIL-3", "observed_at": "2026-08-28", "confidence": "high"}
+      ],
+      "inferences": [
+        {"statement": "La présence publique d'une fonderie de métaux rend un enjeu énergétique plausible ; le type de fours, le profil de charge et la récupérabilité ne sont pas démontrés.", "basis_source_ids": ["GIL-1", "GIL-2"], "confidence": "medium"}
+      ],
+      "sources": [
+        {"source_id": "GIL-1", "title": "Annuaire des Entreprises — Nouvelle Fonderie Gillet Industries", "url": "https://annuaire-entreprises.data.gouv.fr/entreprise/807685086", "retrieved_at": "2026-08-28", "source_type": "official_public_registry", "confidence": "high"},
+        {"source_id": "GIL-2", "title": "Nouvelle Fonderie Gillet — accueil", "url": "https://www.sn-gillet.fr/", "retrieved_at": "2026-08-28", "source_type": "company_website", "confidence": "high"},
+        {"source_id": "GIL-3", "title": "Qui sommes-nous — Nouvelle Fonderie Gillet", "url": "https://www.sn-gillet.fr/qui-sommes-nous/", "retrieved_at": "2026-08-28", "source_type": "company_website", "confidence": "high"}
+      ],
+      "missing_information": ["fours et énergie utilisée", "horaires de fusion et production", "compteur par atelier", "données de charge", "fonction d'exploitation à contacter"],
+      "negative_signals": [],
+      "related_entities": [],
+      "public_contact": {"decision_maker_or_role": null, "professional_email": null, "collection_note": "non collecté pendant la phase pré-scoring"}
+    },
+    {
+      "prospect_id": "FR-BOMIE-007",
+      "entity_key": "bomieboulangerie",
+      "name": "Bo&Mie", 
+      "sector": "boulangerie-pâtisserie avec laboratoire central",
+      "site_url": "https://www.linkedin.com/company/bo-%26-mie/",
+      "discovered_at": "2026-08-28",
+      "prequalification_status": "UNCERTAIN",
+      "facts": [
+        {"field": "production_model", "value": "chaîne de boulangerie-pâtisserie ayant installé un laboratoire central pour alimenter ses différents points de vente", "source_id": "BOM-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "reported_locations", "value": "profil LinkedIn consulté : trois emplacements à Paris", "source_id": "BOM-2", "observed_at": "2026-08-28", "confidence": "medium"}
+      ],
+      "inferences": [
+        {"statement": "Un laboratoire central de boulangerie-pâtisserie peut présenter une production répétitive et des charges de cuisson ou de froid ; ces équipements ne sont pas explicitement quantifiés par les sources recueillies.", "basis_source_ids": ["BOM-1", "BOM-2"], "confidence": "medium"}
+      ],
+      "sources": [
+        {"source_id": "BOM-1", "title": "Travail & Sécurité — laboratoire central Bo&Mie", "url": "https://www.travail-et-securite.fr/dam/jcr%3A288404d4-bdc6-4855-95f7-98502cd44479/TS868.pdf", "retrieved_at": "2026-08-28", "source_type": "institutional_publication", "confidence": "high"},
+        {"source_id": "BOM-2", "title": "Bo&Mie — profil LinkedIn", "url": "https://www.linkedin.com/company/bo-%26-mie/", "retrieved_at": "2026-08-28", "source_type": "company_profile", "confidence": "medium"}
+      ],
+      "missing_information": ["taille actuelle de l'entreprise", "surface et adresse du laboratoire", "équipements", "horaires", "accès aux données énergétiques"],
+      "negative_signals": [{"kind": "public_evidence_gap", "detail": "Les sources recueillies ne documentent ni l'effectif ni la granularité de donnée disponible.", "source_id": "BOM-1"}],
+      "related_entities": [],
+      "public_contact": {"decision_maker_or_role": null, "professional_email": null, "collection_note": "non collecté pendant la phase pré-scoring"}
+    },
+    {
+      "prospect_id": "FR-MORELLON-008",
+      "entity_key": "blanchisseriemorellon",
+      "name": "Blanchisserie Morellon", 
+      "sector": "blanchisserie industrielle",
+      "site_url": "https://www.lejournaldesentreprises.com/article/la-famille-boisset-investit-8-millions-deuros-dans-ses-blanchisseries-2142676",
+      "discovered_at": "2026-08-28",
+      "prequalification_status": "CANDIDATE",
+      "facts": [
+        {"field": "recent_change", "value": "publication 2026 : extension de 1 300 m² et nouveau matériel de lavage et de convoyage", "source_id": "MOR-1", "observed_at": "2026-08-28", "confidence": "medium"},
+        {"field": "reported_revenue", "value": "publication 2026 : 4,5 M€ de chiffre d'affaires", "source_id": "MOR-1", "observed_at": "2026-08-28", "confidence": "medium"},
+        {"field": "operations", "value": "article de 2015 : deux ateliers de traitement du linge et horaires de production en deux équipes 6h-13h et 13h-20h", "source_id": "MOR-2", "observed_at": "2026-08-28", "confidence": "low"}
+      ],
+      "inferences": [
+        {"statement": "L'extension récente et le renouvellement de matériel constituent un signal de changement opérationnel utile à investiguer ; les horaires historiques doivent être revalidés avant toute conclusion.", "basis_source_ids": ["MOR-1", "MOR-2"], "confidence": "medium"}
+      ],
+      "sources": [
+        {"source_id": "MOR-1", "title": "La famille Boisset investit 8 millions d'euros dans ses blanchisseries", "url": "https://www.lejournaldesentreprises.com/article/la-famille-boisset-investit-8-millions-deuros-dans-ses-blanchisseries-2142676", "retrieved_at": "2026-08-28", "source_type": "business_press", "confidence": "medium"},
+        {"source_id": "MOR-2", "title": "Dans les coulisses de la blanchisserie Morellon", "url": "https://www.leprogres.fr/rhone/2015/11/21/dans-les-coulisses-de-la-blanchisserie-morellon", "retrieved_at": "2026-08-28", "source_type": "local_press", "confidence": "low"}
+      ],
+      "missing_information": ["effectif actuel", "autonomie de décision", "profil énergie/eau", "données de compteur", "horaires actuels", "fonction de site publique"],
+      "negative_signals": [{"kind": "source_age", "detail": "La seule information publique sur les horaires date de 2015 et ne doit pas être considérée actuelle.", "source_id": "MOR-2"}],
+      "related_entities": [{"name": "Famille Boisset", "relationship": "actionnaire familial cité dans la publication de 2026", "source_id": "MOR-1"}],
+      "public_contact": {"decision_maker_or_role": null, "professional_email": null, "collection_note": "non collecté pendant la phase pré-scoring"}
+    },
+    {
+      "prospect_id": "FR-DAUPHIBLANC-009",
+      "entity_key": "dauphiblanc",
+      "name": "Dauphiblanc", 
+      "sector": "blanchisserie industrielle",
+      "site_url": "https://dauphiblanc.fr/",
+      "discovered_at": "2026-08-28",
+      "prequalification_status": "REJECTED",
+      "facts": [
+        {"field": "employee_count", "value": "jusqu'à 400 collaborateurs en 2025", "source_id": "DAU-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "production_sites", "value": "trois sites de production et deux dépôts logistiques", "source_id": "DAU-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "reported_scale", "value": "22 700 tonnes de linge traitées et 31 M€ de chiffre d'affaires en 2025", "source_id": "DAU-1", "observed_at": "2026-08-28", "confidence": "high"}
+      ],
+      "inferences": [
+        {"statement": "L'enjeu énergétique peut être important, mais la taille multi-sites dépasse la cohorte initiale visée et rend l'accessibilité et le périmètre d'une première mission incertains.", "basis_source_ids": ["DAU-1"], "confidence": "medium"}
+      ],
+      "sources": [
+        {"source_id": "DAU-1", "title": "Dauphiblanc — blanchisserie industrielle", "url": "https://dauphiblanc.fr/", "retrieved_at": "2026-08-28", "source_type": "company_website", "confidence": "high"}
+      ],
+      "missing_information": ["structure énergie interne", "autonomie des sites", "interlocuteur local", "données disponibles par site"],
+      "negative_signals": [{"kind": "out_of_initial_target_scale", "detail": "Les 400 collaborateurs et trois sites de production dépassent la cible initiale de PME à décideur facilement accessible.", "source_id": "DAU-1"}],
+      "related_entities": [],
+      "public_contact": {"decision_maker_or_role": null, "professional_email": null, "collection_note": "non collecté pendant la phase pré-scoring"}
+    },
+    {
+      "prospect_id": "FR-BREWEN-010",
+      "entity_key": "brewen",
+      "name": "Brewen", 
+      "sector": "microbrasserie artisanale",
+      "site_url": "https://www.brasseriebrewen.fr/visites-brewen/",
+      "discovered_at": "2026-08-28",
+      "prequalification_status": "REJECTED",
+      "facts": [
+        {"field": "activity", "value": "microbrasserie artisanale brassant, embouteillant et enfûtant ses bières et limonades sur place", "source_id": "BRE-1", "observed_at": "2026-08-28", "confidence": "high"},
+        {"field": "team_size", "value": "site public : équipe composée de deux brasseurs", "source_id": "BRE-1", "observed_at": "2026-08-28", "confidence": "high"}
+      ],
+      "inferences": [
+        {"statement": "Le procédé de brassage peut être énergivore, mais la taille observée de deux personnes rend une première mission probablement disproportionnée au regard de l'effort commercial et analytique.", "basis_source_ids": ["BRE-1"], "confidence": "medium"}
+      ],
+      "sources": [
+        {"source_id": "BRE-1", "title": "Visite de la brasserie Brewen", "url": "https://www.brasseriebrewen.fr/visites-brewen/", "retrieved_at": "2026-08-28", "source_type": "company_website", "confidence": "high"}
+      ],
+      "missing_information": ["volume de production", "données de compteur", "budget énergétique"],
+      "negative_signals": [{"kind": "too_small_for_initial_offer", "detail": "La source publique décrit une équipe de deux personnes.", "source_id": "BRE-1"}],
+      "related_entities": [],
+      "public_contact": {"decision_maker_or_role": null, "professional_email": null, "collection_note": "non collecté pendant la phase pré-scoring"}
+    }
+  ]
+}

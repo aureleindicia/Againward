@@ -1,0 +1,12 @@
+{
+  "schema_version": 2,
+  "input_handoff_ref": "investigation/economic_handoff_pre_reasoning.json",
+  "handoff_phase": "pre_reasoning",
+  "codex_responsibilities": [
+    "choose actions, assumptions, constraints, relationships and decision"
+  ],
+  "python_responsibilities": [
+    "calculate and validate quantitative provenance"
+  ],
+  "not_a_deterministic_recommendation": true
+}

@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "status": "ready_for_codex_first_pass",
+  "findings": [],
+  "hypotheses": [],
+  "client_answers": [],
+  "unresolved_requests": [
+    {
+      "request_id": "REQ-OPENING-01",
+      "request_type": "ASK_CLIENT",
+      "client_question": "Le démarrage plus tôt observé le 1er juin faisait-il partie d’une préparation prévue ?",
+      "internal_reason": "Le planning reçu indique 06:30, tandis que la série commence plus tôt; cette réponse distingue une demande légitime d’un comportement à investiguer.",
+      "target_role": "responsable de site",
+      "hypotheses_distinguished": [
+        "préparation planifiée",
+        "charge non expliquée"
+      ],
+      "decision_impact": "Détermine si le comportement mérite une investigation énergétique plus poussée.",
+      "expected_effort": "Réponse oui/non en moins de cinq minutes.",
+      "importance": "NON_BLOCKING",
+      "analysis_can_continue_without_answer": true,
+      "created_at_utc": "2026-08-30T07:42:21.634644+00:00"
+    }
+  ],
+  "history": [
+    {
+      "at_utc": "2026-08-30T07:42:21.484801+00:00",
+      "action": "intake_completed",
+      "inventory": "evidence/intake_inventory.json"
+    },
+    {
+      "at_utc": "2026-08-30T07:42:21.635167+00:00",
+      "action": "question_batch_published",
+      "request_ids": [
+        "REQ-OPENING-01"
+      ]
+    },
+    {
+      "at_utc": "2026-08-30T07:42:21.635823+00:00",
+      "action": "structured_findings_recorded",
+      "count": 0,
+      "no_finding": true
+    }
+  ],
+  "ground_truth_used": false,
+  "available_datasets": [
+    "DS-001-01",
+    "DS-002-01",
+    "DS-006-01"
+  ],
+  "material_ambiguities": [
+    {
+      "dataset_id": "DS-001-01",
+      "issue": "measurement_unit",
+      "reason": "unlabeled non-negative measurement supports competing kW/kWh interpretations",
+      "blocking_for": "quantitative_energy_interpretation"
+    }
+  ],
+  "current_decision_status": "no_material_finding"
+}

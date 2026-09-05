@@ -1,0 +1,14 @@
+{
+  "workflow": [
+    "Goal A evidence",
+    "pre-reasoning handoff",
+    "Codex reasoning contract",
+    "deterministic calculations",
+    "persisted Goal B state",
+    "optional resume handoff"
+  ],
+  "pre_handoff": "investigation/economic_handoff_pre_reasoning.json",
+  "reasoning_contract": "investigation/codex_economic_reasoning_contract.json",
+  "state": "investigation/economic_decision_state.json",
+  "resume_handoff": "investigation/economic_handoff_resume.json"
+}

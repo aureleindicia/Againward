@@ -1,0 +1,19 @@
+{
+  "schema_version": 2,
+  "kind": "GOAL_C_1_EXECUTABLE_FIXTURE_INDEX",
+  "generator": "workspace/generate_goal_c_1_fixtures.py",
+  "purpose": "Index des fixtures exécutables Goal C.1 ; le générateur fabrique de vrais cases Goal A/B et leurs PDFs, sans règle de recommandation.",
+  "fixtures": [
+    {"fixture_id": "C-A", "situation": "strong_act_now", "properties": ["bénéfice net positif", "coût faible", "montant précis"]},
+    {"fixture_id": "C-B", "situation": "investigate_first", "properties": ["investissement majeur", "preuve peu coûteuse", "décision réversible"]},
+    {"fixture_id": "C-C", "situation": "no_economic_case", "properties": ["finding réel", "bénéfice net négatif"]},
+    {"fixture_id": "C-D", "situation": "operationally_not_justified", "properties": ["économie théorique", "contrainte PME bloquante"]},
+    {"fixture_id": "C-E", "situation": "true_no_finding", "properties": ["findings Goal A vides", "DO_NOTHING", "aucune action inventée"]},
+    {"fixture_id": "C-F", "situation": "mutually_exclusive_alternatives", "properties": ["réparation", "remplacement", "non-additivité", "comparaison coût/bénéfice"]},
+    {"fixture_id": "C-G", "situation": "precise_economics", "properties": ["valeur exacte préservée"]},
+    {"fixture_id": "C-H", "situation": "wide_uncertainty", "properties": ["fourchette large préservée"]},
+    {"fixture_id": "C-I", "situation": "sme_operational_realism", "properties": ["charge opérationnelle disproportionnée"]},
+    {"fixture_id": "C-J", "situation": "goal_b_response_update", "properties": ["request", "GBE persistée", "reprise", "rapport mis à jour"]}
+  ],
+  "multi_decision_e2e": "C-MULTI"
+}

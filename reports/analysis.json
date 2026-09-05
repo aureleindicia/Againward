@@ -1,0 +1,2101 @@
+{
+  "automatic_analysis": {
+    "source": "examples/demo_15min.csv",
+    "start": "2026-01-05T00:00:00",
+    "end": "2026-05-05T00:00:00",
+    "input_rows": 11519,
+    "valid_rows": 11515,
+    "discarded_rows": 4,
+    "total_energy_kwh": 153411.408084,
+    "total_cost": 26846.9964147,
+    "total_production": 143191.641732,
+    "energy_intensity": 1.0713712492460106,
+    "off_production_kwh": 41708.09072,
+    "off_production_share": 0.27187085524410837,
+    "peak_power_kw": 215.182047,
+    "average_power_kw": 53.290979780981324,
+    "anomaly_count": 9,
+    "monthly": [
+      {
+        "month": "2026-01",
+        "energy_kwh": 32385.470155999978,
+        "cost": 5667.457277299995,
+        "production": 33001.21018699997,
+        "intensity": 0.9813418954180491
+      },
+      {
+        "month": "2026-02",
+        "energy_kwh": 34021.73186000003,
+        "cost": 5953.8030754999945,
+        "production": 33277.16472200004,
+        "intensity": 1.0223747168432216
+      },
+      {
+        "month": "2026-03",
+        "energy_kwh": 41102.41665599994,
+        "cost": 7192.922914799998,
+        "production": 36805.64582299999,
+        "intensity": 1.1167421665051964
+      },
+      {
+        "month": "2026-04",
+        "energy_kwh": 41316.93134300011,
+        "cost": 7230.462985025014,
+        "production": 36846.21405000006,
+        "intensity": 1.121334509074211
+      },
+      {
+        "month": "2026-05",
+        "energy_kwh": 4584.858068999999,
+        "cost": 802.3501620749995,
+        "production": 3261.4069499999982,
+        "intensity": 1.4057914695374036
+      }
+    ],
+    "findings": [
+      {
+        "level": "eleve",
+        "title": "Consommation importante hors production",
+        "detail": "27.2% de l'energie est consommee sur des lignes ou la production renseignee est <= 0. Ce volume est une consommation observee, pas une economie recuperable.",
+        "status": "candidate_signal",
+        "basis": [
+          "energie_hors_production_kwh=41708.1",
+          "part_sur_couverture_production=0.271871"
+        ],
+        "limitations": [
+          "La charge incompressible n'est pas encore estimee.",
+          "La cause physique et la part evitable exigent une investigation."
+        ],
+        "estimated_saving_kwh": null,
+        "estimated_saving_cost": null
+      },
+      {
+        "level": "moyen",
+        "title": "Pics de consommation atypiques",
+        "detail": "9 point(s) depassent le seuil robuste mediane + 3 x ecart absolu median. Ce sont des candidats a regrouper et comparer a des periodes equivalentes.",
+        "status": "candidate_signal",
+        "basis": [
+          "points_candidats=9"
+        ],
+        "limitations": [
+          "Le seuil ne controle pas encore la production, l'heure ou la temperature."
+        ],
+        "estimated_saving_kwh": null,
+        "estimated_saving_cost": null
+      },
+      {
+        "level": "moyen",
+        "title": "Intensite energetique variable",
+        "detail": "L'intensite mensuelle la plus haute depasse d'au moins 25 % la plus basse. Comparer le mix produit, les cadences, les arrets et les conditions meteo.",
+        "status": "candidate_signal",
+        "basis": [
+          "intensite_min=0.981342",
+          "intensite_max=1.40579"
+        ],
+        "limitations": [
+          "Un ratio kWh/unite se degrade mecaniquement a faible production."
+        ],
+        "estimated_saving_kwh": null,
+        "estimated_saving_cost": null
+      },
+      {
+        "level": "moyen",
+        "title": "Pointe de puissance notable",
+        "detail": "La pointe (215.2 kW) atteint au moins 150 % de la puissance moyenne mesuree. Examiner sa duree, la production et les demarrages avant toute interpretation.",
+        "status": "candidate_signal",
+        "basis": [
+          "pointe_kw=215.182",
+          "moyenne_kw=53.291"
+        ],
+        "limitations": [
+          "Une pointe peut etre normale et n'implique pas automatiquement un surcout."
+        ],
+        "estimated_saving_kwh": null,
+        "estimated_saving_cost": null
+      }
+    ],
+    "warnings": [
+      "1 doublon(s) strictement identique(s) supprime(s).",
+      "4 intervalle(s) different de la frequence nominale.",
+      "4 trou(s) temporel(s) probable(s) detecte(s).",
+      "4 ligne(s) ecartee(s) de l'analyse (vides, invalides, incompletes, references ou dedupliquees)."
+    ],
+    "metadata": {
+      "energy_mode": "interval",
+      "measurement_kind": "energy_per_interval",
+      "timestamp_position": "start",
+      "site_timezone": null,
+      "coverage_bounds_available": true,
+      "coverage_bounds_method": "inferred_nominal_interval",
+      "columns": {
+        "date": "timestamp",
+        "energy": "energy_kwh",
+        "production": "production",
+        "production_active": "production_active",
+        "temperature": "outside_temperature_c",
+        "shift": "shift",
+        "product_type": "product_type",
+        "power": "power_kw"
+      },
+      "source_units": {
+        "energy": "kwh",
+        "power": "kw"
+      },
+      "tariff_coverage": 11515,
+      "tariff_coverage_ratio": 1.0,
+      "covered_cost": 26846.9964147,
+      "production_coverage": 11515,
+      "production_coverage_ratio": 1.0,
+      "power_average_method": "sample_mean",
+      "capabilities": {
+        "intraday_analysis": true,
+        "night_analysis": true,
+        "startup_analysis": true
+      },
+      "data_quality": {
+        "blank_rows": 0,
+        "invalid_timestamp_rows": 1,
+        "missing_measurement_rows": 1,
+        "impossible_value_rows": 1,
+        "identical_duplicates_removed": 1,
+        "conflicting_duplicates": 0,
+        "out_of_order_rows": 0,
+        "timezone_normalized_rows": 0,
+        "naive_timezone_localized_rows": 0,
+        "missing_values_by_column": {},
+        "invalid_values_by_column": {},
+        "inferred_frequency_minutes": 15.0,
+        "detected_frequencies_minutes": [
+          15.0
+        ],
+        "frequency_change_count": 0,
+        "irregular_interval_count": 4,
+        "gap_count": 4,
+        "coverage_ratio": 0.9995659722222222,
+        "processing_log": [
+          "1 doublon(s) strictement identique(s) supprime(s).",
+          "Frequence nominale detectee: 15 minute(s).",
+          "Les timestamps sont traites par defaut comme debuts d'intervalles; utiliser --timestamp-position end si la source suit l'autre convention.",
+          "1 ligne(s) avec valeur impossible ecartee(s).",
+          "1 ligne(s) avec timestamp invalide ecartee(s).",
+          "1 ligne(s) sans mesure energetique ecartee(s)."
+        ]
+      }
+    }
+  },
+  "quantitative_results": {
+    "method": {
+      "ground_truth_read": false,
+      "price_per_kwh": 0.175,
+      "reference_period": [
+        "2026-01-05T00:00:00",
+        "2026-01-25T00:00:00"
+      ],
+      "selected_baseline": "production_temperature_activity_product_interaction",
+      "baseline_selection_reason": "Lowest validation RMSE among tested interpretable models, with production, temperature, activity and product mix controlled."
+    },
+    "dataset": {
+      "rows": 11515,
+      "start": "2026-01-05T00:00:00",
+      "end": "2026-05-04T23:45:00",
+      "coverage_start": "2026-01-05T00:00:00",
+      "coverage_end": "2026-05-05T00:00:00",
+      "timestamp_position": "start",
+      "site_timezone": null,
+      "coverage_bounds_method": "inferred_nominal_interval",
+      "measurement_kind": "energy_per_interval",
+      "source_units": {
+        "energy": "kwh",
+        "power": "kw"
+      },
+      "columns": {
+        "date": "timestamp",
+        "energy": "energy_kwh",
+        "production": "production",
+        "production_active": "production_active",
+        "temperature": "outside_temperature_c",
+        "shift": "shift",
+        "product_type": "product_type",
+        "power": "power_kw"
+      },
+      "frequency_minutes": 15.0,
+      "coverage_ratio": 0.9995659722222222,
+      "quality": {
+        "invalid_timestamps": 1,
+        "missing_measurements": 1,
+        "impossible_values": 1,
+        "identical_duplicates_removed": 1,
+        "conflicting_duplicates": 0,
+        "out_of_order_rows": 0,
+        "timezone_normalized_rows": 0,
+        "naive_timezone_localized_rows": 0,
+        "missing_values_by_column": {},
+        "invalid_values_by_column": {},
+        "detected_frequencies_minutes": [
+          15.0
+        ],
+        "frequency_changes": 0,
+        "irregular_intervals": 4,
+        "gaps": 4
+      }
+    },
+    "baseload": {
+      "samples": 6012,
+      "q10_kw": 20.883337299999997,
+      "q25_kw": 22.405410500000002,
+      "median_lowest_20_percent_kw": 20.883304,
+      "absolute_minimum_kw": 17.484452
+    },
+    "baseline_candidates": {
+      "production": {
+        "kind": "linear",
+        "target": "power_kw",
+        "predictors": [
+          "production"
+        ],
+        "coefficients": {
+          "intercept": 22.450618036625066,
+          "production": 2.0362934693911776
+        },
+        "calibration_rows": 1340,
+        "validation_rows": 575,
+        "calibration_start": "2026-01-05T00:00:00",
+        "calibration_end": "2026-01-18T23:45:00",
+        "validation_start": "2026-01-19T00:00:00",
+        "validation_end": "2026-01-24T23:45:00",
+        "calibration_metrics": {
+          "mae": 2.1032697648911673,
+          "rmse": 2.766849880898814,
+          "r_squared": 0.9898314208150908,
+          "mape": 5.122787877636441
+        },
+        "validation_metrics": {
+          "mae": 2.191572647151223,
+          "rmse": 2.8642764176868734,
+          "r_squared": 0.9890999328296811,
+          "mape": 4.87759114881569
+        }
+      },
+      "production_temperature": {
+        "kind": "linear",
+        "target": "power_kw",
+        "predictors": [
+          "production",
+          "outside_temperature_c"
+        ],
+        "coefficients": {
+          "intercept": 22.88761895800709,
+          "production": 2.035966238955885,
+          "outside_temperature_c": -0.03429597950145748
+        },
+        "calibration_rows": 1340,
+        "validation_rows": 575,
+        "calibration_start": "2026-01-05T00:00:00",
+        "calibration_end": "2026-01-18T23:45:00",
+        "validation_start": "2026-01-19T00:00:00",
+        "validation_end": "2026-01-24T23:45:00",
+        "calibration_metrics": {
+          "mae": 2.1032000225683167,
+          "rmse": 2.7661148961465525,
+          "r_squared": 0.9898368224511122,
+          "mape": 5.127787075427977
+        },
+        "validation_metrics": {
+          "mae": 2.1934721101714953,
+          "rmse": 2.8719015071965983,
+          "r_squared": 0.9890418206882444,
+          "mape": 4.866650352416071
+        }
+      },
+      "production_temperature_activity": {
+        "kind": "linear",
+        "target": "power_kw",
+        "predictors": [
+          "production",
+          "outside_temperature_c",
+          "production_active"
+        ],
+        "coefficients": {
+          "intercept": 22.292207772409412,
+          "production": 1.622391004338938,
+          "outside_temperature_c": -0.019551158731629603,
+          "production_active": 11.538426467682035
+        },
+        "calibration_rows": 1340,
+        "validation_rows": 575,
+        "calibration_start": "2026-01-05T00:00:00",
+        "calibration_end": "2026-01-18T23:45:00",
+        "validation_start": "2026-01-19T00:00:00",
+        "validation_end": "2026-01-24T23:45:00",
+        "calibration_metrics": {
+          "mae": 1.7895228931876392,
+          "rmse": 2.27941425068909,
+          "r_squared": 0.9930986254174153,
+          "mape": 4.539454401449802
+        },
+        "validation_metrics": {
+          "mae": 1.7806619648211035,
+          "rmse": 2.275827766778562,
+          "r_squared": 0.9931185794003082,
+          "mape": 4.109509509341613
+        }
+      },
+      "production_temperature_activity_product": {
+        "kind": "linear",
+        "target": "power_kw",
+        "predictors": [
+          "production",
+          "outside_temperature_c",
+          "production_active",
+          "product_type_b"
+        ],
+        "coefficients": {
+          "intercept": 20.9340983598464,
+          "production": 1.6165510805278331,
+          "outside_temperature_c": 0.010919810212593643,
+          "production_active": 11.957437973924959,
+          "product_type_b": 2.364851795073265
+        },
+        "calibration_rows": 1340,
+        "validation_rows": 575,
+        "calibration_start": "2026-01-05T00:00:00",
+        "calibration_end": "2026-01-18T23:45:00",
+        "validation_start": "2026-01-19T00:00:00",
+        "validation_end": "2026-01-24T23:45:00",
+        "calibration_metrics": {
+          "mae": 1.587171808855405,
+          "rmse": 1.982869485332032,
+          "r_squared": 0.9947775133244785,
+          "mape": 4.71621714658099
+        },
+        "validation_metrics": {
+          "mae": 1.501080027833231,
+          "rmse": 1.9090944931988467,
+          "r_squared": 0.9951576723804176,
+          "mape": 4.134496139949835
+        }
+      },
+      "production_temperature_activity_product_interaction": {
+        "kind": "linear",
+        "target": "power_kw",
+        "predictors": [
+          "production",
+          "outside_temperature_c",
+          "production_active",
+          "product_type_b",
+          "production_product_b"
+        ],
+        "coefficients": {
+          "intercept": 21.636942705351814,
+          "production": 1.5499972795505805,
+          "outside_temperature_c": 0.02434866092535975,
+          "production_active": 11.991681343881885,
+          "product_type_b": 0.23297631973966215,
+          "production_product_b": 0.1859608357679756
+        },
+        "calibration_rows": 1340,
+        "validation_rows": 575,
+        "calibration_start": "2026-01-05T00:00:00",
+        "calibration_end": "2026-01-18T23:45:00",
+        "validation_start": "2026-01-19T00:00:00",
+        "validation_end": "2026-01-24T23:45:00",
+        "calibration_metrics": {
+          "mae": 1.2670080755222395,
+          "rmse": 1.590732262703324,
+          "r_squared": 0.9966388858627254,
+          "mape": 3.8674563154432513
+        },
+        "validation_metrics": {
+          "mae": 1.2373004271384556,
+          "rmse": 1.5581497000146611,
+          "r_squared": 0.9967743467471146,
+          "mape": 3.4271464287650995
+        }
+      }
+    },
+    "hypotheses": {
+      "H01": {
+        "signal": "night_load_window",
+        "period": [
+          "2026-01-25",
+          "2026-02-09"
+        ],
+        "window_duration_hours": 360,
+        "reference": {
+          "rows": 640,
+          "days": 20,
+          "evaluated_hours": 160.0,
+          "energy_kwh": 3520.310641,
+          "mean_power_kw": 22.0019414765625,
+          "mean_residual_kw": -0.03331403547059265,
+          "mean_production_per_interval": 0.0,
+          "total_production": 0.0,
+          "production_zero_share": 1.0,
+          "mean_temperature_c": 13.0097953125,
+          "product_b_share": 0.35,
+          "mean_production_product_b": 0.0
+        },
+        "candidate": {
+          "rows": 480,
+          "days": 15,
+          "evaluated_hours": 120.0,
+          "energy_kwh": 4797.732517,
+          "mean_power_kw": 39.9811042875,
+          "mean_residual_kw": 17.906712385871963,
+          "mean_production_per_interval": 0.0,
+          "total_production": 0.0,
+          "production_zero_share": 1.0,
+          "mean_temperature_c": 14.7766,
+          "product_b_share": 0.3333333333333333,
+          "mean_production_product_b": 0.0
+        },
+        "post_window": {
+          "rows": 320,
+          "days": 10,
+          "evaluated_hours": 80.0,
+          "energy_kwh": 1761.437826,
+          "mean_power_kw": 22.017972834375,
+          "mean_residual_kw": -0.07921707482363734,
+          "mean_production_per_interval": 0.0,
+          "total_production": 0.0,
+          "production_zero_share": 1.0,
+          "mean_temperature_c": 16.031859375,
+          "product_b_share": 0.3,
+          "mean_production_product_b": 0.0
+        },
+        "recurrence": {
+          "days_tested": 15,
+          "days_detected": 15,
+          "recurrence_ratio": 1.0
+        },
+        "temperature_explained_delta_kw": 0.043019328257273705,
+        "excess_energy_kwh": 2152.8031705611065,
+        "cost": 376.7405548481936
+      },
+      "H02": {
+        "signal": "weekend_day_load_window",
+        "period": [
+          "2026-02-19",
+          "2026-03-06"
+        ],
+        "window_duration_hours": 360,
+        "reference": {
+          "rows": 476,
+          "days": 12,
+          "evaluated_hours": 119.0,
+          "energy_kwh": 2623.143949,
+          "mean_power_kw": 22.043226334033612,
+          "mean_residual_kw": -0.007169852141216878,
+          "mean_production_per_interval": 0.0,
+          "total_production": 0.0,
+          "production_zero_share": 1.0,
+          "mean_temperature_c": 13.784394957983194,
+          "product_b_share": 0.33403361344537813,
+          "mean_production_product_b": 0.0
+        },
+        "candidate": {
+          "rows": 160,
+          "days": 4,
+          "evaluated_hours": 40.0,
+          "energy_kwh": 1763.227156,
+          "mean_power_kw": 44.0806788375,
+          "mean_residual_kw": 21.926139545628786,
+          "mean_production_per_interval": 0.0,
+          "total_production": 0.0,
+          "production_zero_share": 1.0,
+          "mean_temperature_c": 16.47353125,
+          "product_b_share": 0.5,
+          "mean_production_product_b": 0.0
+        },
+        "post_window": {
+          "rows": 160,
+          "days": 4,
+          "evaluated_hours": 40.0,
+          "energy_kwh": 972.132323,
+          "mean_power_kw": 24.30330814375,
+          "mean_residual_kw": 2.178420908005576,
+          "mean_production_per_interval": 0.0,
+          "total_production": 0.0,
+          "production_zero_share": 1.0,
+          "mean_temperature_c": 17.64780625,
+          "product_b_share": 0.25,
+          "mean_production_product_b": 0.0
+        },
+        "recurrence": {
+          "days_tested": 4,
+          "days_detected": 4,
+          "recurrence_ratio": 1.0
+        },
+        "temperature_explained_delta_kw": 0.06547686775639643,
+        "excess_energy_kwh": 877.3323759108002,
+        "cost": 153.53316578439004
+      },
+      "H03": {
+        "signal": "two_hour_point_spike",
+        "period": [
+          "2026-02-24T10:00",
+          "2026-02-24T12:00"
+        ],
+        "window_duration_hours": 2,
+        "candidate": {
+          "rows": 8,
+          "days": 1,
+          "evaluated_hours": 2.0,
+          "energy_kwh": 393.41914099999997,
+          "mean_power_kw": 196.70957075,
+          "mean_residual_kw": 119.60538548810996,
+          "mean_production_per_interval": 27.807644125,
+          "total_production": 222.461153,
+          "production_zero_share": 0.0,
+          "mean_temperature_c": 15.3515,
+          "product_b_share": 0.0,
+          "mean_production_product_b": 0.0
+        },
+        "comparable_tuesdays": {
+          "rows": 128,
+          "days": 16,
+          "evaluated_hours": 32.0,
+          "energy_kwh": 2660.620472,
+          "mean_power_kw": 83.14438965625,
+          "mean_residual_kw": 4.621098734887875,
+          "mean_production_per_interval": 27.5979679453125,
+          "total_production": 3532.539897,
+          "production_zero_share": 0.0,
+          "mean_temperature_c": 15.181359375,
+          "product_b_share": 0.3125,
+          "mean_production_product_b": 9.0096431171875
+        },
+        "events_over_80_kw_residual": [
+          {
+            "event_id": "E0001",
+            "start": "2026-02-24T10:00:00",
+            "end": "2026-02-24T11:45:00",
+            "points": 8,
+            "peak_residual_kw": 122.30472999243125,
+            "excess_energy_kwh": 239.21077097621992
+          }
+        ],
+        "excess_energy_kwh": 239.21077097621992,
+        "cost": 41.861884920838484
+      },
+      "H04": {
+        "signal": "active_efficiency_drop",
+        "period": [
+          "2026-03-16",
+          "2026-03-31"
+        ],
+        "window_duration_hours": 360,
+        "prior": {
+          "rows": 640,
+          "days": 10,
+          "evaluated_hours": 160.0,
+          "energy_kwh": 12405.714706,
+          "mean_power_kw": 77.5357169859375,
+          "mean_residual_kw": 1.016637512062272,
+          "mean_production_per_interval": 26.0750120859375,
+          "total_production": 16688.007735,
+          "production_zero_share": 0.0,
+          "mean_temperature_c": 17.9181234375,
+          "product_b_share": 0.4,
+          "mean_production_product_b": 10.4580342375
+        },
+        "candidate": {
+          "rows": 704,
+          "days": 11,
+          "evaluated_hours": 176.0,
+          "energy_kwh": 16747.426889,
+          "mean_power_kw": 95.15583449715909,
+          "mean_residual_kw": 18.614227667560026,
+          "mean_production_per_interval": 26.20178255965909,
+          "total_production": 18446.054922,
+          "production_zero_share": 0.0,
+          "mean_temperature_c": 18.90491903409091,
+          "product_b_share": 0.36363636363636365,
+          "mean_production_product_b": 9.438885134943181
+        },
+        "modelled_context_delta_kw": 0.022527355723831313,
+        "prior_active_minus_inactive_residual_kw": 0.1086867242240459,
+        "candidate_active_minus_inactive_residual_kw": 12.175270967369194,
+        "days_tested": 11,
+        "days_detected": 11,
+        "excess_after_fixed_drift_removal_kwh": 2123.718826793546,
+        "cost": 371.6507946888706
+      },
+      "H05": {
+        "signal": "progressive_fixed_load_drift",
+        "period": [
+          "2026-03-06",
+          "2026-04-05"
+        ],
+        "window_duration_hours": 720,
+        "candidate": {
+          "rows": 2880,
+          "days": 30,
+          "evaluated_hours": 720.0,
+          "energy_kwh": 40610.599155,
+          "mean_power_kw": 56.40360992777778,
+          "mean_residual_kw": 8.894896982475595,
+          "mean_production_per_interval": 12.18021863611111,
+          "total_production": 35079.029672,
+          "production_zero_share": 0.5333333333333333,
+          "mean_temperature_c": 18.789532291666667,
+          "product_b_share": 0.3333333333333333,
+          "mean_production_product_b": 4.631017072222222
+        },
+        "inactive_residual_start_kw": -0.22134254395597897,
+        "inactive_residual_end_kw": 12.508513068981546,
+        "inactive_trend": {
+          "slope_per_day": 0.4141503431462498,
+          "r_squared": 0.9922699929238414
+        },
+        "active_trend": {
+          "slope_per_day": 0.7457718326523324,
+          "r_squared": 0.3711489694480089
+        },
+        "temperature_trend": {
+          "slope_per_day": 0.06045910038932145,
+          "r_squared": 0.9847200038821837
+        },
+        "baseline_temperature_coefficient_kw_per_c": 0.02434866092535975,
+        "temperature_implied_residual_slope_kw_per_day": 0.0014720981352318737,
+        "excess_energy_kwh": 4232.2716136391,
+        "cost": 740.6475323868425
+      },
+      "H06": {
+        "signal": "persistent_fixed_load_level",
+        "period": [
+          "2026-04-05",
+          "2026-05-05"
+        ],
+        "window_duration_hours": 720,
+        "reference_inactive_residual_kw": -0.0004452248336572975,
+        "post_inactive_residual_mean_kw": 8.30372684952236,
+        "post_inactive_residual_sd_kw": 0.22562894276227793,
+        "days_tested": 30,
+        "days_over_reference_plus_5kw": 30,
+        "reference": {
+          "rows": 956,
+          "days": 20,
+          "evaluated_hours": 239.0,
+          "energy_kwh": 5267.308709,
+          "mean_power_kw": 22.03894855334728,
+          "mean_residual_kw": -0.0004452248336572975,
+          "mean_production_per_interval": 0.0,
+          "total_production": 0.0,
+          "production_zero_share": 1.0,
+          "mean_temperature_c": 13.015610878661088,
+          "product_b_share": 0.36715481171548114,
+          "mean_production_product_b": 0.0
+        },
+        "candidate": {
+          "rows": 2880,
+          "days": 30,
+          "evaluated_hours": 720.0,
+          "energy_kwh": 40055.122338,
+          "mean_power_kw": 55.632114360069444,
+          "mean_residual_kw": 8.318782591029207,
+          "mean_production_per_interval": 12.17159174826389,
+          "total_production": 35054.184235,
+          "production_zero_share": 0.5333333333333333,
+          "mean_temperature_c": 19.88748263888889,
+          "product_b_share": 0.3333333333333333,
+          "mean_production_product_b": 3.508505746527778
+        },
+        "candidate_inactive": {
+          "rows": 1536,
+          "days": 30,
+          "evaluated_hours": 384.0,
+          "energy_kwh": 11725.424293,
+          "mean_power_kw": 30.534959123697917,
+          "mean_residual_kw": 8.325769986840607,
+          "mean_production_per_interval": 0.0,
+          "total_production": 0.0,
+          "production_zero_share": 1.0,
+          "mean_temperature_c": 19.914044270833333,
+          "product_b_share": 0.375,
+          "mean_production_product_b": 0.0
+        },
+        "temperature_explained_delta_kw": 0.16796761558218126,
+        "excess_energy_kwh": 5979.003893536332,
+        "cost": 1046.325681368858
+      }
+    },
+    "double_counting": {
+      "automatic_spike_and_peak_signal_same_event": {
+        "naive_total_kwh": 478.42154195243984,
+        "deduplicated_total_kwh": 239.21077097621992,
+        "double_counted_kwh": 239.21077097621992,
+        "overlapping_points": 8
+      },
+      "confirmed_temporal_overlap_audit": {
+        "naive_total_kwh": 15604.340651417104,
+        "deduplicated_total_kwh": 14485.247658248649,
+        "double_counted_kwh": 1119.092993168455,
+        "overlapping_points": 704
+      },
+      "note": "H04 retranche deja le residu inactif journalier de H05. Aucun total portefeuille n'est publie sans allocation causale."
+    }
+  },
+  "investigation": {
+    "schema_version": 2,
+    "analysis_type": "agentic_energy_investigation",
+    "source": "examples/demo_15min.csv",
+    "quantitative_source": "reports/demo_quantitative_results.json",
+    "ground_truth_used": false,
+    "follow_up_policy": {
+      "required_for": [
+        "INSUFFISAMMENT_ETAYE",
+        "A_CONSERVER_AVEC_RESERVES"
+      ],
+      "forbidden_for": [
+        "CONFIRME",
+        "REJETE"
+      ],
+      "trigger": "incertitude materielle que la reponse peut reduire",
+      "selection": "information minimale, realiste et la moins couteuse d'abord"
+    },
+    "responsibility_split": {
+      "codex": "hypotheses, tests choisis, critique, decisions, synthese",
+      "python": "calculs, baselines, metriques, energie, cout, chevauchements"
+    },
+    "hypotheses": [
+      {
+        "hypothesis_id": "H01",
+        "observation": "Hausse nocturne bornee du residu de puissance.",
+        "hypothesis": "Une charge additionnelle fonctionne la nuit sans production.",
+        "tests_requested": [
+          "Comparer les nuits a la reference et a la periode posterieure.",
+          "Verifier production, recurrence et temperature.",
+          "Quantifier l'energie au-dessus du residu nocturne de reference."
+        ],
+        "results": {
+          "signal": "night_load_window",
+          "period": [
+            "2026-01-25",
+            "2026-02-09"
+          ],
+          "window_duration_hours": 360,
+          "reference": {
+            "rows": 640,
+            "days": 20,
+            "evaluated_hours": 160.0,
+            "energy_kwh": 3520.310641,
+            "mean_power_kw": 22.0019414765625,
+            "mean_residual_kw": -0.03331403547059265,
+            "mean_production_per_interval": 0.0,
+            "total_production": 0.0,
+            "production_zero_share": 1.0,
+            "mean_temperature_c": 13.0097953125,
+            "product_b_share": 0.35,
+            "mean_production_product_b": 0.0
+          },
+          "candidate": {
+            "rows": 480,
+            "days": 15,
+            "evaluated_hours": 120.0,
+            "energy_kwh": 4797.732517,
+            "mean_power_kw": 39.9811042875,
+            "mean_residual_kw": 17.906712385871963,
+            "mean_production_per_interval": 0.0,
+            "total_production": 0.0,
+            "production_zero_share": 1.0,
+            "mean_temperature_c": 14.7766,
+            "product_b_share": 0.3333333333333333,
+            "mean_production_product_b": 0.0
+          },
+          "post_window": {
+            "rows": 320,
+            "days": 10,
+            "evaluated_hours": 80.0,
+            "energy_kwh": 1761.437826,
+            "mean_power_kw": 22.017972834375,
+            "mean_residual_kw": -0.07921707482363734,
+            "mean_production_per_interval": 0.0,
+            "total_production": 0.0,
+            "production_zero_share": 1.0,
+            "mean_temperature_c": 16.031859375,
+            "product_b_share": 0.3,
+            "mean_production_product_b": 0.0
+          },
+          "recurrence": {
+            "days_tested": 15,
+            "days_detected": 15,
+            "recurrence_ratio": 1.0
+          },
+          "temperature_explained_delta_kw": 0.043019328257273705,
+          "excess_energy_kwh": 2152.8031705611065,
+          "cost": 376.7405548481936
+        },
+        "alternative_explanations": [
+          "Temperature exterieure.",
+          "Utilite nocturne necessaire au procede.",
+          "Artefact lie aux trous de donnees."
+        ],
+        "best_reason_false": "La charge peut etre une utilite nocturne legitime ; les donnees ne prouvent ni l'equipement responsable ni la part evitable.",
+        "adversarial_review": "Production nulle sur 100 % des points, recurrence 15/15 jours, retour au niveau de reference apres la fenetre. La temperature n'explique que 0.043019 kW.",
+        "decision": "A_CONSERVER_AVEC_RESERVES",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "moyenne"
+        },
+        "physical_cause_status": "non_etablie_avec_les_donnees_disponibles",
+        "follow_up_requests": [
+          {
+            "request_id": "H01-Q1",
+            "request_type": "question_metier",
+            "ask_client": "Demander au responsable de site quels equipements ou utilites devaient rester actifs entre 00:00 et 05:00 pendant les 15 nuits concernees.",
+            "why_useful": "Une liste courte des usages nocturnes permet de distinguer un besoin de procede d'un equipement reste actif par habitude ou erreur de consigne.",
+            "information_value": "elevee: la reponse peut faire passer la piste de reservee a rejetee ou a test terrain.",
+            "hypotheses_distinguished": [
+              "charge nocturne necessaire au procede",
+              "charge nocturne non requise ou consigne incorrecte"
+            ],
+            "responsible_role": "responsable de site",
+            "client_effort": "Entretien de 10 minutes, sans mesure ni arret d'equipement.",
+            "effort_level": "tres_faible",
+            "expected_if_true": "Si la charge est non requise, aucun usage nocturne obligatoire ne sera identifie pour expliquer le palier observe.",
+            "priority": 1
+          }
+        ],
+        "severity": "moyenne",
+        "report_section": "verification"
+      },
+      {
+        "hypothesis_id": "H02",
+        "observation": "Charge de jour sur quatre jours de week-end consecutifs.",
+        "hypothesis": "Une charge inhabituelle fonctionne le week-end sans production.",
+        "tests_requested": [
+          "Comparer aux week-ends anterieurs et posterieurs a heures egales.",
+          "Verifier production, recurrence et temperature."
+        ],
+        "results": {
+          "signal": "weekend_day_load_window",
+          "period": [
+            "2026-02-19",
+            "2026-03-06"
+          ],
+          "window_duration_hours": 360,
+          "reference": {
+            "rows": 476,
+            "days": 12,
+            "evaluated_hours": 119.0,
+            "energy_kwh": 2623.143949,
+            "mean_power_kw": 22.043226334033612,
+            "mean_residual_kw": -0.007169852141216878,
+            "mean_production_per_interval": 0.0,
+            "total_production": 0.0,
+            "production_zero_share": 1.0,
+            "mean_temperature_c": 13.784394957983194,
+            "product_b_share": 0.33403361344537813,
+            "mean_production_product_b": 0.0
+          },
+          "candidate": {
+            "rows": 160,
+            "days": 4,
+            "evaluated_hours": 40.0,
+            "energy_kwh": 1763.227156,
+            "mean_power_kw": 44.0806788375,
+            "mean_residual_kw": 21.926139545628786,
+            "mean_production_per_interval": 0.0,
+            "total_production": 0.0,
+            "production_zero_share": 1.0,
+            "mean_temperature_c": 16.47353125,
+            "product_b_share": 0.5,
+            "mean_production_product_b": 0.0
+          },
+          "post_window": {
+            "rows": 160,
+            "days": 4,
+            "evaluated_hours": 40.0,
+            "energy_kwh": 972.132323,
+            "mean_power_kw": 24.30330814375,
+            "mean_residual_kw": 2.178420908005576,
+            "mean_production_per_interval": 0.0,
+            "total_production": 0.0,
+            "production_zero_share": 1.0,
+            "mean_temperature_c": 17.64780625,
+            "product_b_share": 0.25,
+            "mean_production_product_b": 0.0
+          },
+          "recurrence": {
+            "days_tested": 4,
+            "days_detected": 4,
+            "recurrence_ratio": 1.0
+          },
+          "temperature_explained_delta_kw": 0.06547686775639643,
+          "excess_energy_kwh": 877.3323759108002,
+          "cost": 153.53316578439004
+        },
+        "alternative_explanations": [
+          "Maintenance ou nettoyage planifie.",
+          "Temperature.",
+          "Derive de charge fixe."
+        ],
+        "best_reason_false": "Une activite non mesuree par la production peut etre normale pendant ces week-ends.",
+        "adversarial_review": "Production nulle, signal present 4/4 jours et absent avant. La temperature n'explique que 0.065477 kW. La periode posterieure contient deja le debut d'une autre derive, donc elle n'est pas utilisee pour gonfler l'exces.",
+        "decision": "A_CONSERVER_AVEC_RESERVES",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "moyenne"
+        },
+        "physical_cause_status": "non_etablie_avec_les_donnees_disponibles",
+        "follow_up_requests": [
+          {
+            "request_id": "H02-Q1",
+            "request_type": "question_metier",
+            "ask_client": "Verifier dans le planning si maintenance, nettoyage ou production non comptabilisee avait lieu pendant les quatre jours de week-end identifies.",
+            "why_useful": "Le planning existant suffit a tester l'explication operationnelle la plus probable avant toute visite ou instrumentation.",
+            "information_value": "elevee: le planning peut expliquer completement les quatre occurrences sans nouvelle mesure.",
+            "hypotheses_distinguished": [
+              "activite de week-end legitime mais absente de la production",
+              "charge de week-end sans activite planifiee"
+            ],
+            "responsible_role": "responsable de production ou maintenance",
+            "client_effort": "Lecture du planning et reponse oui/non, environ 5 minutes.",
+            "effort_level": "tres_faible",
+            "expected_if_true": "Si la charge est anormale, le planning ne montrera ni maintenance, ni nettoyage, ni production pendant ces quatre jours.",
+            "priority": 1
+          }
+        ],
+        "severity": "faible",
+        "report_section": "verification"
+      },
+      {
+        "hypothesis_id": "H03",
+        "observation": "Huit quarts d'heure consecutifs depassent la baseline de plus de 80 kW.",
+        "hypothesis": "Un evenement ponctuel de deux heures a cree un pic inhabituel.",
+        "tests_requested": [
+          "Regrouper les points en evenement.",
+          "Comparer production, temperature et mardis a heures egales.",
+          "Rechercher la recurrence."
+        ],
+        "results": {
+          "signal": "two_hour_point_spike",
+          "period": [
+            "2026-02-24T10:00",
+            "2026-02-24T12:00"
+          ],
+          "window_duration_hours": 2,
+          "candidate": {
+            "rows": 8,
+            "days": 1,
+            "evaluated_hours": 2.0,
+            "energy_kwh": 393.41914099999997,
+            "mean_power_kw": 196.70957075,
+            "mean_residual_kw": 119.60538548810996,
+            "mean_production_per_interval": 27.807644125,
+            "total_production": 222.461153,
+            "production_zero_share": 0.0,
+            "mean_temperature_c": 15.3515,
+            "product_b_share": 0.0,
+            "mean_production_product_b": 0.0
+          },
+          "comparable_tuesdays": {
+            "rows": 128,
+            "days": 16,
+            "evaluated_hours": 32.0,
+            "energy_kwh": 2660.620472,
+            "mean_power_kw": 83.14438965625,
+            "mean_residual_kw": 4.621098734887875,
+            "mean_production_per_interval": 27.5979679453125,
+            "total_production": 3532.539897,
+            "production_zero_share": 0.0,
+            "mean_temperature_c": 15.181359375,
+            "product_b_share": 0.3125,
+            "mean_production_product_b": 9.0096431171875
+          },
+          "events_over_80_kw_residual": [
+            {
+              "event_id": "E0001",
+              "start": "2026-02-24T10:00:00",
+              "end": "2026-02-24T11:45:00",
+              "points": 8,
+              "peak_residual_kw": 122.30472999243125,
+              "excess_energy_kwh": 239.21077097621992
+            }
+          ],
+          "excess_energy_kwh": 239.21077097621992,
+          "cost": 41.861884920838484
+        },
+        "alternative_explanations": [
+          "Demarrage normal d'equipement.",
+          "Operation exceptionnelle necessaire.",
+          "Valeur capteur erronee."
+        ],
+        "best_reason_false": "L'evenement est unique ; sans journal d'exploitation, son caractere evitable ne peut pas etre etabli.",
+        "adversarial_review": "Production et temperature sont comparables ; les huit points forment un seul evenement. Aucune recurrence ni projection annuelle n'est retenue.",
+        "decision": "A_CONSERVER_AVEC_RESERVES",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "faible"
+        },
+        "physical_cause_status": "non_etablie_avec_les_donnees_disponibles",
+        "follow_up_requests": [
+          {
+            "request_id": "H03-Q1",
+            "request_type": "question_metier",
+            "ask_client": "Demander ce qui s'est passe le jour et pendant les deux heures exactes du pic: demarrage, essai, incident, maintenance ou aucune operation connue.",
+            "why_useful": "Le journal ou la memoire de l'operateur permet de separer un evenement normal et necessaire d'un incident ou d'une valeur capteur douteuse.",
+            "information_value": "moyenne: la reponse peut classer le pic comme operation legitime, incident ou mesure douteuse.",
+            "hypotheses_distinguished": [
+              "operation ponctuelle legitime",
+              "incident energetique ou mesure capteur erronee"
+            ],
+            "responsible_role": "operateur present ou responsable de production",
+            "client_effort": "Question de 5 minutes a l'operateur; aucun test terrain demande.",
+            "effort_level": "tres_faible",
+            "expected_if_true": "Si le pic correspond a un incident energetique, l'operateur signalera un fonctionnement inhabituel plutot qu'un demarrage planifie.",
+            "priority": 1
+          }
+        ],
+        "severity": "faible",
+        "report_section": "verification"
+      },
+      {
+        "hypothesis_id": "H04",
+        "observation": "Le residu actif augmente sans hausse equivalente du residu inactif.",
+        "hypothesis": "L'efficacite energie-production se degrade temporairement.",
+        "tests_requested": [
+          "Controler production, temperature, activite et mix produit.",
+          "Retrancher le residu inactif journalier pour isoler la derive fixe.",
+          "Verifier la recurrence sur chaque jour de production."
+        ],
+        "results": {
+          "signal": "active_efficiency_drop",
+          "period": [
+            "2026-03-16",
+            "2026-03-31"
+          ],
+          "window_duration_hours": 360,
+          "prior": {
+            "rows": 640,
+            "days": 10,
+            "evaluated_hours": 160.0,
+            "energy_kwh": 12405.714706,
+            "mean_power_kw": 77.5357169859375,
+            "mean_residual_kw": 1.016637512062272,
+            "mean_production_per_interval": 26.0750120859375,
+            "total_production": 16688.007735,
+            "production_zero_share": 0.0,
+            "mean_temperature_c": 17.9181234375,
+            "product_b_share": 0.4,
+            "mean_production_product_b": 10.4580342375
+          },
+          "candidate": {
+            "rows": 704,
+            "days": 11,
+            "evaluated_hours": 176.0,
+            "energy_kwh": 16747.426889,
+            "mean_power_kw": 95.15583449715909,
+            "mean_residual_kw": 18.614227667560026,
+            "mean_production_per_interval": 26.20178255965909,
+            "total_production": 18446.054922,
+            "production_zero_share": 0.0,
+            "mean_temperature_c": 18.90491903409091,
+            "product_b_share": 0.36363636363636365,
+            "mean_production_product_b": 9.438885134943181
+          },
+          "modelled_context_delta_kw": 0.022527355723831313,
+          "prior_active_minus_inactive_residual_kw": 0.1086867242240459,
+          "candidate_active_minus_inactive_residual_kw": 12.175270967369194,
+          "days_tested": 11,
+          "days_detected": 11,
+          "excess_after_fixed_drift_removal_kwh": 2123.718826793546,
+          "cost": 371.6507946888706
+        },
+        "alternative_explanations": [
+          "Production plus elevee.",
+          "Mix produit B.",
+          "Temperature.",
+          "Double comptage avec la derive fixe H05."
+        ],
+        "best_reason_false": "Le type produit A/B peut ne pas decrire toute la complexite du mix ou des cadences.",
+        "adversarial_review": "Production moyenne quasi stable, part de produit B legerement plus faible et effet contextuel modele de 0.022527 kW. Le calcul d'exces retire explicitement H05 avant integration.",
+        "decision": "CONFIRME",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "elevee"
+        },
+        "severity": "moyenne",
+        "report_section": "confirmed"
+      },
+      {
+        "hypothesis_id": "H05",
+        "observation": "Le residu inactif augmente progressivement pendant trente jours.",
+        "hypothesis": "La charge fixe derive independamment de la production.",
+        "tests_requested": [
+          "Mesurer la pente sur les seules periodes inactives.",
+          "Comparer la pente a celle impliquee par la temperature.",
+          "Verifier la qualite d'ajustement et quantifier par jour."
+        ],
+        "results": {
+          "signal": "progressive_fixed_load_drift",
+          "period": [
+            "2026-03-06",
+            "2026-04-05"
+          ],
+          "window_duration_hours": 720,
+          "candidate": {
+            "rows": 2880,
+            "days": 30,
+            "evaluated_hours": 720.0,
+            "energy_kwh": 40610.599155,
+            "mean_power_kw": 56.40360992777778,
+            "mean_residual_kw": 8.894896982475595,
+            "mean_production_per_interval": 12.18021863611111,
+            "total_production": 35079.029672,
+            "production_zero_share": 0.5333333333333333,
+            "mean_temperature_c": 18.789532291666667,
+            "product_b_share": 0.3333333333333333,
+            "mean_production_product_b": 4.631017072222222
+          },
+          "inactive_residual_start_kw": -0.22134254395597897,
+          "inactive_residual_end_kw": 12.508513068981546,
+          "inactive_trend": {
+            "slope_per_day": 0.4141503431462498,
+            "r_squared": 0.9922699929238414
+          },
+          "active_trend": {
+            "slope_per_day": 0.7457718326523324,
+            "r_squared": 0.3711489694480089
+          },
+          "temperature_trend": {
+            "slope_per_day": 0.06045910038932145,
+            "r_squared": 0.9847200038821837
+          },
+          "baseline_temperature_coefficient_kw_per_c": 0.02434866092535975,
+          "temperature_implied_residual_slope_kw_per_day": 0.0014720981352318737,
+          "excess_energy_kwh": 4232.2716136391,
+          "cost": 740.6475323868425
+        },
+        "alternative_explanations": [
+          "Rechauffement exterieur.",
+          "Hausse de production.",
+          "Effet de H04."
+        ],
+        "best_reason_false": "Une variable saisonniere non mesuree et correlee au temps pourrait imiter une derive.",
+        "adversarial_review": "Le signal existe lorsque la production est nulle. La pente observee est 0.414150 kW/j avec R2=0.992270, contre 0.001472 kW/j implique par la temperature.",
+        "decision": "CONFIRME",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "elevee"
+        },
+        "severity": "elevee",
+        "report_section": "confirmed"
+      },
+      {
+        "hypothesis_id": "H06",
+        "observation": "Apres la derive, un niveau residuel inactif reste durablement eleve.",
+        "hypothesis": "La baseline fixe a change de niveau de facon persistante.",
+        "tests_requested": [
+          "Comparer trente jours a la reference inactive.",
+          "Verifier stabilite, recurrence et temperature.",
+          "Limiter la quantification a la periode observee."
+        ],
+        "results": {
+          "signal": "persistent_fixed_load_level",
+          "period": [
+            "2026-04-05",
+            "2026-05-05"
+          ],
+          "window_duration_hours": 720,
+          "reference_inactive_residual_kw": -0.0004452248336572975,
+          "post_inactive_residual_mean_kw": 8.30372684952236,
+          "post_inactive_residual_sd_kw": 0.22562894276227793,
+          "days_tested": 30,
+          "days_over_reference_plus_5kw": 30,
+          "reference": {
+            "rows": 956,
+            "days": 20,
+            "evaluated_hours": 239.0,
+            "energy_kwh": 5267.308709,
+            "mean_power_kw": 22.03894855334728,
+            "mean_residual_kw": -0.0004452248336572975,
+            "mean_production_per_interval": 0.0,
+            "total_production": 0.0,
+            "production_zero_share": 1.0,
+            "mean_temperature_c": 13.015610878661088,
+            "product_b_share": 0.36715481171548114,
+            "mean_production_product_b": 0.0
+          },
+          "candidate": {
+            "rows": 2880,
+            "days": 30,
+            "evaluated_hours": 720.0,
+            "energy_kwh": 40055.122338,
+            "mean_power_kw": 55.632114360069444,
+            "mean_residual_kw": 8.318782591029207,
+            "mean_production_per_interval": 12.17159174826389,
+            "total_production": 35054.184235,
+            "production_zero_share": 0.5333333333333333,
+            "mean_temperature_c": 19.88748263888889,
+            "product_b_share": 0.3333333333333333,
+            "mean_production_product_b": 3.508505746527778
+          },
+          "candidate_inactive": {
+            "rows": 1536,
+            "days": 30,
+            "evaluated_hours": 384.0,
+            "energy_kwh": 11725.424293,
+            "mean_power_kw": 30.534959123697917,
+            "mean_residual_kw": 8.325769986840607,
+            "mean_production_per_interval": 0.0,
+            "total_production": 0.0,
+            "production_zero_share": 1.0,
+            "mean_temperature_c": 19.914044270833333,
+            "product_b_share": 0.375,
+            "mean_production_product_b": 0.0
+          },
+          "temperature_explained_delta_kw": 0.16796761558218126,
+          "excess_energy_kwh": 5979.003893536332,
+          "cost": 1046.325681368858
+        },
+        "alternative_explanations": [
+          "Temperature saisonniere.",
+          "Production ou mix produit.",
+          "Changement de qualite des donnees."
+        ],
+        "best_reason_false": "Un nouveau besoin permanent mais legitime peut expliquer le niveau sans constituer une economie.",
+        "adversarial_review": "Signal present 30/30 jours et mesure sur les seules periodes inactives. Ecart moyen 8.303727 kW, ecart-type journalier 0.225629 kW ; temperature explicative 0.167968 kW.",
+        "decision": "CONFIRME",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "elevee"
+        },
+        "severity": "elevee",
+        "report_section": "confirmed"
+      },
+      {
+        "hypothesis_id": "H07",
+        "observation": "L'intensite mensuelle de mai est nettement plus haute.",
+        "hypothesis": "Mai constitue une opportunite d'intensite independante.",
+        "tests_requested": [
+          "Verifier la couverture du mois.",
+          "Comparer a production equivalente et aux residus des hypotheses existantes."
+        ],
+        "results": {
+          "may_is_partial": true,
+          "covered_days": 4,
+          "overlaps_with": [
+            "H04",
+            "H05",
+            "H06"
+          ]
+        },
+        "alternative_explanations": [
+          "Mois incomplet.",
+          "Charge fixe a faible production."
+        ],
+        "best_reason_false": "Le ratio agrege est confondu et deja explique par des signaux temporels plus solides.",
+        "adversarial_review": "Aucune energie ni economie additionnelle n'est attribuee a ce ratio.",
+        "decision": "REJETE",
+        "confidence": {
+          "observation": "moyenne",
+          "opportunity": "nulle"
+        },
+        "severity": "non_applicable",
+        "report_section": "rejected"
+      },
+      {
+        "hypothesis_id": "H08",
+        "observation": "Le signal automatique de pointe vise les memes huit points que H03.",
+        "hypothesis": "La pointe de puissance constitue une opportunite supplementaire.",
+        "tests_requested": [
+          "Comparer les timestamps et l'energie attribuee a H03."
+        ],
+        "results": {
+          "naive_total_kwh": 478.42154195243984,
+          "deduplicated_total_kwh": 239.21077097621992,
+          "double_counted_kwh": 239.21077097621992,
+          "overlapping_points": 8
+        },
+        "alternative_explanations": [
+          "Deux methodes detectent le meme evenement."
+        ],
+        "best_reason_false": "Additionner les deux signaux doublerait exactement l'energie du pic.",
+        "adversarial_review": "H08 est fusionnee dans H03 et ne porte aucune valeur additionnelle.",
+        "decision": "REJETE",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "nulle"
+        },
+        "severity": "non_applicable",
+        "report_section": "rejected"
+      }
+    ],
+    "events": [
+      {
+        "event_id": "EV-H01",
+        "type": "night_anomaly",
+        "start": "2026-01-25",
+        "end": "2026-02-09",
+        "duration_hours": 360,
+        "evaluated_hours": 120.0,
+        "observed_energy_kwh": 4797.732517,
+        "expected_energy_kwh": 2644.929346438894,
+        "excess_energy_kwh": 2152.8031705611065,
+        "cost": 376.7405548481936,
+        "potential_saving_kwh": null,
+        "recoverability": "unknown",
+        "severity": "moyenne",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "moyenne"
+        },
+        "decision": "A_CONSERVER_AVEC_RESERVES",
+        "supporting_methods": [
+          "production_activity_baseline",
+          "night_comparison",
+          "temperature_control"
+        ],
+        "related_hypotheses": []
+      },
+      {
+        "event_id": "EV-H02",
+        "type": "weekend_anomaly",
+        "start": "2026-02-19",
+        "end": "2026-03-06",
+        "duration_hours": 360,
+        "evaluated_hours": 40.0,
+        "observed_energy_kwh": 1763.227156,
+        "expected_energy_kwh": 885.8947800891997,
+        "excess_energy_kwh": 877.3323759108002,
+        "cost": 153.53316578439004,
+        "potential_saving_kwh": null,
+        "recoverability": "unknown",
+        "severity": "faible",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "moyenne"
+        },
+        "decision": "A_CONSERVER_AVEC_RESERVES",
+        "supporting_methods": [
+          "production_activity_baseline",
+          "weekend_comparison",
+          "temperature_control"
+        ],
+        "related_hypotheses": []
+      },
+      {
+        "event_id": "EV-H03",
+        "type": "point_spike",
+        "start": "2026-02-24T10:00",
+        "end": "2026-02-24T12:00",
+        "duration_hours": 2,
+        "evaluated_hours": 2.0,
+        "observed_energy_kwh": 393.41914099999997,
+        "expected_energy_kwh": 154.20837002378005,
+        "excess_energy_kwh": 239.21077097621992,
+        "cost": 41.861884920838484,
+        "potential_saving_kwh": null,
+        "recoverability": "unknown",
+        "severity": "faible",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "faible"
+        },
+        "decision": "A_CONSERVER_AVEC_RESERVES",
+        "supporting_methods": [
+          "robust_residual",
+          "temporal_grouping",
+          "similar_period_comparison"
+        ],
+        "related_hypotheses": [
+          "H08"
+        ]
+      },
+      {
+        "event_id": "EV-H04",
+        "type": "efficiency_drop",
+        "start": "2026-03-16",
+        "end": "2026-03-31",
+        "duration_hours": 360,
+        "evaluated_hours": 176.0,
+        "observed_energy_kwh": 16747.426889,
+        "expected_energy_kwh": 14623.708062206453,
+        "excess_energy_kwh": 2123.718826793546,
+        "cost": 371.6507946888706,
+        "potential_saving_kwh": null,
+        "recoverability": "unknown",
+        "severity": "moyenne",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "elevee"
+        },
+        "decision": "CONFIRME",
+        "supporting_methods": [
+          "production_baseline",
+          "product_mix_control",
+          "inactive_residual_removal"
+        ],
+        "related_hypotheses": [
+          "H05"
+        ]
+      },
+      {
+        "event_id": "EV-H05",
+        "type": "progressive_drift",
+        "start": "2026-03-06",
+        "end": "2026-04-05",
+        "duration_hours": 720,
+        "evaluated_hours": 720.0,
+        "observed_energy_kwh": 40610.599155,
+        "expected_energy_kwh": 36378.3275413609,
+        "excess_energy_kwh": 4232.2716136391,
+        "cost": 740.6475323868425,
+        "potential_saving_kwh": null,
+        "recoverability": "unknown",
+        "severity": "elevee",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "elevee"
+        },
+        "decision": "CONFIRME",
+        "supporting_methods": [
+          "inactive_residual_trend",
+          "linear_trend",
+          "temperature_falsification"
+        ],
+        "related_hypotheses": [
+          "H04"
+        ]
+      },
+      {
+        "event_id": "EV-H06",
+        "type": "permanent_baseline_shift",
+        "start": "2026-04-05",
+        "end": "2026-05-05",
+        "duration_hours": 720,
+        "evaluated_hours": 720.0,
+        "observed_energy_kwh": 40055.122338,
+        "expected_energy_kwh": 34076.11844446367,
+        "excess_energy_kwh": 5979.003893536332,
+        "cost": 1046.325681368858,
+        "potential_saving_kwh": null,
+        "recoverability": "unknown",
+        "severity": "elevee",
+        "confidence": {
+          "observation": "elevee",
+          "opportunity": "elevee"
+        },
+        "decision": "CONFIRME",
+        "supporting_methods": [
+          "inactive_level_comparison",
+          "persistence_test",
+          "temperature_falsification"
+        ],
+        "related_hypotheses": []
+      }
+    ],
+    "recommendations": [
+      {
+        "recommendation_id": "R-H01",
+        "finding_id": "H01",
+        "measured_anomaly": "Hausse nocturne bornee du residu de puissance.",
+        "observed_impact": {
+          "period": "2026-01-25/2026-02-09",
+          "excess_energy_kwh": 2152.8031705611065,
+          "associated_cost": 376.7405548481936,
+          "quantitative_source": "reports/demo_quantitative_results.json#hypotheses.H01.excess_energy_kwh"
+        },
+        "confidence": {
+          "level": "medium",
+          "basis": [
+            "Comparer les nuits a la reference et a la periode posterieure.",
+            "Verifier production, recurrence et temperature.",
+            "Quantifier l'energie au-dessus du residu nocturne de reference."
+          ]
+        },
+        "plausible_causes": [
+          {
+            "rank": 1,
+            "cause": "utilité nocturne nécessaire",
+            "evidence_status": "untested"
+          },
+          {
+            "rank": 2,
+            "cause": "consigne ou équipement maintenu sans besoin",
+            "evidence_status": "untested"
+          }
+        ],
+        "physical_cause_status": "plausible_not_proven",
+        "action_status": "verification_only",
+        "next_verification": {
+          "request_id": "H01-Q1",
+          "request_type": "question_metier",
+          "ask_client": "Demander au responsable de site quels equipements ou utilites devaient rester actifs entre 00:00 et 05:00 pendant les 15 nuits concernees.",
+          "why_useful": "Une liste courte des usages nocturnes permet de distinguer un besoin de procede d'un equipement reste actif par habitude ou erreur de consigne.",
+          "information_value": "elevee: la reponse peut faire passer la piste de reservee a rejetee ou a test terrain.",
+          "hypotheses_distinguished": [
+            "charge nocturne necessaire au procede",
+            "charge nocturne non requise ou consigne incorrecte"
+          ],
+          "responsible_role": "responsable de site",
+          "client_effort": "Entretien de 10 minutes, sans mesure ni arret d'equipement.",
+          "effort_level": "tres_faible",
+          "expected_if_true": "Si la charge est non requise, aucun usage nocturne obligatoire ne sera identifie pour expliquer le palier observe.",
+          "priority": 1
+        },
+        "owner_role": "responsable de site",
+        "verification_effort": "Entretien de 10 minutes, sans mesure ni arret d'equipement.",
+        "expected_if_hypothesis_true": "Si la charge est non requise, aucun usage nocturne obligatoire ne sera identifie pour expliquer le palier observe.",
+        "post_action_measurement": {
+          "metric": "puissance moyenne ou énergie sur la même fenêtre comparable",
+          "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
+          "evaluation_window": "au moins trois occurrences comparables après intervention",
+          "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+        },
+        "continuous_monitoring": {
+          "activation_condition": "après une correction dont l'effet initial a été vérifié",
+          "cadence": "réévaluation à chaque nouvelle occurrence comparable",
+          "alert_rule": "alerte si le comportement réapparaît sur trois occurrences comparables",
+          "owner_role": "responsable de site"
+        },
+        "recoverable_saving": null
+      },
+      {
+        "recommendation_id": "R-H02",
+        "finding_id": "H02",
+        "measured_anomaly": "Charge de jour sur quatre jours de week-end consecutifs.",
+        "observed_impact": {
+          "period": "2026-02-19/2026-03-06",
+          "excess_energy_kwh": 877.3323759108002,
+          "associated_cost": 153.53316578439004,
+          "quantitative_source": "reports/demo_quantitative_results.json#hypotheses.H02.excess_energy_kwh"
+        },
+        "confidence": {
+          "level": "medium",
+          "basis": [
+            "Comparer aux week-ends anterieurs et posterieurs a heures egales.",
+            "Verifier production, recurrence et temperature."
+          ]
+        },
+        "plausible_causes": [
+          {
+            "rank": 1,
+            "cause": "maintenance ou nettoyage",
+            "evidence_status": "untested"
+          },
+          {
+            "rank": 2,
+            "cause": "charge de week-end non planifiée",
+            "evidence_status": "untested"
+          }
+        ],
+        "physical_cause_status": "plausible_not_proven",
+        "action_status": "verification_only",
+        "next_verification": {
+          "request_id": "H02-Q1",
+          "request_type": "question_metier",
+          "ask_client": "Verifier dans le planning si maintenance, nettoyage ou production non comptabilisee avait lieu pendant les quatre jours de week-end identifies.",
+          "why_useful": "Le planning existant suffit a tester l'explication operationnelle la plus probable avant toute visite ou instrumentation.",
+          "information_value": "elevee: le planning peut expliquer completement les quatre occurrences sans nouvelle mesure.",
+          "hypotheses_distinguished": [
+            "activite de week-end legitime mais absente de la production",
+            "charge de week-end sans activite planifiee"
+          ],
+          "responsible_role": "responsable de production ou maintenance",
+          "client_effort": "Lecture du planning et reponse oui/non, environ 5 minutes.",
+          "effort_level": "tres_faible",
+          "expected_if_true": "Si la charge est anormale, le planning ne montrera ni maintenance, ni nettoyage, ni production pendant ces quatre jours.",
+          "priority": 1
+        },
+        "owner_role": "responsable de production ou maintenance",
+        "verification_effort": "Lecture du planning et reponse oui/non, environ 5 minutes.",
+        "expected_if_hypothesis_true": "Si la charge est anormale, le planning ne montrera ni maintenance, ni nettoyage, ni production pendant ces quatre jours.",
+        "post_action_measurement": {
+          "metric": "puissance moyenne ou énergie sur la même fenêtre comparable",
+          "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
+          "evaluation_window": "au moins trois occurrences comparables après intervention",
+          "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+        },
+        "continuous_monitoring": {
+          "activation_condition": "après une correction dont l'effet initial a été vérifié",
+          "cadence": "réévaluation à chaque nouvelle occurrence comparable",
+          "alert_rule": "alerte si le comportement réapparaît sur trois occurrences comparables",
+          "owner_role": "responsable de production ou maintenance"
+        },
+        "recoverable_saving": null
+      },
+      {
+        "recommendation_id": "R-H03",
+        "finding_id": "H03",
+        "measured_anomaly": "Huit quarts d'heure consecutifs depassent la baseline de plus de 80 kW.",
+        "observed_impact": {
+          "period": "2026-02-24T10:00/2026-02-24T12:00",
+          "excess_energy_kwh": 239.21077097621992,
+          "associated_cost": 41.861884920838484,
+          "quantitative_source": "reports/demo_quantitative_results.json#hypotheses.H03.excess_energy_kwh"
+        },
+        "confidence": {
+          "level": "low",
+          "basis": [
+            "Regrouper les points en evenement.",
+            "Comparer production, temperature et mardis a heures egales.",
+            "Rechercher la recurrence."
+          ]
+        },
+        "plausible_causes": [
+          {
+            "rank": 1,
+            "cause": "opération ponctuelle légitime",
+            "evidence_status": "untested"
+          },
+          {
+            "rank": 2,
+            "cause": "incident ou mesure capteur erronée",
+            "evidence_status": "untested"
+          }
+        ],
+        "physical_cause_status": "plausible_not_proven",
+        "action_status": "verification_only",
+        "next_verification": {
+          "request_id": "H03-Q1",
+          "request_type": "question_metier",
+          "ask_client": "Demander ce qui s'est passe le jour et pendant les deux heures exactes du pic: demarrage, essai, incident, maintenance ou aucune operation connue.",
+          "why_useful": "Le journal ou la memoire de l'operateur permet de separer un evenement normal et necessaire d'un incident ou d'une valeur capteur douteuse.",
+          "information_value": "moyenne: la reponse peut classer le pic comme operation legitime, incident ou mesure douteuse.",
+          "hypotheses_distinguished": [
+            "operation ponctuelle legitime",
+            "incident energetique ou mesure capteur erronee"
+          ],
+          "responsible_role": "operateur present ou responsable de production",
+          "client_effort": "Question de 5 minutes a l'operateur; aucun test terrain demande.",
+          "effort_level": "tres_faible",
+          "expected_if_true": "Si le pic correspond a un incident energetique, l'operateur signalera un fonctionnement inhabituel plutot qu'un demarrage planifie.",
+          "priority": 1
+        },
+        "owner_role": "opérateur présent",
+        "verification_effort": "Question de 5 minutes a l'operateur; aucun test terrain demande.",
+        "expected_if_hypothesis_true": "Si le pic correspond a un incident energetique, l'operateur signalera un fonctionnement inhabituel plutot qu'un demarrage planifie.",
+        "post_action_measurement": {
+          "metric": "puissance moyenne ou énergie sur la même fenêtre comparable",
+          "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
+          "evaluation_window": "au moins trois occurrences comparables après intervention",
+          "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+        },
+        "continuous_monitoring": {
+          "activation_condition": "après une correction dont l'effet initial a été vérifié",
+          "cadence": "réévaluation à chaque nouvelle occurrence comparable",
+          "alert_rule": "alerte si le comportement réapparaît sur trois occurrences comparables",
+          "owner_role": "opérateur présent"
+        },
+        "recoverable_saving": null
+      },
+      {
+        "recommendation_id": "R-H04",
+        "finding_id": "H04",
+        "measured_anomaly": "Le residu actif augmente sans hausse equivalente du residu inactif.",
+        "observed_impact": {
+          "period": "2026-03-16/2026-03-31",
+          "excess_energy_kwh": 2123.718826793546,
+          "associated_cost": 371.6507946888706,
+          "quantitative_source": "reports/demo_quantitative_results.json#hypotheses.H04.excess_after_fixed_drift_removal_kwh"
+        },
+        "confidence": {
+          "level": "high",
+          "basis": [
+            "Controler production, temperature, activite et mix produit.",
+            "Retrancher le residu inactif journalier pour isoler la derive fixe.",
+            "Verifier la recurrence sur chaque jour de production."
+          ]
+        },
+        "plausible_causes": [
+          {
+            "rank": 1,
+            "cause": "dégradation du procédé",
+            "evidence_status": "untested"
+          },
+          {
+            "rank": 2,
+            "cause": "recette, cadence ou qualité non mesurée",
+            "evidence_status": "untested"
+          }
+        ],
+        "physical_cause_status": "plausible_not_proven",
+        "action_status": "verification_only",
+        "next_verification": {
+          "request_id": "H04-Q1",
+          "request_type": "donnee_complementaire",
+          "ask_client": "Comparer le journal de production et les changements de recette, cadence ou réglage pendant les 11 jours concernés avec les 15 jours précédents.",
+          "why_useful": "Le journal peut séparer une contrainte de procédé non mesurée d'une dégradation énergétique réelle à production comparable.",
+          "information_value": "élevée: la réponse peut confirmer ou déclasser l'interprétation d'efficacité.",
+          "hypotheses_distinguished": [
+            "dégradation énergétique du procédé",
+            "changement légitime de recette ou cadence"
+          ],
+          "responsible_role": "responsable de production",
+          "client_effort": "20 à 30 minutes sur les journaux existants",
+          "effort_level": "faible",
+          "expected_if_true": "Si l'efficacité s'est réellement dégradée, aucun changement de recette, cadence ou exigence qualité suffisant ne coïncidera avec les 11 jours.",
+          "priority": 1
+        },
+        "owner_role": "responsable de production",
+        "verification_effort": "20 à 30 minutes sur les journaux existants",
+        "expected_if_hypothesis_true": "Si l'efficacité s'est réellement dégradée, aucun changement de recette, cadence ou exigence qualité suffisant ne coïncidera avec les 11 jours.",
+        "post_action_measurement": {
+          "metric": "puissance moyenne ou énergie sur la même fenêtre comparable",
+          "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
+          "evaluation_window": "au moins trois occurrences comparables après intervention",
+          "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+        },
+        "continuous_monitoring": {
+          "activation_condition": "après une correction dont l'effet initial a été vérifié",
+          "cadence": "réévaluation à chaque nouvelle occurrence comparable",
+          "alert_rule": "alerte si le comportement réapparaît sur trois occurrences comparables",
+          "owner_role": "responsable de production"
+        },
+        "recoverable_saving": null
+      },
+      {
+        "recommendation_id": "R-H05",
+        "finding_id": "H05",
+        "measured_anomaly": "Le residu inactif augmente progressivement pendant trente jours.",
+        "observed_impact": {
+          "period": "2026-03-06/2026-04-05",
+          "excess_energy_kwh": 4232.2716136391,
+          "associated_cost": 740.6475323868425,
+          "quantitative_source": "reports/demo_quantitative_results.json#hypotheses.H05.excess_energy_kwh"
+        },
+        "confidence": {
+          "level": "high",
+          "basis": [
+            "Mesurer la pente sur les seules periodes inactives.",
+            "Comparer la pente a celle impliquee par la temperature.",
+            "Verifier la qualite d'ajustement et quantifier par jour."
+          ]
+        },
+        "plausible_causes": [
+          {
+            "rank": 1,
+            "cause": "fuite d'air comprimé",
+            "evidence_status": "untested"
+          },
+          {
+            "rank": 2,
+            "cause": "dérive de régulation",
+            "evidence_status": "untested"
+          },
+          {
+            "rank": 3,
+            "cause": "autre auxiliaire fixe",
+            "evidence_status": "untested"
+          }
+        ],
+        "physical_cause_status": "plausible_not_proven",
+        "action_status": "verification_only",
+        "next_verification": {
+          "request_id": "H05-Q1",
+          "request_type": "test_terrain_simple",
+          "ask_client": "Lors d'un prochain arrêt autorisé, relever pendant 30 minutes la pression réseau et le nombre de démarrages compresseur sans ouvrir de vanne ni modifier de sécurité.",
+          "why_useful": "Un maintien de pression accompagné de cycles compresseur permet de prioriser une fuite ou un auxiliaire pneumatique avant une campagne de mesure plus coûteuse.",
+          "information_value": "moyenne: le test cible une cause plausible mais n'explique pas tous les auxiliaires.",
+          "hypotheses_distinguished": [
+            "dérive du réseau d'air comprimé",
+            "autre charge fixe ou dérive de régulation"
+          ],
+          "responsible_role": "responsable maintenance",
+          "client_effort": "30 minutes pendant un arrêt déjà planifié",
+          "effort_level": "faible",
+          "expected_if_true": "Si l'air comprimé contribue à la dérive, le compresseur cyclera ou la pression baissera mesurablement sans demande de production.",
+          "priority": 1
+        },
+        "owner_role": "responsable maintenance",
+        "verification_effort": "30 minutes pendant un arrêt déjà planifié",
+        "expected_if_hypothesis_true": "Si l'air comprimé contribue à la dérive, le compresseur cyclera ou la pression baissera mesurablement sans demande de production.",
+        "post_action_measurement": {
+          "metric": "puissance moyenne ou énergie sur la même fenêtre comparable",
+          "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
+          "evaluation_window": "au moins trois occurrences comparables après intervention",
+          "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+        },
+        "continuous_monitoring": {
+          "activation_condition": "après une correction dont l'effet initial a été vérifié",
+          "cadence": "réévaluation à chaque nouvelle occurrence comparable",
+          "alert_rule": "alerte si le comportement réapparaît sur trois occurrences comparables",
+          "owner_role": "responsable maintenance"
+        },
+        "recoverable_saving": null
+      },
+      {
+        "recommendation_id": "R-H06",
+        "finding_id": "H06",
+        "measured_anomaly": "Apres la derive, un niveau residuel inactif reste durablement eleve.",
+        "observed_impact": {
+          "period": "2026-04-05/2026-05-05",
+          "excess_energy_kwh": 5979.003893536332,
+          "associated_cost": 1046.325681368858,
+          "quantitative_source": "reports/demo_quantitative_results.json#hypotheses.H06.excess_energy_kwh"
+        },
+        "confidence": {
+          "level": "high",
+          "basis": [
+            "Comparer trente jours a la reference inactive.",
+            "Verifier stabilite, recurrence et temperature.",
+            "Limiter la quantification a la periode observee."
+          ]
+        },
+        "plausible_causes": [
+          {
+            "rank": 1,
+            "cause": "nouveau besoin légitime",
+            "evidence_status": "untested"
+          },
+          {
+            "rank": 2,
+            "cause": "consigne modifiée",
+            "evidence_status": "untested"
+          },
+          {
+            "rank": 3,
+            "cause": "auxiliaire maintenu actif",
+            "evidence_status": "untested"
+          }
+        ],
+        "physical_cause_status": "plausible_not_proven",
+        "action_status": "verification_only",
+        "next_verification": {
+          "request_id": "H06-Q1",
+          "request_type": "question_metier",
+          "ask_client": "Lister les équipements, consignes, travaux ou exigences d'exploitation ajoutés ou modifiés autour du début exact du nouveau palier.",
+          "why_useful": "Un changement daté peut expliquer le palier permanent et éviter d'accuser à tort une panne.",
+          "information_value": "élevée: une modification concordante peut rendre la hausse légitime ou cibler un test.",
+          "hypotheses_distinguished": [
+            "nouveau besoin permanent légitime",
+            "équipement ou consigne resté actif inutilement"
+          ],
+          "responsible_role": "responsable de site avec maintenance",
+          "client_effort": "entretien de 15 minutes et consultation du journal de travaux",
+          "effort_level": "tres_faible",
+          "expected_if_true": "Si le palier est involontaire, aucun nouveau besoin permanent suffisant ne sera documenté à sa date d'apparition.",
+          "priority": 1
+        },
+        "owner_role": "responsable de site avec maintenance",
+        "verification_effort": "entretien de 15 minutes et consultation du journal de travaux",
+        "expected_if_hypothesis_true": "Si le palier est involontaire, aucun nouveau besoin permanent suffisant ne sera documenté à sa date d'apparition.",
+        "post_action_measurement": {
+          "metric": "puissance moyenne ou énergie sur la même fenêtre comparable",
+          "baseline_definition": "périodes comparables antérieures utilisées dans l'investigation",
+          "evaluation_window": "au moins trois occurrences comparables après intervention",
+          "success_rule": "effet cohérent avec une prédiction pré-enregistrée et hors variabilité de référence"
+        },
+        "continuous_monitoring": {
+          "activation_condition": "après une correction dont l'effet initial a été vérifié",
+          "cadence": "réévaluation à chaque nouvelle occurrence comparable",
+          "alert_rule": "alerte si le comportement réapparaît sur trois occurrences comparables",
+          "owner_role": "responsable de site avec maintenance"
+        },
+        "recoverable_saving": null
+      }
+    ],
+    "final_review": {
+      "confirmed": [
+        "H04",
+        "H05",
+        "H06"
+      ],
+      "with_reservations": [
+        "H01",
+        "H02",
+        "H03"
+      ],
+      "rejected": [
+        "H07",
+        "H08"
+      ],
+      "double_counting": {
+        "automatic_spike_and_peak_signal_same_event": {
+          "naive_total_kwh": 478.42154195243984,
+          "deduplicated_total_kwh": 239.21077097621992,
+          "double_counted_kwh": 239.21077097621992,
+          "overlapping_points": 8
+        },
+        "confirmed_temporal_overlap_audit": {
+          "naive_total_kwh": 15604.340651417104,
+          "deduplicated_total_kwh": 14485.247658248649,
+          "double_counted_kwh": 1119.092993168455,
+          "overlapping_points": 704
+        },
+        "note": "H04 retranche deja le residu inactif journalier de H05. Aucun total portefeuille n'est publie sans allocation causale."
+      },
+      "annualization_performed": false,
+      "recoverable_savings_claimed": false,
+      "causal_equipment_claimed": false
+    }
+  },
+  "events": [
+    {
+      "event_id": "EV-H01",
+      "type": "night_anomaly",
+      "start": "2026-01-25",
+      "end": "2026-02-09",
+      "duration_hours": 360,
+      "evaluated_hours": 120.0,
+      "observed_energy_kwh": 4797.732517,
+      "expected_energy_kwh": 2644.929346438894,
+      "excess_energy_kwh": 2152.8031705611065,
+      "cost": 376.7405548481936,
+      "potential_saving_kwh": null,
+      "recoverability": "unknown",
+      "severity": "moyenne",
+      "confidence": {
+        "observation": "elevee",
+        "opportunity": "moyenne"
+      },
+      "decision": "A_CONSERVER_AVEC_RESERVES",
+      "supporting_methods": [
+        "production_activity_baseline",
+        "night_comparison",
+        "temperature_control"
+      ],
+      "related_hypotheses": []
+    },
+    {
+      "event_id": "EV-H02",
+      "type": "weekend_anomaly",
+      "start": "2026-02-19",
+      "end": "2026-03-06",
+      "duration_hours": 360,
+      "evaluated_hours": 40.0,
+      "observed_energy_kwh": 1763.227156,
+      "expected_energy_kwh": 885.8947800891997,
+      "excess_energy_kwh": 877.3323759108002,
+      "cost": 153.53316578439004,
+      "potential_saving_kwh": null,
+      "recoverability": "unknown",
+      "severity": "faible",
+      "confidence": {
+        "observation": "elevee",
+        "opportunity": "moyenne"
+      },
+      "decision": "A_CONSERVER_AVEC_RESERVES",
+      "supporting_methods": [
+        "production_activity_baseline",
+        "weekend_comparison",
+        "temperature_control"
+      ],
+      "related_hypotheses": []
+    },
+    {
+      "event_id": "EV-H03",
+      "type": "point_spike",
+      "start": "2026-02-24T10:00",
+      "end": "2026-02-24T12:00",
+      "duration_hours": 2,
+      "evaluated_hours": 2.0,
+      "observed_energy_kwh": 393.41914099999997,
+      "expected_energy_kwh": 154.20837002378005,
+      "excess_energy_kwh": 239.21077097621992,
+      "cost": 41.861884920838484,
+      "potential_saving_kwh": null,
+      "recoverability": "unknown",
+      "severity": "faible",
+      "confidence": {
+        "observation": "elevee",
+        "opportunity": "faible"
+      },
+      "decision": "A_CONSERVER_AVEC_RESERVES",
+      "supporting_methods": [
+        "robust_residual",
+        "temporal_grouping",
+        "similar_period_comparison"
+      ],
+      "related_hypotheses": [
+        "H08"
+      ]
+    },
+    {
+      "event_id": "EV-H04",
+      "type": "efficiency_drop",
+      "start": "2026-03-16",
+      "end": "2026-03-31",
+      "duration_hours": 360,
+      "evaluated_hours": 176.0,
+      "observed_energy_kwh": 16747.426889,
+      "expected_energy_kwh": 14623.708062206453,
+      "excess_energy_kwh": 2123.718826793546,
+      "cost": 371.6507946888706,
+      "potential_saving_kwh": null,
+      "recoverability": "unknown",
+      "severity": "moyenne",
+      "confidence": {
+        "observation": "elevee",
+        "opportunity": "elevee"
+      },
+      "decision": "CONFIRME",
+      "supporting_methods": [
+        "production_baseline",
+        "product_mix_control",
+        "inactive_residual_removal"
+      ],
+      "related_hypotheses": [
+        "H05"
+      ]
+    },
+    {
+      "event_id": "EV-H05",
+      "type": "progressive_drift",
+      "start": "2026-03-06",
+      "end": "2026-04-05",
+      "duration_hours": 720,
+      "evaluated_hours": 720.0,
+      "observed_energy_kwh": 40610.599155,
+      "expected_energy_kwh": 36378.3275413609,
+      "excess_energy_kwh": 4232.2716136391,
+      "cost": 740.6475323868425,
+      "potential_saving_kwh": null,
+      "recoverability": "unknown",
+      "severity": "elevee",
+      "confidence": {
+        "observation": "elevee",
+        "opportunity": "elevee"
+      },
+      "decision": "CONFIRME",
+      "supporting_methods": [
+        "inactive_residual_trend",
+        "linear_trend",
+        "temperature_falsification"
+      ],
+      "related_hypotheses": [
+        "H04"
+      ]
+    },
+    {
+      "event_id": "EV-H06",
+      "type": "permanent_baseline_shift",
+      "start": "2026-04-05",
+      "end": "2026-05-05",
+      "duration_hours": 720,
+      "evaluated_hours": 720.0,
+      "observed_energy_kwh": 40055.122338,
+      "expected_energy_kwh": 34076.11844446367,
+      "excess_energy_kwh": 5979.003893536332,
+      "cost": 1046.325681368858,
+      "potential_saving_kwh": null,
+      "recoverability": "unknown",
+      "severity": "elevee",
+      "confidence": {
+        "observation": "elevee",
+        "opportunity": "elevee"
+      },
+      "decision": "CONFIRME",
+      "supporting_methods": [
+        "inactive_level_comparison",
+        "persistence_test",
+        "temperature_falsification"
+      ],
+      "related_hypotheses": []
+    }
+  ],
+  "artifacts": {
+    "investigation_json": "reports/investigation.json",
+    "report_markdown": "reports/demo_final.md",
+    "report_html": "reports/demo_final.html",
+    "charts": {
+      "power_timeseries": "reports/charts/power_timeseries.png",
+      "observed_expected": "reports/charts/observed_expected.png",
+      "daily_residual": "reports/charts/daily_residual.png",
+      "production_power": "reports/charts/production_power.png"
+    }
+  }
+}

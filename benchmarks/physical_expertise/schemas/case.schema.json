@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://energy-analyzer.local/schemas/physical-expertise-case-v1.json",
+  "title": "Physical Expertise Benchmark case manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "case_id", "case_revision", "stage", "track", "difficulty",
+    "truth_level", "sector", "initial_pack_commitment_sha256",
+    "oracle_commitment_sha256", "ground_truth_commitment_sha256",
+    "max_question_cycles", "efficiency_penalty_after_requests", "allowed_references"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{2,79}$"},
+    "case_revision": {"type": "integer", "minimum": 1},
+    "stage": {"enum": ["DEV", "HOLDOUT", "HUMAN_PARITY", "PROSPECTIVE"]},
+    "track": {"enum": ["CONTROLLED_OPEN_BOOK", "REAL_WORLD_OPEN_BOOK"]},
+    "difficulty": {"enum": ["D1", "D2", "D3", "D4"]},
+    "truth_level": {"enum": ["SYNTHETIC", "HISTORICAL_CONFIRMED", "PROSPECTIVE"]},
+    "sector": {"type": "string", "minLength": 1},
+    "initial_pack_commitment_sha256": {"$ref": "#/$defs/sha256"},
+    "oracle_commitment_sha256": {"$ref": "#/$defs/sha256"},
+    "ground_truth_commitment_sha256": {"$ref": "#/$defs/sha256"},
+    "max_question_cycles": {"type": "integer", "minimum": 1, "maximum": 10, "default": 3},
+    "efficiency_penalty_after_requests": {"type": "integer", "minimum": 1, "default": 5},
+    "allowed_references": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

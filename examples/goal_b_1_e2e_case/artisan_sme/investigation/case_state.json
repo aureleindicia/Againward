@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "status": "ready_for_codex_first_pass",
+  "findings": [
+    {
+      "finding_id": "FIND-EXCESS-01",
+      "observation": "Excès récurrent avant préparation observé dans la série synthétique.",
+      "time_context_window": "05:00–06:00, deux jours comparables",
+      "quantitative_evidence": {
+        "excess_energy_kwh": 6.0,
+        "source": "DS-001"
+      },
+      "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+      "possible_explanations": [
+        "dérive technique",
+        "préparation opérationnelle non documentée"
+      ],
+      "current_leading_explanation": null,
+      "counter_explanations": [
+        "horaire exceptionnel"
+      ],
+      "missing_material_information": [
+        "statut opérationnel de la préparation précoce"
+      ],
+      "client_question": null,
+      "technical_evidence_request": "Inspection ciblée pendant visite planifiée.",
+      "confidence": "MEDIUM",
+      "provenance": [
+        "evidence/dataset_provenance.json"
+      ],
+      "recommended_next_analytical_step": "Comparer périodes comparables après inspection.",
+      "predictive_degradation_note": null
+    }
+  ],
+  "hypotheses": [],
+  "client_answers": [],
+  "unresolved_requests": [],
+  "history": [
+    {
+      "at_utc": "2026-08-30T08:53:15.152033+00:00",
+      "action": "intake_completed",
+      "inventory": "evidence/intake_inventory.json"
+    },
+    {
+      "at_utc": "2026-08-30T08:53:15.154017+00:00",
+      "action": "structured_findings_recorded",
+      "count": 1,
+      "no_finding": false
+    }
+  ],
+  "ground_truth_used": false,
+  "available_datasets": [
+    "DS-001-01",
+    "DS-005-01",
+    "DS-007-01"
+  ],
+  "material_ambiguities": [
+    {
+      "dataset_id": "DS-005-01",
+      "issue": "measurement_unit",
+      "reason": "unlabeled non-negative measurement supports competing kW/kWh interpretations",
+      "blocking_for": "quantitative_energy_interpretation"
+    }
+  ],
+  "current_decision_status": "findings_recorded"
+}

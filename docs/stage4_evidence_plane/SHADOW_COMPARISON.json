@@ -1,0 +1,317 @@
+{
+  "schema_version": "indicia-stage4-shadow-suite-v1",
+  "status": "STRUCTURAL_SHADOW_COMPLETE_MODEL_COMPARISON_NOT_RUN",
+  "evidence_classification": "development/regression; not genuinely unseen",
+  "cases": [
+    {
+      "case_id": "monthly_legacy_fixture",
+      "source_kind": "repository synthetic fixture",
+      "wall_time_seconds": 0.019366,
+      "comparison": {
+        "schema_version": "indicia-stage4-shadow-comparison-v1",
+        "scope": "structural production shadow; no model-quality inference",
+        "dataset_id": "dataset-f74889fb399136c3",
+        "dataset_sha256": "b1435103a1011eb024fe76e76069b0464547381e89bbfe092833a01d8e5d3b8f",
+        "legacy_path": {
+          "status": "unavailable",
+          "candidate_count": 0,
+          "candidate_types": [],
+          "candidate_semantics": "candidate evidence only",
+          "source_row_handles": false,
+          "unknown_columns_available": false,
+          "dynamic_queries": false
+        },
+        "evidence_plane_path": {
+          "legacy_candidates_retained": 0,
+          "legacy_candidate_types_retained": [],
+          "auxiliary_fields_available": 0,
+          "auxiliary_field_keys": [],
+          "relationship_loss_explicit": true,
+          "source_row_handles_available": true,
+          "dynamic_queries_available": true,
+          "initial_tool_calls": 0,
+          "initial_card_bytes": 7195,
+          "automatic_findings": 0
+        },
+        "agreement": {
+          "legacy_candidates_preserved": true,
+          "legacy_candidate_count_delta": 0,
+          "legacy_candidate_type_delta": []
+        },
+        "comparison_outcomes": {
+          "same_conclusion": {
+            "status": "NOT_MEASURED",
+            "reason": "Neither deterministic path owns a final conclusion."
+          },
+          "new_system_additional_evidence": {
+            "status": "OBSERVED",
+            "items": [
+              "auxiliary field inventory",
+              "relationship-loss metadata",
+              "typed retrieval and query capabilities"
+            ]
+          },
+          "new_system_correct_abstention": {
+            "status": "NOT_MEASURED",
+            "reason": "Requires a blinded agent investigation and adjudication."
+          },
+          "legacy_finds_new_system_misses": {
+            "status": "NONE_AT_CANDIDATE_LAYER",
+            "evidence": "candidate IDs and types are routed unchanged into the new card"
+          },
+          "disagreement": {
+            "status": "STRUCTURAL_ONLY",
+            "finding_disagreement": "NOT_MEASURED"
+          }
+        },
+        "structural_disagreements": [
+          {
+            "topic": "unknown operational columns",
+            "legacy": "discarded",
+            "evidence_plane": "typed, provenance-linked and retrievable"
+          },
+          {
+            "topic": "relationship coverage",
+            "legacy": "implicit/static",
+            "evidence_plane": "loss disclosed and agent-selectable queries available"
+          },
+          {
+            "topic": "source retrieval",
+            "legacy": "manual/ad hoc",
+            "evidence_plane": "typed bounded handles"
+          }
+        ],
+        "finding_disagreement": {
+          "status": "NOT_MEASURED",
+          "reason": "No model investigation was run; deterministic evidence is not a substitute for an agent conclusion."
+        },
+        "failures": [],
+        "timings_seconds": {
+          "legacy_candidate_detection": 2e-05,
+          "evidence_snapshot_and_card": 0.00046
+        },
+        "rollback": {
+          "available": true,
+          "mode": "legacy",
+          "destructive_data_migration": false
+        },
+        "decision": null
+      }
+    },
+    {
+      "case_id": "demo_15min_regression",
+      "source_kind": "repository synthetic fixture",
+      "wall_time_seconds": 1.09967,
+      "comparison": {
+        "schema_version": "indicia-stage4-shadow-comparison-v1",
+        "scope": "structural production shadow; no model-quality inference",
+        "dataset_id": "dataset-3ad29b5e0d07cf99",
+        "dataset_sha256": "de0384fd1975c3c2d4b267af979a5be443a1fe75fd995f1270963944dbe9700e",
+        "legacy_path": {
+          "status": "candidate_signals_only",
+          "candidate_count": 6,
+          "candidate_types": [
+            "efficiency_drop",
+            "night_anomaly",
+            "permanent_baseline_shift",
+            "point_spike",
+            "progressive_drift",
+            "weekend_anomaly"
+          ],
+          "candidate_semantics": "candidate evidence only",
+          "source_row_handles": false,
+          "unknown_columns_available": false,
+          "dynamic_queries": false
+        },
+        "evidence_plane_path": {
+          "legacy_candidates_retained": 6,
+          "legacy_candidate_types_retained": [
+            "efficiency_drop",
+            "night_anomaly",
+            "permanent_baseline_shift",
+            "point_spike",
+            "progressive_drift",
+            "weekend_anomaly"
+          ],
+          "auxiliary_fields_available": 0,
+          "auxiliary_field_keys": [],
+          "relationship_loss_explicit": true,
+          "source_row_handles_available": true,
+          "dynamic_queries_available": true,
+          "initial_tool_calls": 0,
+          "initial_card_bytes": 8190,
+          "automatic_findings": 0
+        },
+        "agreement": {
+          "legacy_candidates_preserved": true,
+          "legacy_candidate_count_delta": 0,
+          "legacy_candidate_type_delta": []
+        },
+        "comparison_outcomes": {
+          "same_conclusion": {
+            "status": "NOT_MEASURED",
+            "reason": "Neither deterministic path owns a final conclusion."
+          },
+          "new_system_additional_evidence": {
+            "status": "OBSERVED",
+            "items": [
+              "auxiliary field inventory",
+              "relationship-loss metadata",
+              "typed retrieval and query capabilities"
+            ]
+          },
+          "new_system_correct_abstention": {
+            "status": "NOT_MEASURED",
+            "reason": "Requires a blinded agent investigation and adjudication."
+          },
+          "legacy_finds_new_system_misses": {
+            "status": "NONE_AT_CANDIDATE_LAYER",
+            "evidence": "candidate IDs and types are routed unchanged into the new card"
+          },
+          "disagreement": {
+            "status": "STRUCTURAL_ONLY",
+            "finding_disagreement": "NOT_MEASURED"
+          }
+        },
+        "structural_disagreements": [
+          {
+            "topic": "unknown operational columns",
+            "legacy": "discarded",
+            "evidence_plane": "typed, provenance-linked and retrievable"
+          },
+          {
+            "topic": "relationship coverage",
+            "legacy": "implicit/static",
+            "evidence_plane": "loss disclosed and agent-selectable queries available"
+          },
+          {
+            "topic": "source retrieval",
+            "legacy": "manual/ad hoc",
+            "evidence_plane": "typed bounded handles"
+          }
+        ],
+        "finding_disagreement": {
+          "status": "NOT_MEASURED",
+          "reason": "No model investigation was run; deterministic evidence is not a substitute for an agent conclusion."
+        },
+        "failures": [],
+        "timings_seconds": {
+          "legacy_candidate_detection": 0.507373,
+          "evidence_snapshot_and_card": 0.150194
+        },
+        "rollback": {
+          "available": true,
+          "mode": "legacy",
+          "destructive_data_migration": false
+        },
+        "decision": null
+      }
+    },
+    {
+      "case_id": "unknown_context_fixture",
+      "source_kind": "repository synthetic fixture",
+      "wall_time_seconds": 0.167466,
+      "comparison": {
+        "schema_version": "indicia-stage4-shadow-comparison-v1",
+        "scope": "structural production shadow; no model-quality inference",
+        "dataset_id": "dataset-11897be9cccc4acd",
+        "dataset_sha256": "1f35373c58532422d63d0927110d69945906600da0a17cd15738e80a0d983df3",
+        "legacy_path": {
+          "status": "candidate_signals_only",
+          "candidate_count": 0,
+          "candidate_types": [],
+          "candidate_semantics": "candidate evidence only",
+          "source_row_handles": false,
+          "unknown_columns_available": false,
+          "dynamic_queries": false
+        },
+        "evidence_plane_path": {
+          "legacy_candidates_retained": 0,
+          "legacy_candidate_types_retained": [],
+          "auxiliary_fields_available": 3,
+          "auxiliary_field_keys": [
+            "aux_0005_machine_mode",
+            "aux_0006_batch_id",
+            "aux_0007_cleaning_active"
+          ],
+          "relationship_loss_explicit": true,
+          "source_row_handles_available": true,
+          "dynamic_queries_available": true,
+          "initial_tool_calls": 0,
+          "initial_card_bytes": 8291,
+          "automatic_findings": 0
+        },
+        "agreement": {
+          "legacy_candidates_preserved": true,
+          "legacy_candidate_count_delta": 0,
+          "legacy_candidate_type_delta": []
+        },
+        "comparison_outcomes": {
+          "same_conclusion": {
+            "status": "NOT_MEASURED",
+            "reason": "Neither deterministic path owns a final conclusion."
+          },
+          "new_system_additional_evidence": {
+            "status": "OBSERVED",
+            "items": [
+              "auxiliary field inventory",
+              "relationship-loss metadata",
+              "typed retrieval and query capabilities"
+            ]
+          },
+          "new_system_correct_abstention": {
+            "status": "NOT_MEASURED",
+            "reason": "Requires a blinded agent investigation and adjudication."
+          },
+          "legacy_finds_new_system_misses": {
+            "status": "NONE_AT_CANDIDATE_LAYER",
+            "evidence": "candidate IDs and types are routed unchanged into the new card"
+          },
+          "disagreement": {
+            "status": "STRUCTURAL_ONLY",
+            "finding_disagreement": "NOT_MEASURED"
+          }
+        },
+        "structural_disagreements": [
+          {
+            "topic": "unknown operational columns",
+            "legacy": "discarded",
+            "evidence_plane": "typed, provenance-linked and retrievable"
+          },
+          {
+            "topic": "relationship coverage",
+            "legacy": "implicit/static",
+            "evidence_plane": "loss disclosed and agent-selectable queries available"
+          },
+          {
+            "topic": "source retrieval",
+            "legacy": "manual/ad hoc",
+            "evidence_plane": "typed bounded handles"
+          }
+        ],
+        "finding_disagreement": {
+          "status": "NOT_MEASURED",
+          "reason": "No model investigation was run; deterministic evidence is not a substitute for an agent conclusion."
+        },
+        "failures": [],
+        "timings_seconds": {
+          "legacy_candidate_detection": 0.023885,
+          "evidence_snapshot_and_card": 0.017904
+        },
+        "rollback": {
+          "available": true,
+          "mode": "legacy",
+          "destructive_data_migration": false
+        },
+        "decision": null
+      }
+    }
+  ],
+  "summary": {
+    "cases": 3,
+    "legacy_candidate_preservation_failures": 0,
+    "new_automatic_findings": 0,
+    "model_finding_disagreements_measured": 0,
+    "reason": "No external model investigation was available; structural evidence must not be scored as agent quality."
+  }
+}

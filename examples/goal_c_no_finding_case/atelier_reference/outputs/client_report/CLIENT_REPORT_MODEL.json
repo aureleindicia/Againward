@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "kind": "CLIENT_REPORT_MODEL",
+  "metadata": {
+    "case_id": "atelier_reference",
+    "site_name": "Atelier de référence",
+    "report_title": "Analyse de performance énergétique",
+    "analysis_period": "Période de données fournie",
+    "regulatory_notice": "Cette prestation ne constitue pas un audit énergétique réglementaire."
+  },
+  "executive_summary": {
+    "message": "Aucune anomalie énergétique significative ne justifie actuellement une dépense corrective.",
+    "important_subjects": 0,
+    "recommended_actions": 0,
+    "verify_first": 0,
+    "monitor": 0,
+    "no_action_items": 1,
+    "economic_total": null,
+    "priority_card_refs": []
+  },
+  "decision_cards": [],
+  "alternative_groups": [],
+  "no_action_items": [
+    {
+      "title": "Aucune action corrective nécessaire",
+      "explanation": "Les éléments disponibles sont compatibles avec le fonctionnement attendu et ne justifient pas une intervention supplémentaire."
+    }
+  ],
+  "client_dialogue": {
+    "pending_questions": [],
+    "resolved_goal_b_evidence_refs": []
+  },
+  "what_we_checked": [
+    "Les régimes de consommation disponibles",
+    "Les limites de qualité et de période des données"
+  ],
+  "charts": [],
+  "technical_appendix": {
+    "sources": [
+      {
+        "source_ref": "ART-001-ff0485154bc5",
+        "label": "energy.csv",
+        "role": "ENERGY_INTERVAL_SERIES"
+      }
+    ],
+    "limitations": [
+      "La période courte sert de référence mais ne remplace pas un suivi lorsque l activité change."
+    ],
+    "method": "La conclusion conserve la décision no finding et ne transforme pas une absence de signal en recommandation.",
+    "claim_reference_policy": "Chaque carte relie décision, action, finding et calcul Goal A/B; les identifiants restent internes."
+  },
+  "claim_fidelity": {
+    "goal_a_findings_ref": "investigation/structured_findings.json",
+    "goal_b_state_ref": "investigation/economic_decision_state.json",
+    "decision_strengthened": false,
+    "savings_status": "POTENTIAL",
+    "internal_claim_refs_present": true,
+    "non_additive_actions_not_summed": true
+  }
+}

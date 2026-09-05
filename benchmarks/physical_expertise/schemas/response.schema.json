@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://energy-analyzer.local/schemas/physical-expertise-response-v1.json",
+  "title": "Physical Expertise Benchmark response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "case_id", "observation", "differential_diagnosis", "current_decision", "next_information", "intervention", "validation", "economics", "confidence"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "case_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{2,79}$"},
+    "observation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["facts", "data_quality", "phenomenon_to_explain"],
+      "properties": {
+        "facts": {"$ref": "#/$defs/strings"},
+        "data_quality": {"$ref": "#/$defs/strings"},
+        "phenomenon_to_explain": {"type": "string", "minLength": 1}
+      }
+    },
+    "differential_diagnosis": {
+      "type": "array", "maxItems": 5,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["rank", "cause", "confidence", "supporting_evidence", "contrary_evidence", "falsification_test"],
+        "properties": {
+          "rank": {"type": "integer", "minimum": 1, "maximum": 5},
+          "cause": {"type": "string", "minLength": 1},
+          "confidence": {"$ref": "#/$defs/confidence"},
+          "supporting_evidence": {"$ref": "#/$defs/strings"},
+          "contrary_evidence": {"$ref": "#/$defs/strings"},
+          "falsification_test": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "current_decision": {"$ref": "#/$defs/decision"},
+    "next_information": {
+      "type": "object", "additionalProperties": false,
+      "required": ["needed", "question", "best_responder", "why", "hypotheses_distinguished", "expected_effort"],
+      "properties": {
+        "needed": {"type": "boolean"},
+        "question": {"type": "string"},
+        "best_responder": {"type": "string"},
+        "why": {"type": "string"},
+        "hypotheses_distinguished": {"$ref": "#/$defs/strings"},
+        "expected_effort": {"type": "string"}
+      }
+    },
+    "intervention": {
+      "type": "object", "additionalProperties": false,
+      "required": ["class", "action", "competent_person", "preconditions", "risks", "stop_conditions", "expected_result"],
+      "properties": {
+        "class": {"enum": ["NO_ACTION", "OBSERVE", "CLIENT_CHECK", "CONTROLLED_TEST", "MAINTENANCE_CHECK", "TECHNICIAN_INTERVENTION"]},
+        "action": {"type": "string", "minLength": 1},
+        "competent_person": {"type": "string", "minLength": 1},
+        "preconditions": {"$ref": "#/$defs/strings"},
+        "risks": {"$ref": "#/$defs/strings"},
+        "stop_conditions": {"$ref": "#/$defs/strings"},
+        "expected_result": {"type": "string", "minLength": 1}
+      }
+    },
+    "validation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["metric", "period", "controls", "confirming_result", "falsifying_result"],
+      "properties": {
+        "metric": {"type": "string", "minLength": 1},
+        "period": {"type": "string", "minLength": 1},
+        "controls": {"$ref": "#/$defs/strings"},
+        "confirming_result": {"type": "string", "minLength": 1},
+        "falsifying_result": {"type": "string", "minLength": 1}
+      }
+    },
+    "economics": {
+      "type": "object", "additionalProperties": false,
+      "required": ["observed_abnormal_energy", "energy_attributable_to_cause", "recoverable_fraction", "financial_savings"],
+      "properties": {
+        "observed_abnormal_energy": {"$ref": "#/$defs/economic"},
+        "energy_attributable_to_cause": {"$ref": "#/$defs/economic"},
+        "recoverable_fraction": {"oneOf": [{"const": "unknown"}, {"$ref": "#/$defs/confidence"}]},
+        "financial_savings": {"$ref": "#/$defs/economic"}
+      }
+    },
+    "confidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["main_cause", "intervention", "justification"],
+      "properties": {
+        "main_cause": {"$ref": "#/$defs/confidence"},
+        "intervention": {"$ref": "#/$defs/confidence"},
+        "justification": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "$defs": {
+    "strings": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "decision": {"enum": ["NORMAL_OPERATION", "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN", "CAUSE_PROBABLE", "CAUSE_CONFIRMED", "INSUFFICIENT_INFORMATION", "DATA_QUALITY_BLOCKER"]},
+    "economic": {
+      "oneOf": [
+        {"const": "unknown"},
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["value", "unit", "basis", "period"],
+          "properties": {
+            "value": {"type": "number", "minimum": 0},
+            "unit": {"type": "string", "minLength": 1},
+            "basis": {"type": "string", "minLength": 1},
+            "period": {"type": "string", "minLength": 1}
+          }
+        }
+      ]
+    }
+  }
+}

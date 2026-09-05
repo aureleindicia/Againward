@@ -1,0 +1,22 @@
+{
+  "workflow": [
+    "Goal A evidence",
+    "pre-reasoning handoff",
+    "Codex reasoning contract",
+    "economic request",
+    "client response",
+    "persistent Goal B evidence",
+    "resume handoff",
+    "deterministic calculations",
+    "persisted Goal B state"
+  ],
+  "pre_handoff": "investigation/economic_handoff_pre_reasoning.json",
+  "resume_handoff": "investigation/economic_handoff_resume.json",
+  "evidence_ids": [
+    "GBE-QUOTE-01",
+    "GBE-DOWNTIME-01"
+  ],
+  "economic_input_ref": "CAP-QUOTE-01",
+  "constraint_ref": "CONS-PROD-01",
+  "final_decision": "INVESTIGATE_FIRST"
+}

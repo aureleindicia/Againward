@@ -1,0 +1,6 @@
+# Base IANA légère nécessaire pour les heures locales/DST sur Android, dont la base système
+# n'est pas directement lisible par zoneinfo de Python.
+tzdata>=2025.2,<2027
+
+# Nécessaire uniquement pour les fichiers .xlsx.
+openpyxl>=3.1,<4

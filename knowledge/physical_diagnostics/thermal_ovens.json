@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "family": "thermal_ovens",
+  "label": "Fours et procédés thermiques",
+  "energy_chain": [
+    "gaz, électricité ou vapeur",
+    "brûleur, résistances, circulation d'air et enceinte",
+    "chauffage, maintien ou cuisson selon une recette",
+    "produit conforme en température, durée, cuisson et qualité"
+  ],
+  "variables": {
+    "energy_input": ["énergie par lot", "puissance", "temps de chauffe", "duty cycle chauffage"],
+    "demand": ["masse du lot", "température initiale", "recette", "humidité", "heure de disponibilité"],
+    "command": ["consigne", "programme recette", "ordre de préchauffage", "durée de maintien"],
+    "feedback": ["température réelle", "état brûleur ou résistances", "position registres", "fin de cycle réelle"],
+    "environment": ["température ambiante", "ventilation du local", "ouvertures de porte"],
+    "process_output": ["température cœur", "temps à température", "qualité", "sécurité sanitaire"]
+  },
+  "degradation_mechanisms": [
+    {
+      "mechanism": "pertes thermiques ou étanchéité dégradées",
+      "predictions": ["énergie ou duty cycle accru à recette, lot et température comparables", "températures de paroi ou fuite d'air anormales"],
+      "discriminators": ["thermographie ou température de surface", "temps de chauffe et duty cycle à lot apparié"]
+    },
+    {
+      "mechanism": "commande, préchauffage ou maintien trop long",
+      "predictions": ["ordre actif avant le besoin ou après la fin utile", "température réelle déjà suffisante pendant la marge"],
+      "discriminators": ["programme et état réel", "heure minimale validée de disponibilité", "température produit/enceinte"]
+    },
+    {
+      "mechanism": "transfert de chaleur ou circulation dégradé",
+      "predictions": ["temps de cycle ou uniformité dégradé", "ventilation, registres ou échange non conformes"],
+      "discriminators": ["profil de température multi-point", "état réel ventilation et registres"]
+    }
+  ],
+  "legitimate_service_changes": [
+    "nouvelle recette ou température cible",
+    "lot plus massif, plus froid ou plus humide",
+    "maintien requis pour qualité, disponibilité ou sécurité",
+    "heure de production avancée",
+    "cycle de nettoyage ou sanitation"
+  ],
+  "diagnostic_paths": [
+    {
+      "observation_class": "énergie par lot ou durée de chauffe en hausse",
+      "mechanisms": ["demande thermique accrue", "pertes accrues", "transfert dégradé", "commande modifiée"],
+      "predictions": ["une demande accrue suit recette, masse, humidité ou température initiale", "un défaut persiste sur lots appariés", "une commande ne prouve pas l'état thermique réel"],
+      "discriminating_measurements": ["cycles appariés avec masse, recette et températures", "duty cycle chauffage et température réelle", "profil de surface ou de fuite"],
+      "interpretation_limits": ["les unités produites seules peuvent mal représenter la charge thermique", "une corrélation planning-énergie ne démontre pas que le service est inutile"]
+    },
+    {
+      "observation_class": "préchauffage ou maintien hors production",
+      "mechanisms": ["besoin de disponibilité légitime", "programme obsolète", "retard thermique dû à un défaut", "état réel différent de la commande"],
+      "predictions": ["un besoin légitime est relié à une heure et une température produit validées", "un programme obsolète fonctionne sans lot ou sans contrainte", "un actionneur défaillant rompt commande et feedback"],
+      "discriminating_measurements": ["planning lot par lot", "température à l'heure de besoin", "commande et puissance/état réel"],
+      "interpretation_limits": ["ne jamais réduire une séquence sanitaire ou qualité sans autorisation procédé"]
+    }
+  ],
+  "field_tests": [
+    {
+      "test": "comparaison de cycles homogènes avec recette, masse, températures, durée et énergie",
+      "effort": "faible à modéré selon la traçabilité des lots",
+      "expected_interpretation": "sépare demande de service et efficacité globale"
+    },
+    {
+      "test": "décalage réversible d'un seul pas de préchauffage sur un lot autorisé",
+      "effort": "modéré, avec responsable procédé et automaticien",
+      "expected_interpretation": "teste la marge horaire sans présumer une économie"
+    }
+  ],
+  "safety": [
+    "ne pas modifier recette, température, temps de maintien ou sanitation sans validation qualité",
+    "sauvegarder la programmation et prévoir un retour immédiat",
+    "arrêter l'essai en cas d'alarme, température produit insuffisante ou risque de disponibilité"
+  ]
+}

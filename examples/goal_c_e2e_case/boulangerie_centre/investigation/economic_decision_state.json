@@ -1,0 +1,487 @@
+{
+  "schema_version": 5,
+  "created_at_utc": "2026-08-30T13:56:43.444664+00:00",
+  "status": "economic_reasoning_recorded",
+  "technical_finding_refs": [
+    {
+      "finding_id": "FIND-OFFHOURS-01",
+      "technical_status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+      "technical_confidence": "HIGH",
+      "provenance": "investigation/structured_findings.json"
+    }
+  ],
+  "economic_inputs": [
+    {
+      "input_id": "TAR-01",
+      "kind": "electricity_tariff",
+      "value": 0.2,
+      "unit": "EUR/kWh",
+      "currency": "EUR",
+      "period": "per_kwh",
+      "provenance": "DOCUMENT_EXTRACTED",
+      "status": "KNOWN",
+      "source": {
+        "source_refs": [
+          "ART-004-81e2e1351fe6"
+        ]
+      },
+      "confidence": "HIGH"
+    },
+    {
+      "input_id": "CAP-REPAIR-01",
+      "kind": "repair_quote",
+      "value": 450,
+      "unit": "EUR",
+      "currency": "EUR",
+      "period": "one_off",
+      "provenance": "DOCUMENT_EXTRACTED",
+      "status": "KNOWN",
+      "source": {
+        "source_refs": [
+          "ART-001-aed43daf285a"
+        ]
+      },
+      "confidence": "HIGH"
+    },
+    {
+      "input_id": "CAP-REPLACE-01",
+      "kind": "replacement_quote",
+      "value": 3200,
+      "unit": "EUR",
+      "currency": "EUR",
+      "period": "one_off",
+      "provenance": "DOCUMENT_EXTRACTED",
+      "status": "KNOWN",
+      "source": {
+        "source_refs": [
+          "ART-001-aed43daf285a"
+        ]
+      },
+      "confidence": "HIGH"
+    }
+  ],
+  "scenario_assumptions": [],
+  "operational_constraints": [
+    {
+      "constraint_id": "CONS-OPENING-01",
+      "category": "OPENING_HOURS",
+      "description": "Intervention à prévoir hors production et ouverture.",
+      "source_status": "EXPLICIT",
+      "source_refs": [
+        "ART-003-24ae92c0cdf9"
+      ],
+      "hard": true,
+      "material": true,
+      "affected_action_ids": [
+        "ACT-REPAIR-01",
+        "ACT-REPLACE-01"
+      ]
+    }
+  ],
+  "candidate_actions": [
+    {
+      "action_id": "ACT-REPAIR-01",
+      "finding_ids": [
+        "FIND-OFFHOURS-01"
+      ],
+      "title": "Réparation ciblée",
+      "description": "Option formulée par Codex pour la fixture Goal C.",
+      "action_type": "maintenance",
+      "technical_rationale": "Charge hors production établie par l'investigation.",
+      "operational_rationale": "Planifier hors activité client.",
+      "implementation_scope": "Installation concernée.",
+      "requires_professional_validation": true,
+      "reversibility": "PARTIALLY_REVERSIBLE",
+      "energy_effect_ref": "EFF-REPAIR-01",
+      "validation_plan": {
+        "metric": "kWh hors production",
+        "expected_direction": "baisse",
+        "comparison_window": "semaines comparables",
+        "confounders": "ouverture et activité",
+        "minimum_evidence": "baisse persistante à activité comparable"
+      }
+    },
+    {
+      "action_id": "ACT-REPLACE-01",
+      "finding_ids": [
+        "FIND-OFFHOURS-01"
+      ],
+      "title": "Remplacement",
+      "description": "Option formulée par Codex pour la fixture Goal C.",
+      "action_type": "maintenance",
+      "technical_rationale": "Charge hors production établie par l'investigation.",
+      "operational_rationale": "Planifier hors activité client.",
+      "implementation_scope": "Installation concernée.",
+      "requires_professional_validation": true,
+      "reversibility": "PARTIALLY_REVERSIBLE",
+      "energy_effect_ref": "EFF-REPLACE-01",
+      "validation_plan": {
+        "metric": "kWh hors production",
+        "expected_direction": "baisse",
+        "comparison_window": "semaines comparables",
+        "confounders": "ouverture et activité",
+        "minimum_evidence": "baisse persistante à activité comparable"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "relationship_id": "REL-REPAIR-REPLACE",
+      "type": "MUTUALLY_EXCLUSIVE",
+      "action_a": "ACT-REPAIR-01",
+      "action_b": "ACT-REPLACE-01",
+      "rationale": "Deux réponses au même équipement."
+    }
+  ],
+  "combined_effects": {},
+  "scenario_calculations": {
+    "ACT-REPAIR-01": {
+      "schema_version": 2,
+      "calculation_method": "deterministic_scenario_v2",
+      "currency": "EUR",
+      "effect_id": "EFF-REPAIR-01",
+      "baseline": "créneaux fermés comparables",
+      "period": "annual",
+      "scenarios": {
+        "LOW": {
+          "annual_energy_saving_kwh": 1800.0,
+          "tariff_per_kwh": 0.2,
+          "gross_annual_energy_cost_avoided": 360.0,
+          "incremental_recurring_cost": null,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 360.0,
+          "intervention_cost": 450.0,
+          "simple_payback_years": 1.25,
+          "payback_status": "meaningful"
+        },
+        "BASE": {
+          "annual_energy_saving_kwh": 2160.0,
+          "tariff_per_kwh": 0.2,
+          "gross_annual_energy_cost_avoided": 432.0,
+          "incremental_recurring_cost": null,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 432.0,
+          "intervention_cost": 450.0,
+          "simple_payback_years": 1.0416666666666667,
+          "payback_status": "meaningful"
+        },
+        "HIGH": {
+          "annual_energy_saving_kwh": 2520.0,
+          "tariff_per_kwh": 0.2,
+          "gross_annual_energy_cost_avoided": 504.0,
+          "incremental_recurring_cost": null,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 504.0,
+          "intervention_cost": 450.0,
+          "simple_payback_years": 0.8928571428571429,
+          "payback_status": "meaningful"
+        }
+      },
+      "calculation_notes": [],
+      "reproducibility": {
+        "calculator": "calculate_economic_scenarios",
+        "calculator_schema_version": 2,
+        "energy_effect": {
+          "effect_id": "EFF-REPAIR-01",
+          "basis": "DIRECTLY_MEASURED_HISTORICAL_EXCESS",
+          "baseline": "créneaux fermés comparables",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 1800,
+            "BASE": 2160,
+            "HIGH": 2520
+          },
+          "finding_refs": [
+            "FIND-OFFHOURS-01"
+          ],
+          "source_refs": [
+            "DS-002-01"
+          ]
+        },
+        "input_values": {
+          "tariff_per_kwh": {
+            "LOW": 0.2,
+            "BASE": 0.2,
+            "HIGH": 0.2
+          },
+          "intervention_cost": {
+            "LOW": 450.0,
+            "BASE": 450.0,
+            "HIGH": 450.0
+          },
+          "recurring_cost": null,
+          "other_annual_benefit": null
+        },
+        "input_references": {
+          "energy_effect": {
+            "LOW": [
+              "FIND-OFFHOURS-01"
+            ],
+            "BASE": [
+              "FIND-OFFHOURS-01"
+            ],
+            "HIGH": [
+              "FIND-OFFHOURS-01"
+            ]
+          },
+          "tariff_per_kwh": {
+            "LOW": [
+              "TAR-01"
+            ],
+            "BASE": [
+              "TAR-01"
+            ],
+            "HIGH": [
+              "TAR-01"
+            ]
+          },
+          "intervention_cost": {
+            "LOW": [
+              "CAP-REPAIR-01"
+            ],
+            "BASE": [
+              "CAP-REPAIR-01"
+            ],
+            "HIGH": [
+              "CAP-REPAIR-01"
+            ]
+          }
+        }
+      }
+    },
+    "ACT-REPLACE-01": {
+      "schema_version": 2,
+      "calculation_method": "deterministic_scenario_v2",
+      "currency": "EUR",
+      "effect_id": "EFF-REPLACE-01",
+      "baseline": "créneaux fermés comparables",
+      "period": "annual",
+      "scenarios": {
+        "LOW": {
+          "annual_energy_saving_kwh": 1900.0,
+          "tariff_per_kwh": 0.2,
+          "gross_annual_energy_cost_avoided": 380.0,
+          "incremental_recurring_cost": null,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 380.0,
+          "intervention_cost": 3200.0,
+          "simple_payback_years": 8.421052631578947,
+          "payback_status": "meaningful"
+        },
+        "BASE": {
+          "annual_energy_saving_kwh": 2280.0,
+          "tariff_per_kwh": 0.2,
+          "gross_annual_energy_cost_avoided": 456.0,
+          "incremental_recurring_cost": null,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 456.0,
+          "intervention_cost": 3200.0,
+          "simple_payback_years": 7.017543859649122,
+          "payback_status": "meaningful"
+        },
+        "HIGH": {
+          "annual_energy_saving_kwh": 2660.0,
+          "tariff_per_kwh": 0.2,
+          "gross_annual_energy_cost_avoided": 532.0,
+          "incremental_recurring_cost": null,
+          "other_supported_annual_benefit": null,
+          "net_annual_benefit": 532.0,
+          "intervention_cost": 3200.0,
+          "simple_payback_years": 6.015037593984962,
+          "payback_status": "meaningful"
+        }
+      },
+      "calculation_notes": [],
+      "reproducibility": {
+        "calculator": "calculate_economic_scenarios",
+        "calculator_schema_version": 2,
+        "energy_effect": {
+          "effect_id": "EFF-REPLACE-01",
+          "basis": "DIRECTLY_MEASURED_HISTORICAL_EXCESS",
+          "baseline": "créneaux fermés comparables",
+          "unit": "kWh/year",
+          "period": "annual",
+          "scenarios": {
+            "LOW": 1900,
+            "BASE": 2280,
+            "HIGH": 2660
+          },
+          "finding_refs": [
+            "FIND-OFFHOURS-01"
+          ],
+          "source_refs": [
+            "DS-002-01"
+          ]
+        },
+        "input_values": {
+          "tariff_per_kwh": {
+            "LOW": 0.2,
+            "BASE": 0.2,
+            "HIGH": 0.2
+          },
+          "intervention_cost": {
+            "LOW": 3200.0,
+            "BASE": 3200.0,
+            "HIGH": 3200.0
+          },
+          "recurring_cost": null,
+          "other_annual_benefit": null
+        },
+        "input_references": {
+          "energy_effect": {
+            "LOW": [
+              "FIND-OFFHOURS-01"
+            ],
+            "BASE": [
+              "FIND-OFFHOURS-01"
+            ],
+            "HIGH": [
+              "FIND-OFFHOURS-01"
+            ]
+          },
+          "tariff_per_kwh": {
+            "LOW": [
+              "TAR-01"
+            ],
+            "BASE": [
+              "TAR-01"
+            ],
+            "HIGH": [
+              "TAR-01"
+            ]
+          },
+          "intervention_cost": {
+            "LOW": [
+              "CAP-REPLACE-01"
+            ],
+            "BASE": [
+              "CAP-REPLACE-01"
+            ],
+            "HIGH": [
+              "CAP-REPLACE-01"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "decisions": [
+    {
+      "decision_id": "DEC-REPAIR-01",
+      "decision": "ACT_NOW",
+      "selected_action_ids": [
+        "ACT-REPAIR-01"
+      ],
+      "considered_action_ids": [
+        "ACT-REPAIR-01",
+        "ACT-REPLACE-01"
+      ],
+      "reason": "Réparation proportionnée au bénéfice et à la contrainte d activité.",
+      "priority_reasoning": "Intervention faible coût et réversible avant remplacement.",
+      "technical_confidence": "HIGH",
+      "economic_importance": "HIGH",
+      "constraint_assessments": [
+        {
+          "constraint_id": "CONS-OPENING-01",
+          "disposition": "MITIGATED",
+          "rationale": "Planification hors ouverture."
+        }
+      ]
+    }
+  ],
+  "economic_requests": [],
+  "goal_b_evidence": [],
+  "recommendation_provenance": {
+    "schema_version": 1,
+    "decision_id": "DEC-REPAIR-01",
+    "selected_action_chains": [
+      {
+        "action_id": "ACT-REPAIR-01",
+        "finding_ids": [
+          "FIND-OFFHOURS-01"
+        ],
+        "energy_effect_ref": "EFF-REPAIR-01",
+        "calculation_ref": "ACT-REPAIR-01",
+        "economic_source_links": [
+          {
+            "component": "tariff_per_kwh",
+            "scenario_source_ids": {
+              "LOW": "TAR-01",
+              "BASE": "TAR-01",
+              "HIGH": "TAR-01"
+            }
+          },
+          {
+            "component": "intervention_cost",
+            "scenario_source_ids": {
+              "LOW": "CAP-REPAIR-01",
+              "BASE": "CAP-REPAIR-01",
+              "HIGH": "CAP-REPAIR-01"
+            }
+          }
+        ],
+        "constraint_ids": [
+          "CONS-OPENING-01"
+        ]
+      }
+    ],
+    "economic_sources": [
+      {
+        "source_id": "CAP-REPAIR-01",
+        "provenance": "DOCUMENT_EXTRACTED",
+        "status": "KNOWN",
+        "source": {
+          "source_refs": [
+            "ART-001-aed43daf285a"
+          ]
+        }
+      },
+      {
+        "source_id": "CAP-REPLACE-01",
+        "provenance": "DOCUMENT_EXTRACTED",
+        "status": "KNOWN",
+        "source": {
+          "source_refs": [
+            "ART-001-aed43daf285a"
+          ]
+        }
+      },
+      {
+        "source_id": "TAR-01",
+        "provenance": "DOCUMENT_EXTRACTED",
+        "status": "KNOWN",
+        "source": {
+          "source_refs": [
+            "ART-004-81e2e1351fe6"
+          ]
+        }
+      }
+    ],
+    "chain_is_reference_validated": true
+  },
+  "unresolved_blockers": [],
+  "provenance_context": {
+    "canonical_case": "derived/canonical_case.json",
+    "dataset_provenance": "evidence/dataset_provenance.json",
+    "technical_findings": "investigation/structured_findings.json",
+    "goal_b_evidence": "investigation/economic_decision_state.json#goal_b_evidence"
+  },
+  "history": [
+    {
+      "at_utc": "2026-08-30T13:56:43.444676+00:00",
+      "action": "economic_state_initialized"
+    },
+    {
+      "at_utc": "2026-08-30T13:56:43.446143+00:00",
+      "action": "economic_packet_persisted",
+      "action_ids": [
+        "ACT-REPAIR-01",
+        "ACT-REPLACE-01"
+      ],
+      "decision": "ACT_NOW"
+    }
+  ],
+  "ground_truth_used": false,
+  "deterministic_recommendation_engine": false
+}

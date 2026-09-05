@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "phase": "PRE_SCORING_ONLY",
+  "prospects": [
+    {
+      "prospect_id": "FR-BREWEN-010",
+      "entity_key": "brewen",
+      "name": "Brewen",
+      "sector": "microbrasserie artisanale",
+      "site_url": "https://www.brasseriebrewen.fr/visites-brewen/",
+      "discovered_at": "2026-08-28",
+      "prequalification_status": "REJECTED",
+      "facts": [
+        {
+          "field": "activity",
+          "value": "microbrasserie artisanale brassant, embouteillant et enfûtant ses bières et limonades sur place",
+          "source_id": "BRE-1",
+          "observed_at": "2026-08-28",
+          "confidence": "high"
+        },
+        {
+          "field": "team_size",
+          "value": "site public : équipe composée de deux brasseurs",
+          "source_id": "BRE-1",
+          "observed_at": "2026-08-28",
+          "confidence": "high"
+        }
+      ],
+      "inferences": [
+        {
+          "statement": "Le procédé de brassage peut être énergivore, mais la taille observée de deux personnes rend une première mission probablement disproportionnée au regard de l'effort commercial et analytique.",
+          "basis_source_ids": [
+            "BRE-1"
+          ],
+          "confidence": "medium"
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "BRE-1",
+          "title": "Visite de la brasserie Brewen",
+          "url": "https://www.brasseriebrewen.fr/visites-brewen/",
+          "retrieved_at": "2026-08-28",
+          "source_type": "company_website",
+          "confidence": "high"
+        }
+      ],
+      "missing_information": [
+        "volume de production",
+        "données de compteur",
+        "budget énergétique"
+      ],
+      "negative_signals": [
+        {
+          "kind": "too_small_for_initial_offer",
+          "detail": "La source publique décrit une équipe de deux personnes.",
+          "source_id": "BRE-1"
+        }
+      ],
+      "related_entities": [],
+      "public_contact": {
+        "decision_maker_or_role": null,
+        "professional_email": null,
+        "collection_note": "non collecté pendant la phase pré-scoring"
+      },
+      "contradictions": [],
+      "contacting_performed": false,
+      "scoring_performed": false
+    },
+    {
+      "prospect_id": "FR-DAUPHIBLANC-009",
+      "entity_key": "dauphiblanc",
+      "name": "Dauphiblanc",
+      "sector": "blanchisserie industrielle",
+      "site_url": "https://dauphiblanc.fr/",
+      "discovered_at": "2026-08-28",
+      "prequalification_status": "REJECTED",
+      "facts": [
+        {
+          "field": "employee_count",
+          "value": "jusqu'à 400 collaborateurs en 2025",
+          "source_id": "DAU-1",
+          "observed_at": "2026-08-28",
+          "confidence": "high"
+        },
+        {
+          "field": "production_sites",
+          "value": "trois sites de production et deux dépôts logistiques",
+          "source_id": "DAU-1",
+          "observed_at": "2026-08-28",
+          "confidence": "high"
+        },
+        {
+          "field": "reported_scale",
+          "value": "22 700 tonnes de linge traitées et 31 M€ de chiffre d'affaires en 2025",
+          "source_id": "DAU-1",
+          "observed_at": "2026-08-28",
+          "confidence": "high"
+        }
+      ],
+      "inferences": [
+        {
+          "statement": "L'enjeu énergétique peut être important, mais la taille multi-sites dépasse la cohorte initiale visée et rend l'accessibilité et le périmètre d'une première mission incertains.",
+          "basis_source_ids": [
+            "DAU-1"
+          ],
+          "confidence": "medium"
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "DAU-1",
+          "title": "Dauphiblanc — blanchisserie industrielle",
+          "url": "https://dauphiblanc.fr/",
+          "retrieved_at": "2026-08-28",
+          "source_type": "company_website",
+          "confidence": "high"
+        }
+      ],
+      "missing_information": [
+        "structure énergie interne",
+        "autonomie des sites",
+        "interlocuteur local",
+        "données disponibles par site"
+      ],
+      "negative_signals": [
+        {
+          "kind": "out_of_initial_target_scale",
+          "detail": "Les 400 collaborateurs et trois sites de production dépassent la cible initiale de PME à décideur facilement accessible.",
+          "source_id": "DAU-1"
+        }
+      ],
+      "related_entities": [],
+      "public_contact": {
+        "decision_maker_or_role": null,
+        "professional_email": null,
+        "collection_note": "non collecté pendant la phase pré-scoring"
+      },
+      "contradictions": [],
+      "contacting_performed": false,
+      "scoring_performed": false
+    }
+  ]
+}

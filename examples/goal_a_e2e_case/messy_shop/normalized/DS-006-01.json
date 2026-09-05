@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "timestamp": "2026-06-01T00:00:00",
+      "source_row": 2,
+      "production": 18.0
+    },
+    {
+      "timestamp": "2026-06-02T00:00:00",
+      "source_row": 3,
+      "production": 20.0
+    }
+  ]
+}

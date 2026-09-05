@@ -1,0 +1,56 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+
+client_data/
+client_cases/
+client_cases/*/incoming/
+client_cases/*/privacy/
+client_cases/*/sanitized/
+client_cases/*/normalized/
+client_cases/*/derived/
+client_cases/*/evidence/
+client_cases/*/investigation/
+client_cases/*/scratch/
+client_cases/*/outputs/
+workspaces/*/incoming/
+workspaces/*/privacy/
+workspaces/*/sanitized/
+workspaces/*/processed/
+workspaces/*/scratch/
+workspaces/*/outputs/
+scratch/
+# Tous les dossiers client sont privés par défaut. Seul le guide racine est publié.
+workspaces/*
+!workspaces/README.md
+workspace/*/input/
+workspace/*/incoming/
+workspace/*/privacy/
+workspace/*/sanitized/
+workspace/*/retained_derived/
+workspace/*/processed/
+workspace/*/outputs/
+workspace/minimal_attribution_benchmark*/
+
+# Minimal attribution: cas publics/privés et réponses générées restent des artefacts locaux.
+benchmarks/minimal_attribution/runs/*
+!benchmarks/minimal_attribution/runs/.gitkeep
+
+# Physical expertise benchmark: private cases and run artefacts never enter Git.
+benchmarks/physical_expertise/cases/DEV/*
+!benchmarks/physical_expertise/cases/DEV/.gitkeep
+benchmarks/physical_expertise/cases/HOLDOUT/*
+!benchmarks/physical_expertise/cases/HOLDOUT/.gitkeep
+benchmarks/physical_expertise/runs/*
+!benchmarks/physical_expertise/runs/.gitkeep
+
+# Signal intelligence V2: generated truth, cases and runs stay private.
+benchmarks/signal_intelligence_v2/cases/DEV/*
+!benchmarks/signal_intelligence_v2/cases/DEV/.gitkeep
+benchmarks/signal_intelligence_v2/cases/HOLDOUT/*
+!benchmarks/signal_intelligence_v2/cases/HOLDOUT/.gitkeep
+benchmarks/signal_intelligence_v2/runs/*
+!benchmarks/signal_intelligence_v2/runs/.gitkeep
+benchmarks/signal_intelligence_v2/private_suites/*
+!benchmarks/signal_intelligence_v2/private_suites/.gitkeep

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "model": "CLIENT_REPORT_MODEL.json",
+  "pdf": "ENERGY_ANALYSIS_REPORT.pdf",
+  "rendered": {
+    "pdf_path": "examples/goal_c_e2e_case/boulangerie_centre/outputs/client_report/ENERGY_ANALYSIS_REPORT.pdf",
+    "page_count": 5,
+    "renderer": "stdlib_minimal_pdf_v1",
+    "contains_client_internal_ids": false
+  },
+  "claim_validation": "passed"
+}

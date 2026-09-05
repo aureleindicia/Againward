@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "case_id": "case_opaque_id",
+  "observation": {
+    "facts": [],
+    "data_quality": [],
+    "phenomenon_to_explain": "Description factuelle ou absence de phénomène"
+  },
+  "differential_diagnosis": [],
+  "current_decision": "INSUFFICIENT_INFORMATION",
+  "next_information": {
+    "needed": false,
+    "question": "",
+    "best_responder": "",
+    "why": "",
+    "hypotheses_distinguished": [],
+    "expected_effort": ""
+  },
+  "intervention": {
+    "class": "OBSERVE",
+    "action": "Ne pas modifier l'installation à ce stade.",
+    "competent_person": "responsable du site",
+    "preconditions": [],
+    "risks": [],
+    "stop_conditions": [],
+    "expected_result": "Conserver l'état de référence en attendant une preuve suffisante."
+  },
+  "validation": {
+    "metric": "métrique déterministe à définir",
+    "period": "période comparable à définir",
+    "controls": [],
+    "confirming_result": "critère qui confirmerait l'hypothèse",
+    "falsifying_result": "critère qui la réfuterait"
+  },
+  "economics": {
+    "observed_abnormal_energy": "unknown",
+    "energy_attributable_to_cause": "unknown",
+    "recoverable_fraction": "unknown",
+    "financial_savings": "unknown"
+  },
+  "confidence": {
+    "main_cause": 0.0,
+    "intervention": 0.0,
+    "justification": "Justification proportionnée aux preuves disponibles."
+  }
+}

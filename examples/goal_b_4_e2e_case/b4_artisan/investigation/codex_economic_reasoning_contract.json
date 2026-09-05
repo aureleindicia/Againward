@@ -1,0 +1,11 @@
+{
+  "input_handoff_ref": "investigation/economic_handoff_pre_reasoning.json",
+  "codex_decides": [
+    "action",
+    "questions",
+    "constraint",
+    "decision"
+  ],
+  "python_calculates_and_validates": true,
+  "not_a_deterministic_recommendation": true
+}

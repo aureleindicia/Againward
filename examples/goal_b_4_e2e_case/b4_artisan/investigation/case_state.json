@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "status": "ready_for_codex_first_pass",
+  "findings": [
+    {
+      "finding_id": "FIND-EXCESS-01",
+      "observation": "Excès pré-ouverture récurrent observé.",
+      "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+      "confidence": "MEDIUM",
+      "possible_explanations": [
+        "dérive",
+        "préparation légitime"
+      ],
+      "provenance": [
+        "evidence/dataset_provenance.json"
+      ],
+      "recommended_next_analytical_step": "Tester l'état réel pendant le créneau."
+    }
+  ],
+  "hypotheses": [],
+  "client_answers": [],
+  "unresolved_requests": [],
+  "history": [
+    {
+      "at_utc": "2026-08-30T12:57:05.238374+00:00",
+      "action": "intake_completed",
+      "inventory": "evidence/intake_inventory.json"
+    },
+    {
+      "at_utc": "2026-08-30T12:57:05.239778+00:00",
+      "action": "structured_findings_recorded",
+      "count": 1,
+      "no_finding": false
+    }
+  ],
+  "ground_truth_used": false,
+  "available_datasets": [
+    "DS-001-01"
+  ],
+  "material_ambiguities": [],
+  "current_decision_status": "findings_recorded"
+}

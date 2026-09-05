@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "status": "ready_for_codex_first_pass",
+  "findings": [
+    {
+      "finding_id": "FIND-OFFHOURS-01",
+      "observation": "Charge récurrente hors production dans les créneaux fermés.",
+      "status": "ANOMALY_CONFIRMED_CAUSE_UNCERTAIN",
+      "confidence": "HIGH",
+      "possible_explanations": [
+        "charge résiduelle",
+        "fonctionnement nécessaire non documenté"
+      ],
+      "provenance": [
+        "evidence/dataset_provenance.json"
+      ],
+      "recommended_next_analytical_step": "Contrôle professionnel pendant fermeture."
+    }
+  ],
+  "hypotheses": [],
+  "client_answers": [],
+  "unresolved_requests": [],
+  "history": [
+    {
+      "at_utc": "2026-08-30T13:56:43.442668+00:00",
+      "action": "intake_completed",
+      "inventory": "evidence/intake_inventory.json"
+    },
+    {
+      "at_utc": "2026-08-30T13:56:43.444309+00:00",
+      "action": "structured_findings_recorded",
+      "count": 1,
+      "no_finding": false
+    }
+  ],
+  "ground_truth_used": false,
+  "available_datasets": [
+    "DS-002-01"
+  ],
+  "material_ambiguities": [],
+  "current_decision_status": "findings_recorded"
+}

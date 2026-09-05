@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "family": "refrigeration",
+  "label": "Froid et réfrigération",
+  "energy_chain": [
+    "électricité",
+    "compresseur, condenseur, évaporateur, ventilateurs et dégivrage",
+    "extraction et rejet de chaleur",
+    "température produit ou local maintenue sous contraintes qualité"
+  ],
+  "variables": {
+    "energy_input": ["puissance du groupe", "énergie par cycle", "courant compresseur", "temps de marche"],
+    "demand": ["masse et température des produits entrants", "ouvertures de portes", "charge interne", "besoin de refroidissement"],
+    "command": ["consigne", "ordre compresseur", "ordre ventilateur", "programme de dégivrage"],
+    "feedback": ["température chambre", "température évaporateur", "état réel compresseur", "pression ou température de condensation"],
+    "environment": ["température extérieure", "humidité", "température du local condenseur", "encrassement ambiant"],
+    "process_output": ["température produit", "stabilité de la chaîne du froid", "temps de retour à consigne"]
+  },
+  "degradation_mechanisms": [
+    {
+      "mechanism": "rejet de chaleur dégradé au condenseur",
+      "predictions": ["pression ou approche de condensation plus élevée", "puissance ou temps de marche accru à charge et ambiance comparables"],
+      "discriminators": ["approche de condensation", "températures air entrée/sortie", "état des ventilateurs et surface d'échange"]
+    },
+    {
+      "mechanism": "échange évaporateur ou circulation d'air dégradé",
+      "predictions": ["écart de température ou retour à consigne dégradé", "givre, débit d'air ou fonctionnement ventilateur anormal"],
+      "discriminators": ["températures évaporateur/local", "débit d'air", "état de givre et ventilateurs"]
+    },
+    {
+      "mechanism": "infiltration ou charge thermique interne accrue",
+      "predictions": ["hausse liée aux ouvertures, humidité ou produits entrants", "équipement pouvant rester sain"],
+      "discriminators": ["journal des portes", "température et masse entrantes", "humidité ou observation du givre"]
+    },
+    {
+      "mechanism": "dégivrage, consigne ou séquence de commande modifiés",
+      "predictions": ["commandes datées et cycles modifiés", "température ou énergie suivant ces séquences"],
+      "discriminators": ["commande et état réel synchronisés", "température de fin de dégivrage", "historique de configuration"]
+    }
+  ],
+  "legitimate_service_changes": [
+    "produits entrants plus chauds ou plus nombreux",
+    "augmentation des ouvertures nécessaires",
+    "météo plus chaude ou humide",
+    "consigne plus basse imposée par qualité",
+    "dégivrage requis dans des conditions plus humides"
+  ],
+  "diagnostic_paths": [
+    {
+      "observation_class": "énergie ou temps de marche en hausse",
+      "mechanisms": ["demande frigorifique accrue", "rejet ou échange dégradé", "commande ou consigne modifiée", "autre charge électrique"],
+      "predictions": ["la demande suit produits, portes ou météo", "la dégradation persiste à service comparable", "une commande correcte doit être confirmée par le feedback"],
+      "discriminating_measurements": ["températures intérieur/extérieur et produits entrants", "temps de marche plus approche de condensation", "commande et état réel des organes"],
+      "interpretation_limits": ["le compteur général ne localise pas l'organe", "une baisse après nettoyage ne prouve pas seule le mécanisme"]
+    },
+    {
+      "observation_class": "cycle périodique hors activité",
+      "mechanisms": ["dégivrage normal", "dégivrage excessif", "relance après dégivrage", "charge non frigorifique programmée"],
+      "predictions": ["une séquence normale produit commandes, températures et reprise cohérentes", "une autre charge ne produit pas le feedback frigorifique attendu"],
+      "discriminating_measurements": ["états dégivrage/compresseur/ventilateurs et températures synchronisés", "programme versus états réels"],
+      "interpretation_limits": ["la périodicité ne prouve ni normalité ni défaut"]
+    }
+  ],
+  "field_tests": [
+    {
+      "test": "relevé non intrusif simultané énergie, commandes, états, températures et service",
+      "effort": "faible si historique contrôleur disponible",
+      "expected_interpretation": "sépare demande accrue, commande et performance sans modifier la consigne"
+    },
+    {
+      "test": "inspection visuelle portes, joints, givre, condenseur, évaporateur et ventilateurs",
+      "effort": "faible avec responsable maintenance ou frigoriste",
+      "expected_interpretation": "oriente un test instrumenté mais ne suffit pas toujours à attribuer l'énergie"
+    }
+  ],
+  "safety": [
+    "ne pas modifier une consigne ou un dégivrage sans vérifier chaîne du froid et qualité",
+    "les mesures frigorifiques et interventions sur fluide relèvent d'un frigoriste qualifié",
+    "arrêter tout essai si température produit, alarme, pression ou protection sort des limites"
+  ]
+}

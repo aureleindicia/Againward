@@ -1,0 +1,346 @@
+{
+  "schema_version": 1,
+  "design": {
+    "order": "public_outputs_validated_and_hashed_before_private_truth_opened",
+    "public_cases": 6,
+    "independent_codex_sessions": 3,
+    "ground_truth_forbidden_during_sessions": true,
+    "public_case_hashes": {
+      "legitimate_night_shift": {
+        "input.csv": "fd20b4a985687a5381c9473afbb963912b0137a615e7637351f807ea4c877e5e",
+        "intake.json": "7815b90f8d3d24d937396963f152f54dd8e1059a11eb01843542533c1983c43d",
+        "candidate_signals.json": "a6d21d52d97419ee1f938ad4c0085c36424437b37b8f5e271ae08b2d3a44b503",
+        "investigation_state.json": "7bf6ac6cf7b67ddec34962d7270cead834dad0ee347a43e3bcebfb5a5ec17d87"
+      },
+      "legitimate_point_maintenance": {
+        "input.csv": "aa3b3277ad2ff804a8f0ed2571d3dd1f04b2cada8d0b1e436d8c89695c3eb7c0",
+        "intake.json": "078e749f22dde15951d2d11e6550bfc00c8e1c9a69b7c8a9b9bf26d9a8a460b4",
+        "candidate_signals.json": "503ff8b41560f8e99314ebe764a65793edddc31e64ec8aa3ae966cf0565436b1",
+        "investigation_state.json": "8b83628f57f20f33945454d435b2fe16f44167ad9f8263a876e85ca3a5f1fd6e"
+      },
+      "normal_scheduled": {
+        "input.csv": "60414ea5d0ab16443b7ab5b3fb5d41b3b170145795b0b4091d4d3db66fe12127",
+        "intake.json": "c5f885759d0b0a46c34549b5bd5522df181f29bf5a0167b0b8086d3158985d48",
+        "candidate_signals.json": "77b505f6667d64d8773017340737ff59a29af547a62cede39a09203f9436ad53",
+        "investigation_state.json": "99bf79ec290c05976ba4f165c2082c115c797a4d1d6855c324384c6c08a6cbee"
+      },
+      "progressive_drift": {
+        "input.csv": "b55c1c4b5f84ad7437e0244c1d02a354a35d65af47af02ad15b52b02b2316556",
+        "intake.json": "b76577e5b9c5024188aee79b017c5abde73f367a67dab5c69b0a58255f5f7816",
+        "candidate_signals.json": "91cb74286e49ba583ddfb63af1e6b940b9a227b154415b1b89a5231b7c9a668e",
+        "investigation_state.json": "87b13fba842d00eda0c5e2f1937a312437829d2d469c072ca45e1c1c16eb359d"
+      },
+      "short_cycling_unknown": {
+        "input.csv": "7c26ca2c38751fe1855ffad32a4943d7e978454bcf2df751a06f31d678bc602c",
+        "intake.json": "d97b64ff4c3a5fd969707a971281ef1e04cf34d5b4f9ddb712d7d23819e7ccb8",
+        "candidate_signals.json": "7fbadd0d3acb8e7141e99d4e1cddca5e2bac49ef00a61c29508a988abdd99f46",
+        "investigation_state.json": "5694b55c0f5711f1e48ef584479dea5ba54f6830356972ba2fba7482731eb520"
+      },
+      "weather_variation": {
+        "input.csv": "8ba265be62a63ab8d65885a95c568ad576f74f31ab149675541753a4b1dd2316",
+        "intake.json": "17a70074a50e4ca7340d74ce006b5fe4864169d4c597d85362a7f4b249ecb9a7",
+        "candidate_signals.json": "23a2c936e521e3ca42ce96e3650fc719f595d0c678fcbe233bc52f05b9fca08e",
+        "investigation_state.json": "11a39efbc1faa1a456f01a3d041a0cd99e3ee9716518d63a514569c795e299e6"
+      }
+    }
+  },
+  "python_only_same_public_cases": {
+    "true_positives": 1,
+    "false_positives": 6,
+    "false_negatives": 1,
+    "precision": 0.14285714285714285,
+    "recall": 0.5,
+    "f1": 0.22222222222222224
+  },
+  "python_plus_codex_sessions": [
+    {
+      "session_id": "blind_session_1",
+      "review_sha256": "908d1a5abdbdbeab988d1bfdf1eb5290d4ed7cf5e7d1b3413d79f111634aecd9",
+      "ground_truth_accessed_declared": false,
+      "temporal_detection": {
+        "true_positives": 2,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "exact_free_text_type_detection": {
+        "true_positives": 0,
+        "false_positives": 2,
+        "false_negatives": 2,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "legitimate_events": 1,
+      "legitimate_events_retained_as_anomaly": 0,
+      "overlapping_retained_pairs": 0,
+      "follow_up_requests": 1,
+      "effort_levels": {
+        "modere": 1
+      },
+      "request_contract_validated": true,
+      "retained_cases_with_next_verification": 1,
+      "retained_cases": 2,
+      "next_verification_coverage": 0.5,
+      "cases": [
+        {
+          "case_name": "legitimate_night_shift",
+          "retained_events": 0,
+          "temporal_true_positives": 0,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "not_retained"
+        },
+        {
+          "case_name": "legitimate_point_maintenance",
+          "retained_events": 0,
+          "temporal_true_positives": 0,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "not_retained"
+        },
+        {
+          "case_name": "normal_scheduled",
+          "retained_events": 0,
+          "temporal_true_positives": 0,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "not_retained"
+        },
+        {
+          "case_name": "progressive_drift",
+          "retained_events": 1,
+          "temporal_true_positives": 1,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "confirmed"
+        },
+        {
+          "case_name": "short_cycling_unknown",
+          "retained_events": 1,
+          "temporal_true_positives": 1,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "confirmed"
+        },
+        {
+          "case_name": "weather_variation",
+          "retained_events": 0,
+          "temporal_true_positives": 0,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "not_retained"
+        }
+      ]
+    },
+    {
+      "session_id": "blind_session_2",
+      "review_sha256": "673acc883ad44f4f996f83902d3625fa10327d35ef3843c5f30f400f33616809",
+      "ground_truth_accessed_declared": false,
+      "temporal_detection": {
+        "true_positives": 2,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "exact_free_text_type_detection": {
+        "true_positives": 1,
+        "false_positives": 1,
+        "false_negatives": 1,
+        "precision": 0.5,
+        "recall": 0.5,
+        "f1": 0.5
+      },
+      "legitimate_events": 1,
+      "legitimate_events_retained_as_anomaly": 0,
+      "overlapping_retained_pairs": 0,
+      "follow_up_requests": 1,
+      "effort_levels": {
+        "faible": 1
+      },
+      "request_contract_validated": true,
+      "retained_cases_with_next_verification": 1,
+      "retained_cases": 2,
+      "next_verification_coverage": 0.5,
+      "cases": [
+        {
+          "case_name": "legitimate_night_shift",
+          "retained_events": 0,
+          "temporal_true_positives": 0,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "not_retained"
+        },
+        {
+          "case_name": "legitimate_point_maintenance",
+          "retained_events": 0,
+          "temporal_true_positives": 0,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "not_retained"
+        },
+        {
+          "case_name": "normal_scheduled",
+          "retained_events": 0,
+          "temporal_true_positives": 0,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "not_retained"
+        },
+        {
+          "case_name": "progressive_drift",
+          "retained_events": 1,
+          "temporal_true_positives": 1,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "confirmed"
+        },
+        {
+          "case_name": "short_cycling_unknown",
+          "retained_events": 1,
+          "temporal_true_positives": 1,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "confirmed"
+        },
+        {
+          "case_name": "weather_variation",
+          "retained_events": 0,
+          "temporal_true_positives": 0,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "not_retained"
+        }
+      ]
+    },
+    {
+      "session_id": "blind_session_3",
+      "review_sha256": "811eec0be768fbd5b09c82a5b87322776feee2395cfe2f0b86ad70c29cf92add",
+      "ground_truth_accessed_declared": false,
+      "temporal_detection": {
+        "true_positives": 2,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "exact_free_text_type_detection": {
+        "true_positives": 1,
+        "false_positives": 1,
+        "false_negatives": 1,
+        "precision": 0.5,
+        "recall": 0.5,
+        "f1": 0.5
+      },
+      "legitimate_events": 1,
+      "legitimate_events_retained_as_anomaly": 0,
+      "overlapping_retained_pairs": 0,
+      "follow_up_requests": 1,
+      "effort_levels": {
+        "faible": 1
+      },
+      "request_contract_validated": true,
+      "retained_cases_with_next_verification": 1,
+      "retained_cases": 2,
+      "next_verification_coverage": 0.5,
+      "cases": [
+        {
+          "case_name": "legitimate_night_shift",
+          "retained_events": 0,
+          "temporal_true_positives": 0,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "not_retained"
+        },
+        {
+          "case_name": "legitimate_point_maintenance",
+          "retained_events": 0,
+          "temporal_true_positives": 0,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "not_retained"
+        },
+        {
+          "case_name": "normal_scheduled",
+          "retained_events": 0,
+          "temporal_true_positives": 0,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "not_retained"
+        },
+        {
+          "case_name": "progressive_drift",
+          "retained_events": 1,
+          "temporal_true_positives": 1,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "confirmed"
+        },
+        {
+          "case_name": "short_cycling_unknown",
+          "retained_events": 1,
+          "temporal_true_positives": 1,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "reserved"
+        },
+        {
+          "case_name": "weather_variation",
+          "retained_events": 0,
+          "temporal_true_positives": 0,
+          "temporal_false_positives": 0,
+          "temporal_false_negatives": 0,
+          "disposition": "not_retained"
+        }
+      ]
+    }
+  ],
+  "stability": {
+    "pairs": [
+      {
+        "sessions": [
+          "blind_session_1",
+          "blind_session_2"
+        ],
+        "retained_event_temporal_f1": 1.0,
+        "exact_case_disposition_agreement": 1.0
+      },
+      {
+        "sessions": [
+          "blind_session_1",
+          "blind_session_3"
+        ],
+        "retained_event_temporal_f1": 1.0,
+        "exact_case_disposition_agreement": 0.8333333333333334
+      },
+      {
+        "sessions": [
+          "blind_session_2",
+          "blind_session_3"
+        ],
+        "retained_event_temporal_f1": 1.0,
+        "exact_case_disposition_agreement": 0.8333333333333334
+      }
+    ],
+    "mean_retained_event_temporal_f1": 1.0,
+    "mean_exact_case_disposition_agreement": 0.888888888888889
+  },
+  "comparison": {
+    "mean_codex_temporal_precision": 1.0,
+    "mean_codex_temporal_recall": 1.0,
+    "python_false_positives": 6,
+    "mean_codex_false_positives": 0.0,
+    "interpretation": "Mesure limitée à six cas synthétiques indépendants de la démo. Le score temporel accepte les taxonomies ad hoc de Codex; le score de type exact est publié séparément et ne doit pas être masqué."
+  },
+  "unmeasured": [
+    "pertinence métier des questions au-delà de la conformité de leur contrat",
+    "qualité des recommandations opérationnelles, non demandées dans ce protocole",
+    "quantification Codex standardisée des kWh, absente du schéma de session",
+    "performance sur données réelles client"
+  ]
+}

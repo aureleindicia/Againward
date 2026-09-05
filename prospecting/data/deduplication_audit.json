@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "actions": [],
+  "relations_retained_without_merge": [
+    {
+      "prospect_id": "FR-AGRONOVAE-002",
+      "related_entities": [
+        {
+          "name": "Comtes de Provence",
+          "relationship": "marque citée dans le document de présentation",
+          "source_id": "AGN-2"
+        }
+      ]
+    },
+    {
+      "prospect_id": "FR-MORELLON-008",
+      "related_entities": [
+        {
+          "name": "Famille Boisset",
+          "relationship": "actionnaire familial cité dans la publication de 2026",
+          "source_id": "MOR-1"
+        }
+      ]
+    },
+    {
+      "prospect_id": "FR-MECAFORGING-005",
+      "related_entities": [
+        {
+          "name": "Ardec Industries",
+          "relationship": "groupe cité comme associé puis actionnaire",
+          "source_id": "MFG-1"
+        },
+        {
+          "name": "Camelin Décolletage",
+          "relationship": "groupe cité comme associé",
+          "source_id": "MFG-1"
+        }
+      ]
+    },
+    {
+      "prospect_id": "FR-TAGLAB-004",
+      "related_entities": [
+        {
+          "name": "Glaces Moustache",
+          "relationship": "enseigne sous laquelle les glaces Taglab sont vendues",
+          "source_id": "TAG-1"
+        }
+      ]
+    }
+  ]
+}

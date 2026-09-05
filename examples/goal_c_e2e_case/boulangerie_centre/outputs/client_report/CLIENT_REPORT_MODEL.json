@@ -1,0 +1,356 @@
+{
+  "schema_version": 1,
+  "kind": "CLIENT_REPORT_MODEL",
+  "metadata": {
+    "case_id": "boulangerie_centre",
+    "site_name": "Boulangerie du Centre",
+    "report_title": "Analyse de performance énergétique",
+    "analysis_period": "Période de données fournie",
+    "regulatory_notice": "Cette prestation ne constitue pas un audit énergétique réglementaire."
+  },
+  "executive_summary": {
+    "message": "Une action de maintenance peut être planifiée sans perturber la production, tandis que le remplacement reste une solution alternative à comparer.",
+    "important_subjects": 1,
+    "recommended_actions": 1,
+    "verify_first": 0,
+    "monitor": 0,
+    "no_action_items": 1,
+    "economic_total": {
+      "kind": "RANGE",
+      "low": 360.0,
+      "base": 432.0,
+      "high": 504.0,
+      "currency": "EUR",
+      "period": "an",
+      "display": "€360–€504/an",
+      "scenario_used_as_expected": null
+    },
+    "priority_card_refs": [
+      "CARD-ACT-REPAIR-01"
+    ]
+  },
+  "decision_cards": [
+    {
+      "card_id": "CARD-ACT-REPAIR-01",
+      "action_ref": "ACT-REPAIR-01",
+      "decision": "ACT_NOW",
+      "client_decision": "Action recommandée",
+      "headline": "Réparer la charge hors horaires",
+      "what_we_found": "Une charge subsiste lorsque la production est arrêtée.",
+      "why_this_matters": "Cette consommation ne participe pas au service vendu pendant les périodes de fermeture et justifie une intervention proportionnée.",
+      "recommendation": "Faire contrôler puis corriger la charge pendant une fenêtre de maintenance planifiée.",
+      "uncertainty": "Le composant exact reste à confirmer par le professionnel avant toute réparation.",
+      "observed": [
+        "Charge récurrente hors production dans les créneaux fermés."
+      ],
+      "inferred": [
+        "charge résiduelle",
+        "fonctionnement nécessaire non documenté"
+      ],
+      "evidence_level": "Fort",
+      "operational_constraints": [
+        {
+          "description": "Intervention à prévoir hors production et ouverture.",
+          "hard": true,
+          "material": true
+        }
+      ],
+      "next_step": null,
+      "validation_plan": {
+        "metric": "kWh hors production",
+        "expected_direction": "baisse",
+        "comparison_window": "semaines comparables",
+        "confounders": "ouverture et activité",
+        "minimum_evidence": "baisse persistante à activité comparable"
+      },
+      "economic_impact": {
+        "saving_status": "POTENTIAL",
+        "annual_net_benefit": {
+          "kind": "RANGE",
+          "low": 360.0,
+          "base": 432.0,
+          "high": 504.0,
+          "currency": "EUR",
+          "period": "an",
+          "display": "€360–€504/an",
+          "scenario_used_as_expected": null
+        },
+        "intervention_cost": {
+          "kind": "EXACT",
+          "low": 450.0,
+          "base": 450.0,
+          "high": 450.0,
+          "currency": "EUR",
+          "period": "ponctuel",
+          "display": "€450/ponctuel",
+          "scenario_used_as_expected": "BASE"
+        },
+        "annual_energy_saving_kwh": {
+          "LOW": 1800.0,
+          "BASE": 2160.0,
+          "HIGH": 2520.0
+        },
+        "calculation_ref": "EFF-REPAIR-01",
+        "baseline": "créneaux fermés comparables",
+        "claim_refs": {
+          "energy_effect": {
+            "LOW": [
+              "FIND-OFFHOURS-01"
+            ],
+            "BASE": [
+              "FIND-OFFHOURS-01"
+            ],
+            "HIGH": [
+              "FIND-OFFHOURS-01"
+            ]
+          },
+          "tariff_per_kwh": {
+            "LOW": [
+              "TAR-01"
+            ],
+            "BASE": [
+              "TAR-01"
+            ],
+            "HIGH": [
+              "TAR-01"
+            ]
+          },
+          "intervention_cost": {
+            "LOW": [
+              "CAP-REPAIR-01"
+            ],
+            "BASE": [
+              "CAP-REPAIR-01"
+            ],
+            "HIGH": [
+              "CAP-REPAIR-01"
+            ]
+          }
+        }
+      },
+      "claim_refs": {
+        "finding_ids": [
+          "FIND-OFFHOURS-01"
+        ],
+        "decision_id": "DEC-REPAIR-01",
+        "action_id": "ACT-REPAIR-01"
+      },
+      "considered_action_ids": [
+        "ACT-REPAIR-01",
+        "ACT-REPLACE-01"
+      ]
+    }
+  ],
+  "alternative_groups": [
+    {
+      "relationship_ref": "REL-REPAIR-REPLACE",
+      "type": "MUTUALLY_EXCLUSIVE",
+      "rationale": "Deux réponses au même équipement.",
+      "options": [
+        {
+          "action_ref": "ACT-REPAIR-01",
+          "title": "Réparation ciblée",
+          "economic_impact": {
+            "saving_status": "POTENTIAL",
+            "annual_net_benefit": {
+              "kind": "RANGE",
+              "low": 360.0,
+              "base": 432.0,
+              "high": 504.0,
+              "currency": "EUR",
+              "period": "an",
+              "display": "€360–€504/an",
+              "scenario_used_as_expected": null
+            },
+            "intervention_cost": {
+              "kind": "EXACT",
+              "low": 450.0,
+              "base": 450.0,
+              "high": 450.0,
+              "currency": "EUR",
+              "period": "ponctuel",
+              "display": "€450/ponctuel",
+              "scenario_used_as_expected": "BASE"
+            },
+            "annual_energy_saving_kwh": {
+              "LOW": 1800.0,
+              "BASE": 2160.0,
+              "HIGH": 2520.0
+            },
+            "calculation_ref": "EFF-REPAIR-01",
+            "baseline": "créneaux fermés comparables",
+            "claim_refs": {
+              "energy_effect": {
+                "LOW": [
+                  "FIND-OFFHOURS-01"
+                ],
+                "BASE": [
+                  "FIND-OFFHOURS-01"
+                ],
+                "HIGH": [
+                  "FIND-OFFHOURS-01"
+                ]
+              },
+              "tariff_per_kwh": {
+                "LOW": [
+                  "TAR-01"
+                ],
+                "BASE": [
+                  "TAR-01"
+                ],
+                "HIGH": [
+                  "TAR-01"
+                ]
+              },
+              "intervention_cost": {
+                "LOW": [
+                  "CAP-REPAIR-01"
+                ],
+                "BASE": [
+                  "CAP-REPAIR-01"
+                ],
+                "HIGH": [
+                  "CAP-REPAIR-01"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "action_ref": "ACT-REPLACE-01",
+          "title": "Remplacement",
+          "economic_impact": {
+            "saving_status": "POTENTIAL",
+            "annual_net_benefit": {
+              "kind": "RANGE",
+              "low": 380.0,
+              "base": 456.0,
+              "high": 532.0,
+              "currency": "EUR",
+              "period": "an",
+              "display": "€380–€532/an",
+              "scenario_used_as_expected": null
+            },
+            "intervention_cost": {
+              "kind": "EXACT",
+              "low": 3200.0,
+              "base": 3200.0,
+              "high": 3200.0,
+              "currency": "EUR",
+              "period": "ponctuel",
+              "display": "€3 200/ponctuel",
+              "scenario_used_as_expected": "BASE"
+            },
+            "annual_energy_saving_kwh": {
+              "LOW": 1900.0,
+              "BASE": 2280.0,
+              "HIGH": 2660.0
+            },
+            "calculation_ref": "EFF-REPLACE-01",
+            "baseline": "créneaux fermés comparables",
+            "claim_refs": {
+              "energy_effect": {
+                "LOW": [
+                  "FIND-OFFHOURS-01"
+                ],
+                "BASE": [
+                  "FIND-OFFHOURS-01"
+                ],
+                "HIGH": [
+                  "FIND-OFFHOURS-01"
+                ]
+              },
+              "tariff_per_kwh": {
+                "LOW": [
+                  "TAR-01"
+                ],
+                "BASE": [
+                  "TAR-01"
+                ],
+                "HIGH": [
+                  "TAR-01"
+                ]
+              },
+              "intervention_cost": {
+                "LOW": [
+                  "CAP-REPLACE-01"
+                ],
+                "BASE": [
+                  "CAP-REPLACE-01"
+                ],
+                "HIGH": [
+                  "CAP-REPLACE-01"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "not_additive": true
+    }
+  ],
+  "no_action_items": [
+    {
+      "title": "Ne pas remplacer immédiatement",
+      "explanation": "Le remplacement est une option alternative et ne doit pas être engagé avant comparaison avec la réparation ciblée."
+    }
+  ],
+  "client_dialogue": {
+    "pending_questions": [],
+    "resolved_goal_b_evidence_refs": []
+  },
+  "what_we_checked": [
+    "La consommation pendant les créneaux de fermeture",
+    "La compatibilité de l intervention avec l activité du site"
+  ],
+  "charts": [
+    {
+      "chart_id": "CHART-01",
+      "type": "ENERGY_SERIES",
+      "title": "Consommation sur la période analysée",
+      "purpose": "Le profil met en évidence la différence entre les créneaux actifs et les créneaux fermés.",
+      "dataset_ref": "DS-002-01",
+      "relative_path": "charts/chart_01.png",
+      "claim_refs": [
+        "DS-002-01"
+      ]
+    }
+  ],
+  "technical_appendix": {
+    "sources": [
+      {
+        "source_ref": "ART-001-aed43daf285a",
+        "label": "devis_reparation.txt",
+        "role": "TEXT_NOTE"
+      },
+      {
+        "source_ref": "ART-002-273ae8bb99ff",
+        "label": "energy_interval.csv",
+        "role": "ENERGY_INTERVAL_SERIES"
+      },
+      {
+        "source_ref": "ART-003-24ae92c0cdf9",
+        "label": "planning.txt",
+        "role": "SCHEDULE"
+      },
+      {
+        "source_ref": "ART-004-81e2e1351fe6",
+        "label": "tarif_electricite.txt",
+        "role": "TARIFF"
+      }
+    ],
+    "limitations": [
+      "La cause précise nécessite la confirmation du professionnel qui interviendra."
+    ],
+    "method": "Les montants reprennent les calculs économiques validés et les décisions enregistrées avant la livraison.",
+    "claim_reference_policy": "Chaque carte relie décision, action, finding et calcul Goal A/B; les identifiants restent internes."
+  },
+  "claim_fidelity": {
+    "goal_a_findings_ref": "investigation/structured_findings.json",
+    "goal_b_state_ref": "investigation/economic_decision_state.json",
+    "decision_strengthened": false,
+    "savings_status": "POTENTIAL",
+    "internal_claim_refs_present": true,
+    "non_additive_actions_not_summed": true
+  }
+}

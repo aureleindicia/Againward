@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "validation_design": "generation_private_then_detection_public_then_evaluation",
+  "generator_independent_from_demo_py": true,
+  "python_only": {
+    "true_positives": 4,
+    "false_positives": 8,
+    "false_negatives": 5,
+    "precision": 0.3333333333333333,
+    "recall": 0.4444444444444444,
+    "f1": 0.380952380952381,
+    "mean_absolute_energy_error_ratio": 0.30751984916648495
+  },
+  "codex_comparison": {
+    "status": "measured_on_independent_six_case_subset",
+    "artifact": "reports/blind_codex_comparison.json",
+    "independent_sessions": 3,
+    "public_cases": 6,
+    "python_only_same_subset": {
+      "true_positives": 1,
+      "false_positives": 6,
+      "false_negatives": 1,
+      "precision": 0.14285714285714285,
+      "recall": 0.5,
+      "f1": 0.22222222222222224
+    },
+    "codex_temporal_sessions": [
+      {
+        "session_id": "blind_session_1",
+        "true_positives": 2,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      {
+        "session_id": "blind_session_2",
+        "true_positives": 2,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      {
+        "session_id": "blind_session_3",
+        "true_positives": 2,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    ],
+    "caveat": "Comparaison sur six cas et seeds figés distincts de la métrique globale quatorze cas; ne pas substituer un score à l'autre."
+  },
+  "cases": [
+    {
+      "case_name": "normal_scheduled",
+      "legitimate_events": 0,
+      "injected_events": 0,
+      "detected_events": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "unmatched_injected": [],
+      "unmatched_detected": []
+    },
+    {
+      "case_name": "progressive_drift",
+      "legitimate_events": 0,
+      "injected_events": 1,
+      "detected_events": 3,
+      "true_positives": 1,
+      "false_positives": 2,
+      "false_negatives": 0,
+      "precision": 0.3333333333333333,
+      "recall": 1.0,
+      "f1": 0.5,
+      "unmatched_injected": [],
+      "unmatched_detected": [
+        "C002",
+        "C001"
+      ]
+    },
+    {
+      "case_name": "permanent_level_shift",
+      "legitimate_events": 0,
+      "injected_events": 1,
+      "detected_events": 2,
+      "true_positives": 1,
+      "false_positives": 1,
+      "false_negatives": 0,
+      "precision": 0.5,
+      "recall": 1.0,
+      "f1": 0.6666666666666666,
+      "unmatched_injected": [],
+      "unmatched_detected": [
+        "C001"
+      ]
+    },
+    {
+      "case_name": "intermittent_unknown",
+      "legitimate_events": 0,
+      "injected_events": 4,
+      "detected_events": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 4,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "unmatched_injected": [
+        "B01",
+        "B02",
+        "B03",
+        "B04"
+      ],
+      "unmatched_detected": []
+    },
+    {
+      "case_name": "legitimate_point_maintenance",
+      "legitimate_events": 1,
+      "injected_events": 0,
+      "detected_events": 1,
+      "true_positives": 0,
+      "false_positives": 1,
+      "false_negatives": 0,
+      "precision": 0.0,
+      "recall": 1.0,
+      "f1": 0.0,
+      "unmatched_injected": [],
+      "unmatched_detected": [
+        "C001"
+      ]
+    },
+    {
+      "case_name": "weather_variation",
+      "legitimate_events": 0,
+      "injected_events": 0,
+      "detected_events": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "unmatched_injected": [],
+      "unmatched_detected": []
+    },
+    {
+      "case_name": "production_variation",
+      "legitimate_events": 0,
+      "injected_events": 0,
+      "detected_events": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "unmatched_injected": [],
+      "unmatched_detected": []
+    },
+    {
+      "case_name": "product_mix_change",
+      "legitimate_events": 0,
+      "injected_events": 0,
+      "detected_events": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "unmatched_injected": [],
+      "unmatched_detected": []
+    },
+    {
+      "case_name": "legitimate_night_shift",
+      "legitimate_events": 0,
+      "injected_events": 0,
+      "detected_events": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "unmatched_injected": [],
+      "unmatched_detected": []
+    },
+    {
+      "case_name": "maintenance_shutdown",
+      "legitimate_events": 1,
+      "injected_events": 0,
+      "detected_events": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "unmatched_injected": [],
+      "unmatched_detected": []
+    },
+    {
+      "case_name": "missing_and_misleading",
+      "legitimate_events": 0,
+      "injected_events": 0,
+      "detected_events": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "unmatched_injected": [],
+      "unmatched_detected": []
+    },
+    {
+      "case_name": "overlapping_changes",
+      "legitimate_events": 0,
+      "injected_events": 2,
+      "detected_events": 3,
+      "true_positives": 2,
+      "false_positives": 1,
+      "false_negatives": 0,
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "f1": 0.8,
+      "unmatched_injected": [],
+      "unmatched_detected": [
+        "C001"
+      ]
+    },
+    {
+      "case_name": "short_cycling_unknown",
+      "legitimate_events": 0,
+      "injected_events": 1,
+      "detected_events": 3,
+      "true_positives": 0,
+      "false_positives": 3,
+      "false_negatives": 1,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "unmatched_injected": [
+        "B01"
+      ],
+      "unmatched_detected": [
+        "C003",
+        "C001",
+        "C002"
+      ]
+    },
+    {
+      "case_name": "normal_24_7_multi_regime",
+      "legitimate_events": 0,
+      "injected_events": 0,
+      "detected_events": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "unmatched_injected": [],
+      "unmatched_detected": []
+    }
+  ],
+  "limitations": [
+    "Les données restent synthétiques malgré un générateur indépendant.",
+    "La pertinence métier des questions au-delà du contrat structuré n'est pas mesurée automatiquement.",
+    "Les événements légitimes sont comptés comme faux positifs Python si un signal les couvre."
+  ]
+}

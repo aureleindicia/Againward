@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "status": "ready_for_codex_first_pass",
+  "findings": [],
+  "hypotheses": [],
+  "client_answers": [],
+  "unresolved_requests": [],
+  "history": [
+    {
+      "at_utc": "2026-08-30T13:56:43.489425+00:00",
+      "action": "intake_completed",
+      "inventory": "evidence/intake_inventory.json"
+    },
+    {
+      "at_utc": "2026-08-30T13:56:43.490710+00:00",
+      "action": "structured_findings_recorded",
+      "count": 0,
+      "no_finding": true
+    }
+  ],
+  "ground_truth_used": false,
+  "available_datasets": [
+    "DS-001-01"
+  ],
+  "material_ambiguities": [],
+  "current_decision_status": "no_material_finding"
+}
