@@ -16,6 +16,7 @@ from .evidence_protocol import (
     validate_finding_provenance,
 )
 
+from .client_lifecycle import assert_workflow_action_allowed
 
 def _read_json(path: Path) -> dict[str, Any]:
     try:
@@ -67,6 +68,7 @@ def execute_case_query(
     case_directory: str | Path, request_path: str | Path
 ) -> dict[str, Any]:
     root = Path(case_directory)
+    assert_workflow_action_allowed(case_directory, "evidence_query")
     dataset = EvidenceDataset.from_dict(_read_json(root / "evidence_dataset.json"))
     session_path = root / "evidence_query_session.json"
     session = EvidenceQuerySession.from_dict(_read_json(session_path))
@@ -115,6 +117,7 @@ def validate_case_findings(
     case_directory: str | Path, findings_path: str | Path
 ) -> dict[str, Any]:
     root = Path(case_directory)
+    assert_workflow_action_allowed(case_directory, "finding_validation")
     session = EvidenceQuerySession.from_dict(
         _read_json(root / "evidence_query_session.json")
     )

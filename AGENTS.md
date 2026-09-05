@@ -1597,7 +1597,10 @@ Créer `.gitignore` approprié pour :
 
 ```text
 client_data/
-workspaces/*/input/
+client_cases/
+workspaces/*/incoming/
+workspaces/*/privacy/
+workspaces/*/sanitized/
 workspaces/*/processed/
 workspaces/*/outputs/
 .env
@@ -1605,6 +1608,13 @@ scratch sensible
 ```
 
 Les exemples synthétiques peuvent être versionnés.
+
+Pour tout futur dossier réel, Codex est la première étape sémantique sur `incoming/`. Python ne
+peut avant cela que créer le workspace et copier les octets sans parser. Après la review Codex,
+le post-check Python doit produire `privacy_manifest.json` et refuser toute analyse tant que
+`approved_for_analysis != true`. Le workspace et l'orchestration sont local-first, mais le service
+implique le traitement par Codex/OpenAI selon sa configuration; ne pas affirmer que Codex est
+purement local ou qu'aucune donnée ne quitte jamais l'appareil.
 
 ---
 
@@ -1688,7 +1698,9 @@ Structure éventuelle :
 ```text
 workspaces/
   demo/
-    input/
+    incoming/
+    privacy/
+    sanitized/
     processed/
     scratch/
     outputs/
@@ -2024,8 +2036,9 @@ client absents du dépôt. Le dépôt reste autoritatif pour le code; ne jamais 
 client de Download ni considérer automatiquement un ancien clone comme plus récent.
 
 Lire `docs/CLIENT_WORKFLOW.md` et `.codex/skills/indicia-client-workflow/SKILL.md`. Les sources de
-vérité sont `investigation_state.json.client_lifecycle` et `questions.json`. États : `ANALYZING`,
-`WAITING_FOR_REQUIRED_INFORMATION`, `RESUMING`, `FINALIZABLE`, `DELIVERABLE`. Un BLOCKING impose
+vérité sont `privacy/privacy_manifest.json`, `investigation_state.json.client_lifecycle` et
+`questions.json`. États : `AWAITING_PRIVACY_REVIEW`, `PRIVACY_CLEARED`, `PRIVACY_BLOCKED`, `ANALYZING`,
+`WAITING_FOR_REQUIRED_INFORMATION`, `RESUMING`, `FINALIZABLE`, `DELIVERABLE`, puis `PURGED`. Un BLOCKING impose
 STOP : pas de promotion, économie/action finale, rapport ou livraison. Après réponse : recalcul
 Python, alternatives, avant/après et review. Deux cycles, trois demandes/cycle, zéro par défaut.
 
@@ -2040,6 +2053,7 @@ dossier d'analyse direct. Ne pas recréer `questions.json`, `investigation_state
 chemin Android/Termux codé en dur; Download n'est qu'une source locale de contexte pour Codex.
 
 Responsabilités : `energy_mvp/client_lifecycle.py` possède l'état et la reprise;
+`energy_mvp/privacy.py` le gate Codex-first, le manifest, la rétention et la purge;
 `energy_mvp/client_requests.py` le contrat, la VOI et la déduplication;
 `energy_mvp/minimal_attribution.py` les preuves/plafonds;
 `energy_mvp/attribution_workflow.py` l'intégration MEA; `energy_mvp/case_lifecycle.py` le gate.

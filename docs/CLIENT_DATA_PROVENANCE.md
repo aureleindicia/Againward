@@ -1,27 +1,47 @@
 # Provenance des données client
 
-Chaque fichier reçu devient un artefact `ART-…` stable fondé sur son hash SHA-256. L’inventaire `evidence/intake_inventory.json` enregistre son nom d’origine, chemin relatif dans le drop, type, taille, hash, date d’ingestion, rôle probable, preuve de classement, statut de parsing, utilisabilité et relations avec les jeux extraits.
+## Privacy lineage
 
-Chaque tableau devient un `DS-…` dans `evidence/dataset_provenance.json`. Pour chaque jeu, le système conserve :
+Chaque fichier temporaire `incoming/` reçoit un `file_id` non sémantique. Le
+`privacy/privacy_manifest.json` conserve son hash SHA-256, son type, le statut PASS/SANITIZED/
+BLOCKED, les catégories et transformations agrégées, puis le hash de la version `sanitized/`.
+Il ne conserve ni valeur personnelle retirée, ni nom logique susceptible de la recréer.
 
-- fichier source, feuille et ligne d’en-tête ;
-- en-têtes et correspondances de colonnes ;
-- lineage de timestamp, mesure et production lorsque présents ;
-- unité déclarée ou inférée et sa justification ;
-- transformations, anomalies et limitations ;
-- fichier normalisé associé, s’il existe.
+Après validation et suppression du brut temporaire, `sanitized/` devient la source canonique. La
+chaîne recherchée est :
 
-La chaîne recherchée pour un chiffre important est :
+```text
+finding Codex → calcul Python → table normalisée → dataset DS → artefact ART
+→ hash sanitized → file_id + hash original dans privacy_manifest
+```
 
-`finding Codex → calcul Python → variable/table normalisée → dataset DS → artefact ART → original raw`.
+Le hash original permet de prouver quel objet a été reçu sans en garder une copie durable. La
+review Codex de travail et le reçu de staging sont supprimés après succès ; les transformations
+agrégées restent dans le manifest.
 
-La granularité est volontairement table/colonne/ligne source plutôt que cellule par cellule : elle reste vérifiable sans créer un volume disproportionné.
+## Provenance d’intake
 
-## Statuts de transformation
+L’inventaire `evidence/intake_inventory.json` enregistre pour chaque artefact sanitized son type,
+taille, hash, date d’ingestion, rôle probable, preuve de classement, parsing, utilisabilité et
+relations avec les tables extraites. `evidence/dataset_provenance.json` conserve :
+
+- fichier/feuille et ligne d’en-tête ;
+- correspondances de colonnes ;
+- lineage de timestamp, mesure et production ;
+- unité déclarée ou inférée et justification ;
+- transformations de qualité, anomalies et limitations ;
+- fichier normalisé associé.
+
+La granularité reste table/colonne/ligne source plutôt que cellule par cellule. Le privacy cleanup
+et la normalisation qualité sont deux journaux distincts : la première ne corrige aucun signal ; la
+seconde ne peut réintroduire une donnée rejetée.
+
+## Statuts qualité
 
 - `AUTO_FIX_SAFE` : correction déterministe réversible et documentée.
-- `FLAG_ONLY` : valeur ou condition conservée, sans correction supposée.
-- `MATERIAL_AMBIGUITY` : interprétations plausibles ayant un effet potentiel sur une décision.
-- `UNUSABLE` : aucune transformation défendable ne rend l’élément exploitable.
+- `FLAG_ONLY` : valeur conservée et signalée.
+- `MATERIAL_AMBIGUITY` : interprétations capables de changer une décision.
+- `UNUSABLE` : aucune transformation défendable.
 
-Le résumé `derived/data_quality_summary.json` n’utilise pas de note globale : une donnée imparfaite peut rester décisive pour une observation spécifique.
+Après purge, le reçu ne contient que des catégories, logical IDs opaques, hashes et statuts. Il ne
+permet pas de reconstruire les données supprimées.

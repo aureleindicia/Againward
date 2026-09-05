@@ -21,7 +21,7 @@ class ClientIntakePipelineTests(unittest.TestCase):
         drop = root / drop_name
         drop.mkdir()
         case_root = root / "cases"
-        create_client_case("small_shop", root=case_root)
+        create_client_case("small_shop", root=case_root, synthetic=True)
         return drop, case_root / "small_shop"
 
     def _ingest(self, drop: Path, case: Path) -> dict:

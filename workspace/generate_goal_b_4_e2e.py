@@ -102,7 +102,7 @@ def generate(root: str | Path = "examples") -> Path:
     raw.mkdir(parents=True)
     (raw / "energy.csv").write_text("timestamp,energy_kwh,production\n2026-07-01 05:00,5.0,0\n2026-07-01 06:30,2.0,10\n", encoding="utf-8")
     (raw / "tariff.txt").write_text("Tarif moyen électricité : 0,20 EUR/kWh.\n", encoding="utf-8")
-    create_client_case("b4_artisan", root=case_root)
+    create_client_case("b4_artisan", root=case_root, synthetic=True)
     case = case_root / "b4_artisan"
     ingest_client_drop(raw, case)
     inventory = json.loads((case / "evidence" / "intake_inventory.json").read_text(encoding="utf-8"))

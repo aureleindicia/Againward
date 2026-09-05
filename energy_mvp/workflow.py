@@ -21,7 +21,8 @@ from .signals import detect_candidate_events
 from .shadow import build_shadow_comparison
 from .tariffs import calculate_tariff_cost, tariff_plan_from_dict
 from .toolbox import inspect_dataset
-from .client_lifecycle import initialize_client_lifecycle
+from .client_lifecycle import initialize_client_lifecycle, begin_privacy_cleared_analysis
+from .privacy import assert_source_approved_for_analysis, case_root_for_path, privacy_requirement
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -111,12 +112,20 @@ def prepare_investigation(
     """Prépare un dossier générique; ne formule ni hypothèse ni décision à la place de Codex."""
 
     source_path = Path(source)
+    case_owner = case_root_for_path(source_path) or case_root_for_path(output_directory)
+    requirement = privacy_requirement(case_owner or output_directory)
+    preexisting_lifecycle = None
+    if requirement["legacy"]:
+        raise ValueError("Workspace historique: migration privacy explicite requise avant analyse.")
+    if requirement["required"]:
+        assert_source_approved_for_analysis(source_path, output_directory=output_directory)
+        preexisting_lifecycle = begin_privacy_cleared_analysis(case_owner or output_directory)["client_lifecycle"]
     output = Path(output_directory)
     output.mkdir(parents=True, exist_ok=True)
     if evidence_plane_mode not in {"preferred", "shadow", "legacy"}:
         raise ValueError("evidence_plane_mode doit valoir preferred, shadow ou legacy.")
     protected_outputs = (
-        "investigation_state.json", "trace.json", "questions.json", "human_review.json",
+        "trace.json", "human_review.json",
         "prepared_analysis.json", "candidate_signals.json", "physical_differential_template.json",
         "evidence_dataset.json", "evidence_query_session.json", "evidence_card.json",
     )
@@ -306,14 +315,16 @@ def prepare_investigation(
             _write_json(output / "shadow_comparison.json", shadow_comparison)
     if tariff_cost is not None:
         _write_json(output / "tariff_cost.json", tariff_cost)
+    if preexisting_lifecycle is not None:
+        state["client_lifecycle"] = preexisting_lifecycle
     _write_json(output / "investigation_state.json", state)
-    _write_json(output / "questions.json", {
-        "schema_version": 1,
-        "investigation_sha256": None,
-        "published_at_utc": None,
-        "questions": [],
-        "responses": [],
-    })
+    if not (output / "questions.json").exists():
+        _write_json(output / "questions.json", {
+            "schema_version": "indicia-client-questions-v2",
+            "questions": [],
+            "responses": [],
+            "cycle_history": [],
+        })
     _write_json(output / "human_review.json", {
         "schema_version": 1,
         "status": "not_reviewed",

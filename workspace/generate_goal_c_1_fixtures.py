@@ -80,7 +80,7 @@ def _raw(root: Path) -> Path:
 
 def _case(root: Path, case_id: str, *, findings: list[dict], no_finding: dict | None = None) -> tuple[Path, dict[str, str], str]:
     case_root = root / case_id
-    create_client_case(case_id.lower().replace("-", "_"), root=case_root)
+    create_client_case(case_id.lower().replace("-", "_"), root=case_root, synthetic=True)
     case = case_root / case_id.lower().replace("-", "_")
     ingest_client_drop(_raw(root), case)
     inventory = json.loads((case / "evidence" / "intake_inventory.json").read_text(encoding="utf-8"))

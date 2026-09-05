@@ -79,7 +79,7 @@ class OperationalEconomicsB2Tests(unittest.TestCase):
         drop = root / "drop"
         drop.mkdir()
         (drop / "energy.csv").write_text("timestamp,energy_kwh\n2026-01-01 00:00,1\n", encoding="utf-8")
-        create_client_case("case", root=root / "cases")
+        create_client_case("case", root=root / "cases", synthetic=True)
         case = root / "cases" / "case"
         ingest_client_drop(drop, case)
         inventory = json.loads((case / "evidence" / "intake_inventory.json").read_text(encoding="utf-8"))
@@ -102,7 +102,7 @@ class OperationalEconomicsB2Tests(unittest.TestCase):
         drop = root / "drop"
         drop.mkdir()
         (drop / "energy.csv").write_text("timestamp,energy_kwh\n2026-01-01 00:00,1\n", encoding="utf-8")
-        create_client_case("case", root=root / "cases")
+        create_client_case("case", root=root / "cases", synthetic=True)
         case = root / "cases" / "case"
         ingest_client_drop(drop, case)
         if canonical:

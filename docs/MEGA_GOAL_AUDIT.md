@@ -36,7 +36,7 @@ un ingénieur énergie indépendant.
 | Synthèse dirigeant | PROUVÉ sur démo | Markdown/HTML final avec faits, limites, recommandations et causes non prouvées | Pas de rapport générique évalué par un dirigeant client |
 | Workflow client complet | PROUVÉ comme procédure locale | préparation, templates, questions, réponses non réécrites, cycles archivés, gate et validation humaine | Nécessite encore un opérateur Codex compétent et une revue manuelle |
 | Rapport révisable et traçabilité | PROUVÉ | `trace.json`, hashes de source/réponses/review/livrables, décision review synchronisée | Pas de signature cryptographique d'identité humaine |
-| Confidentialité/local-first/Termux | PROUVÉ | aucune API/télémétrie, `.gitignore`, standard library + `tzdata`, benchmark 500k | RSS ~319 Mo à 500k, élevé pour certains téléphones |
+| Confidentialité/local-first/Termux | PROUVÉ pour les contrôles de dépôt | privacy gate Codex-first, post-check Python, `.gitignore`, rétention/purge testées | pas une certification ; Codex/OpenAI traite les données utiles ; RSS élevé à 500k |
 
 ## Validation aveugle
 

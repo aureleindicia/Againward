@@ -7,6 +7,37 @@ hypothese.
 
 Toutes les energies retournees sont en `kWh` et toutes les puissances en `kW`.
 
+## Privacy gate préalable aux outils analytiques
+
+### `stage_incoming_drop(source_directory, case_directory)`
+
+- Objectif : copier un dépôt réel dans `incoming/` avant la première lecture Codex.
+- Entrée : deux dossiers locaux.
+- Sortie : reçu de chemins, sans hash ni lecture de contenu.
+- Hypothèses : workspace réel neuf et `incoming/` vide.
+- Limitations : aucune inspection de format, privacy ou qualité ; ce n'est pas un intake.
+- Exemple : `python create_workspace.py usine_01 --incoming /chemin/depot`.
+
+### `validate_codex_privacy_review(case_directory, review_path)`
+
+- Objectif : post-vérifier la décision sémantique Codex, promouvoir `sanitized/` et produire le
+  manifest de clearance.
+- Entrée : workspace réel et review v1 dans `privacy/`.
+- Sortie : `privacy_manifest.json`, état `PRIVACY_CLEARED` ou fail-closed.
+- Hypothèses : Codex a lu tous les fichiers en premier et n'a copié aucune valeur retirée dans la
+  review.
+- Limitations : les patterns déterministes ne comprennent pas tous les noms/secret propriétaires ;
+  un doute sémantique doit être `BLOCKED`.
+- Exemple : `python manage_investigation.py privacy-validate <cas> <cas>/privacy/review.json`.
+
+### `configure_retention(...)` / `purge_client_case(...)`
+
+- Objectif : appliquer une date contractuelle puis supprimer les données de mission en fin de vie.
+- Sortie : politique canonique puis `PURGE_RECEIPT.json` sans contenu client.
+- Hypothèses : mission explicitement close et échéance atteinte.
+- Limitations : ne garantit pas l'effacement physique de backups/supports externes ; une erreur de
+  suppression produit `partial_failure` et bloque le dossier.
+
 ## `inspect_dataset(data)`
 
 - Objectif : obtenir rapidement structure, periode, frequence, couverture et incidents de qualite.

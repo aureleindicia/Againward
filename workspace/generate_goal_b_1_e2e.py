@@ -44,7 +44,7 @@ def generate(root: str | Path = "examples") -> Path:
     (raw / "supplier_quote.txt").write_text("Devis inspection : 300 EUR; devis remplacement indicatif : 12 000 EUR.\n", encoding="utf-8")
     (raw / "meter_without_unit.csv").write_text("timestamp,Energy\n2026-06-01 05:00,50\n2026-06-01 05:30,51\n", encoding="utf-8")
     (raw / "logo_photo.txt").write_text("matériel marketing sans pertinence analytique\n", encoding="utf-8")
-    create_client_case("artisan_sme", root=case_root)
+    create_client_case("artisan_sme", root=case_root, synthetic=True)
     case = case_root / "artisan_sme"
     ingest_client_drop(raw, case)
     inventory = json.loads((case / "evidence" / "intake_inventory.json").read_text(encoding="utf-8"))

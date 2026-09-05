@@ -15,6 +15,7 @@ from .client_lifecycle import (
     publish_client_requests, record_canonical_answers, record_existing_data_exhaustion,
     validate_client_lifecycle_artifacts,
 )
+from .privacy import assert_case_privacy_cleared
 
 
 DECISIONS = {
@@ -292,6 +293,7 @@ def validate_adversarial_review(
 def evaluate_delivery_gate(case_directory: str | Path) -> dict[str, Any]:
     """Évalue la livrabilité; ne crée jamais une approbation humaine."""
 
+    assert_case_privacy_cleared(case_directory)
     root = lifecycle_directory(case_directory)
     reasons: list[str] = []
     lifecycle_path = root / "investigation_state.json"

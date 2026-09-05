@@ -1,34 +1,51 @@
 #!/usr/bin/env python3
-"""CLI légère pour préparer un dossier client sans lancer de diagnostic."""
+"""Stage a real client drop, or run intake after privacy clearance."""
 from __future__ import annotations
 
 import argparse
 import json
 import sys
+from pathlib import Path
 
 from client_intake_pipeline import create_client_case, ingest_client_drop
+from energy_mvp.privacy import stage_incoming_drop
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Inventorie et normalise un dossier client hétérogène, sans diagnostic automatique."
+        description="Prépare un dossier client avec privacy gate obligatoire avant tout intake."
     )
-    parser.add_argument("case_id", help="Identifiant local sûr du cas client")
-    parser.add_argument("raw_drop", help="Dossier source fourni par le client (inchangé)")
-    parser.add_argument("--root", default="client_cases", help="Racine locale des cas isolés")
+    sub = parser.add_subparsers(dest="command", required=True)
+    stage = sub.add_parser("stage", help="Créer le cas et copier le dépôt dans incoming/ sans l'inspecter")
+    stage.add_argument("case_id")
+    stage.add_argument("raw_drop")
+    stage.add_argument("--root", default="client_cases")
+    intake = sub.add_parser("intake", help="Normaliser uniquement la source sanitized après clearance")
+    intake.add_argument("case_directory")
     args = parser.parse_args(argv)
     try:
-        manifest = create_client_case(args.case_id, root=args.root)
-        canonical = ingest_client_drop(args.raw_drop, f"{args.root}/{args.case_id}")
+        if args.command == "stage":
+            manifest = create_client_case(args.case_id, root=args.root)
+            receipt = stage_incoming_drop(args.raw_drop, Path(args.root) / args.case_id)
+            result = {
+                "case_id": manifest["case_id"],
+                "status": "AWAITING_PRIVACY_REVIEW",
+                "files_staged": receipt["file_count"],
+                "next_action": "CODEX_PRIVACY_GATE",
+            }
+        else:
+            case = Path(args.case_directory)
+            canonical = ingest_client_drop(case / "sanitized", case)
+            result = {
+                "case_id": case.name,
+                "status": "ready_for_codex_first_pass",
+                "datasets": len(canonical["available_datasets"]),
+                "material_ambiguities": len(canonical["unresolved_material_ambiguities"]),
+            }
     except (OSError, ValueError, FileExistsError) as exc:
         print(f"Erreur: {exc}", file=sys.stderr)
         return 2
-    print(json.dumps({
-        "case_id": manifest["case_id"],
-        "status": "ready_for_codex_first_pass",
-        "datasets": len(canonical["available_datasets"]),
-        "material_ambiguities": len(canonical["unresolved_material_ambiguities"]),
-    }, ensure_ascii=False, indent=2))
+    print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
 

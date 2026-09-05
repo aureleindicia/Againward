@@ -5,7 +5,8 @@ from dataclasses import asdict
 from datetime import datetime,timezone
 from pathlib import Path
 from typing import Any,Sequence
-from .client_lifecycle import lifecycle_directory,record_canonical_answers
+from .client_lifecycle import lifecycle_directory,record_canonical_answers,assert_workflow_action_allowed
+from .privacy import assert_case_privacy_cleared
 from .minimal_attribution import AnonymousElectricalComponent,EquipmentRecord,EvidenceItem,EvidenceLedger,MicroQuestion,assess_attribution,rank_micro_questions
 def _write(path,payload): path.parent.mkdir(parents=True,exist_ok=True); path.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 def _read(path):
@@ -40,6 +41,7 @@ def _requests(assessment,questions,related):
     return result
 def run_minimal_attribution(case_directory:str|Path,*,component:AnonymousElectricalComponent|None,inventory:Sequence[EquipmentRecord]|None,micro_questions:Sequence[MicroQuestion]=(),related_hypothesis_ids:Sequence[str]=(),applicability_reason:str|None=None):
     root=lifecycle_directory(case_directory); path=root/"minimal_attribution.json"
+    assert_workflow_action_allowed(case_directory,"asset_attribution")
     if component is None or not inventory:
         payload={"schema_version":"indicia-minimal-attribution-workflow-v1","status":"not_applicable","reason":applicability_reason or "signature_anonyme_ou_inventaire_absent","separation_of_claims":["detection","reproducible_signature","anonymous_component","asset_compatibility","asset_attribution","physical_mechanism","prognosis"]}; _write(path,payload); return payload
     ledger_path=root/"evidence"/f"minimal_attribution_{component.component_id}_ledger.json"
@@ -51,6 +53,7 @@ def run_minimal_attribution(case_directory:str|Path,*,component:AnonymousElectri
     _write(ledger_path,ledger.to_dict()); _write(path,payload); return payload
 def record_attribution_answer(case_directory:str|Path,*,answer:dict[str,Any],evidence:dict[str,Any]):
     root=lifecycle_directory(case_directory); workflow=_read(root/"minimal_attribution.json")
+    assert_case_privacy_cleared(case_directory)
     if workflow.get("status")!="assessed": raise ValueError("MinimalEvidenceAttribution non applicable.")
     component=_component(workflow["component"]); inventory=[_asset(x) for x in workflow["inventory"]]
     item=EvidenceItem(

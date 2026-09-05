@@ -85,7 +85,7 @@ def generate(root: str | Path = "examples") -> tuple[Path, Path]:
     (raw / "tarif_electricite.txt").write_text("Tarif contractualisé : 0,20 EUR/kWh.\n", encoding="utf-8")
     (raw / "devis_reparation.txt").write_text("Devis réparation : 450 EUR. Remplacement : 3200 EUR.\n", encoding="utf-8")
     (raw / "planning.txt").write_text("Production et ouverture de sept heures à dix-huit heures.\n", encoding="utf-8")
-    create_client_case("boulangerie_centre", root=main_root)
+    create_client_case("boulangerie_centre", root=main_root, synthetic=True)
     case = main_root / "boulangerie_centre"
     ingest_client_drop(raw, case)
     inventory = json.loads((case / "evidence" / "intake_inventory.json").read_text(encoding="utf-8"))
@@ -101,7 +101,7 @@ def generate(root: str | Path = "examples") -> tuple[Path, Path]:
     raw_empty = root / "goal_c_no_finding_input"
     raw_empty.mkdir()
     (raw_empty / "energy.csv").write_text("timestamp,energy_kwh\n2026-07-01 00:00,2\n2026-07-01 12:00,2\n", encoding="utf-8")
-    create_client_case("atelier_reference", root=empty_root)
+    create_client_case("atelier_reference", root=empty_root, synthetic=True)
     empty_case = empty_root / "atelier_reference"
     ingest_client_drop(raw_empty, empty_case)
     record_structured_findings(empty_case, [], no_finding={"what_was_analyzed": "Consommation disponible", "usable_period": "Période fournie", "operating_regimes": "Régime stable observé", "limitations": "Période courte", "monitoring_baseline_meaningful": False})

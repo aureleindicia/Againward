@@ -168,9 +168,9 @@ reste interne ; les affirmations client passent toujours par investigation, revi
 
 ## Confidentialité et ressources
 
-Tout reste local. Le snapshot peut contenir des colonnes opérationnelles sensibles : il demeure
-dans le workspace ignoré par Git et ne doit pas être envoyé automatiquement. Le moteur n’ajoute ni
-télémétrie, ni upload, ni dépendance réseau.
+Le snapshot reste dans le workspace local ignoré par Git et n'est créé qu'après clearance privacy.
+Le moteur n'ajoute ni télémétrie, ni upload automatique, ni dépendance réseau ; Codex/OpenAI peut
+néanmoins traiter les colonnes nécessaires à l'investigation selon sa configuration.
 
 Le stockage contextuel colonnaire a été retenu après mesure. Le probe local réel couvre 10 000,
 100 000 et 500 000 lignes. À 500 000 lignes, le snapshot atteint environ 142 Mo et le pic Python

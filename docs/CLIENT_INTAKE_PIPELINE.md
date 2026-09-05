@@ -1,52 +1,75 @@
 # Pipeline d’entrée client
 
-Energy Analyzer accepte un dossier tel qu’il existe chez une petite entreprise. Le flux est local :
+Le chemin réel est fail-closed :
 
-`dossier brut → inventaire → extraction/normalisation traçable → cas canonique → investigation Codex`.
-
-Il ne transforme pas les sources en diagnostic automatique. Codex reste responsable du périmètre, des hypothèses, des calculs à demander, de la falsification, de l’abstention et des demandes au client. Python ne fait que lire, convertir, conserver les transformations et produire des mesures reproductibles.
-
-## Démarrage
-
-```sh
-python intake_client_case.py atelier_01 /chemin/vers/dossier_recu --root client_cases
+```text
+dépôt reçu → incoming/ temporaire → revue sémantique Codex
+→ PASS | SANITIZED | BLOCKED → post-check Python
+→ privacy_manifest.json → sanitized/ canonique → intake déterministe
 ```
 
-Le dossier créé est :
+Codex est la première étape qui lit et comprend le contenu. Le staging Python ne fait qu’une copie
+octet-pour-octet et un inventaire de chemins ; il ne parse, ne classe, ne normalise et ne hashe pas
+le contenu. Après la revue Codex, Python vérifie le contrat et la préservation analytique.
+
+## Démarrage Goal A
+
+```sh
+python intake_client_case.py stage atelier_01 /chemin/vers/dossier_recu \
+  --root client_cases
+python manage_investigation.py status client_cases/atelier_01
+```
+
+Structure d’un nouveau cas réel :
 
 ```text
 client_cases/atelier_01/
-  raw/             # copie immuable des originaux, jamais modifiée
-  normalized/      # tables exploitables ou contexte normalisé
-  derived/         # canonical_case.json, résumé qualité
-  evidence/        # inventaire et provenance
-  investigation/  # état persistant, brief Codex, questions, findings
+  incoming/          brut temporaire, jamais source analytique
+  privacy/
+    candidate/       sorties de sanitation de travail
+    privacy_manifest.json
+  sanitized/         sources approuvées et hashées
+  normalized/        normalisation de qualité, après clearance
+  derived/           cas canonique et résumés
+  evidence/          provenance depuis sanitized/
+  investigation/     lifecycle, questions, réponses, findings
+  scratch/
   outputs/
-  logs/
+  contracts/
+  billing/
+  retained_derived/
 ```
 
-`client_cases/` est exclu de Git. Une copie est effectuée afin que le dossier envoyé par le client reste inchangé.
+`client_cases/` est entièrement exclu de Git.
 
-## Ce qui est déterministe
+## Séparation privacy / qualité de données
 
-CSV, XLSX, XLS (conservé et signalé si la lecture legacy n’est pas disponible), TXT, Markdown et PDF sont inventoriés. Les classeurs XLSX sont parcourus feuille par feuille : le pipeline recherche les régions tabulaires, l’en-tête le plus plausible, les dates et les colonnes de mesure. Il n’assume jamais que la première feuille contient la donnée.
+Le privacy cleanup retire ou pseudonymise exclusivement les données personnelles inutiles et les
+secrets hors périmètre. Il préserve les machines, compteurs, lignes, sites, dates, mesures, unités,
+production, lots, campagnes, états, maintenance et relations nécessaires à l’attribution. Il ne
+corrige jamais une unité, un timestamp, une valeur impossible ou un doublon.
 
-Les corrections sûres sont explicites : virgule décimale, ligne TOTAL explicitement identifiée, doublon strictement identique. Un doublon contradictoire, une unité pouvant changer une décision, une valeur suspecte ou une transition DST ambiguë restent visibles et ne sont pas « réparés ».
+Après `PRIVACY_CLEARED` seulement :
 
-## Passage à Codex
+```sh
+python intake_client_case.py intake client_cases/atelier_01
+```
 
-Lire dans cet ordre :
+L’intake parcourt CSV/XLSX et les documents supportés, trace les transformations de qualité et
+produit les artefacts canoniques. Sa provenance référence les identifiants, hashes originaux du
+privacy manifest et hashes des fichiers `sanitized/`, sans conserver une seconde copie du brut.
 
-1. `derived/canonical_case.json`;
-2. `derived/data_quality_summary.json`;
-3. `evidence/dataset_provenance.json`;
-4. `investigation/CODEX_FIRST_PASS_BRIEF.md`;
-5. `investigation/engine_handoff.json`.
+## États et refus
 
-Le handoff liste les entrées normalisées que Codex peut choisir d’analyser avec les outils existants. Il ne sélectionne pas le compteur à sa place et ne déclenche pas une investigation fixe. Une conclusion « aucun finding matériel » est valide.
+- `AWAITING_PRIVACY_REVIEW` : seul le privacy gate peut lire le brut.
+- `PRIVACY_CLEARED` : intake autorisé depuis `sanitized/` uniquement.
+- `PRIVACY_BLOCKED` : STOP ; aucune investigation énergétique.
+- `PURGED` : mission purgée ; aucune reprise analytique.
 
-## État persistant
+Un ancien cas contenant `raw/` ou `input/` sans contrat privacy renvoie
+`PRIVACY_MIGRATION_REQUIRED`. Il n’est jamais migré automatiquement. Voir
+[CLIENT_WORKFLOW_MIGRATION.md](CLIENT_WORKFLOW_MIGRATION.md).
 
-`investigation/case_state.json` conserve l’état d’entrée, les sources, les transformations, les conclusions structurées que Codex a choisies, les demandes et les réponses. Il contient des résumés auditables, pas de chaîne de pensée détaillée. Le cas est donc reprenable sans reparcourir le dépôt brut.
-
-Le pipeline ne constitue pas un audit énergétique réglementaire, ni un diagnostic mécanique définitif. Une revue humaine reste requise avant livraison à un client.
+Ce pipeline n’est pas un diagnostic automatique. Codex conserve la responsabilité des hypothèses,
+de la falsification, de l’abstention et des demandes à forte valeur ; une revue humaine reste
+obligatoire avant livraison.

@@ -18,8 +18,9 @@ Le positionnement commercial et les formulations autorisées sont détaillés da
 [`docs/POSITIONING.md`](docs/POSITIONING.md).
 
 ```text
-donnees -> validation Python -> signaux candidats -> investigation Codex
-        -> tests Python -> critique Codex -> review -> rapport humain
+dépôt client -> privacy gate sémantique Codex -> validation privacy Python
+              -> source sanitized -> validation métier Python -> signaux candidats
+              -> investigation Codex -> tests Python -> critique -> revue humaine
 ```
 
 Le pipeline automatique ne confirme pas d'opportunites et ne remplace pas l'investigation.
@@ -27,7 +28,10 @@ Quand une review reste incertaine, elle produit une prochaine verification minim
 (question metier, donnee precise ou test terrain simple). Une decision deja confirmee ou rejetee
 ne declenche pas de demande systematique, et une cause physique non prouvable reste explicitement
 non etablie.
-Le projet fonctionne sans cloud, serveur, base de donnees ni API OpenAI.
+Le workspace, l'orchestration et les calculs sont local-first, sans serveur applicatif, base de
+données distante, télémétrie ni upload automatique arbitraire. Codex reste cependant nécessaire à
+l'analyse et traite le contenu utile via OpenAI selon la configuration utilisée : ne pas présenter
+le service comme un traitement purement local ou garantir qu'aucune donnée ne quitte l'appareil.
 
 ## Installation Termux
 
@@ -45,12 +49,13 @@ base de fuseaux nécessaire sur Android, car sa base système n'est pas directem
 Pour isoler un nouveau dossier client sans automatiser l'investigation :
 
 ```sh
-python create_workspace.py usine_01
+python create_workspace.py usine_01 --incoming /chemin/du/depot_recu
 ```
 
-Le script cree `input/`, `processed/`, `scratch/` et `outputs/`, refuse d'ecraser un espace
-existant et ne copie ni n'analyse aucune donnee. Placer ensuite une copie du fichier source dans
-`workspaces/usine_01/input/` avant l'exploration Codex.
+Le script crée un workspace isolé, refuse tout écrasement et copie le dépôt sans lire son contenu
+dans `incoming/`. Codex doit être le premier lecteur sémantique : il produit la privacy review,
+puis Python post-vérifie et promeut la source autorisée dans `sanitized/`. Aucun intake ou calcul
+énergétique n'est permis avant `PRIVACY_CLEARED`.
 
 Afficher à tout moment le layout détecté, l'état canonique, les artefacts présents et la prochaine
 action permise (commande strictement en lecture seule) :
@@ -75,7 +80,9 @@ avec empreinte de la source, questionnaire, inspection, limites de capacité, si
 legacy et Evidence Plane interactif, sans hypothèse Hxx ni date issue de la démo :
 
 ```sh
-python investigate.py workspaces/usine_01/input/mesures.csv \
+python manage_investigation.py privacy-validate \
+  workspaces/usine_01 workspaces/usine_01/privacy/review.json
+python investigate.py workspaces/usine_01/sanitized/mesures.csv \
   --intake workspaces/usine_01/intake.json \
   --output-dir workspaces/usine_01/processed \
   --price-per-kwh 0.175
@@ -327,6 +334,7 @@ evenements, double comptage, PNG, ground truth et cas sans anomalie.
 analyze.py                   CLI de signaux initiaux
 generate_demo.py             generateur 15 minutes reproductible
 create_workspace.py          isolation locale d'un nouveau dossier client
+energy_mvp/privacy.py        gate Codex-first, post-check, manifest, rétention et purge
 energy_mvp/io.py             lecture, normalisation et qualite
 energy_mvp/units.py          conversions physiques
 energy_mvp/analysis.py       indicateurs et signaux candidats simples
@@ -344,6 +352,9 @@ benchmarking/signal_intelligence_generator.py corpus synthétique privé multi-r
 benchmarking/minimal_attribution_benchmark.py benchmark aveugle, falsifications et robustesse
 docs/ANALYSIS_TOOLS.md       catalogue des outils
 docs/CLIENT_WORKFLOW.md      procédure nouveau client et contrats JSON
+docs/PRIVACY_ARCHITECTURE.md architecture et invariants privacy-by-design
+docs/PRIVACY_THREAT_MODEL.md menaces, contrôles et limites fail-closed
+docs/PRIVACY_VALIDATION_REPORT.md tests et benchmarks réellement exécutés
 docs/POSITIONING.md          proposition de valeur et frontière réglementaire
 docs/MEGA_GOAL_AUDIT.md      preuves, limites et notes critiques actuelles
 workspace/                   experiences agentiques ad hoc

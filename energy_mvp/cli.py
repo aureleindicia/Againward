@@ -7,6 +7,7 @@ from pathlib import Path
 from .analysis import analyze
 from .io import DataError, load_data
 from .positioning import SERVICE_TITLE
+from .privacy import assert_source_approved_for_analysis, case_root_for_path, privacy_requirement
 from .report import render_markdown, write_json
 
 
@@ -73,6 +74,19 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        case_root = case_root_for_path(args.source)
+        real_case = bool(
+            case_root is not None and privacy_requirement(case_root).get("required")
+        )
+        output = Path(args.output) if args.output else (
+            case_root / "outputs" / f"{Path(args.source).stem}-rapport.md"
+            if real_case and case_root is not None
+            else Path("reports") / f"{Path(args.source).stem}-rapport.md"
+        )
+        json_path = Path(args.json_output) if args.json_output else None
+        assert_source_approved_for_analysis(args.source, output_directory=output)
+        if json_path is not None:
+            assert_source_approved_for_analysis(args.source, output_directory=json_path)
         loaded = load_data(
             args.source,
             date_column=args.date_column,
@@ -98,11 +112,9 @@ def main(argv: list[str] | None = None) -> int:
             production_threshold=args.production_threshold,
         )
         report = render_markdown(result, currency=args.currency)
-        output = Path(args.output) if args.output else Path("reports") / f"{Path(args.source).stem}-rapport.md"
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(report, encoding="utf-8")
-        if args.json_output:
-            json_path = Path(args.json_output)
+        if json_path is not None:
             json_path.parent.mkdir(parents=True, exist_ok=True)
             write_json(result, json_path)
     except (DataError, ValueError) as exc:

@@ -1,79 +1,89 @@
 # Organisation du dépôt et des dossiers clients
 
-Cette convention garde le dépôt publiable sur GitHub tout en protégeant les dossiers réels.
-Le code ne dépend d'aucun chemin Android : `/storage/emulated/0/Download` est une source locale
-facultative pour Codex, jamais une dépendance du moteur Python.
+Cette convention garde le dépôt publiable sur GitHub tout en isolant les cas réels. Le moteur ne
+dépend d’aucun chemin Android ; `/storage/emulated/0/Download` peut servir de source de réception,
+jamais de dépendance codée en dur.
 
 ## Dépôt versionné
 
 ```text
 energy-analyzer/
-├── energy_mvp/       bibliothèque Python et contrats déterministes
-├── tests/            tests unitaires, d'intégration et de falsification
-├── benchmarks/       protocoles, schémas et résultats reproductibles
-├── docs/             navigation, méthodes et contrats utilisateur
-├── examples/         uniquement des données et décisions synthétiques
-├── reports/          rapports R&D reproductibles, sans données client
-├── workspace/        scripts d'expérimentation réutilisables
-├── workspaces/       guide versionné; contenus clients ignorés par Git
-└── .codex/skills/    procédure Codex locale au dépôt
+├── energy_mvp/       outils, contrats, privacy gate et lifecycle
+├── tests/            unités, intégration, adversarial et falsification
+├── benchmarks/       protocoles et résultats reproductibles
+├── docs/             architecture, méthodes et migrations
+├── examples/         données synthétiques uniquement
+├── reports/          rapports R&D sans données client
+├── workspace/        générateurs/expériences réutilisables
+├── workspaces/       guide seulement ; cas ignorés par Git
+└── .codex/skills/    procédure agentique INDICIA
 ```
 
-Les scripts temporaires spécifiques à un client restent dans son `scratch/`. Ils n'entrent dans
-`energy_mvp/` qu'après généralisation, test et review.
-
-## Workspace recommandé
+## Workspace standard réel
 
 ```text
-workspaces/<dossier>/
+workspaces/<id>/
 ├── workspace.json
 ├── intake.json
-├── input/       copies reçues, jamais modifiées en place
-├── processed/   analyses intermédiaires et état canonique
-├── scratch/     expériences ad hoc
-└── outputs/     livrables finaux
+├── incoming/             brut temporaire, avant privacy
+├── privacy/
+│   ├── candidate/        sanitation de travail
+│   └── privacy_manifest.json
+├── sanitized/            source autorisée après clearance
+├── processed/            analyses et lifecycle canonique
+├── scratch/              expériences ad hoc après clearance
+├── outputs/              livrables
+├── contracts/            conservation administrative séparée
+├── billing/              conservation administrative séparée
+└── retained_derived/     vide par défaut, autorisation explicite requise
 ```
 
-`processed/investigation_state.json` et `processed/questions.json` sont les seules autorités du
-cycle client. `processed/human_review.json` porte l'approbation. Il n'existe plus de copies
-concurrentes à la racine pour les nouveaux workspaces.
-
-Créer et inspecter un dossier :
+Créer/stager et inspecter :
 
 ```sh
-python create_workspace.py usine_01
+python create_workspace.py usine_01 --incoming /chemin/du/depot
 python manage_investigation.py status workspaces/usine_01
 ```
 
-Toutes les commandes du lifecycle acceptent soit la racine `workspaces/usine_01`, soit son
-`processed/`. `status` ne modifie rien et affiche le layout détecté, le chemin canonique, les
-artefacts présents, l'état et la prochaine action permise.
+`processed/investigation_state.json` et `processed/questions.json` sont les autorités du cycle.
+`processed/human_review.json` porte l’approbation. `privacy/privacy_manifest.json` est l’autorité de
+clearance. Les commandes acceptent la racine ou `processed/`.
 
-## Compatibilité avec le pipeline d'intake historique
-
-Un dossier Goal A conserve sa structure riche :
+## Cas Goal A réel
 
 ```text
-<cas>/
-├── raw/
-├── normalized/
-├── derived/
+client_cases/<id>/
+├── incoming/ et privacy/candidate/
+├── sanitized/
+├── normalized/ et derived/
 ├── evidence/
-├── investigation/   propriétaire du lifecycle canonique
-├── outputs/
-└── logs/
+├── investigation/        lifecycle canonique
+├── scratch/ et outputs/
+├── contracts/ et billing/
+└── retained_derived/
 ```
 
-Le résolveur reconnaît la racine comme `investigation/`; aucun fichier n'est déplacé. Un dossier
-d'analyse direct reste également supporté. Cette compatibilité évite une migration destructive.
+`raw/` n’existe plus dans un nouveau cas réel. La provenance relie les données normalisées aux
+hashes original/sanitized du manifest, sans conserver l’original personnel.
 
-## Règles Git et confidentialité
+## Compatibilité et migration
 
-- Ne jamais versionner `input/`, `processed/`, `scratch/`, `outputs/` ou des données de pilote.
-- Ne publier dans `examples/` que des fixtures synthétiques explicitement identifiées.
-- Ne pas coder en dur un chemin Termux, Android ou personnel.
-- Ne pas ajouter de télémétrie ou d'upload automatique.
-- Exécuter `python -m pytest -q` avant chaque publication.
+Les fixtures créées explicitement avec `synthetic=True` peuvent conserver l’ancien `raw/` ou un
+chemin direct, car elles ne contiennent aucune donnée client. Un ancien workspace réel avec
+`input/`/`raw/` et sans contrat privacy est détecté comme `PRIVACY_MIGRATION_REQUIRED` et bloqué. Il
+doit être migré manuellement vers un nouveau workspace ; aucun fichier n’est déplacé ou supprimé
+automatiquement.
 
-La CI GitHub exécute la suite complète sous Python sans service cloud applicatif. L'analyse client
-elle-même reste locale-first.
+## Git et confidentialité
+
+- `client_cases/` et `workspaces/*` sont ignorés intégralement ; les sous-zones sont aussi listées
+  explicitement pour rendre l’intention vérifiable.
+- Les répertoires `incoming/`, `privacy/`, `sanitized/`, `processed/`, `scratch/`, `outputs/` et
+  `retained_derived/` de cas sont ignorés.
+- Seules des fixtures synthétiques identifiées peuvent entrer dans `examples/` ou `workspace/`.
+- Avant commit : examiner `git diff`, `git status` et ne jamais utiliser `git add -f` sur un cas.
+- Aucune télémétrie ou transmission arbitraire n’est ajoutée au moteur.
+
+La CI GitHub exécute la suite Python sans service cloud applicatif. Le workspace et l’orchestration
+sont local-first, mais Codex/OpenAI traite les données nécessaires selon sa configuration ; cette
+architecture ne justifie pas la promesse « aucune donnée ne quitte l’appareil ».

@@ -1,38 +1,59 @@
 # Intake de données pilote
 
-## Demande simple à adresser au prospect
+## Demande simple au prospect
 
-Avant tout devis définitif, envoyez un exemple d'export brut ou une capture de ses en-têtes, ainsi que les réponses suivantes :
+Avant devis définitif, demander un exemple d’export brut ou une capture d’en-têtes et :
 
-1. Quel site et quels équipements/charges le compteur couvre-t-il ?
-2. Peut-on exporter au moins 8 semaines horodatées ? Quel pas de temps ?
-3. La valeur est-elle une puissance (`kW`), une énergie par intervalle (`kWh`) ou un index cumulé ? Quelle unité exacte ?
-4. Quelles données de contexte existent : production, tonnage/cycles, horaires, arrêts, shifts, campagnes, température, tarif ?
-5. Quelle décision souhaitez-vous préparer dans les 30–60 jours ?
+1. quel site, compteur et quels équipements sont couverts ;
+2. la période, le pas de temps et la timezone ;
+3. s’il s’agit de `kW`, d’énergie par intervalle (`kWh`) ou d’un index cumulé ;
+4. les contextes existants : production, tonnage/cycles, horaires, arrêts, shifts, campagnes,
+   température et tarif ;
+5. la décision à préparer dans les 30–60 jours.
 
-Formats privilégiés : CSV ou XLSX exportés directement. Ne pas demander de nettoyage manuel ni de conversion d'unités. Exclure mots de passe, données personnelles inutiles et factures complètes si un tarif suffit.
+Privilégier CSV/XLSX exportés directement. Ne pas demander de nettoyage manuel. Demander au client
+d’exclure les mots de passe, tokens, données RH/médicales et données personnelles manifestement
+inutiles ; le privacy gate reste néanmoins obligatoire à réception.
 
-## Gate de faisabilité
+## Privacy gate avant faisabilité
+
+Le dépôt reçu est placé temporairement dans `incoming/`. Codex est le premier lecteur sémantique et
+décide `PASS`, `SANITIZED` ou `BLOCKED`. Python vérifie ensuite l’absence de motifs évidents et la
+préservation des données industrielles avant de créer `privacy_manifest.json` et d’autoriser
+`sanitized/` comme source.
+
+Le statut de faisabilité énergétique n’est évalué qu’après `PRIVACY_CLEARED`. En cas de
+`PRIVACY_BLOCKED`, ne pas ouvrir les données dans le pipeline métier et convenir d’un nouvel export
+minimal ou d’un protocole adapté.
+
+## Gate de faisabilité énergétique
 
 | Statut | Conditions | Décision commerciale |
 | --- | --- | --- |
-| PRÊT | timestamp, valeur, type/unité et périmètre clairs ; ≥8 semaines ; fréquence compatible avec la question | proposer pilote standard |
-| PRÊT AVEC LIMITES | couverture ou contexte partiel mais question reformulable | proposer pilote avec limites écrites |
-| À COMPLÉTER | colonne/unité/périmètre ambigu, historique trop court, contexte critique manquant | Data Scoping ou demande précise de complément |
-| NON ADAPTÉ | seulement mensuel pour question horaire, absence d'export, incohérence non résoluble | ne pas vendre le pilote ; expliquer le besoin minimal |
+| PRÊT | timestamp, valeur, type/unité et périmètre clairs ; historique et fréquence compatibles | proposer le pilote standard |
+| PRÊT AVEC LIMITES | couverture ou contexte partiel mais question reformulable | proposer avec limites écrites |
+| À COMPLÉTER | unité/périmètre ambigu ou contexte critique manquant | demande minimale à forte valeur |
+| NON ADAPTÉ | granularité incompatible, absence d’export ou incohérence insoluble | ne pas vendre le pilote |
 
-Une donnée quotidienne/mensuelle peut permettre un profil global, mais pas une conclusion crédible sur nuit, week-end, démarrage ou pic de quart d'heure. Une série puissance à intervalles irréguliers ne doit pas être intégrée silencieusement ; elle est corrigée avec trace explicite ou refusée.
+Une donnée mensuelle ne prouve rien sur une nuit, un week-end ou un démarrage. Une série de
+puissance irrégulière n’est jamais intégrée silencieusement.
 
-## Cadrage après accord
+## Cadrage contractuel et fin de mission
 
-- Confirmer timezone, convention timestamp (début/fin d'intervalle), unité, compteur et période.
-- Identifier changements opérationnels connus : travaux, production, arrêts, changement tarifaire ou de mesure.
-- Écrire la question de décision et au plus trois hypothèses initiales ; elles restent des hypothèses, pas des résultats.
-- Fixer la personne qui peut vérifier sur site et le format de restitution.
-- Définir rétention/destruction des fichiers, contact de traitement et canal de transfert privé adapté à la politique du client.
+- Confirmer timezone, convention des intervalles, unité, compteur et période.
+- Identifier travaux, arrêts, changements de production, tarif ou mesure.
+- Définir la décision, la personne capable de vérifier le site et la restitution.
+- Définir le canal de transfert, la date de purge et les rares livrables à conserver.
+- Laisser `derived_retention_authorized: false` sauf autorisation spécifique et finalité démontrée.
+- Clore la mission puis exécuter la purge ; conserver `PURGE_RECEIPT.json`.
 
-## Données et confidentialité
+## Formulation exacte sur le traitement
 
-La configuration actuelle traite localement les fichiers dans un espace de mission isolé et ne réalise pas d'upload automatique depuis le moteur. Cela ne vaut pas certification de sécurité ni accord de traitement complet. Si les exports comportent des données personnelles ou identifiants, minimiser les colonnes, pseudonymiser quand possible et faire valider les clauses de confidentialité/traitement appropriées avant transfert. Ne promettre aucun chiffrement ou délai de rétention qui n'est pas effectivement mis en œuvre.
+Le workspace, l’orchestration et les artefacts sont locaux ; le moteur analytique n’effectue pas
+d’upload automatique arbitraire et les données client sont exclues de Git. Codex/OpenAI traite
+cependant le contenu nécessaire au service selon la configuration utilisée. Ne pas affirmer que
+Codex est purement local, qu’aucune donnée ne quitte jamais l’appareil, qu’un chiffrement est fourni
+ou qu’une anonymisation parfaite est garantie.
 
-Toute suppression, déduplication, conversion, interpolation ou exclusion doit être tracée dans le livrable technique. Les valeurs source restent la référence.
+Ces contrôles sont techniques et doivent être alignés avec le contrat applicable ; ils ne
+constituent pas un conseil juridique définitif.

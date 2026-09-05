@@ -27,7 +27,7 @@ class WorkflowPathTests(unittest.TestCase):
     def test_standard_workspace_root_resolves_to_processed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / "workspaces"
-            create_client_workspace("site_a", root=root)
+            create_client_workspace("site_a", root=root, synthetic=True)
             case = root / "site_a"
 
             layout = resolve_case_layout(case)
@@ -59,7 +59,7 @@ class WorkflowPathTests(unittest.TestCase):
     def test_status_is_read_only_and_gives_next_action(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / "workspaces"
-            create_client_workspace("site_b", root=root)
+            create_client_workspace("site_b", root=root, synthetic=True)
             case = root / "site_b"
 
             before = sorted(path.relative_to(case) for path in case.rglob("*"))
@@ -89,7 +89,7 @@ class WorkflowPathTests(unittest.TestCase):
     def test_status_cli_accepts_workspace_root(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / "workspaces"
-            create_client_workspace("site_c", root=root)
+            create_client_workspace("site_c", root=root, synthetic=True)
             case = root / "site_c"
             initialize_client_lifecycle(case)
             stdout = StringIO()
@@ -105,7 +105,7 @@ class WorkflowPathTests(unittest.TestCase):
     def test_delivery_gate_output_uses_resolved_analysis_directory(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / "workspaces"
-            create_client_workspace("site_gate", root=root)
+            create_client_workspace("site_gate", root=root, synthetic=True)
             case = root / "site_gate"
             initialize_client_lifecycle(case)
             (case / "processed" / "trace.json").write_text(
@@ -122,7 +122,7 @@ class WorkflowPathTests(unittest.TestCase):
     def test_status_exposes_blocking_stop_and_resume(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / "workspaces"
-            create_client_workspace("site_d", root=root)
+            create_client_workspace("site_d", root=root, synthetic=True)
             case = root / "site_d"
             initialize_client_lifecycle(case)
             record_existing_data_exhaustion(

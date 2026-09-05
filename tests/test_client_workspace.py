@@ -16,11 +16,15 @@ class ClientWorkspaceTests(unittest.TestCase):
             target = root / "client_demo"
 
             self.assertTrue(all((target / name).is_dir() for name in WORKSPACE_DIRECTORIES))
-            self.assertEqual(manifest["status"], "awaiting_input")
+            self.assertEqual(manifest["status"], "awaiting_privacy_review")
             stored = json.loads((target / "workspace.json").read_text(encoding="utf-8"))
             self.assertEqual(stored["workspace_id"], "client_demo")
             self.assertFalse(stored["investigation_rules"]["ground_truth_available"])
             self.assertEqual(stored["paths"]["client_questions"], "processed/questions.json")
+            self.assertEqual(stored["paths"]["incoming"], "incoming/")
+            self.assertEqual(stored["paths"]["sanitized"], "sanitized/")
+            self.assertTrue(stored["privacy"]["required"])
+            self.assertTrue((target / "privacy/CODEX_PRIVACY_REVIEW_TEMPLATE.json").is_file())
             self.assertFalse((target / "questions.json").exists())
             self.assertFalse((target / "human_review.json").exists())
 

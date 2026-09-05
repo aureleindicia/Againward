@@ -20,17 +20,17 @@ from statistics import median
 from typing import Any, Iterable
 
 from energy_mvp.io import ALIASES, parse_date, parse_number
-from energy_mvp.client_lifecycle import initialize_client_lifecycle,publish_client_requests,record_canonical_answers
+from energy_mvp.client_lifecycle import initialize_client_lifecycle,publish_client_requests,record_canonical_answers,begin_privacy_cleared_analysis,assert_workflow_action_allowed
+from energy_mvp.privacy import POLICY_VERSION, RETENTION_SCHEMA, REVIEW_SCHEMA, privacy_requirement, assert_case_privacy_cleared, stage_incoming_drop
 
 
 CASE_DIRECTORIES = (
-    "raw",
-    "normalized",
-    "derived",
-    "evidence",
-    "investigation",
-    "outputs",
-    "logs",
+    "incoming", "privacy", "sanitized", "scratch", "contracts", "billing",
+    "retained_derived", "normalized", "derived", "evidence", "investigation",
+    "outputs", "logs",
+)
+SYNTHETIC_CASE_DIRECTORIES = (
+    "raw", "normalized", "derived", "evidence", "investigation", "outputs", "logs",
 )
 ROLE_VALUES = {
     "ENERGY_INTERVAL_SERIES", "ENERGY_MONTHLY", "POWER_SERIES", "PRODUCTION",
@@ -93,7 +93,7 @@ def _safe_relative_files(source: Path) -> Iterable[Path]:
         yield path
 
 
-def create_client_case(case_id: str, *, root: str | Path = "client_cases") -> dict[str, Any]:
+def create_client_case(case_id: str, *, root: str | Path = "client_cases", synthetic: bool = False) -> dict[str, Any]:
     """Crée un dossier client isolé; il refuse tout écrasement."""
 
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}", case_id):
@@ -102,18 +102,32 @@ def create_client_case(case_id: str, *, root: str | Path = "client_cases") -> di
     if target.exists():
         raise FileExistsError(f"Le cas existe déjà et ne sera pas modifié: {target}")
     target.mkdir(parents=True)
-    for directory in CASE_DIRECTORIES:
+    for directory in (SYNTHETIC_CASE_DIRECTORIES if synthetic else CASE_DIRECTORIES):
         (target / directory).mkdir()
+    if not synthetic:
+        (target / "privacy" / "candidate").mkdir()
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
+        "case_kind": "SYNTHETIC" if synthetic else "REAL_CLIENT",
         "case_id": case_id,
         "created_at_utc": _utc_now(),
-        "status": "awaiting_raw_drop",
-        "retention": {"policy": "not_configured", "review_required_before_deletion": True},
+        "status": "awaiting_raw_drop" if synthetic else "awaiting_privacy_review",
+        "retention": {
+            "configured": False,
+            "policy": "privacy/retention_policy.json" if not synthetic else "not_configured",
+            "derived_retention_authorized": False,
+            "review_required_before_deletion": True,
+        },
         "security": {
-            "raw_inputs_immutable_after_ingestion": True,
-            "raw_inputs_must_not_be_committed": True,
+            "incoming_is_temporary": not synthetic,
+            "client_inputs_must_not_be_committed": True,
             "secrets_allowed_in_case_artifacts": False,
+        },
+        "privacy": {
+            "required": not synthetic,
+            "policy_version": POLICY_VERSION,
+            "codex_first_semantic_reader": True,
+            "approved_for_analysis": bool(synthetic),
         },
         "architecture": {
             "codex": "choisit l'investigation, les hypothèses, les demandes et les décisions",
@@ -124,7 +138,7 @@ def create_client_case(case_id: str, *, root: str | Path = "client_cases") -> di
     _write_json(target / "case_manifest.json", manifest)
     _write_json(target / "investigation" / "case_state.json", {
         "schema_version": 1,
-        "status": "awaiting_intake",
+        "status": "awaiting_intake" if synthetic else "awaiting_privacy_review",
         "findings": [],
         "hypotheses": [],
         "client_answers": [],
@@ -132,6 +146,20 @@ def create_client_case(case_id: str, *, root: str | Path = "client_cases") -> di
         "history": [],
         "ground_truth_used": False,
     })
+    if not synthetic:
+        _write_json(target / "privacy" / "CODEX_PRIVACY_REVIEW_TEMPLATE.json", {
+            "schema_version": REVIEW_SCHEMA, "policy_version": POLICY_VERSION,
+            "workspace_id": case_id, "received_at_utc": None,
+            "status": "PASS_OR_SANITIZED_OR_BLOCKED",
+            "codex_semantic_review": {"completed": False, "first_substantive_reader_attested": False},
+            "detected_categories": [], "files": [], "blocked_reasons": [],
+        })
+        _write_json(target / "privacy" / "RETENTION_POLICY_TEMPLATE.json", {
+            "schema_version": RETENTION_SCHEMA, "configured": False,
+            "purge_after_utc": None, "mission_closed": False,
+            "derived_retention_authorized": False, "retained_paths": [],
+            "retained_derived_paths": [],
+        })
     return manifest
 
 
@@ -461,6 +489,14 @@ def ingest_client_drop(source_directory: str | Path, case_directory: str | Path)
         raise ValueError(f"Dossier client introuvable: {source}")
     if not (case / "case_manifest.json").is_file():
         raise ValueError("Le dossier cible doit avoir été créé par create_client_case.")
+    requirement = privacy_requirement(case)
+    if requirement["legacy"]:
+        raise ValueError("Cas historique: migration privacy explicite requise avant nouvel intake.")
+    if requirement["required"]:
+        assert_case_privacy_cleared(case)
+        if source != (case / "sanitized").resolve():
+            raise ValueError("L'intake client réel doit lire exclusivement la source canonique sanitized/.")
+        begin_privacy_cleared_analysis(case)
     inventory_path = case / "evidence" / "intake_inventory.json"
     if inventory_path.exists():
         raise FileExistsError("Un intake existe déjà; il ne sera pas réécrit silencieusement.")
@@ -470,9 +506,12 @@ def ingest_client_drop(source_directory: str | Path, case_directory: str | Path)
     for index, original in enumerate(_safe_relative_files(source), start=1):
         relative = original.relative_to(source)
         artifact_id = f"ART-{index:03d}-{_sha256(original)[:12]}"
-        raw_target = case / "raw" / f"{artifact_id}_{relative.name}"
-        shutil.copy2(original, raw_target)
-        record, tables = _inspect_file(raw_target, artifact_id=artifact_id, raw_relative=str(relative))
+        raw_target = original
+        provenance_relative = f"sanitized/{relative}" if requirement["required"] else str(relative)
+        if not requirement["required"]:
+            raw_target = case / "raw" / f"{artifact_id}_{relative.name}"
+            shutil.copy2(original, raw_target)
+        record, tables = _inspect_file(raw_target, artifact_id=artifact_id, raw_relative=provenance_relative)
         if record["sha256"] in seen_hashes:
             record["duplicate_of_artifact_id"] = seen_hashes[record["sha256"]]
         else:
@@ -625,6 +664,7 @@ def record_structured_findings(case_directory: str | Path, findings: list[dict[s
     """Conserve les conclusions structurées choisies par Codex; ne les déduit jamais."""
 
     case = Path(case_directory)
+    assert_workflow_action_allowed(case, "finding_generation")
     if findings and no_finding:
         raise ValueError("Un cas ne peut pas publier simultanément findings matériels et no_finding.")
     if not findings and not no_finding:

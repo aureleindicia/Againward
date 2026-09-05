@@ -150,7 +150,8 @@ fréquente recommandée. `tracemalloc` ne mesure que les allocations Python.
 - Aucune donnée client indépendante et aucun transcript modèle aveugle nouveau ne valident encore
   un gain de qualité décisionnelle ; les preuves Stage 4 sont production/regression/engineering.
 - Le snapshot JSON augmente le stockage local et peut contenir du contexte sensible ; il doit rester
-  dans les workspaces ignorés et n’est jamais uploadé.
+  dans les workspaces ignorés, n'être créé qu'après clearance privacy et n'est pas uploadé
+  automatiquement par le moteur. Codex/OpenAI peut traiter ce contenu pendant l'investigation.
 - Les valeurs physiques brutes pré-normalisation ne sont pas dupliquées dans le snapshot.
 - Une valeur auxiliaire très longue est tronquée selon la limite déclarée et signalée.
 - Support Atlas exige que l’agent réduise des cohortes dont le produit dépasse le budget.

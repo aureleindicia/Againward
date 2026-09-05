@@ -9,7 +9,7 @@
       "unique_semantic_branches": 10,
       "selected_count": 3,
       "rejected_count": 7,
-      "median_elapsed_ms": 2.956,
+      "median_elapsed_ms": 3.781,
       "max_peak_traced_bytes": 26574
     },
     {
@@ -17,7 +17,7 @@
       "unique_semantic_branches": 37,
       "selected_count": 3,
       "rejected_count": 97,
-      "median_elapsed_ms": 32.12,
+      "median_elapsed_ms": 40.804,
       "max_peak_traced_bytes": 235286
     },
     {
@@ -25,7 +25,7 @@
       "unique_semantic_branches": 37,
       "selected_count": 3,
       "rejected_count": 997,
-      "median_elapsed_ms": 333.216,
+      "median_elapsed_ms": 433.268,
       "max_peak_traced_bytes": 2410813
     }
   ],

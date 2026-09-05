@@ -97,11 +97,10 @@ Cette réponse permet de décider objectivement entre :
 
 ## Transmission et suite
 
-Après confirmation du périmètre, le fichier est transmis dans un dossier privé ou une archive
-chiffrée. Le mot de passe, le cas échéant, est communiqué par un autre canal. Les données restent
-dans un espace local isolé pour ce client et ne sont ni ajoutées à Git ni réutilisées pour un autre
-client.
+Après confirmation du périmètre, le fichier est transmis selon le canal convenu puis staged dans
+`incoming/`. Le mot de passe d'une archive, le cas échéant, est communiqué par un autre canal. Le
+workspace reste local et isolé, hors Git et sans réutilisation inter-client ; Codex/OpenAI traite
+toutefois le contenu nécessaire au privacy gate et à l'investigation selon sa configuration.
 
-À réception, Energy Analyzer produit d'abord une note de faisabilité : période réellement couverte,
-unité reconnue, fréquence, trous, doublons, périmètre connu et analyses réellement possibles. Une
-investigation complète ne commence qu'après cette validation.
+À réception, Codex exécute d'abord le privacy gate. La faisabilité (période, unité, fréquence,
+trous, doublons, périmètre et analyses possibles) n'est évaluée qu'après `PRIVACY_CLEARED`.

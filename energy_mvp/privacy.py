@@ -1,0 +1,1187 @@
+"""Privacy gate contracts for real INDICIA client workspaces.
+
+Codex is the first semantic reader of ``incoming/``.  This module deliberately
+does not classify an incoming drop before that review.  It validates Codex's
+structured decision afterwards, checks obvious residual PII/secrets, verifies
+that industrial series were not changed, promotes an approved source, and
+records an audit manifest that never contains removed values.
+"""
+from __future__ import annotations
+
+import csv
+import hashlib
+import json
+import os
+import re
+import shutil
+import tempfile
+import unicodedata
+from collections import Counter
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Callable, Iterable
+
+from .workflow_paths import resolve_case_layout
+
+
+POLICY_VERSION = "indicia-privacy-policy-v1"
+REVIEW_SCHEMA = "indicia-codex-privacy-review-v1"
+MANIFEST_SCHEMA = "indicia-privacy-manifest-v1"
+RETENTION_SCHEMA = "indicia-retention-policy-v1"
+PURGE_SCHEMA = "indicia-purge-receipt-v1"
+PRIVACY_STATES = {
+    "AWAITING_PRIVACY_REVIEW", "PRIVACY_CLEARED", "PRIVACY_BLOCKED", "PURGED",
+}
+
+_TABULAR_EXTENSIONS = {".csv", ".xlsx"}
+_TEXT_EXTENSIONS = {".txt", ".md", ".json", ".log", ".yaml", ".yml"}
+_EMAIL = re.compile(r"(?<![\w.+-])[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}(?![\w.-])", re.I)
+_PHONE = re.compile(r"(?<!\d)(?:\+33|0033|0)[ .()-]?[1-9](?:[ .()-]?\d{2}){4}(?!\d)")
+_SECRET_PATTERNS = (
+    re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+    re.compile(r"\b(?:sk|rk|pk)-(?:live|test|proj)?-?[A-Za-z0-9_-]{16,}\b"),
+    re.compile(r"(?i)\b(?:api[_ -]?key|access[_ -]?token|client[_ -]?secret|password|passwd|mot[_ -]?de[_ -]?passe)\b\s*[:=]\s*[^\s,;]{6,}"),
+    re.compile(r"(?i)https?://[^\s]+[?&](?:token|api_key|access_token|key)=[^&\s]+"),
+)
+_MEDICAL = re.compile(r"(?i)\b(?:arr[eê]t maladie|diagnostic m[eé]dical|handicap|pathologie|traitement m[eé]dical|dossier m[eé]dical)\b")
+_HR_SENSITIVE = re.compile(r"(?i)\b(?:sanction disciplinaire|avertissement rh|licenciement|entretien disciplinaire|plainte harc[eè]lement|[eé]valuation individuelle)\b")
+_PSEUDONYM = re.compile(r"^(?:OPERATOR|TECHNICIAN|EMPLOYEE|PERSON|WORKER|STAFF|ID)_[0-9A-F]{3,32}$", re.I)
+_SAFE_CODE = re.compile(r"^[A-Z][A-Z0-9_]{1,63}$")
+_FILE_ID = re.compile(r"^FILE-[0-9]{3,9}$")
+
+_PERSONAL_HEADER_TOKENS = {
+    "first_name", "firstname", "prenom", "last_name", "lastname", "nom_personne",
+    "full_name", "fullname", "employee_name", "operator_name", "technician_name",
+    "technician", "technicien", "operator", "operateur", "employee", "salarie",
+    "matricule", "employee_id", "operator_id", "badge_id", "user_id", "email",
+    "e_mail", "mail", "phone", "telephone", "mobile", "address", "adresse",
+    "personal_address", "rh", "medical", "medical_info", "api_key", "access_token",
+    "client_secret", "password", "passwd", "credential", "credentials",
+}
+_DIRECT_REMOVE_HEADER_TOKENS = {
+    "first_name", "firstname", "prenom", "last_name", "lastname", "nom_personne",
+    "full_name", "fullname", "employee_name", "operator_name", "technician_name",
+    "email", "e_mail", "mail", "phone", "telephone", "mobile", "address",
+    "adresse", "personal_address", "medical", "medical_info", "rh", "api_key",
+    "access_token", "client_secret", "password", "passwd", "credential", "credentials",
+}
+_RELATION_HEADER_TOKENS = {
+    "technician", "technicien", "operator", "operateur", "employee", "salarie",
+    "matricule", "employee_id", "operator_id", "badge_id", "user_id",
+}
+_FREE_TEXT_HEADER_TOKENS = {"comment", "comments", "commentaire", "commentaires", "note", "notes", "free_text", "texte_libre"}
+_INDUSTRIAL_HEADER_PARTS = {
+    "timestamp", "date", "time", "heure", "energy", "energie", "kwh", "mwh", "wh",
+    "power", "puissance", "kw", "mw", "production", "volume", "cadence", "cycle",
+    "machine", "equipment", "equipement", "asset", "meter", "compteur", "line", "ligne",
+    "workshop", "atelier", "site", "shift", "poste", "campaign", "campagne", "lot",
+    "batch", "product", "produit", "reference", "temperature", "temp", "state", "etat",
+    "status", "on", "off", "maintenance", "arret", "stop", "model", "modele", "type",
+}
+_INDUSTRIAL_TEXT_PATTERNS = (
+    re.compile(r"\b\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2})?)?(?:Z|[+-]\d{2}:?\d{2})?\b"),
+    re.compile(r"(?i)\b\d+(?:[.,]\d+)?\s*(?:kwh|mwh|wh|kw|mw|w|°c|degc)\b"),
+    re.compile(
+        r"(?i)\b(?:machine|equipement|équipement|compteur|meter|ligne|line|atelier|site|"
+        r"shift|poste|lot|batch|cycle|campagne|campaign|produit|product|reference|référence)"
+        r"\s*(?:[:=#-]|est|nommé|appele|appelé)?\s*([A-Za-z0-9_.-]+)"
+    ),
+)
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _slug(value: Any) -> str:
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    text = "".join(char for char in text if not unicodedata.combining(char))
+    return re.sub(r"[^a-z0-9]+", "_", text.casefold()).strip("_")
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _read_json(path: Path) -> dict[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise ValueError(f"Fichier requis absent: {path}.") from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"JSON invalide dans {path}: {exc}.") from exc
+    if not isinstance(value, dict):
+        raise ValueError(f"Objet JSON attendu: {path}.")
+    return value
+
+
+def _atomic_json(path: Path, value: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    encoded = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
+    temporary: str | None = None
+    try:
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=path.parent, prefix=f".{path.name}.", delete=False) as handle:
+            temporary = handle.name
+            handle.write(encoded)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+    finally:
+        if temporary:
+            Path(temporary).unlink(missing_ok=True)
+
+
+def _safe_files(root: Path) -> list[Path]:
+    if not root.is_dir():
+        return []
+    result: list[Path] = []
+    for path in sorted(root.rglob("*")):
+        if path.is_symlink():
+            raise ValueError(f"Lien symbolique interdit dans les données client: {path}.")
+        if path.is_file():
+            result.append(path)
+    return result
+
+
+def _within(path: Path, root: Path) -> bool:
+    try:
+        path.resolve().relative_to(root.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def privacy_requirement(case_directory: str | Path) -> dict[str, Any]:
+    """Describe whether a recognized case requires privacy clearance."""
+
+    layout = resolve_case_layout(case_directory)
+    root: Path = layout["case_root"]
+    manifest_path = root / ("workspace.json" if layout["layout"] == "STANDARD_WORKSPACE" else "case_manifest.json")
+    if layout["layout"] == "DIRECT_ANALYSIS_DIRECTORY" or not manifest_path.is_file():
+        return {"required": False, "legacy": False, "layout": layout["layout"], "case_root": root}
+    manifest = _read_json(manifest_path)
+    privacy = manifest.get("privacy")
+    if not isinstance(privacy, dict) or "required" not in privacy:
+        return {"required": True, "legacy": True, "layout": layout["layout"], "case_root": root}
+    case_kind = manifest.get("case_kind")
+    if case_kind not in {"REAL_CLIENT", "SYNTHETIC"}:
+        return {"required": True, "legacy": True, "layout": layout["layout"], "case_root": root}
+    if case_kind == "REAL_CLIENT" and privacy.get("required") is not True:
+        return {"required": True, "legacy": True, "layout": layout["layout"], "case_root": root}
+    if case_kind == "SYNTHETIC" and privacy.get("required") is not False:
+        return {"required": True, "legacy": True, "layout": layout["layout"], "case_root": root}
+    return {
+        "required": bool(privacy.get("required")),
+        "legacy": False,
+        "synthetic": case_kind == "SYNTHETIC",
+        "layout": layout["layout"],
+        "case_root": root,
+    }
+
+
+def privacy_manifest_path(case_directory: str | Path) -> Path:
+    return Path(privacy_requirement(case_directory)["case_root"]) / "privacy" / "privacy_manifest.json"
+
+
+def inspect_privacy_status(case_directory: str | Path) -> dict[str, Any]:
+    requirement = privacy_requirement(case_directory)
+    if not requirement["required"]:
+        return {"state": "NOT_REQUIRED", "approved_for_analysis": True, **requirement}
+    if requirement["legacy"]:
+        return {"state": "PRIVACY_MIGRATION_REQUIRED", "approved_for_analysis": False, **requirement}
+    path = privacy_manifest_path(case_directory)
+    if not path.is_file():
+        return {"state": "AWAITING_PRIVACY_REVIEW", "approved_for_analysis": False, **requirement}
+    manifest = _read_json(path)
+    approved = manifest.get("approved_for_analysis") is True
+    if manifest.get("status") == "PURGED":
+        state = "PURGED"
+    elif manifest.get("status") in {"BLOCKED", "PURGE_PARTIAL_FAILURE"}:
+        state = "PRIVACY_BLOCKED"
+    else:
+        state = "PRIVACY_CLEARED" if approved else "AWAITING_PRIVACY_REVIEW"
+    return {"state": state, "approved_for_analysis": approved, "manifest": str(path), **requirement}
+
+
+def assert_case_privacy_cleared(case_directory: str | Path) -> None:
+    status = inspect_privacy_status(case_directory)
+    if status["state"] == "NOT_REQUIRED":
+        return
+    if status["state"] != "PRIVACY_CLEARED" or not status["approved_for_analysis"]:
+        raise ValueError(f"PRIVACY GATE: analyse interdite; état {status['state']} et approved_for_analysis != true.")
+
+
+def _find_case_root(path: str | Path) -> Path | None:
+    current = Path(path).expanduser().resolve(strict=False)
+    if current.is_file() or current.suffix:
+        current = current.parent
+    for candidate in (current, *current.parents):
+        if (candidate / "workspace.json").is_file() or (candidate / "case_manifest.json").is_file():
+            return candidate
+    return None
+
+
+def case_root_for_path(path: str | Path) -> Path | None:
+    """Return the owning recognized case without reading client content."""
+
+    return _find_case_root(path)
+
+
+def assert_source_approved_for_analysis(source: str | Path, *, output_directory: str | Path | None = None) -> None:
+    source_root = _find_case_root(source)
+    output_root = _find_case_root(output_directory) if output_directory else None
+    roots = [root for root in (source_root, output_root) if root is not None]
+    if not roots:
+        return
+    root = roots[0]
+    if any(item.resolve() != root.resolve() for item in roots[1:]):
+        raise ValueError("La source et la sortie appartiennent à des workspaces clients différents.")
+    status = inspect_privacy_status(root)
+    assert_case_privacy_cleared(root)
+    if status["state"] == "NOT_REQUIRED":
+        return
+    if source_root is not None and output_directory is not None and output_root is None:
+        raise ValueError("PRIVACY GATE: les sorties d'un dossier réel doivent rester dans le même workspace isolé.")
+    source_path = Path(source).resolve()
+    allowed = [root / "sanitized", root / "normalized", root / "derived", root / "processed"]
+    if not any(_within(source_path, item) for item in allowed):
+        raise ValueError("PRIVACY GATE: la source analytique doit provenir de sanitized/ ou d'un dérivé autorisé après clearance.")
+    if output_directory is not None:
+        layout = resolve_case_layout(root)["layout"]
+        output_path = Path(output_directory).resolve(strict=False)
+        allowed_outputs = (
+            [root / "processed", root / "scratch", root / "outputs"]
+            if layout == "STANDARD_WORKSPACE"
+            else [root / name for name in ("normalized", "derived", "evidence", "investigation", "scratch", "outputs")]
+        )
+        if not any(_within(output_path, directory) for directory in allowed_outputs):
+            raise ValueError("PRIVACY GATE: destination analytique hors des zones isolées autorisées.")
+    if _within(source_path, root / "sanitized") and source_path.is_file():
+        manifest = _read_json(privacy_manifest_path(root))
+        hashes = {item.get("sanitized_sha256") for item in manifest.get("files", []) if isinstance(item, dict)}
+        if _sha256(source_path) not in hashes:
+            raise ValueError("PRIVACY GATE: le hash de la source sanitized n'est pas approuvé par le manifest.")
+
+
+def stage_incoming_drop(source_directory: str | Path, case_directory: str | Path) -> dict[str, Any]:
+    """Copy a drop to incoming without parsing or semantically classifying it."""
+
+    source = Path(source_directory).resolve()
+    requirement = privacy_requirement(case_directory)
+    if requirement["legacy"]:
+        raise ValueError("Workspace historique: migration privacy explicite requise.")
+    if not requirement["required"]:
+        raise ValueError("stage_incoming_drop est réservé aux dossiers réels soumis au privacy gate.")
+    root: Path = requirement["case_root"]
+    if inspect_privacy_status(root)["state"] == "PURGED":
+        raise ValueError("Dossier PURGED: aucun nouveau staging ou traitement n'est autorisé.")
+    incoming = root / "incoming"
+    if not source.is_dir():
+        raise ValueError(f"Dossier reçu introuvable: {source}.")
+    if any(incoming.iterdir()):
+        raise FileExistsError("incoming/ contient déjà un dépôt; aucun écrasement silencieux.")
+    files = _safe_files(source)
+    if not files:
+        raise ValueError("Le dépôt reçu ne contient aucun fichier.")
+    copied: list[str] = []
+    for path in files:
+        relative = path.relative_to(source)
+        target = incoming / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(path, target)
+        copied.append(str(relative))
+    receipt = {
+        "schema_version": "indicia-incoming-receipt-v1",
+        "workspace_id": root.name,
+        "received_at_utc": _now(),
+        "file_count": len(copied),
+        "logical_paths": copied,
+        "content_semantically_inspected": False,
+        "next_action": "CODEX_PRIVACY_GATE",
+    }
+    _atomic_json(root / "privacy" / "incoming_receipt.json", receipt)
+    return receipt
+
+
+@dataclass
+class _Table:
+    name: str
+    headers: list[str]
+    rows: list[list[Any]]
+
+
+def _csv_table(path: Path) -> _Table:
+    for encoding in ("utf-8-sig", "utf-8", "latin-1"):
+        try:
+            with path.open("r", encoding=encoding, newline="") as handle:
+                sample = handle.read(8192)
+                handle.seek(0)
+                try:
+                    dialect = csv.Sniffer().sniff(sample, delimiters=",;\t|")
+                except csv.Error:
+                    dialect = csv.excel
+                data = [list(row) for row in csv.reader(handle, dialect)]
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        raise ValueError(f"Encodage CSV non pris en charge: {path.name}.")
+    if not data:
+        return _Table("CSV", [], [])
+    width = max(len(row) for row in data)
+    headers = [str(value or "") for value in data[0]] + [""] * (width - len(data[0]))
+    return _Table("CSV", headers, [row + [""] * (width - len(row)) for row in data[1:]])
+
+
+def _xlsx_tables(path: Path) -> list[_Table]:
+    try:
+        from openpyxl import load_workbook
+    except ImportError as exc:  # pragma: no cover
+        raise ValueError("openpyxl est requis pour vérifier un XLSX.") from exc
+    # Formula text is part of the industrial source and must not be silently
+    # changed during sanitation, so compare formulas rather than cached values.
+    workbook = load_workbook(path, read_only=True, data_only=False)
+    try:
+        result: list[_Table] = []
+        for sheet in workbook.worksheets:
+            rows = [list(row) for row in sheet.iter_rows(values_only=True)]
+            if not rows:
+                result.append(_Table(sheet.title, [], []))
+                continue
+            width = max(len(row) for row in rows)
+            headers = [str(value or "") for value in rows[0]] + [""] * (width - len(rows[0]))
+            result.append(_Table(sheet.title, headers, [row + [None] * (width - len(row)) for row in rows[1:]]))
+        return result
+    finally:
+        workbook.close()
+
+
+def _tables(path: Path) -> list[_Table]:
+    if path.suffix.casefold() == ".csv":
+        return [_csv_table(path)]
+    if path.suffix.casefold() == ".xlsx":
+        return _xlsx_tables(path)
+    return []
+
+
+def _flatten_text(path: Path, tables: list[_Table]) -> str:
+    if tables:
+        return "\n".join(str(value or "") for table in tables for row in [table.headers, *table.rows] for value in row)
+    if path.suffix.casefold() in _TEXT_EXTENSIONS:
+        for encoding in ("utf-8-sig", "utf-8", "latin-1"):
+            try:
+                return path.read_text(encoding=encoding)
+            except UnicodeDecodeError:
+                continue
+    raise ValueError(f"Format impossible à vérifier avec confiance: {path.suffix or 'sans extension'}.")
+
+
+def _header_kind(header: str) -> str:
+    slug = _slug(header)
+    parts = set(slug.split("_"))
+    if slug in _FREE_TEXT_HEADER_TOKENS:
+        return "free_text"
+    if slug in _PERSONAL_HEADER_TOKENS or any(token in slug for token in ("email", "telephone", "phone", "matricule")):
+        return "relation" if slug in _RELATION_HEADER_TOKENS else "personal"
+    if parts & _INDUSTRIAL_HEADER_PARTS:
+        return "industrial"
+    return "other"
+
+
+def _scan_text_patterns(
+    text: str,
+    categories: dict[str, int],
+    sensitive_values: set[str],
+) -> None:
+    emails = _EMAIL.findall(text)
+    phones = _PHONE.findall(text)
+    secrets = [match.group(0) for pattern in _SECRET_PATTERNS for match in pattern.finditer(text)]
+    if emails:
+        categories["EMAIL"] = categories.get("EMAIL", 0) + len(emails)
+        sensitive_values.update(emails)
+    if phones:
+        categories["PHONE"] = categories.get("PHONE", 0) + len(phones)
+        sensitive_values.update(phones)
+    if secrets:
+        categories["AUTHENTICATION_SECRET"] = categories.get("AUTHENTICATION_SECRET", 0) + len(secrets)
+        sensitive_values.update(secrets)
+    medical = _MEDICAL.findall(text)
+    hr_sensitive = _HR_SENSITIVE.findall(text)
+    if medical:
+        categories["MEDICAL_DATA"] = categories.get("MEDICAL_DATA", 0) + len(medical)
+    if hr_sensitive:
+        categories["HR_SENSITIVE"] = categories.get("HR_SENSITIVE", 0) + len(hr_sensitive)
+
+
+def _scan(path: Path) -> dict[str, Any]:
+    tables = _tables(path)
+    categories: dict[str, int] = {}
+    sensitive_values: set[str] = set()
+    if not tables:
+        _scan_text_patterns(_flatten_text(path, tables), categories, sensitive_values)
+    for table in tables:
+        for index, header in enumerate(table.headers):
+            kind = _header_kind(header)
+            nonempty = [str(row[index]).strip() for row in table.rows if index < len(row) and str(row[index] or "").strip()]
+            # Industrial identifiers stay intact even when their spelling looks
+            # like a person or a phone number. Codex has already reviewed their
+            # meaning; generic post-check patterns only inspect other fields.
+            if kind != "industrial":
+                _scan_text_patterns("\n".join(nonempty), categories, sensitive_values)
+            if kind not in {"personal", "relation"}:
+                continue
+            category = "INDIVIDUAL_IDENTIFIER" if kind == "relation" else "EXPLICIT_PERSONAL_COLUMN"
+            if kind == "relation" and nonempty and all(_PSEUDONYM.fullmatch(value) for value in nonempty):
+                continue
+            if nonempty:
+                categories[category] = categories.get(category, 0) + len(nonempty)
+                sensitive_values.update(value for value in nonempty if len(value) >= 3)
+    return {"tables": tables, "categories": categories, "sensitive_values": sensitive_values}
+
+
+def _same_value(left: Any, right: Any) -> bool:
+    if left is None and right in (None, ""):
+        return True
+    if right is None and left in (None, ""):
+        return True
+    return left == right or str(left) == str(right)
+
+
+def _industrial_text_markers(path: Path) -> Counter[str]:
+    text = _flatten_text(path, [])
+    markers: list[str] = []
+    for pattern in _INDUSTRIAL_TEXT_PATTERNS:
+        for match in pattern.finditer(text):
+            marker = match.group(1) if match.lastindex else match.group(0)
+            markers.append(marker.casefold())
+    return Counter(markers)
+
+
+def _compare_preservation(
+    original: Path,
+    sanitized: Path,
+    *,
+    require_relation_preservation: bool,
+) -> dict[str, Any]:
+    if original.suffix.casefold() != sanitized.suffix.casefold():
+        raise ValueError("La sanitation ne peut pas changer le type de fichier tabulaire.")
+    if original.suffix.casefold() not in _TABULAR_EXTENSIONS:
+        before_markers = _industrial_text_markers(original)
+        after_markers = _industrial_text_markers(sanitized)
+        missing = before_markers - after_markers
+        if missing:
+            raise ValueError("Un marqueur industriel textuel a été supprimé ou modifié.")
+        return {
+            "tabular": False,
+            "industrial_columns_checked": 0,
+            "rows_checked": 0,
+            "industrial_text_markers_checked": sum(before_markers.values()),
+        }
+    before = _tables(original); after = _tables(sanitized)
+    if [table.name for table in before] != [table.name for table in after]:
+        raise ValueError("Les feuilles XLSX ou leur ordre ont changé pendant le privacy cleanup.")
+    checked = rows_checked = 0
+    for source, target in zip(before, after):
+        if len(source.rows) != len(target.rows):
+            raise ValueError("Le nombre de lignes a changé pendant le privacy cleanup.")
+        target_by_slug = {_slug(header): index for index, header in enumerate(target.headers)}
+        if len(target_by_slug) != len(target.headers):
+            raise ValueError("En-têtes sanitized vides ou dupliqués: comparaison sûre impossible.")
+        allowed_target = {_slug(header) for header in source.headers}
+        if set(target_by_slug) - allowed_target:
+            raise ValueError("Le privacy cleanup a ajouté ou renommé une colonne non déclarée.")
+        for source_index, header in enumerate(source.headers):
+            slug = _slug(header)
+            kind = _header_kind(header)
+            target_index = target_by_slug.get(slug)
+            if kind in {"industrial", "other"}:
+                if target_index is None:
+                    raise ValueError(f"Colonne industrielle ou contextuelle supprimée: {header}.")
+                for row_before, row_after in zip(source.rows, target.rows):
+                    if not _same_value(row_before[source_index], row_after[target_index]):
+                        raise ValueError(f"Valeur industrielle/contextuelle modifiée dans {header}.")
+                checked += kind == "industrial"
+            elif target_index is not None:
+                values_before = [str(row[source_index] or "").strip() for row in source.rows]
+                values_after = [str(row[target_index] or "").strip() for row in target.rows]
+                if kind == "personal" and slug in _DIRECT_REMOVE_HEADER_TOKENS and any(values_after):
+                    raise ValueError(f"La colonne personnelle explicite {header} doit être supprimée ou vidée.")
+                if kind == "relation":
+                    mapping: dict[str, str] = {}
+                    reverse: dict[str, str] = {}
+                    for old, new in zip(values_before, values_after):
+                        if not old and not new:
+                            continue
+                        if old and not new and require_relation_preservation:
+                            raise ValueError(f"Relation industrielle perdue pendant la pseudonymisation dans {header}.")
+                        if old and new:
+                            if not _PSEUDONYM.fullmatch(new):
+                                raise ValueError(f"Pseudonyme invalide dans {header}: format stable requis.")
+                            if old in mapping and mapping[old] != new:
+                                raise ValueError(f"Pseudonymisation instable dans {header}.")
+                            if new in reverse and reverse[new] != old:
+                                raise ValueError(f"Collision de pseudonymes dans {header}.")
+                            mapping[old] = new; reverse[new] = old
+            elif kind == "relation" and require_relation_preservation:
+                raise ValueError(f"Colonne relationnelle supprimée pendant une pseudonymisation: {header}.")
+        rows_checked += len(source.rows)
+    return {"tabular": True, "industrial_columns_checked": checked, "rows_checked": rows_checked}
+
+
+def _clean_category_counts(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        raise ValueError("detected_categories doit être une liste agrégée.")
+    clean: list[dict[str, Any]] = []
+    for item in value:
+        if not isinstance(item, dict) or not _SAFE_CODE.fullmatch(str(item.get("category", ""))):
+            raise ValueError("Catégorie privacy invalide.")
+        if set(item) - {"category", "count", "action", "file_ids"}:
+            raise ValueError("Une catégorie privacy contient des champs interdits; ne jamais recopier les valeurs.")
+        count = item.get("count")
+        if not isinstance(count, int) or isinstance(count, bool) or count < 0:
+            raise ValueError("Le compte privacy doit être un entier positif ou nul.")
+        action = str(item.get("action", ""))
+        file_ids = item.get("file_ids", [])
+        if not _SAFE_CODE.fullmatch(action) or not isinstance(file_ids, list) or any(not _FILE_ID.fullmatch(str(file_id)) for file_id in file_ids):
+            raise ValueError("Action ou file_ids privacy invalides.")
+        clean.append({"category": str(item["category"]), "count": count, "action": action, "file_ids": list(file_ids)})
+    return clean
+
+
+def _assert_no_pre_gate_derivatives(root: Path, layout: str) -> None:
+    """Prevent clearance when client content already escaped the gate zones."""
+
+    if layout == "STANDARD_WORKSPACE":
+        checked = (root / "processed", root / "scratch", root / "outputs", root / "retained_derived")
+        allowed: set[Path] = {
+            root / "processed" / "investigation_state.json",
+            root / "processed" / "questions.json",
+        }
+    else:
+        checked = (
+            root / "normalized", root / "derived", root / "evidence", root / "scratch",
+            root / "investigation", root / "outputs", root / "retained_derived",
+        )
+        allowed = {
+            root / "investigation" / "case_state.json",
+            root / "investigation" / "investigation_state.json",
+            root / "investigation" / "questions.json",
+        }
+    escaped = [path for directory in checked for path in _safe_files(directory) if path not in allowed]
+    if escaped:
+        raise ValueError(
+            "PRIVACY GATE: artefacts client présents hors incoming/privacy avant clearance; "
+            "purge manuelle et nouveau gate requis."
+        )
+
+
+def _assert_privacy_auxiliaries_bounded(root: Path, review_file: Path) -> None:
+    privacy_root = root / "privacy"
+    candidate_root = privacy_root / "candidate"
+    allowed = {
+        privacy_root / "CODEX_PRIVACY_REVIEW_TEMPLATE.json",
+        privacy_root / "RETENTION_POLICY_TEMPLATE.json",
+        privacy_root / "incoming_receipt.json",
+        privacy_root / "privacy_manifest.json",
+        privacy_root / "retention_policy.json",
+        review_file,
+    }
+    unexpected = [
+        path for path in _safe_files(privacy_root)
+        if not _within(path, candidate_root) and path not in allowed
+    ]
+    if unexpected:
+        raise ValueError("PRIVACY GATE: artefact auxiliaire inattendu hors privacy/candidate/.")
+
+
+def _manifest_base(root: Path, review: dict[str, Any], status: str) -> dict[str, Any]:
+    return {
+        "schema_version": MANIFEST_SCHEMA,
+        "workspace_id": root.name,
+        "received_at_utc": review.get("received_at_utc"),
+        "validated_at_utc": _now(),
+        "policy_version": POLICY_VERSION,
+        "status": status,
+        "detected_categories": _clean_category_counts(review.get("detected_categories", [])),
+        "transformations": [],
+        "files": [],
+        "deterministic_validation": {"passed": False, "checks": [], "errors": []},
+        "original_deletion": {"required": status in {"PASS", "SANITIZED"}, "succeeded": False, "deleted_at_utc": None},
+        "approved_for_analysis": False,
+    }
+
+
+def _merge_detected_category(manifest: dict[str, Any], category: str, count: int, file_id: str) -> None:
+    for item in manifest["detected_categories"]:
+        if item["category"] == category:
+            item["count"] = max(int(item["count"]), int(count))
+            item["file_ids"] = list(dict.fromkeys([*item.get("file_ids", []), file_id]))
+            return
+    manifest["detected_categories"].append({
+        "category": category,
+        "count": int(count),
+        "action": "DETERMINISTIC_POST_CHECK",
+        "file_ids": [file_id],
+    })
+
+
+def _sync_lifecycle(root: Path, state: str, *, reason: str) -> None:
+    from .client_lifecycle import synchronize_privacy_state
+    synchronize_privacy_state(root, state, reason=reason)
+
+def _update_case_privacy_summary(root: Path, *, approved: bool, status: str) -> None:
+    for name in ("workspace.json", "case_manifest.json"):
+        path = root / name
+        if not path.is_file():
+            continue
+        payload = _read_json(path)
+        privacy = payload.setdefault("privacy", {})
+        privacy["approved_for_analysis"] = approved
+        privacy["last_gate_status"] = status
+        privacy["manifest"] = "privacy/privacy_manifest.json"
+        if status == "PURGED":
+            payload["status"] = "purged"
+        elif status == "PURGE_PARTIAL_FAILURE":
+            payload["status"] = "purge_partial_failure"
+        else:
+            payload["status"] = "privacy_cleared" if approved else "privacy_blocked"
+        _atomic_json(path, payload)
+        return
+
+
+def _validate_codex_privacy_review_impl(
+    case_directory: str | Path,
+    review_path: str | Path,
+    *,
+    delete_tree: Callable[[Path], None] = shutil.rmtree,
+) -> dict[str, Any]:
+    """Fail-closed post-check and promotion after Codex's semantic review."""
+
+    requirement = privacy_requirement(case_directory)
+    if requirement["legacy"]:
+        raise ValueError("Workspace historique: exécuter une migration privacy explicite; aucune migration automatique.")
+    if not requirement["required"]:
+        raise ValueError("Le dossier est explicitement synthétique et ne requiert pas ce gate.")
+    root: Path = requirement["case_root"]
+    if inspect_privacy_status(root)["state"] == "PURGED":
+        raise ValueError("Dossier PURGED: le privacy gate ne peut pas être rouvert.")
+    incoming = root / "incoming"; candidate_root = root / "privacy" / "candidate"; sanitized_root = root / "sanitized"
+    review_input = Path(review_path)
+    if review_input.is_symlink():
+        raise ValueError("La privacy review ne peut pas être un lien symbolique.")
+    review_file = review_input.resolve()
+    if review_file.parent != (root / "privacy").resolve():
+        raise ValueError("La privacy review doit être un fichier direct de privacy/ dans le workspace.")
+    review = _read_json(review_file)
+    allowed_review_fields = {
+        "schema_version", "policy_version", "workspace_id", "received_at_utc", "status",
+        "codex_semantic_review", "detected_categories", "files", "blocked_reasons",
+    }
+    if set(review) - allowed_review_fields:
+        raise ValueError("La privacy review contient des champs libres interdits.")
+    if review.get("schema_version") != REVIEW_SCHEMA or review.get("policy_version") != POLICY_VERSION:
+        raise ValueError("Schéma ou policy de privacy review invalide.")
+    if review.get("workspace_id") != root.name:
+        raise ValueError("workspace_id de la privacy review incohérent.")
+    semantic = review.get("codex_semantic_review")
+    if (
+        not isinstance(semantic, dict)
+        or set(semantic) != {"completed", "first_substantive_reader_attested"}
+        or semantic.get("completed") is not True
+        or semantic.get("first_substantive_reader_attested") is not True
+    ):
+        raise ValueError("Codex doit attester la revue sémantique initiale du contenu brut.")
+    try:
+        received_at = datetime.fromisoformat(str(review.get("received_at_utc", "")).replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("received_at_utc doit être un timestamp ISO avec fuseau.") from exc
+    if received_at.tzinfo is None:
+        raise ValueError("received_at_utc doit inclure un fuseau.")
+    status = review.get("status")
+    if status not in {"PASS", "SANITIZED", "BLOCKED"}:
+        raise ValueError("Statut privacy inconnu.")
+    manifest = _manifest_base(root, review, status)
+    blocked_reasons = review.get("blocked_reasons", [])
+    if not isinstance(blocked_reasons, list) or any(not _SAFE_CODE.fullmatch(str(reason)) for reason in blocked_reasons):
+        raise ValueError("blocked_reasons doit contenir uniquement des codes structurés sans donnée source.")
+    incoming_files = _safe_files(incoming)
+    if not incoming_files:
+        raise ValueError("incoming/ est vide: aucun brut temporaire à valider.")
+    _assert_no_pre_gate_derivatives(root, requirement["layout"])
+    _assert_privacy_auxiliaries_bounded(root, review_file)
+    file_specs = review.get("files")
+    if not isinstance(file_specs, list) or len(file_specs) != len(incoming_files):
+        raise ValueError("La privacy review doit couvrir exactement tous les fichiers incoming.")
+    by_source: dict[str, dict[str, Any]] = {}
+    file_ids: set[str] = set()
+    for spec in file_specs:
+        if not isinstance(spec, dict) or set(spec) - {"file_id", "source", "action", "sanitized", "categories", "transformations", "industrial_content_absent"}:
+            raise ValueError("Contrat de fichier privacy invalide ou champ libre interdit.")
+        source = str(spec.get("source", ""))
+        file_id = str(spec.get("file_id", ""))
+        if not _FILE_ID.fullmatch(file_id) or file_id in file_ids:
+            raise ValueError("file_id privacy absent, invalide ou dupliqué.")
+        file_ids.add(file_id)
+        _clean_category_counts(spec.get("categories", []))
+        if source in by_source or not source:
+            raise ValueError("Source privacy absente ou dupliquée.")
+        by_source[source] = spec
+    expected_sources = {str(path.relative_to(root)) for path in incoming_files}
+    if set(by_source) != expected_sources:
+        raise ValueError("La liste des sources review ne correspond pas exactement à incoming/.")
+    if status == "BLOCKED":
+        if not blocked_reasons:
+            raise ValueError("BLOCKED exige au moins une raison structurée.")
+        if not any(spec.get("action") == "BLOCKED" for spec in file_specs) or any(
+            spec.get("action") not in {"PASS", "SANITIZED", "REMOVE", "BLOCKED"}
+            for spec in file_specs
+        ):
+            raise ValueError("BLOCKED exige au moins une action fichier BLOCKED et aucune action inconnue.")
+        for path in incoming_files:
+            spec = by_source[str(path.relative_to(root))]
+            manifest["files"].append({
+                "file_id": spec["file_id"], "original_sha256": _sha256(path),
+                "file_type": path.suffix.casefold().lstrip(".") or "unknown",
+                "status": spec["action"], "sanitized_sha256": None,
+            })
+        manifest["deterministic_validation"]["checks"].append("blocked_without_analytical_promotion")
+        manifest["deterministic_validation"]["passed"] = True
+        _atomic_json(privacy_manifest_path(root), manifest)
+        _sync_lifecycle(root, "PRIVACY_BLOCKED", reason="codex_privacy_review_blocked")
+        _update_case_privacy_summary(root, approved=False, status="BLOCKED")
+        return manifest
+    if status == "PASS" and any(spec.get("action") != "PASS" for spec in file_specs):
+        raise ValueError("PASS exige une action PASS pour chaque fichier.")
+    if status == "PASS" and manifest["detected_categories"]:
+        raise ValueError("PASS est incompatible avec des catégories privacy détectées.")
+    if status == "SANITIZED" and not any(spec.get("action") in {"SANITIZED", "REMOVE"} for spec in file_specs):
+        raise ValueError("SANITIZED exige au moins une transformation ou suppression.")
+    staging = root / "privacy" / ".promotion_staging"
+    if staging.exists():
+        delete_tree(staging)
+    staging.mkdir(parents=True)
+    all_raw_sensitive: set[str] = set()
+    validation_checks: list[str] = []
+    target_paths: set[str] = set()
+    declared_transformations = {
+        (item["category"], item["action"]): int(item["count"])
+        for item in manifest["detected_categories"]
+    }
+    try:
+        for index, original in enumerate(incoming_files, 1):
+            source_key = str(original.relative_to(root)); spec = by_source[source_key]
+            file_id = str(spec["file_id"])
+            action = spec.get("action")
+            if action not in {"PASS", "SANITIZED", "REMOVE"}:
+                raise ValueError(f"Action privacy invalide pour {file_id}.")
+            raw_scan = _scan(original)
+            all_raw_sensitive.update(raw_scan["sensitive_values"])
+            for category, count in raw_scan["categories"].items():
+                _merge_detected_category(manifest, category, count, file_id)
+            if set(raw_scan["categories"]) & {"MEDICAL_DATA", "HR_SENSITIVE"}:
+                raise ValueError(f"{file_id}: données médicales/RH sensibles; BLOCKED obligatoire.")
+            entry = {
+                "file_id": file_id, "original_sha256": _sha256(original),
+                "file_type": original.suffix.casefold().lstrip(".") or "unknown",
+                "status": action, "detected_categories": sorted(raw_scan["categories"]),
+                "sanitized_sha256": None, "duplicate_of_file_id": None,
+            }
+            if action == "REMOVE":
+                if spec.get("industrial_content_absent") is not True:
+                    raise ValueError(f"{file_id}: REMOVE exige l'attestation industrial_content_absent=true.")
+                if any(_header_kind(header) == "industrial" for table in raw_scan["tables"] for header in table.headers):
+                    raise ValueError(f"{file_id}: suppression interdite d'un fichier contenant des colonnes industrielles.")
+                manifest["files"].append(entry)
+                manifest["transformations"].append({"file_id": file_id, "category": "FILE_REMOVAL", "action": "REMOVED", "count": 1})
+                continue
+            if action == "PASS":
+                if raw_scan["categories"]:
+                    raise ValueError(f"{file_id}: PASS refusé; motifs privacy déterministes détectés.")
+                source_for_promotion = original
+                relative_target = str(Path(source_key).relative_to("incoming"))
+            else:
+                if not isinstance(spec.get("transformations"), list) or not spec["transformations"]:
+                    raise ValueError(f"{file_id}: SANITIZED exige des transformations structurées.")
+                candidate = spec.get("sanitized")
+                if not isinstance(candidate, str) or not candidate.startswith("privacy/candidate/"):
+                    raise ValueError(f"{file_id}: candidat sanitized absent ou hors privacy/candidate/.")
+                source_for_promotion = root / candidate
+                if source_for_promotion.is_symlink() or not source_for_promotion.is_file() or not _within(source_for_promotion, candidate_root):
+                    raise ValueError(f"{file_id}: candidat sanitized introuvable.")
+                residual = _scan(source_for_promotion)
+                if residual["categories"]:
+                    raise ValueError(f"{file_id}: post-check détecte encore {sorted(residual['categories'])}.")
+                preservation = _compare_preservation(
+                    original,
+                    source_for_promotion,
+                    require_relation_preservation=any(
+                        transform.get("action") == "PSEUDONYMIZED"
+                        for transform in spec.get("transformations", [])
+                        if isinstance(transform, dict)
+                    ),
+                )
+                validation_checks.append(f"{file_id}:industrial_preservation:{preservation['industrial_columns_checked']}")
+                relative_target = str(Path(candidate).relative_to("privacy/candidate"))
+                if Path(relative_target).is_absolute() or ".." in Path(relative_target).parts:
+                    raise ValueError("Chemin sanitized non sûr.")
+                for transform in spec.get("transformations", []):
+                    if not isinstance(transform, dict) or set(transform) - {"category", "action", "count", "preserves_relations", "reason_code"}:
+                        raise ValueError("Transformation privacy invalide; aucune valeur source n'est autorisée.")
+                    if transform.get("preserves_relations") is not True:
+                        raise ValueError("Toute transformation doit attester la préservation des relations industrielles utiles.")
+                    if (
+                        not _SAFE_CODE.fullmatch(str(transform.get("category", "")))
+                        or str(transform.get("action", "")) not in {"REMOVED", "PSEUDONYMIZED"}
+                        or not _SAFE_CODE.fullmatch(str(transform.get("reason_code", "")))
+                        or not isinstance(transform.get("count"), int)
+                        or isinstance(transform.get("count"), bool)
+                        or transform.get("count") < 1
+                    ):
+                        raise ValueError("Transformation privacy non structurée ou compte invalide.")
+                    declared_count = declared_transformations.get(
+                        (str(transform["category"]), str(transform["action"])), 0
+                    )
+                    if declared_count < int(transform["count"]):
+                        raise ValueError("Transformation absente ou sous-déclarée dans detected_categories.")
+                    manifest["transformations"].append({"file_id": file_id, **transform})
+            if relative_target in target_paths:
+                raise ValueError("Deux fichiers privacy ciblent le même chemin sanitized.")
+            target_paths.add(relative_target)
+            target = staging / relative_target
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source_for_promotion, target)
+            entry["sanitized_sha256"] = _sha256(target)
+            manifest["files"].append(entry)
+        review_serialized = json.dumps(review, ensure_ascii=False).casefold()
+        leaked = [value for value in all_raw_sensitive if len(value) >= 4 and value.casefold() in review_serialized]
+        if leaked:
+            raise ValueError("La privacy review recopie une ou plusieurs valeurs supprimées; audit refusé.")
+        hashes: dict[str, str] = {}
+        for entry in manifest["files"]:
+            digest = entry.get("original_sha256")
+            if digest in hashes:
+                entry["duplicate_of_file_id"] = hashes[digest]
+            else:
+                hashes[digest] = entry["file_id"]
+        if sanitized_root.exists() and any(sanitized_root.iterdir()):
+            raise FileExistsError("sanitized/ n'est pas vide; aucune promotion/écrasement silencieux.")
+        sanitized_root.rmdir()
+        os.replace(staging, sanitized_root)
+        cleanup_errors: list[str] = []
+        for target in (incoming, candidate_root):
+            if target.exists():
+                try:
+                    delete_tree(target)
+                except OSError as exc:
+                    cleanup_errors.append(f"{target.name}: {type(exc).__name__}")
+        for target in (review_file, root / "privacy" / "incoming_receipt.json"):
+            if target.exists():
+                try:
+                    target.unlink()
+                except OSError as exc:
+                    cleanup_errors.append(f"privacy_auxiliary: {type(exc).__name__}")
+        if cleanup_errors:
+            manifest["status"] = "BLOCKED"
+            manifest["deterministic_validation"]["errors"] = cleanup_errors
+            manifest["deterministic_validation"]["checks"] = validation_checks
+            _atomic_json(privacy_manifest_path(root), manifest)
+            _sync_lifecycle(root, "PRIVACY_BLOCKED", reason="temporary_original_deletion_failed")
+            _update_case_privacy_summary(root, approved=False, status="BLOCKED")
+            return manifest
+        incoming.mkdir()
+        candidate_root.mkdir(parents=True, exist_ok=True)
+        manifest["deterministic_validation"] = {"passed": True, "checks": [
+            "all_incoming_files_covered", "obvious_pii_and_secret_patterns_absent",
+            "file_types_and_row_counts_preserved", "industrial_values_unchanged",
+            "timestamps_energy_power_production_preserved", *validation_checks,
+        ], "errors": []}
+        manifest["original_deletion"] = {"required": True, "succeeded": True, "deleted_at_utc": _now()}
+        manifest["approved_for_analysis"] = True
+        _atomic_json(privacy_manifest_path(root), manifest)
+        _sync_lifecycle(root, "PRIVACY_CLEARED", reason="privacy_post_check_passed")
+        _update_case_privacy_summary(root, approved=True, status=manifest["status"])
+        return manifest
+    except Exception as exc:
+        if staging.exists():
+            try:
+                delete_tree(staging)
+            except OSError:
+                pass
+        manifest["status"] = "BLOCKED"
+        # Keep detailed errors ephemeral for the operator; the durable audit
+        # record must never repeat a header, filename or removed value.
+        manifest["deterministic_validation"]["errors"] = [f"PRIVACY_POST_CHECK_FAILED:{type(exc).__name__}"]
+        _atomic_json(privacy_manifest_path(root), manifest)
+        _sync_lifecycle(root, "PRIVACY_BLOCKED", reason="privacy_post_check_failed")
+        _update_case_privacy_summary(root, approved=False, status="BLOCKED")
+        raise
+
+
+def validate_codex_privacy_review(
+    case_directory: str | Path,
+    review_path: str | Path,
+    *,
+    delete_tree: Callable[[Path], None] = shutil.rmtree,
+) -> dict[str, Any]:
+    """Run the post-check and persist PRIVACY_BLOCKED on every validation failure."""
+
+    try:
+        return _validate_codex_privacy_review_impl(
+            case_directory, review_path, delete_tree=delete_tree
+        )
+    except Exception as exc:
+        try:
+            requirement = privacy_requirement(case_directory)
+            if requirement.get("required") and not requirement.get("legacy"):
+                root: Path = requirement["case_root"]
+                if inspect_privacy_status(root)["state"] == "PURGED":
+                    raise ValueError("Dossier PURGED immuable.")
+                path = privacy_manifest_path(root)
+                if not path.is_file():
+                    files: list[dict[str, Any]] = []
+                    try:
+                        incoming_files = _safe_files(root / "incoming")
+                    except (OSError, ValueError):
+                        incoming_files = []
+                    for index, source in enumerate(incoming_files, 1):
+                        files.append({
+                            "file_id": f"FILE-{index:03d}",
+                            "original_sha256": _sha256(source),
+                            "file_type": source.suffix.casefold().lstrip(".") or "unknown",
+                            "status": "BLOCKED",
+                            "sanitized_sha256": None,
+                        })
+                    _atomic_json(path, {
+                        "schema_version": MANIFEST_SCHEMA,
+                        "workspace_id": root.name,
+                        "received_at_utc": None,
+                        "validated_at_utc": _now(),
+                        "policy_version": POLICY_VERSION,
+                        "status": "BLOCKED",
+                        "detected_categories": [],
+                        "transformations": [],
+                        "files": files,
+                        "deterministic_validation": {
+                            "passed": False,
+                            "checks": [],
+                            "errors": [f"PRIVACY_POST_CHECK_FAILED:{type(exc).__name__}"],
+                        },
+                        "original_deletion": {
+                            "required": False,
+                            "succeeded": False,
+                            "deleted_at_utc": None,
+                        },
+                        "approved_for_analysis": False,
+                    })
+                _sync_lifecycle(root, "PRIVACY_BLOCKED", reason="privacy_validation_contract_failed")
+                _update_case_privacy_summary(root, approved=False, status="BLOCKED")
+        except Exception:
+            # Never replace the actionable validation error with audit bookkeeping.
+            pass
+        raise
+
+
+def configure_retention(case_directory: str | Path, policy: dict[str, Any]) -> dict[str, Any]:
+    root: Path = privacy_requirement(case_directory)["case_root"]
+    if policy.get("schema_version") != RETENTION_SCHEMA:
+        raise ValueError("Schéma de rétention invalide.")
+    if policy.get("configured") is not True or not str(policy.get("purge_after_utc", "")).strip():
+        raise ValueError("La politique contractuelle doit être configurée avec purge_after_utc.")
+    try:
+        purge_after = datetime.fromisoformat(str(policy["purge_after_utc"]).replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("purge_after_utc doit être un timestamp ISO avec fuseau.") from exc
+    if purge_after.tzinfo is None:
+        raise ValueError("purge_after_utc doit inclure un fuseau.")
+    if not isinstance(policy.get("derived_retention_authorized", False), bool):
+        raise ValueError("derived_retention_authorized doit être booléen.")
+    retained = policy.get("retained_paths", [])
+    if not isinstance(retained, list) or any(Path(str(item)).is_absolute() or ".." in Path(str(item)).parts for item in retained):
+        raise ValueError("retained_paths doit contenir uniquement des chemins relatifs sûrs.")
+    allowed_prefixes = ("contracts/", "billing/", "outputs/")
+    if any(not str(item).startswith(allowed_prefixes) for item in retained):
+        raise ValueError("Seuls contrat, facturation et livrables explicitement autorisés peuvent être retenus.")
+    retained_derived = policy.get("retained_derived_paths", [])
+    if (
+        not isinstance(retained_derived, list)
+        or any(Path(str(item)).is_absolute() or ".." in Path(str(item)).parts for item in retained_derived)
+        or any(not str(item).startswith("retained_derived/") for item in retained_derived)
+    ):
+        raise ValueError("retained_derived_paths doit rester dans retained_derived/.")
+    stored = {
+        "schema_version": RETENTION_SCHEMA,
+        "configured": True,
+        "configured_at_utc": _now(),
+        "purge_after_utc": policy["purge_after_utc"],
+        "mission_closed": bool(policy.get("mission_closed", False)),
+        "derived_retention_authorized": policy.get("derived_retention_authorized", False),
+        "retained_paths": retained,
+        "retained_derived_paths": list(retained_derived),
+    }
+    if stored["retained_derived_paths"] and not stored["derived_retention_authorized"]:
+        raise ValueError("Aucun dérivé ne peut être retenu sans autorisation explicite.")
+    _atomic_json(root / "privacy" / "retention_policy.json", stored)
+    for name in ("workspace.json", "case_manifest.json"):
+        manifest_path = root / name
+        if manifest_path.is_file():
+            manifest = _read_json(manifest_path)
+            manifest["retention"] = {
+                "configured": True,
+                "policy": "privacy/retention_policy.json",
+                "purge_after_utc": stored["purge_after_utc"],
+                "mission_closed": stored["mission_closed"],
+                "derived_retention_authorized": stored["derived_retention_authorized"],
+            }
+            _atomic_json(manifest_path, manifest)
+            break
+    return stored
+
+
+def _retained_derived_allowed(root: Path, policy: dict[str, Any]) -> set[str]:
+    paths = set(str(item) for item in policy.get("retained_derived_paths", []))
+    if not paths:
+        return set()
+    review = _read_json(root / "privacy" / "derived_retention_review.json")
+    required_true = ("approved_for_long_term_retention", "site_identity_removed", "unique_asset_combinations_generalized", "volumes_generalized", "timestamps_generalized")
+    if any(review.get(field) is not True for field in required_true) or review.get("reidentification_risk") != "LOW":
+        raise ValueError("Le dérivé ne possède pas une revue de désidentification suffisante.")
+    for relative in paths:
+        path = root / relative
+        if (
+            not _within(path, root / "retained_derived")
+            or not path.is_file()
+            or path.suffix.casefold() not in _TABULAR_EXTENSIONS
+            or _scan(path)["categories"]
+        ):
+            raise ValueError("Dérivé retenu absent, hors zone ou contenant des motifs sensibles.")
+        forbidden_parts = {
+            "site", "machine", "equipment", "equipement", "asset", "meter", "compteur",
+            "line", "ligne", "workshop", "atelier", "lot", "batch", "product", "produit",
+            "reference", "timestamp", "datetime", "operator", "technician", "employee",
+        }
+        tables = _tables(path)
+        if not tables or any(
+            set(_slug(header).split("_")) & forbidden_parts
+            for table in tables for header in table.headers
+        ):
+            raise ValueError("Le dérivé retenu expose encore une dimension industrielle réidentifiante.")
+    return paths
+
+
+def _retained(relative: str, protected: set[str]) -> bool:
+    return any(relative == item.rstrip("/") or (item.endswith("/") and relative.startswith(item)) for item in protected)
+
+
+def _purge_category(relative: str) -> str:
+    first = Path(relative).parts[0] if Path(relative).parts else "root"
+    if first in {"incoming", "raw"}:
+        return "temporary_original"
+    if first == "sanitized":
+        return "sanitized_source"
+    if first in {"normalized", "derived", "processed", "investigation", "evidence"}:
+        return "reconstructible_derived"
+    if first in {"scratch", "logs", ".cache", "cache", "tmp", "temp"}:
+        return "scratch_and_cache"
+    if first == "privacy":
+        return "privacy_auxiliary"
+    if first == "outputs":
+        return "outputs"
+    if first == "retained_derived":
+        return "retained_derived_default_denied"
+    return "unclassified_client_artifact"
+
+
+def purge_client_case(
+    case_directory: str | Path,
+    *,
+    now: datetime | None = None,
+    unlink_file: Callable[[Path], None] = Path.unlink,
+) -> dict[str, Any]:
+    """Execute the configured end-of-mission purge and write a content-free receipt."""
+
+    root: Path = privacy_requirement(case_directory)["case_root"]
+    if inspect_privacy_status(root)["state"] == "PURGED":
+        raise ValueError("Le dossier a déjà été purgé; le reçu existant reste autoritatif.")
+    policy = _read_json(root / "privacy" / "retention_policy.json")
+    if policy.get("schema_version") != RETENTION_SCHEMA or policy.get("configured") is not True:
+        raise ValueError("Politique de rétention non configurée.")
+    if policy.get("mission_closed") is not True:
+        raise ValueError("La mission doit être explicitement close avant purge.")
+    try:
+        due = datetime.fromisoformat(str(policy["purge_after_utc"]).replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("purge_after_utc invalide.") from exc
+    instant = now or datetime.now(timezone.utc)
+    if due.tzinfo is None:
+        raise ValueError("purge_after_utc doit inclure un fuseau.")
+    if instant.astimezone(timezone.utc) < due.astimezone(timezone.utc):
+        raise ValueError("La période contractuelle de rétention n'est pas encore échue.")
+    retained = set(str(item) for item in policy.get("retained_paths", []))
+    retained_derived = _retained_derived_allowed(root, policy) if policy.get("derived_retention_authorized") else set()
+    protected = retained | retained_derived | {
+        "workspace.json", "case_manifest.json", "README.md", "contracts/", "billing/",
+        "privacy/privacy_manifest.json", "privacy/retention_policy.json",
+    }
+    results: list[dict[str, Any]] = []
+    for index, path in enumerate(_safe_files(root), 1):
+        relative = str(path.relative_to(root))
+        if relative == "PURGE_RECEIPT.json":
+            continue
+        logical_id = f"PURGE-{index:05d}-{hashlib.sha256(relative.encode('utf-8')).hexdigest()[:12]}"
+        category = _purge_category(relative)
+        digest = _sha256(path)
+        if _retained(relative, protected):
+            results.append({"category": category, "logical_id": logical_id, "sha256": digest, "status": "retained_by_policy", "_relative": relative})
+            continue
+        try:
+            unlink_file(path)
+            results.append({"category": category, "logical_id": logical_id, "sha256": digest, "status": "deleted", "_relative": relative})
+        except OSError as exc:
+            results.append({"category": category, "logical_id": logical_id, "sha256": digest, "status": "failed", "error": type(exc).__name__, "_relative": relative})
+    errors = [item for item in results if item["status"] == "failed"]
+    purged_at = _now()
+    privacy_manifest = _read_json(privacy_manifest_path(root))
+    privacy_manifest["approved_for_analysis"] = False
+    privacy_manifest["status"] = "PURGED" if not errors else "PURGE_PARTIAL_FAILURE"
+    privacy_manifest["purge"] = {
+        "receipt": "PURGE_RECEIPT.json",
+        "completed_at_utc": purged_at,
+        "succeeded": not errors,
+    }
+    _atomic_json(privacy_manifest_path(root), privacy_manifest)
+    _update_case_privacy_summary(root, approved=False, status="PURGED" if not errors else "PURGE_PARTIAL_FAILURE")
+    for name in ("workspace.json", "case_manifest.json"):
+        manifest_path = root / name
+        if manifest_path.is_file():
+            case_manifest = _read_json(manifest_path)
+            retention = case_manifest.setdefault("retention", {})
+            retention["purge_status"] = "complete" if not errors else "partial_failure"
+            retention["purged_at_utc"] = purged_at
+            _atomic_json(manifest_path, case_manifest)
+            break
+    for item in results:
+        retained_path = root / item["_relative"]
+        if item["status"] == "retained_by_policy" and retained_path.is_file():
+            item["sha256"] = _sha256(retained_path)
+    public_results = [
+        {key: value for key, value in item.items() if key != "_relative"}
+        for item in results
+    ]
+    receipt = {
+        "schema_version": PURGE_SCHEMA,
+        "workspace_id": root.name,
+        "purged_at_utc": purged_at,
+        "status": "complete" if not errors else "partial_failure",
+        "derived_retention_authorized": bool(policy.get("derived_retention_authorized")),
+        "items": public_results,
+        "errors": [{"logical_id": item["logical_id"], "error": item["error"]} for item in errors],
+        "contains_client_content": False,
+    }
+    _atomic_json(root / "PURGE_RECEIPT.json", receipt)
+    return receipt

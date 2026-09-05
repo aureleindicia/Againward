@@ -12,6 +12,7 @@ from typing import Any
 
 
 CANONICAL_ARTIFACTS = (
+    "privacy_manifest.json",
     "investigation_state.json",
     "questions.json",
     "analysis_inventory.json",
@@ -70,14 +71,19 @@ def resolve_case_layout(case_directory: str | Path) -> dict[str, Any]:
 
     if layout == "STANDARD_WORKSPACE":
         directories = {
-            "input": case_root / "input",
+            "incoming": case_root / "incoming",
+            "privacy": case_root / "privacy",
+            "sanitized": case_root / "sanitized",
             "processed": case_root / "processed",
             "scratch": case_root / "scratch",
             "outputs": case_root / "outputs",
         }
     elif layout == "GOAL_A_CASE":
         directories = {
-            "input": case_root / "raw",
+            "incoming": case_root / "incoming",
+            "privacy": case_root / "privacy",
+            "sanitized": case_root / "sanitized",
+            "legacy_raw": case_root / "raw",
             "processed": case_root / "normalized",
             "derived": case_root / "derived",
             "evidence": case_root / "evidence",
@@ -115,7 +121,17 @@ def _read_json_object(path: Path) -> tuple[dict[str, Any] | None, str | None]:
     return value, None
 
 
-def _next_action(lifecycle: dict[str, Any] | None) -> str:
+def _next_action(lifecycle: dict[str, Any] | None, privacy_state: str = "NOT_REQUIRED") -> str:
+    if privacy_state == "PRIVACY_MIGRATION_REQUIRED":
+        return "MIGRATE_LEGACY_WORKSPACE_BEFORE_ANALYSIS"
+    if privacy_state == "AWAITING_PRIVACY_REVIEW":
+        return "CODEX_PRIVACY_GATE_THEN_VALIDATE"
+    if privacy_state == "PRIVACY_BLOCKED":
+        return "STOP_PRIVACY_BLOCKED"
+    if privacy_state == "PURGED":
+        return "MISSION_PURGED_NO_FURTHER_ANALYSIS"
+    if lifecycle is not None and lifecycle.get("state") == "PRIVACY_CLEARED":
+        return "RUN_INTAKE_FROM_SANITIZED_SOURCE"
     if lifecycle is None:
         return "INITIALIZE_LIFECYCLE"
     state = lifecycle.get("state")
@@ -165,6 +181,14 @@ def inspect_case_status(case_directory: str | Path) -> dict[str, Any]:
         }
         for name in CANONICAL_ARTIFACTS
     }
+    # Local import avoids making path resolution depend on the privacy module.
+    from .privacy import inspect_privacy_status, privacy_manifest_path
+    privacy = inspect_privacy_status(layout["case_root"])
+    privacy_path = privacy_manifest_path(layout["case_root"])
+    artifacts["privacy_manifest.json"] = {
+        "path": str(privacy_path),
+        "exists": privacy_path.is_file(),
+    }
     return {
         "schema_version": "indicia-case-status-v1",
         "layout": layout["layout"],
@@ -176,11 +200,12 @@ def inspect_case_status(case_directory: str | Path) -> dict[str, Any]:
         "lifecycle": lifecycle,
         "lifecycle_error": state_error,
         "questions_error": questions_error,
+        "privacy": {key: value for key, value in privacy.items() if key != "case_root"},
         "open_question_count": sum(
             1 for item in questions if isinstance(item, dict) and item.get("status") == "open"
         ),
         "response_count": len(responses),
-        "next_action": _next_action(lifecycle),
+        "next_action": _next_action(lifecycle, privacy["state"]),
         "artifacts": artifacts,
         "read_only": True,
     }

@@ -21,6 +21,7 @@ from .client_lifecycle import (
     record_existing_data_exhaustion,
 )
 from .workflow_paths import inspect_case_status
+from .privacy import configure_retention, purge_client_case, validate_codex_privacy_review
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -44,6 +45,14 @@ def build_parser() -> argparse.ArgumentParser:
         "next-cycle", help="Archiver un cycle entièrement répondu"
     )
     archive.add_argument("case_directory")
+    privacy_validate = subparsers.add_parser("privacy-validate", help="Valider le privacy gate Codex et promouvoir sanitized/")
+    privacy_validate.add_argument("case_directory")
+    privacy_validate.add_argument("review_json")
+    retention = subparsers.add_parser("retention-configure", help="Configurer la rétention contractuelle")
+    retention.add_argument("case_directory")
+    retention.add_argument("policy_json")
+    purge = subparsers.add_parser("purge", help="Exécuter la purge de fin de mission")
+    purge.add_argument("case_directory")
     commands = (
         ("init", "Initialiser/migrer le cycle canonique"),
         ("data-exhausted", "Tracer les sources examinées"),
@@ -76,6 +85,13 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "status":
             result = inspect_case_status(args.case_directory)
+        elif args.command == "privacy-validate":
+            result = validate_codex_privacy_review(args.case_directory, args.review_json)
+        elif args.command == "retention-configure":
+            policy = json.loads(Path(args.policy_json).read_text(encoding="utf-8"))
+            result = configure_retention(args.case_directory, policy)
+        elif args.command == "purge":
+            result = purge_client_case(args.case_directory)
         elif args.command == "init":
             result = initialize_client_lifecycle(args.case_directory)["client_lifecycle"]
         elif args.command == "data-exhausted":

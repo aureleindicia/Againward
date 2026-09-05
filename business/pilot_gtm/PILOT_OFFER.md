@@ -12,7 +12,9 @@ INDICIA analyse vos exports énergétiques existants pour distinguer des signaux
 - Réunion de cadrage de 45 minutes, validation/traçabilité des données, investigation de 2–3 pistes maximum, revue humaine et restitution de 60 minutes.
 - Rapport PDF de 3–8 pages, annexes de méthode/chiffres sur demande, et une clarification écrite dans les 14 jours.
 
-Le délai démarre seulement après statut `PRÊT` ou `PRÊT AVEC LIMITES` accepté. Les données sont traitées localement dans un espace de travail isolé pour la mission ; aucun moteur ne les envoie automatiquement à un service externe.
+Le délai démarre seulement après statut `PRÊT` ou `PRÊT AVEC LIMITES` accepté. Le workspace et
+l'orchestration sont locaux et isolés, sans upload arbitraire du moteur ni versionnement Git.
+Codex/OpenAI traite néanmoins le contenu nécessaire au service selon la configuration utilisée.
 
 ## Livrable et résultat attendu
 

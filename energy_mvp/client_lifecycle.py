@@ -6,8 +6,9 @@ from pathlib import Path
 from typing import Any
 from .client_requests import select_minimum_requests
 from .workflow_paths import resolve_analysis_directory
+from .privacy import PRIVACY_STATES, inspect_privacy_status, assert_case_privacy_cleared
 
-STATES={"ANALYZING","WAITING_FOR_REQUIRED_INFORMATION","RESUMING","FINALIZABLE","DELIVERABLE"}
+STATES={"ANALYZING","WAITING_FOR_REQUIRED_INFORMATION","RESUMING","FINALIZABLE","DELIVERABLE",*PRIVACY_STATES}
 MAX_CYCLES=2; MAX_REQUESTS=3
 RESUME_DIMENSIONS={"evidence_level","asset_attribution","alternatives","confidence","economic_materiality","investigation_priority","field_action","false_conclusion_risk"}
 LIFECYCLE_LIST_FIELDS={"open_request_ids","blocking_request_ids","suspended_hypothesis_ids","answered_request_ids","terminal_limitations","history"}
@@ -21,8 +22,8 @@ def _write(path:Path,value:dict):
     path.parent.mkdir(parents=True,exist_ok=True); path.write_text(json.dumps(value,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 def lifecycle_directory(case_directory:str|Path)->Path:
     return resolve_analysis_directory(case_directory)
-def _fresh(action="client_lifecycle_initialized"):
-    return {"state":"ANALYZING","cycle_count":0,"max_cycles":MAX_CYCLES,"max_requests_per_cycle":MAX_REQUESTS,
+def _fresh(action="client_lifecycle_initialized", state="ANALYZING"):
+    return {"state":state,"cycle_count":0,"max_cycles":MAX_CYCLES,"max_requests_per_cycle":MAX_REQUESTS,
       "existing_data_exhausted":False,"analysis_inventory_ref":None,"open_request_ids":[],"blocking_request_ids":[],
       "suspended_hypothesis_ids":[],"answered_request_ids":[],"exhausted":False,"terminal_limitations":[],
       "resume_required":False,"history":[{"at_utc":_now(),"action":action}]}
@@ -42,6 +43,8 @@ def _validate_lifecycle(life:Any,questions:dict[str,Any]|None=None)->None:
     if not isinstance(life.get("existing_data_exhausted"),bool) or not isinstance(life.get("resume_required"),bool) or not isinstance(life.get("exhausted"),bool):
         raise ValueError("client_lifecycle: drapeaux invalides.")
     state=life["state"]
+    if state in PRIVACY_STATES and (life["existing_data_exhausted"] or life["open_request_ids"] or life["resume_required"]):
+        raise ValueError(f"État {state} incohérent avec une investigation déjà commencée.")
     if state=="WAITING_FOR_REQUIRED_INFORMATION" and (not life["blocking_request_ids"] or not life["resume_required"]):
         raise ValueError("État WAITING incohérent sans demande BLOCKING et reprise requise.")
     if state=="RESUMING" and (life["blocking_request_ids"] or not life["resume_required"]):
@@ -70,18 +73,50 @@ def _validate_lifecycle(life:Any,questions:dict[str,Any]|None=None)->None:
         raise ValueError("Historique des réponses incohérent avec les demandes.")
 def initialize_client_lifecycle(case_directory:str|Path)->dict[str,Any]:
     root=lifecycle_directory(case_directory); root.mkdir(parents=True,exist_ok=True); path=root/"investigation_state.json"
+    privacy=inspect_privacy_status(case_directory)
+    initial_state=privacy["state"] if privacy["state"] in PRIVACY_STATES else "ANALYZING"
     if path.exists():
         state=_read(path)
-        if state.get("client_lifecycle") is None: state["client_lifecycle"]=_fresh("legacy_investigation_state_migrated"); _write(path,state)
+        if state.get("client_lifecycle") is None: state["client_lifecycle"]=_fresh("legacy_investigation_state_migrated",initial_state); _write(path,state)
         _validate_lifecycle(state.get("client_lifecycle"))
-    else: state={"schema_version":"indicia-investigation-state-v2","client_lifecycle":_fresh()}; _write(path,state)
+    else: state={"schema_version":"indicia-investigation-state-v2","client_lifecycle":_fresh(state=initial_state)}; _write(path,state)
     q=root/"questions.json"
     if not q.exists(): _write(q,{"schema_version":"indicia-client-questions-v2","questions":[],"responses":[],"cycle_history":[]})
     return state
-def _load(case):
+
+def synchronize_privacy_state(case_directory:str|Path,state_name:str,*,reason:str):
+    if state_name not in PRIVACY_STATES: raise ValueError("État privacy invalide.")
+    root=lifecycle_directory(case_directory); root.mkdir(parents=True,exist_ok=True); path=root/"investigation_state.json"
+    payload=_read(path) if path.exists() else {"schema_version":"indicia-investigation-state-v2"}
+    life=payload.get("client_lifecycle") or _fresh(state=state_name)
+    if life.get("state")=="PURGED" and state_name!="PURGED": raise ValueError("Un dossier PURGED ne peut pas être rouvert.")
+    if life.get("state") not in PRIVACY_STATES and life.get("state") != state_name:
+        raise ValueError("Le privacy gate ne peut pas réécrire une investigation déjà commencée.")
+    life["state"]=state_name; life["privacy_manifest_ref"]="privacy/privacy_manifest.json"
+    life["privacy_approved_for_analysis"]=state_name=="PRIVACY_CLEARED"
+    life["history"].append({"at_utc":_now(),"action":"privacy_state_synchronized","state":state_name,"reason":reason})
+    payload["client_lifecycle"]=life; _validate_lifecycle(life); _write(path,payload)
+    q=root/"questions.json"
+    if not q.exists(): _write(q,{"schema_version":"indicia-client-questions-v2","questions":[],"responses":[],"cycle_history":[]})
+    return payload
+
+def _load_allow_privacy(case):
     root=lifecycle_directory(case); state=initialize_client_lifecycle(case); questions=_read(root/"questions.json")
     if not isinstance(questions.get("questions",[]),list) or not isinstance(questions.get("responses",[]),list): raise ValueError("questions.json invalide.")
-    _validate_lifecycle(state["client_lifecycle"],questions)
+    _validate_lifecycle(state["client_lifecycle"],questions); return root,state,questions
+
+def begin_privacy_cleared_analysis(case_directory:str|Path):
+    assert_case_privacy_cleared(case_directory)
+    root,state,_=_load_allow_privacy(case_directory); life=state["client_lifecycle"]
+    if life["state"]=="ANALYZING": return state
+    if life["state"]!="PRIVACY_CLEARED": raise ValueError(f"PRIVACY GATE: analyse interdite en état {life['state']}.")
+    life["state"]="ANALYZING"; life["history"].append({"at_utc":_now(),"action":"analysis_started_after_privacy_clearance"})
+    _write(root/"investigation_state.json",state); return state
+def _load(case):
+    root,state,questions=_load_allow_privacy(case)
+    if state["client_lifecycle"]["state"] in PRIVACY_STATES:
+        raise ValueError(f"PRIVACY GATE: investigation interdite en état {state['client_lifecycle']['state']}.")
+    assert_case_privacy_cleared(case)
     return root,state,questions
 def record_existing_data_exhaustion(case_directory:str|Path,*,analysis_inventory_ref:str,reviewed_sources:list[str]):
     if not str(analysis_inventory_ref).strip() or not reviewed_sources or any(not str(x).strip() for x in reviewed_sources): raise ValueError("Inventaire et sources examinées requis.")
@@ -183,8 +218,12 @@ def validate_client_lifecycle_artifacts(case_directory:str|Path)->dict[str,Any]|
     return life
 def assert_workflow_action_allowed(case_directory:str|Path,action:str):
     path=lifecycle_directory(case_directory)/"investigation_state.json"
-    if not path.exists(): return
+    assert_case_privacy_cleared(case_directory)
+    if not path.exists():
+        if inspect_privacy_status(case_directory)["state"]=="NOT_REQUIRED": return
+        raise ValueError("Lifecycle absent: initialiser le dossier après clearance privacy.")
     life=validate_client_lifecycle_artifacts(case_directory)
     if life is None: return
+    if life.get("state") in PRIVACY_STATES: raise ValueError(f"PRIVACY GATE: {action} interdit en état {life.get('state')}.")
     if life.get("state")=="WAITING_FOR_REQUIRED_INFORMATION": raise ValueError(f"STOP: {action} interdit pendant une demande BLOCKING.")
     if action in {"report_generation","delivery"} and life.get("state") not in {"FINALIZABLE","DELIVERABLE"}: raise ValueError(f"{action} exige FINALIZABLE ou DELIVERABLE.")

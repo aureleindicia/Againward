@@ -5,11 +5,30 @@ __pycache__/
 
 client_data/
 client_cases/
+client_cases/*/incoming/
+client_cases/*/privacy/
+client_cases/*/sanitized/
+client_cases/*/normalized/
+client_cases/*/derived/
+client_cases/*/evidence/
+client_cases/*/investigation/
+client_cases/*/scratch/
+client_cases/*/outputs/
+workspaces/*/incoming/
+workspaces/*/privacy/
+workspaces/*/sanitized/
+workspaces/*/processed/
+workspaces/*/scratch/
+workspaces/*/outputs/
 scratch/
 # Tous les dossiers client sont privés par défaut. Seul le guide racine est publié.
 workspaces/*
 !workspaces/README.md
 workspace/*/input/
+workspace/*/incoming/
+workspace/*/privacy/
+workspace/*/sanitized/
+workspace/*/retained_derived/
 workspace/*/processed/
 workspace/*/outputs/
 workspace/minimal_attribution_benchmark*/
