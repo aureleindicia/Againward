@@ -72,8 +72,10 @@ def _validate_lifecycle(life:Any,questions:dict[str,Any]|None=None)->None:
     if not set(life["answered_request_ids"])<=response_request_ids or not response_request_ids<=known_request_ids:
         raise ValueError("Historique des réponses incohérent avec les demandes.")
 def initialize_client_lifecycle(case_directory:str|Path)->dict[str,Any]:
-    root=lifecycle_directory(case_directory); root.mkdir(parents=True,exist_ok=True); path=root/"investigation_state.json"
     privacy=inspect_privacy_status(case_directory)
+    if privacy["state"]=="PRIVACY_MIGRATION_REQUIRED":
+        raise ValueError("Workspace historique: migration privacy explicite requise avant initialisation du lifecycle.")
+    root=lifecycle_directory(case_directory); root.mkdir(parents=True,exist_ok=True); path=root/"investigation_state.json"
     initial_state=privacy["state"] if privacy["state"] in PRIVACY_STATES else "ANALYZING"
     if path.exists():
         state=_read(path)

@@ -25,7 +25,7 @@ from typing import Any, Callable, Iterable
 from .workflow_paths import resolve_case_layout
 
 
-POLICY_VERSION = "indicia-privacy-policy-v1"
+POLICY_VERSION = "indicia-privacy-policy-v1.1"
 REVIEW_SCHEMA = "indicia-codex-privacy-review-v1"
 MANIFEST_SCHEMA = "indicia-privacy-manifest-v1"
 RETENTION_SCHEMA = "indicia-retention-policy-v1"
@@ -50,6 +50,7 @@ _HR_SENSITIVE = re.compile(r"(?i)\b(?:sanction disciplinaire|avertissement rh|li
 _PSEUDONYM = re.compile(r"^(?:OPERATOR|TECHNICIAN|EMPLOYEE|PERSON|WORKER|STAFF|ID)_[0-9A-F]{3,32}$", re.I)
 _SAFE_CODE = re.compile(r"^[A-Z][A-Z0-9_]{1,63}$")
 _FILE_ID = re.compile(r"^FILE-[0-9]{3,9}$")
+_MANAGED_CASE_PARENT_NAMES = {"workspaces", "client_cases"}
 
 _PERSONAL_HEADER_TOKENS = {
     "first_name", "firstname", "prenom", "last_name", "lastname", "nom_personne",
@@ -138,6 +139,8 @@ def _atomic_json(path: Path, value: dict[str, Any]) -> None:
 
 
 def _safe_files(root: Path) -> list[Path]:
+    if root.is_symlink():
+        raise ValueError(f"Lien symbolique interdit dans les données client: {root}.")
     if not root.is_dir():
         return []
     result: list[Path] = []
@@ -157,13 +160,33 @@ def _within(path: Path, root: Path) -> bool:
         return False
 
 
+def _conventional_case_root(path: str | Path) -> Path | None:
+    """Recognize an unregistered case below an official managed-case root."""
+
+    current = Path(path).expanduser().resolve(strict=False)
+    if current.is_file() or current.suffix:
+        current = current.parent
+    for candidate in (current, *current.parents):
+        if candidate.parent.name in _MANAGED_CASE_PARENT_NAMES:
+            return candidate
+    return None
+
+
 def privacy_requirement(case_directory: str | Path) -> dict[str, Any]:
     """Describe whether a recognized case requires privacy clearance."""
 
     layout = resolve_case_layout(case_directory)
     root: Path = layout["case_root"]
     manifest_path = root / ("workspace.json" if layout["layout"] == "STANDARD_WORKSPACE" else "case_manifest.json")
-    if layout["layout"] == "DIRECT_ANALYSIS_DIRECTORY" or not manifest_path.is_file():
+    if not manifest_path.is_file():
+        managed_root = _conventional_case_root(case_directory)
+        if layout["layout"] == "GOAL_A_CASE" or managed_root is not None:
+            return {
+                "required": True,
+                "legacy": True,
+                "layout": layout["layout"],
+                "case_root": managed_root or root,
+            }
         return {"required": False, "legacy": False, "layout": layout["layout"], "case_root": root}
     manifest = _read_json(manifest_path)
     privacy = manifest.get("privacy")
@@ -173,6 +196,8 @@ def privacy_requirement(case_directory: str | Path) -> dict[str, Any]:
     if case_kind not in {"REAL_CLIENT", "SYNTHETIC"}:
         return {"required": True, "legacy": True, "layout": layout["layout"], "case_root": root}
     if case_kind == "REAL_CLIENT" and privacy.get("required") is not True:
+        return {"required": True, "legacy": True, "layout": layout["layout"], "case_root": root}
+    if case_kind == "REAL_CLIENT" and privacy.get("policy_version") != POLICY_VERSION:
         return {"required": True, "legacy": True, "layout": layout["layout"], "case_root": root}
     if case_kind == "SYNTHETIC" and privacy.get("required") is not False:
         return {"required": True, "legacy": True, "layout": layout["layout"], "case_root": root}
@@ -199,10 +224,28 @@ def inspect_privacy_status(case_directory: str | Path) -> dict[str, Any]:
     if not path.is_file():
         return {"state": "AWAITING_PRIVACY_REVIEW", "approved_for_analysis": False, **requirement}
     manifest = _read_json(path)
-    approved = manifest.get("approved_for_analysis") is True
+    if manifest.get("policy_version") != POLICY_VERSION or manifest.get("schema_version") != MANIFEST_SCHEMA:
+        return {
+            "state": "PRIVACY_MIGRATION_REQUIRED",
+            "approved_for_analysis": False,
+            "manifest": str(path),
+            **requirement,
+        }
+    deterministic = manifest.get("deterministic_validation")
+    original_deletion = manifest.get("original_deletion")
+    approval_contract_valid = (
+        manifest.get("status") in {"PASS", "SANITIZED"}
+        and isinstance(deterministic, dict)
+        and deterministic.get("passed") is True
+        and isinstance(original_deletion, dict)
+        and original_deletion.get("succeeded") is True
+    )
+    approved = manifest.get("approved_for_analysis") is True and approval_contract_valid
     if manifest.get("status") == "PURGED":
         state = "PURGED"
     elif manifest.get("status") in {"BLOCKED", "PURGE_PARTIAL_FAILURE"}:
+        state = "PRIVACY_BLOCKED"
+    elif manifest.get("approved_for_analysis") is True and not approval_contract_valid:
         state = "PRIVACY_BLOCKED"
     else:
         state = "PRIVACY_CLEARED" if approved else "AWAITING_PRIVACY_REVIEW"
@@ -224,7 +267,9 @@ def _find_case_root(path: str | Path) -> Path | None:
     for candidate in (current, *current.parents):
         if (candidate / "workspace.json").is_file() or (candidate / "case_manifest.json").is_file():
             return candidate
-    return None
+        if all((candidate / name).is_dir() for name in ("derived", "evidence", "investigation")):
+            return candidate
+    return _conventional_case_root(current)
 
 
 def case_root_for_path(path: str | Path) -> Path | None:
@@ -282,6 +327,7 @@ def stage_incoming_drop(source_directory: str | Path, case_directory: str | Path
     if inspect_privacy_status(root)["state"] == "PURGED":
         raise ValueError("Dossier PURGED: aucun nouveau staging ou traitement n'est autorisé.")
     incoming = root / "incoming"
+    incoming.mkdir(parents=True, exist_ok=True)
     if not source.is_dir():
         raise ValueError(f"Dossier reçu introuvable: {source}.")
     if any(incoming.iterdir()):
@@ -453,6 +499,12 @@ def _same_value(left: Any, right: Any) -> bool:
     return left == right or str(left) == str(right)
 
 
+def _identity_key(value: str) -> str:
+    """Canonicalize an identity only for an ephemeral, in-process comparison."""
+
+    return " ".join(unicodedata.normalize("NFKC", value).split()).casefold()
+
+
 def _industrial_text_markers(path: Path) -> Counter[str]:
     text = _flatten_text(path, [])
     markers: list[str] = []
@@ -468,6 +520,8 @@ def _compare_preservation(
     sanitized: Path,
     *,
     require_relation_preservation: bool,
+    identity_to_pseudonym: dict[str, str],
+    pseudonym_to_identity: dict[str, str],
 ) -> dict[str, Any]:
     if original.suffix.casefold() != sanitized.suffix.casefold():
         raise ValueError("La sanitation ne peut pas changer le type de fichier tabulaire.")
@@ -513,8 +567,6 @@ def _compare_preservation(
                 if kind == "personal" and slug in _DIRECT_REMOVE_HEADER_TOKENS and any(values_after):
                     raise ValueError(f"La colonne personnelle explicite {header} doit être supprimée ou vidée.")
                 if kind == "relation":
-                    mapping: dict[str, str] = {}
-                    reverse: dict[str, str] = {}
                     for old, new in zip(values_before, values_after):
                         if not old and not new:
                             continue
@@ -523,11 +575,14 @@ def _compare_preservation(
                         if old and new:
                             if not _PSEUDONYM.fullmatch(new):
                                 raise ValueError(f"Pseudonyme invalide dans {header}: format stable requis.")
-                            if old in mapping and mapping[old] != new:
-                                raise ValueError(f"Pseudonymisation instable dans {header}.")
-                            if new in reverse and reverse[new] != old:
-                                raise ValueError(f"Collision de pseudonymes dans {header}.")
-                            mapping[old] = new; reverse[new] = old
+                            identity = _identity_key(old)
+                            pseudonym = new.casefold()
+                            if identity in identity_to_pseudonym and identity_to_pseudonym[identity] != pseudonym:
+                                raise ValueError("Pseudonymisation inter-fichiers instable.")
+                            if pseudonym in pseudonym_to_identity and pseudonym_to_identity[pseudonym] != identity:
+                                raise ValueError("Collision de pseudonymes inter-fichiers.")
+                            identity_to_pseudonym[identity] = pseudonym
+                            pseudonym_to_identity[pseudonym] = identity
             elif kind == "relation" and require_relation_preservation:
                 raise ValueError(f"Colonne relationnelle supprimée pendant une pseudonymisation: {header}.")
         rows_checked += len(source.rows)
@@ -612,8 +667,116 @@ def _manifest_base(root: Path, review: dict[str, Any], status: str) -> dict[str,
         "transformations": [],
         "files": [],
         "deterministic_validation": {"passed": False, "checks": [], "errors": []},
-        "original_deletion": {"required": status in {"PASS", "SANITIZED"}, "succeeded": False, "deleted_at_utc": None},
+        "original_deletion": {
+            "required": True,
+            "attempted": False,
+            "succeeded": False,
+            "partial": False,
+            "deleted_file_count": 0,
+            "remaining_file_count": None,
+            "deleted_at_utc": None,
+            "errors": [],
+        },
         "approved_for_analysis": False,
+    }
+
+
+def _blocked_temporary_cleanup(
+    root: Path,
+    manifest: dict[str, Any],
+    *,
+    delete_tree: Callable[[Path], None],
+    review_file: Path | None = None,
+    known_incoming_files: list[Path] | None = None,
+    deletion_authorized: bool = True,
+) -> None:
+    """Best-effort fail-closed cleanup with a content-free, verified audit."""
+
+    incoming = root / "incoming"
+    candidate_root = root / "privacy" / "candidate"
+    staging = root / "privacy" / ".promotion_staging"
+    deletion = manifest["original_deletion"]
+    if not deletion_authorized:
+        deletion["errors"] = ["INCOMING_DELETE_NOT_SAFE:AUDIT_INVENTORY_INCOMPLETE"]
+        manifest["temporary_cleanup"] = {
+            "succeeded": False,
+            "errors": ["RAW_CLEANUP_NOT_ATTEMPTED_INCOMPLETE_AUDIT"],
+        }
+        return
+    try:
+        originals = list(known_incoming_files) if known_incoming_files is not None else _safe_files(incoming)
+    except (OSError, ValueError) as exc:
+        deletion["errors"] = [f"INCOMING_INVENTORY_UNSAFE:{type(exc).__name__}"]
+        manifest["temporary_cleanup"] = {
+            "succeeded": False,
+            "errors": ["RAW_CLEANUP_NOT_ATTEMPTED_UNSAFE_INVENTORY"],
+        }
+        return
+
+    deletion["attempted"] = True
+    incoming_error: str | None = None
+    if incoming.exists():
+        try:
+            delete_tree(incoming)
+        except OSError as exc:
+            incoming_error = f"INCOMING_DELETE_FAILED:{type(exc).__name__}"
+
+    remaining_count: int | None
+    try:
+        remaining_count = len(_safe_files(incoming))
+    except (OSError, ValueError) as exc:
+        remaining_count = None
+        if incoming_error is None:
+            incoming_error = f"INCOMING_DELETE_VERIFY_FAILED:{type(exc).__name__}"
+    deleted_count = (
+        max(0, len(originals) - remaining_count)
+        if remaining_count is not None else 0
+    )
+    deletion.update({
+        "succeeded": incoming_error is None and remaining_count == 0,
+        "partial": bool(
+            incoming_error is not None
+            and remaining_count is not None
+            and 0 < deleted_count < len(originals)
+        ),
+        "deleted_file_count": deleted_count,
+        "remaining_file_count": remaining_count,
+        "deleted_at_utc": _now() if incoming_error is None and remaining_count == 0 else None,
+        "errors": [] if incoming_error is None else [incoming_error],
+    })
+
+    auxiliary_errors: list[str] = []
+    for target, code in (
+        (candidate_root, "CANDIDATE_DELETE_FAILED"),
+        (staging, "PROMOTION_STAGING_DELETE_FAILED"),
+    ):
+        if target.exists():
+            try:
+                delete_tree(target)
+            except OSError as exc:
+                auxiliary_errors.append(f"{code}:{type(exc).__name__}")
+    allowed_review = (
+        review_file is not None
+        and review_file.parent == (root / "privacy").resolve()
+        and review_file.name not in {
+            "privacy_manifest.json",
+            "CODEX_PRIVACY_REVIEW_TEMPLATE.json",
+            "RETENTION_POLICY_TEMPLATE.json",
+            "retention_policy.json",
+        }
+    )
+    files_to_unlink = [(root / "privacy" / "incoming_receipt.json", "INCOMING_RECEIPT_DELETE_FAILED")]
+    if allowed_review:
+        files_to_unlink.append((review_file, "REVIEW_DELETE_FAILED"))
+    for target, code in files_to_unlink:
+        if target.exists():
+            try:
+                target.unlink()
+            except OSError as exc:
+                auxiliary_errors.append(f"{code}:{type(exc).__name__}")
+    manifest["temporary_cleanup"] = {
+        "succeeded": deletion["succeeded"] and not auxiliary_errors,
+        "errors": auxiliary_errors,
     }
 
 
@@ -710,6 +873,7 @@ def _validate_codex_privacy_review_impl(
     blocked_reasons = review.get("blocked_reasons", [])
     if not isinstance(blocked_reasons, list) or any(not _SAFE_CODE.fullmatch(str(reason)) for reason in blocked_reasons):
         raise ValueError("blocked_reasons doit contenir uniquement des codes structurés sans donnée source.")
+    manifest["blocked_reason_codes"] = list(blocked_reasons)
     incoming_files = _safe_files(incoming)
     if not incoming_files:
         raise ValueError("incoming/ est vide: aucun brut temporaire à valider.")
@@ -752,6 +916,13 @@ def _validate_codex_privacy_review_impl(
             })
         manifest["deterministic_validation"]["checks"].append("blocked_without_analytical_promotion")
         manifest["deterministic_validation"]["passed"] = True
+        _blocked_temporary_cleanup(
+            root,
+            manifest,
+            delete_tree=delete_tree,
+            review_file=review_file,
+            known_incoming_files=incoming_files,
+        )
         _atomic_json(privacy_manifest_path(root), manifest)
         _sync_lifecycle(root, "PRIVACY_BLOCKED", reason="codex_privacy_review_blocked")
         _update_case_privacy_summary(root, approved=False, status="BLOCKED")
@@ -769,6 +940,8 @@ def _validate_codex_privacy_review_impl(
     all_raw_sensitive: set[str] = set()
     validation_checks: list[str] = []
     target_paths: set[str] = set()
+    identity_to_pseudonym: dict[str, str] = {}
+    pseudonym_to_identity: dict[str, str] = {}
     declared_transformations = {
         (item["category"], item["action"]): int(item["count"])
         for item in manifest["detected_categories"]
@@ -825,6 +998,8 @@ def _validate_codex_privacy_review_impl(
                         for transform in spec.get("transformations", [])
                         if isinstance(transform, dict)
                     ),
+                    identity_to_pseudonym=identity_to_pseudonym,
+                    pseudonym_to_identity=pseudonym_to_identity,
                 )
                 validation_checks.append(f"{file_id}:industrial_preservation:{preservation['industrial_columns_checked']}")
                 relative_target = str(Path(candidate).relative_to("privacy/candidate"))
@@ -890,6 +1065,32 @@ def _validate_codex_privacy_review_impl(
             manifest["status"] = "BLOCKED"
             manifest["deterministic_validation"]["errors"] = cleanup_errors
             manifest["deterministic_validation"]["checks"] = validation_checks
+            try:
+                remaining_count = len(_safe_files(incoming))
+            except (OSError, ValueError):
+                remaining_count = None
+            deleted_count = (
+                max(0, len(incoming_files) - remaining_count)
+                if remaining_count is not None else 0
+            )
+            manifest["original_deletion"] = {
+                "required": True,
+                "attempted": True,
+                "succeeded": remaining_count == 0 and not any(
+                    error.startswith("incoming:") for error in cleanup_errors
+                ),
+                "partial": bool(
+                    remaining_count is not None
+                    and 0 < deleted_count < len(incoming_files)
+                ),
+                "deleted_file_count": deleted_count,
+                "remaining_file_count": remaining_count,
+                "deleted_at_utc": _now() if remaining_count == 0 else None,
+                "errors": [
+                    "INCOMING_DELETE_FAILED"
+                    for error in cleanup_errors if error.startswith("incoming:")
+                ],
+            }
             _atomic_json(privacy_manifest_path(root), manifest)
             _sync_lifecycle(root, "PRIVACY_BLOCKED", reason="temporary_original_deletion_failed")
             _update_case_privacy_summary(root, approved=False, status="BLOCKED")
@@ -901,7 +1102,16 @@ def _validate_codex_privacy_review_impl(
             "file_types_and_row_counts_preserved", "industrial_values_unchanged",
             "timestamps_energy_power_production_preserved", *validation_checks,
         ], "errors": []}
-        manifest["original_deletion"] = {"required": True, "succeeded": True, "deleted_at_utc": _now()}
+        manifest["original_deletion"] = {
+            "required": True,
+            "attempted": True,
+            "succeeded": True,
+            "partial": False,
+            "deleted_file_count": len(incoming_files),
+            "remaining_file_count": 0,
+            "deleted_at_utc": _now(),
+            "errors": [],
+        }
         manifest["approved_for_analysis"] = True
         _atomic_json(privacy_manifest_path(root), manifest)
         _sync_lifecycle(root, "PRIVACY_CLEARED", reason="privacy_post_check_passed")
@@ -917,6 +1127,13 @@ def _validate_codex_privacy_review_impl(
         # Keep detailed errors ephemeral for the operator; the durable audit
         # record must never repeat a header, filename or removed value.
         manifest["deterministic_validation"]["errors"] = [f"PRIVACY_POST_CHECK_FAILED:{type(exc).__name__}"]
+        _blocked_temporary_cleanup(
+            root,
+            manifest,
+            delete_tree=delete_tree,
+            review_file=review_file,
+            known_incoming_files=incoming_files,
+        )
         _atomic_json(privacy_manifest_path(root), manifest)
         _sync_lifecycle(root, "PRIVACY_BLOCKED", reason="privacy_post_check_failed")
         _update_case_privacy_summary(root, approved=False, status="BLOCKED")
@@ -945,25 +1162,36 @@ def validate_codex_privacy_review(
                 path = privacy_manifest_path(root)
                 if not path.is_file():
                     files: list[dict[str, Any]] = []
+                    cleanup_authorized = True
                     try:
                         incoming_files = _safe_files(root / "incoming")
                     except (OSError, ValueError):
                         incoming_files = []
+                        cleanup_inventory: list[Path] | None = None
+                        cleanup_authorized = False
+                    else:
+                        cleanup_inventory = incoming_files
                     for index, source in enumerate(incoming_files, 1):
+                        try:
+                            original_sha256: str | None = _sha256(source)
+                        except OSError:
+                            original_sha256 = None
+                            cleanup_authorized = False
                         files.append({
                             "file_id": f"FILE-{index:03d}",
-                            "original_sha256": _sha256(source),
+                            "original_sha256": original_sha256,
                             "file_type": source.suffix.casefold().lstrip(".") or "unknown",
                             "status": "BLOCKED",
                             "sanitized_sha256": None,
                         })
-                    _atomic_json(path, {
+                    blocked_manifest = {
                         "schema_version": MANIFEST_SCHEMA,
                         "workspace_id": root.name,
                         "received_at_utc": None,
                         "validated_at_utc": _now(),
                         "policy_version": POLICY_VERSION,
                         "status": "BLOCKED",
+                        "blocked_reason_codes": ["PRIVACY_REVIEW_CONTRACT_FAILED"],
                         "detected_categories": [],
                         "transformations": [],
                         "files": files,
@@ -973,12 +1201,89 @@ def validate_codex_privacy_review(
                             "errors": [f"PRIVACY_POST_CHECK_FAILED:{type(exc).__name__}"],
                         },
                         "original_deletion": {
-                            "required": False,
+                            "required": True,
+                            "attempted": False,
                             "succeeded": False,
+                            "partial": False,
+                            "deleted_file_count": 0,
+                            "remaining_file_count": None,
                             "deleted_at_utc": None,
+                            "errors": [],
                         },
                         "approved_for_analysis": False,
-                    })
+                    }
+                    review_candidate = Path(review_path).expanduser().resolve(strict=False)
+                    _blocked_temporary_cleanup(
+                        root,
+                        blocked_manifest,
+                        delete_tree=delete_tree,
+                        review_file=review_candidate,
+                        known_incoming_files=cleanup_inventory,
+                        deletion_authorized=cleanup_authorized,
+                    )
+                    _atomic_json(path, blocked_manifest)
+                else:
+                    blocked_manifest = _read_json(path)
+                    blocked_manifest["status"] = "BLOCKED"
+                    blocked_manifest["approved_for_analysis"] = False
+                    deterministic = blocked_manifest.setdefault(
+                        "deterministic_validation",
+                        {"passed": False, "checks": [], "errors": []},
+                    )
+                    deterministic["passed"] = False
+                    error_code = f"PRIVACY_POST_CHECK_FAILED:{type(exc).__name__}"
+                    deterministic["errors"] = list(dict.fromkeys([
+                        *deterministic.get("errors", []), error_code,
+                    ]))
+                    previous_deletion = dict(blocked_manifest.get("original_deletion", {}))
+                    try:
+                        pending_files: list[Path] | None = _safe_files(root / "incoming")
+                    except (OSError, ValueError):
+                        pending_files = None
+                    cleanup_authorized = pending_files is not None
+                    if pending_files:
+                        audit_files = blocked_manifest.setdefault("files", [])
+                        known_hashes = {
+                            item.get("original_sha256")
+                            for item in audit_files if isinstance(item, dict)
+                        }
+                        used_file_ids = {
+                            str(item.get("file_id"))
+                            for item in audit_files if isinstance(item, dict)
+                        }
+                        next_file_number = 1
+                        for source in pending_files:
+                            try:
+                                digest = _sha256(source)
+                            except OSError:
+                                cleanup_authorized = False
+                                continue
+                            if digest in known_hashes:
+                                continue
+                            while f"FILE-{next_file_number:03d}" in used_file_ids:
+                                next_file_number += 1
+                            file_id = f"FILE-{next_file_number:03d}"
+                            audit_files.append({
+                                "file_id": file_id,
+                                "original_sha256": digest,
+                                "file_type": source.suffix.casefold().lstrip(".") or "unknown",
+                                "status": "BLOCKED",
+                                "sanitized_sha256": None,
+                            })
+                            used_file_ids.add(file_id)
+                            known_hashes.add(digest)
+                            next_file_number += 1
+                    _blocked_temporary_cleanup(
+                        root,
+                        blocked_manifest,
+                        delete_tree=delete_tree,
+                        review_file=Path(review_path).expanduser().resolve(strict=False),
+                        known_incoming_files=pending_files,
+                        deletion_authorized=cleanup_authorized,
+                    )
+                    if pending_files == [] and previous_deletion.get("attempted"):
+                        blocked_manifest["original_deletion"] = previous_deletion
+                    _atomic_json(path, blocked_manifest)
                 _sync_lifecycle(root, "PRIVACY_BLOCKED", reason="privacy_validation_contract_failed")
                 _update_case_privacy_summary(root, approved=False, status="BLOCKED")
         except Exception:

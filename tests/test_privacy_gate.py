@@ -228,7 +228,114 @@ def test_medical_or_hr_content_is_fail_closed(tmp_path: Path) -> None:
         ),
     )
     assert manifest["approved_for_analysis"] is False
+    assert manifest["original_deletion"]["succeeded"] is True
+    assert manifest["original_deletion"]["deleted_file_count"] == 1
+    assert not (case / "incoming").exists()
+    assert not (case / "privacy/review.json").exists()
     assert initialize_client_lifecycle(case)["client_lifecycle"]["state"] == "PRIVACY_BLOCKED"
+
+
+def test_blocked_deletion_failure_is_reported_honestly(tmp_path: Path) -> None:
+    case = _case(tmp_path)
+    raw = case / "incoming/rh.txt"
+    raw.write_text("Dossier médical nécessitant un arrêt immédiat.", encoding="utf-8")
+
+    def fail_incoming(path: Path) -> None:
+        if path.name == "incoming":
+            raise PermissionError("simulated")
+        shutil.rmtree(path)
+
+    manifest = validate_codex_privacy_review(
+        case,
+        _review(
+            case,
+            [_file_spec("incoming/rh.txt", action="BLOCKED")],
+            status="BLOCKED",
+            categories=[_category("MEDICAL_DATA", "BLOCKED")],
+            blocked_reasons=["SPECIAL_CATEGORY_DATA"],
+        ),
+        delete_tree=fail_incoming,
+    )
+
+    assert manifest["status"] == "BLOCKED"
+    assert manifest["approved_for_analysis"] is False
+    assert manifest["original_deletion"]["attempted"] is True
+    assert manifest["original_deletion"]["succeeded"] is False
+    assert manifest["original_deletion"]["remaining_file_count"] == 1
+    assert manifest["original_deletion"]["deleted_at_utc"] is None
+    assert raw.is_file()
+    durable = json.loads((case / "privacy/privacy_manifest.json").read_text())
+    assert durable["original_deletion"]["succeeded"] is False
+    assert "Dossier médical" not in json.dumps(durable, ensure_ascii=False)
+
+
+def test_blocked_partial_deletion_reports_remaining_count(tmp_path: Path) -> None:
+    case = _case(tmp_path)
+    for name in ("a.txt", "b.txt"):
+        (case / "incoming" / name).write_text("Données RH sensibles.", encoding="utf-8")
+
+    def delete_one_then_fail(path: Path) -> None:
+        if path.name == "incoming":
+            (path / "a.txt").unlink()
+            raise PermissionError("simulated partial deletion")
+        shutil.rmtree(path)
+
+    manifest = validate_codex_privacy_review(
+        case,
+        _review(
+            case,
+            [
+                _file_spec("incoming/a.txt", action="BLOCKED", file_id="FILE-001"),
+                _file_spec("incoming/b.txt", action="BLOCKED", file_id="FILE-002"),
+            ],
+            status="BLOCKED",
+            categories=[{
+                "category": "HR_SENSITIVE", "action": "BLOCKED", "count": 2,
+                "file_ids": ["FILE-001", "FILE-002"],
+            }],
+            blocked_reasons=["SPECIAL_CATEGORY_DATA"],
+        ),
+        delete_tree=delete_one_then_fail,
+    )
+
+    deletion = manifest["original_deletion"]
+    assert deletion["succeeded"] is False
+    assert deletion["partial"] is True
+    assert deletion["deleted_file_count"] == 1
+    assert deletion["remaining_file_count"] == 1
+    assert not (case / "incoming/a.txt").exists()
+    assert (case / "incoming/b.txt").exists()
+
+
+def test_blocked_case_can_stage_a_fresh_minimal_drop_after_raw_purge(tmp_path: Path) -> None:
+    case = _case(tmp_path)
+    (case / "incoming/rh.txt").write_text("Dossier médical.", encoding="utf-8")
+    validate_codex_privacy_review(
+        case,
+        _review(
+            case,
+            [_file_spec("incoming/rh.txt", action="BLOCKED")],
+            status="BLOCKED",
+            categories=[_category("MEDICAL_DATA", "BLOCKED")],
+            blocked_reasons=["SPECIAL_CATEGORY_DATA"],
+        ),
+    )
+    fresh = tmp_path / "fresh"
+    fresh.mkdir()
+    (fresh / "energy.csv").write_text(
+        "timestamp,power_kw\nT1,10\n", encoding="utf-8"
+    )
+
+    receipt = stage_incoming_drop(fresh, case)
+
+    assert receipt["file_count"] == 1
+    assert (case / "incoming/energy.csv").is_file()
+    assert inspect_privacy_status(case)["state"] == "PRIVACY_BLOCKED"
+    manifest = validate_codex_privacy_review(
+        case, _review(case, [_file_spec("incoming/energy.csv")], status="PASS")
+    )
+    assert manifest["approved_for_analysis"] is True
+    assert inspect_privacy_status(case)["state"] == "PRIVACY_CLEARED"
 
 
 def test_industrial_values_timestamps_and_production_are_exact(tmp_path: Path) -> None:
@@ -315,6 +422,7 @@ def test_any_review_contract_failure_persists_privacy_blocked(tmp_path: Path) ->
     status = inspect_privacy_status(case)
     assert status["state"] == "PRIVACY_BLOCKED"
     assert status["approved_for_analysis"] is False
+    assert not (case / "incoming").exists()
 
 
 def test_pseudonym_correspondence_table_outside_candidate_is_refused(tmp_path: Path) -> None:
@@ -517,6 +625,155 @@ def test_operator_pseudonym_keeps_cross_machine_relationship(tmp_path: Path) -> 
         categories=[_category("PERSON_NAME", "PSEUDONYMIZED", 2)],
     )
     assert (case / "sanitized/data.csv").read_text().count("OPERATOR_001") == 2
+
+
+def test_same_identity_in_two_files_requires_same_pseudonym(tmp_path: Path) -> None:
+    case = _case(tmp_path)
+    for name, machine in (("a.csv", "M1"), ("b.csv", "M2")):
+        (case / "incoming" / name).write_text(
+            f"timestamp,machine_id,operator,power_kw\nT1,{machine},Alice Martin,10\n",
+            encoding="utf-8",
+        )
+        (case / "privacy/candidate" / name).write_text(
+            f"timestamp,machine_id,operator,power_kw\nT1,{machine},OPERATOR_001,10\n",
+            encoding="utf-8",
+        )
+    specs = [
+        _file_spec(
+            f"incoming/{name}",
+            action="SANITIZED",
+            sanitized=f"privacy/candidate/{name}",
+            file_id=f"FILE-00{index}",
+            transformations=[_transform("PERSON_NAME", "PSEUDONYMIZED")],
+        )
+        for index, name in enumerate(("a.csv", "b.csv"), 1)
+    ]
+    manifest = validate_codex_privacy_review(
+        case,
+        _review(
+            case,
+            specs,
+            status="SANITIZED",
+            categories=[{
+                "category": "PERSON_NAME",
+                "action": "PSEUDONYMIZED",
+                "count": 2,
+                "file_ids": ["FILE-001", "FILE-002"],
+            }],
+        ),
+    )
+    assert manifest["approved_for_analysis"] is True
+    assert "M1,OPERATOR_001" in (case / "sanitized/a.csv").read_text()
+    assert "M2,OPERATOR_001" in (case / "sanitized/b.csv").read_text()
+
+
+def test_same_identity_with_different_cross_file_pseudonyms_is_blocked(tmp_path: Path) -> None:
+    case = _case(tmp_path)
+    specs = []
+    for index, (name, pseudonym) in enumerate(
+        (("a.csv", "OPERATOR_001"), ("b.csv", "OPERATOR_002")), 1
+    ):
+        (case / "incoming" / name).write_text(
+            "timestamp,machine_id,operator,power_kw\nT1,M1,Alice Martin,10\n",
+            encoding="utf-8",
+        )
+        (case / "privacy/candidate" / name).write_text(
+            f"timestamp,machine_id,operator,power_kw\nT1,M1,{pseudonym},10\n",
+            encoding="utf-8",
+        )
+        specs.append(_file_spec(
+            f"incoming/{name}", action="SANITIZED",
+            sanitized=f"privacy/candidate/{name}", file_id=f"FILE-00{index}",
+            transformations=[_transform("PERSON_NAME", "PSEUDONYMIZED")],
+        ))
+    with pytest.raises(ValueError, match="inter-fichiers instable"):
+        validate_codex_privacy_review(
+            case,
+            _review(case, specs, status="SANITIZED", categories=[{
+                "category": "PERSON_NAME", "action": "PSEUDONYMIZED",
+                "count": 2, "file_ids": ["FILE-001", "FILE-002"],
+            }]),
+        )
+    assert inspect_privacy_status(case)["state"] == "PRIVACY_BLOCKED"
+    assert not (case / "incoming").exists()
+
+
+def test_two_identities_cannot_share_a_cross_file_pseudonym(tmp_path: Path) -> None:
+    case = _case(tmp_path)
+    specs = []
+    for index, (name, identity) in enumerate(
+        (("a.csv", "Alice Martin"), ("b.csv", "Bob Durand")), 1
+    ):
+        (case / "incoming" / name).write_text(
+            f"timestamp,machine_id,operator,power_kw\nT1,M{index},{identity},10\n",
+            encoding="utf-8",
+        )
+        (case / "privacy/candidate" / name).write_text(
+            f"timestamp,machine_id,operator,power_kw\nT1,M{index},OPERATOR_001,10\n",
+            encoding="utf-8",
+        )
+        specs.append(_file_spec(
+            f"incoming/{name}", action="SANITIZED",
+            sanitized=f"privacy/candidate/{name}", file_id=f"FILE-00{index}",
+            transformations=[_transform("PERSON_NAME", "PSEUDONYMIZED")],
+        ))
+    with pytest.raises(ValueError, match="Collision de pseudonymes inter-fichiers"):
+        validate_codex_privacy_review(
+            case,
+            _review(case, specs, status="SANITIZED", categories=[{
+                "category": "PERSON_NAME", "action": "PSEUDONYMIZED",
+                "count": 2, "file_ids": ["FILE-001", "FILE-002"],
+            }]),
+        )
+    assert inspect_privacy_status(case)["state"] == "PRIVACY_BLOCKED"
+
+
+@pytest.mark.parametrize("managed_root", ["workspaces", "client_cases"])
+def test_unregistered_direct_path_below_managed_workspaces_cannot_bypass_gate(
+    tmp_path: Path, managed_root: str
+) -> None:
+    case = tmp_path / managed_root / "legacy_real"
+    source = case / "input" / "energy.csv"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        "timestamp,energy_kwh\n2026-01-01,10\n2026-01-02,11\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="migration privacy"):
+        prepare_investigation(source, case / "processed")
+    with pytest.raises(ValueError, match="migration privacy"):
+        initialize_client_lifecycle(case)
+    assert not (case / "investigation_state.json").exists()
+
+
+def test_approved_flag_cannot_bypass_incomplete_manifest_contract(tmp_path: Path) -> None:
+    case = _case(tmp_path)
+    (case / "incoming/energy.csv").write_text(
+        "timestamp,energy_kwh\n2026-01-01,10\n", encoding="utf-8"
+    )
+    validate_codex_privacy_review(
+        case, _review(case, [_file_spec("incoming/energy.csv")], status="PASS")
+    )
+    path = case / "privacy/privacy_manifest.json"
+    manifest = json.loads(path.read_text())
+    manifest["original_deletion"]["succeeded"] = False
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="PRIVACY_BLOCKED"):
+        prepare_investigation(case / "sanitized/energy.csv", case / "processed")
+
+
+def test_explicit_synthetic_workspace_exemption_still_works(tmp_path: Path) -> None:
+    root = tmp_path / "workspaces"
+    create_client_workspace("synthetic_benchmark", root=root, synthetic=True)
+    case = root / "synthetic_benchmark"
+    source = case / "incoming" / "energy.csv"
+    source.write_text(
+        "timestamp,energy_kwh\n2026-01-01,10\n2026-01-02,11\n",
+        encoding="utf-8",
+    )
+    state = prepare_investigation(source, case / "processed")
+    assert state["client_lifecycle"]["state"] == "ANALYZING"
 
 
 def test_pseudonymization_cannot_silently_drop_a_relational_value(tmp_path: Path) -> None:
