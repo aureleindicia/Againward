@@ -2,7 +2,7 @@
 
 ## Demande simple au prospect
 
-Avant devis définitif, demander un exemple d’export brut ou une capture d’en-têtes et :
+Avant contractualisation, ne demander aucun fichier contenant des données réelles. Demander uniquement la structure de l’export (format, colonnes, unités, fréquence, période) ou une capture limitée aux en-têtes, sans lignes de données, puis préciser :
 
 1. quel site, compteur et quels équipements sont couverts ;
 2. la période, le pas de temps et la timezone ;
@@ -11,9 +11,7 @@ Avant devis définitif, demander un exemple d’export brut ou une capture d’e
    température et tarif ;
 5. la décision à préparer dans les 30–60 jours.
 
-Privilégier CSV/XLSX exportés directement. Ne pas demander de nettoyage manuel. Demander au client
-d’exclure les mots de passe, tokens, données RH/médicales et données personnelles manifestement
-inutiles ; le privacy gate reste néanmoins obligatoire à réception.
+Le premier dépôt réel n’est accepté qu’après accord contractuel. À ce stade, privilégier CSV/XLSX exportés directement. Ne pas demander de nettoyage manuel. Demander au client d’exclure les mots de passe, tokens, données RH/médicales et données personnelles manifestement inutiles ; le privacy gate reste néanmoins obligatoire à réception.
 
 ## Privacy gate avant faisabilité
 
