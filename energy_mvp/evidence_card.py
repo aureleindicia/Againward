@@ -50,7 +50,7 @@ def build_evidence_card(
     compact_candidates = [
         {
             key: event.get(key)
-            for key in ("event_id", "type", "start", "end", "status", "score_kw")
+            for key in ("event_id", "type", "start", "end", "status", "score_kw", "score_unit", "scope", "direction", "persistence")
             if key in event
         }
         for event in candidates.get("events", [])
@@ -78,6 +78,11 @@ def build_evidence_card(
             "status": candidates.get("status"),
             "events": compact_candidates,
             "disabled_signal_families": candidates.get("disabled_signal_families", []),
+            "prediction_coverage": candidates.get("prediction_coverage"),
+            "excluded_incomplete_days": candidates.get("excluded_incomplete_days", []),
+            "baseline_details": "candidate_signals.json#baseline",
+            "zero_candidates_means": "no candidate emitted, never proof of normal operation",
+            "quantification_policy": "signed net vs positive exposure; compare defensible baselines, otherwise abstain",
         },
         "relationship_loss": certificate,
         "retrieval": {
