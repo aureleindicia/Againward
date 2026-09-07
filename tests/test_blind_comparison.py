@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -23,8 +24,16 @@ class BlindComparisonTests(unittest.TestCase):
             result = evaluate_after_blind_phase(frozen, root / "private_truth")
 
         self.assertEqual(result["design"]["independent_codex_sessions"], 3)
-        self.assertEqual(result["python_only_same_public_cases"]["false_positives"], 6)
-        self.assertAlmostEqual(result["python_only_same_public_cases"]["f1"], 2 / 9)
+        # Reviews are frozen, but prepare_sessions runs the CURRENT engine.
+        # Preserve historical scores separately; do not require a repaired engine
+        # to reproduce the old false positives. Evaluation criteria are unchanged.
+        historical = json.loads((repository / "reports/blind_codex_comparison.json").read_text())
+        historical_python = historical["python_only_same_public_cases"]
+        self.assertEqual(historical_python["false_positives"], 6)
+        self.assertAlmostEqual(historical_python["f1"], 2 / 9)
+        current = result["python_only_same_public_cases"]
+        self.assertLessEqual(current["false_positives"], historical_python["false_positives"])
+        self.assertGreaterEqual(current["true_positives"], historical_python["true_positives"])
         self.assertTrue(all(
             item["temporal_detection"]["f1"] == 1.0
             for item in result["python_plus_codex_sessions"]

@@ -359,66 +359,133 @@ def _predictor_value(reading: Reading, name: str) -> float | None:
     raise ValueError(f"Predicteur inconnu: {name}")
 
 
+def _linear_values(reading: Reading, model: dict[str, Any]) -> list[float] | None:
+    """Apply the calibration-only vocabulary; unknown/missing is never the reference."""
+    for field, levels in model.get("category_levels", {}).items():
+        if getattr(reading, field) not in levels:
+            return None
+    for name, constant in model.get("constant_predictors", {}).items():
+        value = _predictor_value(reading, name)
+        if value is None or not math.isfinite(value) or not math.isclose(value, constant, rel_tol=1e-9, abs_tol=1e-9):
+            return None
+    values = []
+    for name in model["predictors"]:
+        feature = model.get("categorical_features", {}).get(name)
+        if feature is None:
+            value = _predictor_value(reading, name)
+        else:
+            value = float(getattr(reading, feature["field"]) == feature["level"])
+            if feature["interaction"]:
+                value = value * reading.production if reading.production is not None else None
+        if value is None or not math.isfinite(value):
+            return None
+        values.append(float(value))
+    return values
+
+
 def fit_linear_baseline(
     readings: Sequence[Reading],
     *,
     predictors: Sequence[str] = ("production",),
     calibration_fraction: float = 0.7,
+    calibration_end: datetime | None = None,
 ) -> dict[str, Any]:
+    """Fit on past only, including categorical intercepts and production interactions.
+
+    Category ordering follows first chronological occurrence, never lexical label order.
+    Vocabulary, support counts and validation exclusions are persisted with the model.
+    ``calibration_end`` freezes the original split for training-only robust refits.
+    Legacy explicit B predictors remain readable for frozen demo models, not nominal use.
+    """
     if not 0.5 <= calibration_fraction < 1:
         raise ValueError("calibration_fraction doit etre comprise entre 0.5 et 1.")
-    usable: list[tuple[Reading, float, list[float]]] = []
+    requested = list(dict.fromkeys(predictors))
+    categorical = [name for name in requested if name in {"product_type", "shift"}]
+    interaction = "production_by_product" in requested
+    if interaction and not {"product_type", "production"} <= set(requested):
+        raise ValueError("production_by_product exige production et product_type.")
+    numeric = [name for name in requested if name not in {*categorical, "production_by_product"}]
+    usable = []
     for reading in sorted(readings, key=lambda item: item.timestamp):
         target = _power_kw(reading)
-        values = [_predictor_value(reading, name) for name in predictors]
-        if target is not None and all(value is not None for value in values):
-            usable.append((reading, target, [float(value) for value in values]))
-    minimum = max(20, 4 * (len(predictors) + 1))
-    if len(usable) < minimum:
-        raise ValueError(f"Baseline impossible: au moins {minimum} lignes completes requises.")
-    split = int(len(usable) * calibration_fraction)
-    split = min(max(split, len(predictors) + 2), len(usable) - 1)
-    calibration = usable[:split]
-    validation = usable[split:]
-    design = [[1.0, *values] for _, _, values in calibration]
-    targets = [target for _, target, _ in calibration]
-    width = len(predictors) + 1
-    xtx = [
-        [sum(row[left] * row[right] for row in design) for right in range(width)]
-        for left in range(width)
-    ]
-    # Regularisation numerique minuscule, sans effet materiel sur les coefficients.
+        values = [_predictor_value(reading, name) for name in numeric]
+        if (target is not None and math.isfinite(target)
+                and all(value is not None and math.isfinite(value) for value in values)
+                and all(getattr(reading, field) is not None for field in categorical)):
+            usable.append(reading)
+    if len(usable) < 20:
+        raise ValueError("Baseline impossible: au moins 20 lignes completes requises.")
+    split = (sum(item.timestamp <= calibration_end for item in usable)
+             if calibration_end is not None else int(len(usable) * calibration_fraction))
+    if split < 10 or split >= len(usable):
+        raise ValueError("Baseline exige calibration et validation temporelles séparées.")
+    calibration, validation = usable[:split], usable[split:]
+    model: dict[str, Any] = {"kind": "linear", "target": "power_kw",
+        "requested_predictors": requested, "predictors": list(numeric),
+        "category_levels": {}, "categorical_features": {}, "category_support": {},
+        "unsupported_category_policy": "omit_prediction_and_report_coverage",
+        "legacy_label_predictors": [name for name in numeric if name in {"product_type_b", "production_product_b"}]}
+    model["constant_predictors"] = {}
+    model["numeric_calibration_ranges"] = {}
+    for name in numeric:
+        values = [_predictor_value(item, name) for item in calibration]
+        low, high = min(values), max(values)
+        model["numeric_calibration_ranges"][name] = {"min": low, "max": high}
+        if high - low <= 1e-9:
+            model["constant_predictors"][name] = low
+    for field in categorical:
+        counts: dict[str, int] = {}
+        for reading in calibration:
+            level = getattr(reading, field)
+            counts[level] = counts.get(level, 0) + 1
+        if len(counts) > 32:
+            raise ValueError("Baseline catégorielle: plus de 32 modalités; segmenter explicitement.")
+        levels = [level for level, count in counts.items() if count >= 4]
+        if not levels:
+            raise ValueError("Aucune catégorie avec au moins quatre lignes de calibration.")
+        model["category_levels"][field] = levels
+        model["category_support"][field] = {"counts": counts, "minimum_rows": 4,
+            "unsupported_levels": [level for level in counts if level not in levels],
+            "reference_level": levels[0]}
+        for index, level in enumerate(levels[1:], 1):
+            name = f"{field}_level_{index}"
+            model["predictors"].append(name)
+            model["categorical_features"][name] = {"field": field, "level": level, "interaction": False}
+            if field == "product_type" and interaction:
+                name += "_production"
+                model["predictors"].append(name)
+                model["categorical_features"][name] = {"field": field, "level": level, "interaction": True}
+    def supported(items: Sequence[Reading]) -> list[tuple[Reading, list[float]]]:
+        return [(item, values) for item in items if (values := _linear_values(item, model)) is not None]
+    training = supported(calibration)
+    held_out = supported(validation)
+    width = len(model["predictors"]) + 1
+    if len(training) < max(10, 4 * width) or len(held_out) < 5:
+        raise ValueError("Support insuffisant pour calibration/validation catégorielle.")
+    design = [[1.0, *values] for _, values in training]
+    targets = [_power_kw(item) for item, _ in training]
+    xtx = [[sum(row[left] * row[right] for row in design) for right in range(width)] for left in range(width)]
     for index in range(width):
         xtx[index][index] += 1e-10
     xty = [sum(row[column] * target for row, target in zip(design, targets)) for column in range(width)]
     coefficients = _solve(xtx, xty)
-
     def predict(values: Sequence[float]) -> float:
-        return coefficients[0] + sum(
-            coefficient * value for coefficient, value in zip(coefficients[1:], values)
-        )
-
-    validation_observed = [target for _, target, _ in validation]
-    validation_predicted = [predict(values) for _, _, values in validation]
-    calibration_observed = targets
-    calibration_predicted = [predict(values) for _, _, values in calibration]
-    return {
-        "kind": "linear",
-        "target": "power_kw",
-        "predictors": list(predictors),
-        "coefficients": {
-            "intercept": coefficients[0],
-            **{name: value for name, value in zip(predictors, coefficients[1:])},
-        },
-        "calibration_rows": len(calibration),
-        "validation_rows": len(validation),
-        "calibration_start": calibration[0][0].timestamp.isoformat(),
-        "calibration_end": calibration[-1][0].timestamp.isoformat(),
-        "validation_start": validation[0][0].timestamp.isoformat(),
-        "validation_end": validation[-1][0].timestamp.isoformat(),
-        "calibration_metrics": _metrics(calibration_observed, calibration_predicted),
-        "validation_metrics": _metrics(validation_observed, validation_predicted),
-    }
+        return coefficients[0] + sum(coef * value for coef, value in zip(coefficients[1:], values))
+    model.update({
+        "coefficients": dict(zip(["intercept", *model["predictors"]], coefficients)),
+        "calibration_rows": len(training), "validation_rows": len(held_out),
+        "calibration_start": calibration[0].timestamp.isoformat(),
+        "calibration_end": calibration[-1].timestamp.isoformat(),
+        "validation_start": validation[0].timestamp.isoformat(),
+        "validation_end": validation[-1].timestamp.isoformat(),
+        "calibration_unsupported_rows": len(calibration) - len(training),
+        "validation_unsupported_rows": len(validation) - len(held_out),
+        "validation_coverage_ratio": len(held_out) / len(validation),
+        "input_missing_rows": len(readings) - len(usable),
+        "calibration_metrics": _metrics(targets, [predict(values) for _, values in training]),
+        "validation_metrics": _metrics([_power_kw(item) for item, _ in held_out], [predict(values) for _, values in held_out]),
+    })
+    return model
 
 
 def _activity_key(reading: Reading) -> str:
@@ -464,6 +531,7 @@ def fit_activity_baseline(
         "validation_rows": len(validation),
         "calibration_end": calibration[-1][0].timestamp.isoformat(),
         "validation_start": validation[0][0].timestamp.isoformat(),
+        "validation_end": validation[-1][0].timestamp.isoformat(),
         "validation_metrics": _metrics(observed, predicted),
     }
 
@@ -524,6 +592,7 @@ def fit_time_baseline(
         "validation_rows": len(validation),
         "calibration_end": calibration[-1][0].timestamp.isoformat(),
         "validation_start": validation[0][0].timestamp.isoformat(),
+        "validation_end": validation[-1][0].timestamp.isoformat(),
         "validation_metrics": _metrics(observed, predicted),
     }
 
@@ -649,8 +718,8 @@ def calculate_residuals(
         if kind == "linear":
             predictors = model["predictors"]
             coefficients = model["coefficients"]
-            values = [_predictor_value(reading, name) for name in predictors]
-            if any(value is None for value in values):
+            values = _linear_values(reading, model)
+            if values is None:
                 continue
             expected = coefficients["intercept"] + sum(
                 coefficients[name] * float(value) for name, value in zip(predictors, values)
@@ -723,6 +792,10 @@ def calculate_excess_energy(
 ) -> float:
     if not (len(observed_kw) == len(expected_kw) == len(interval_hours)):
         raise ValueError("Les series de surconsommation doivent avoir la meme longueur.")
+    if any(not math.isfinite(v) for series in (observed_kw, expected_kw, interval_hours) for v in series):
+        raise ValueError("Les valeurs doivent être finies.")
+    if any(v < 0 for series in (observed_kw, expected_kw) for v in series):
+        raise ValueError("Les puissances doivent être non négatives.")
     if any(hours <= 0 for hours in interval_hours):
         raise ValueError("Les durees d'intervalle doivent etre positives.")
     return sum(
@@ -732,6 +805,8 @@ def calculate_excess_energy(
 
 
 def calculate_cost(energy_kwh: float, price_per_kwh: float) -> float:
+    if not math.isfinite(energy_kwh) or not math.isfinite(price_per_kwh):
+        raise ValueError("Énergie et tarif doivent être finis.")
     if energy_kwh < 0 or price_per_kwh < 0:
         raise ValueError("L'energie et le tarif doivent etre positifs.")
     return energy_kwh * price_per_kwh

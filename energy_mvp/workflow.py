@@ -57,6 +57,12 @@ def _brief(state: dict[str, Any]) -> str:
         "## Garde-fous", "",
         "- Ne jamais ouvrir ni demander de fichier de ground truth.",
         "- Les événements automatiques sont uniquement des signaux candidats.",
+        "- Zéro candidat ne prouve pas la normalité : examiner aussi profils, ruptures et couverture des prédictions.",
+        "- Lire prediction_coverage et les catégories non supportées dans candidate_signals.json avant toute conclusion.",
+        "- Pour chiffrer : distinguer bilan signé et aire positive ; utiliser quantify_baseline_sensitivity "
+        "(energy_mvp.quantification) sur des références défendables et les mêmes intervalles.",
+        "- Une plage entre baselines est une sensibilité, jamais un intervalle de confiance. "
+        "Si les références ne sont pas comparables ou le signe change, s'abstenir de chiffrer.",
         "- Python ne choisit jamais une cause, une question, une intervention ou une décision.",
         "- Les fiches knowledge/physical_diagnostics sont des références non exhaustives.",
         "- Python calcule; Codex choisit les tests, interprète, critique et conclut.",

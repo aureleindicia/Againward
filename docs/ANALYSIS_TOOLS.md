@@ -517,3 +517,53 @@ les outils physiques et économiques.
   promotion rédactionnelle.
 - Sortie : finding machine-readable avec `posterior_probability=null` et claims interdits.
 - Limitations : protège le format et le plafond calculé, pas la véracité d'une preuve source.
+
+## Corrections critiques du 7 septembre 2026
+
+### Baseline catégorielle générique
+
+`fit_linear_baseline(readings, predictors=("production", "product_type", "production_by_product"))`
+apprend un intercept et une pente par recette suffisamment représentée. Le vocabulaire vient
+uniquement de la calibration passée, indépendamment de l'orthographe des labels. `shift` est
+également catégoriel lorsqu'il est demandé. Les anciens prédicteurs explicitement nommés
+`product_type_b` / `production_product_b` sont réservés à la compatibilité des démonstrations
+historiques ; ne pas les employer sur un dossier nouveau.
+
+Les modalités inconnues/manquantes ne deviennent pas la catégorie de référence : aucune
+prédiction n'est produite sur ces lignes. Consulter `category_support`,
+`validation_coverage_ratio`, `constant_predictors` et la `prediction_coverage` du détecteur.
+Quatre observations par modalité est un minimum informatique, pas une preuve de représentativité.
+Plus de 32 modalités est refusé. La colinéarité entre facteurs reste à vérifier par l'analyste.
+
+### `energy_deviation(observed_kw, expected_kw, interval_hours)`
+
+- Module : `energy_mvp.quantification`.
+- Objectif : distinguer bilan signé, aire positive et aire négative sur les mêmes intervalles.
+- Sortie : `signed_net_kwh`, `positive_exposure_kwh`, `negative_exposure_kwh` et durées.
+- Hypothèses : puissances finies non négatives, durées positives, séries alignées.
+- Limites : aucun contrefactuel physique ni économie récupérable n'est prouvé par le calcul.
+- Exemple : `[9, 11]`, `[10, 10]`, `[0.25, 0.25]` donne 0 kWh net et 0,25 kWh d'aire positive.
+
+### `quantify_baseline_sensitivity(readings, baselines, assessments=..., expected_duration_hours=...)`
+
+- Module : `energy_mvp.quantification`.
+- Objectif : comparer plusieurs références défendues explicitement par Codex sur une cible commune.
+- Entrée : modèles nommés ; pour chaque modèle, `defensible`, `comparable_regime`, `rationale` ;
+  durée totale attendue de la fenêtre cible, trous inclus.
+- Sortie : diagnostics, `ABSTAIN`, `NO_POSITIVE_NET_EFFECT`, `CONDITIONAL_ESTIMATE` ou
+  `BASELINE_SENSITIVITY_RANGE`. La fourchette porte sur le bilan signé observé.
+- Hypothèses : cible postérieure à toute la référence/validation, couverture cible ≥90 %, support
+  de prédiction complet sur les observations, références comparables justifiées par l'analyste.
+- Limites : fourchette de sensibilité entre modèles, **pas** intervalle de confiance. Aucun chiffrage
+  si les références plausibles changent le signe de l'effet ou si leur justification manque.
+  Les déclarations de l'analyste restent des jugements à contrôler, pas une validation automatique.
+- Exemple : voir `tests/test_quantification.py::test_sensitivity_is_not_confidence_interval_or_saving`.
+
+### Signaux de régime avec compteur seul
+
+`detect_candidate_events` utilise maintenant une référence de calendrier lorsque pertinente et
+expose des candidats de niveau persistant, de pente et de palier avec retour. « Permanent » dans
+le type historique signifie observé jusqu'à la fin du dataset ; le champ `persistence` exclut une
+prévision. Les facettes nocturnes/week-end consolidées restent dans `related_candidate_evidence`.
+Les jours incomplets, nouveaux régimes et familles désactivées sont à lire avant toute conclusion.
+**Zéro candidat ne signifie pas fonctionnement normal.**

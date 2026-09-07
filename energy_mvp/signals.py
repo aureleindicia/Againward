@@ -3,23 +3,25 @@ from __future__ import annotations
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from statistics import mean, median, pstdev
+import math
 from typing import Any, Sequence
 from zoneinfo import ZoneInfo
 
 from .models import LoadedData, Reading
-from .toolbox import calculate_residuals, extract_period, fit_linear_baseline, group_residual_events
+from .toolbox import calculate_residuals, extract_period, fit_linear_baseline, fit_time_baseline, group_residual_events
 
 
-def _trend(values: Sequence[float]) -> tuple[float, float | None]:
+def _trend(values: Sequence[float], days: Sequence[date] | None = None) -> tuple[float, float | None]:
     if len(values) < 2:
         return 0.0, None
-    x_mean = (len(values) - 1) / 2
+    xs = [(day - days[0]).days for day in days] if days else list(range(len(values)))
+    x_mean = mean(xs)
     y_mean = mean(values)
-    denominator = sum((index - x_mean) ** 2 for index in range(len(values)))
+    denominator = sum((index - x_mean) ** 2 for index in xs)
     slope = sum(
-        (index - x_mean) * (value - y_mean) for index, value in enumerate(values)
+        (index - x_mean) * (value - y_mean) for index, value in zip(xs, values)
     ) / denominator
-    predicted = [y_mean + slope * (index - x_mean) for index in range(len(values))]
+    predicted = [y_mean + slope * (index - x_mean) for index in xs]
     residual_sum = sum((value - expected) ** 2 for value, expected in zip(values, predicted))
     total_sum = sum((value - y_mean) ** 2 for value in values)
     return slope, 1 - residual_sum / total_sum if total_sum > 0 else None
@@ -116,7 +118,9 @@ def _fit_robust_reference(
     """Réajuste après retrait tracé d'une petite minorité de résidus extrêmes."""
 
     initial = fit_linear_baseline(reference, predictors=predictors, calibration_fraction=0.7)
-    residuals = calculate_residuals(reference, initial)
+    calibration_end = datetime.fromisoformat(initial["calibration_end"])
+    training = [item for item in reference if item.timestamp <= calibration_end]
+    residuals = calculate_residuals(training, initial)
     values = [float(item["residual_kw"]) for item in residuals]
     center = median(values)
     mad = median(abs(value - center) for value in values)
@@ -128,17 +132,19 @@ def _fit_robust_reference(
     }
     cleaned = [
         reading for reading in reference
-        if reading.timestamp.isoformat() in retained_timestamps
+        if reading.timestamp > calibration_end or reading.timestamp.isoformat() in retained_timestamps
     ]
     removed = len(reference) - len(cleaned)
     # Ne pas laisser un mauvais modèle supprimer une fraction importante du procédé.
-    if removed <= 0 or removed > 0.20 * len(reference):
+    if removed <= 0 or removed > 0.20 * len(training):
         initial["robust_refit"] = False
         initial["robust_trimmed_rows"] = 0
         initial["initial_validation_metrics"] = initial["validation_metrics"]
         return initial
-    refitted = fit_linear_baseline(cleaned, predictors=predictors, calibration_fraction=0.7)
+    refitted = fit_linear_baseline(cleaned, predictors=predictors, calibration_fraction=0.7,
+                                   calibration_end=calibration_end)
     refitted["robust_refit"] = True
+    refitted["validation_rows_never_trimmed"] = True
     refitted["robust_trimmed_rows"] = removed
     refitted["robust_cutoff_kw"] = cutoff
     refitted["initial_validation_metrics"] = initial["validation_metrics"]
@@ -169,6 +175,9 @@ def detect_candidate_events(data: LoadedData) -> dict[str, Any]:
     reference_days = min(total_days - 1, max(30, min(45, total_days // 3)))
     reference_start = readings[0].timestamp
     reference_end = reference_start + timedelta(days=reference_days)
+    if data.site_timezone:
+        local_end = datetime.combine(first_local_date + timedelta(days=reference_days), datetime.min.time(), tzinfo=ZoneInfo(data.site_timezone))
+        reference_end = local_end.astimezone(timezone.utc).replace(tzinfo=None)
     reference_end_local_date = first_local_date + timedelta(days=reference_days)
     reference = extract_period(readings, reference_start, reference_end)
     completeness = {
@@ -187,9 +196,9 @@ def detect_candidate_events(data: LoadedData) -> dict[str, Any]:
     if completeness["production_active"] >= 0.90:
         base_predictors.append("production_active")
     if completeness["product_type"] >= 0.90:
-        base_predictors.append("product_type_b")
+        base_predictors.append("product_type")
         if completeness["production"] >= 0.90:
-            base_predictors.append("production_product_b")
+            base_predictors.append("production_by_product")
     temperature_options: dict[str, tuple[str, ...]] = {"none": ()}
     if completeness["outside_temperature_c"] >= 0.90:
         temperature_options.update({
@@ -206,6 +215,16 @@ def detect_candidate_events(data: LoadedData) -> dict[str, Any]:
             )
         except ValueError:
             continue
+    # A meter-only baseline must compare recurring clock/day regimes, not flatten them.
+    if not base_predictors:
+        try:
+            temporal = fit_time_baseline(reference)
+            temporal["predictors"] = []
+            baseline_candidates["time_slot"] = temporal
+        except ValueError:
+            pass
+    baseline_candidates = {name: candidate for name, candidate in baseline_candidates.items()
+        if candidate.get("validation_coverage_ratio", 1.0) >= .9}
     if not baseline_candidates:
         raise ValueError("Aucune baseline candidate n'a pu être ajustée.")
     best_rmse = min(
@@ -231,6 +250,7 @@ def detect_candidate_events(data: LoadedData) -> dict[str, Any]:
     residual_mad = median(abs(value - residual_center) for value in reference_values)
     robust_residual_sigma = 1.4826 * residual_mad
     by_timestamp = {item.timestamp.isoformat(): item for item in readings}
+    daily_all: dict[date, list[tuple[float, float]]] = defaultdict(list)
     daily_inactive: dict[date, list[float]] = defaultdict(list)
     daily_active: dict[date, list[float]] = defaultdict(list)
     daily_night: dict[date, list[float]] = defaultdict(list)
@@ -240,6 +260,7 @@ def detect_candidate_events(data: LoadedData) -> dict[str, Any]:
         value = residual["residual_kw"]
         operational = reading.operational_timestamp
         day = operational.date()
+        daily_all[day].append((value, reading.interval_hours or 0.0))
         activity = reading.production_active
         if activity is None and reading.production is not None:
             activity = reading.production > 0
@@ -398,50 +419,141 @@ def detect_candidate_events(data: LoadedData) -> dict[str, Any]:
         )
         counter += 1
 
-    ordered_days = sorted(day for day in inactive_mean if day >= reference_end_local_date)
-    window = min(30, max(14, total_days // 4))
-    drift_candidates = []
-    for start_index in range(0, len(ordered_days) - window + 1):
-        dates = ordered_days[start_index:start_index + window]
-        values = [inactive_mean[day] for day in dates]
-        slope, r_squared = _trend(values)
-        adaptive_slope = max(0.05, structured_threshold / max(window, 1))
-        if slope > adaptive_slope and r_squared is not None and r_squared >= 0.7:
-            drift_candidates.append((slope * r_squared, slope, r_squared, dates))
-    if drift_candidates:
-        _, slope, r_squared, dates = max(drift_candidates, key=lambda item: item[0])
-        event = _date_event(
-            f"C{counter:03d}", "progressive_drift", dates, slope,
-            site_timezone=data.site_timezone,
-        )
-        event["r_squared"] = r_squared
-        events.append(event)
-        counter += 1
+    # Exclude incomplete calendar days (including unsupported categorical predictions).
+    def expected_day_hours(day: date) -> float:
+        if not data.site_timezone:
+            return 24.0
+        zone = ZoneInfo(data.site_timezone)
+        start = datetime.combine(day, datetime.min.time(), tzinfo=zone)
+        end = datetime.combine(day + timedelta(days=1), datetime.min.time(), tzinfo=zone)
+        return (end.astimezone(timezone.utc) - start.astimezone(timezone.utc)).total_seconds() / 3600
+    complete_days = {day for day, points in daily_all.items()
+        if sum(hours for _, hours in points) >= .9 * expected_day_hours(day)}
+    aggregate_mean = {day: sum(value * hours for value, hours in points) / sum(hours for _, hours in points)
+        for day, points in daily_all.items() if day in complete_days}
+    regime_series = {day: value for day, value in (inactive_mean or aggregate_mean).items()
+                     if day in complete_days}
+    regime_scope = "inactive" if inactive_mean else "aggregate"
+    reference_daily = [value for day, value in regime_series.items() if day < reference_end_local_date]
+    regime_events = []
+    if len(reference_daily) >= 7:
+        baseline_daily = median(reference_daily)
+        daily_sigma = 1.4826 * median(abs(value - baseline_daily) for value in reference_daily)
+        reference_power = median(item.power_kw if item.power_kw is not None else
+                                 item.energy_kwh / item.interval_hours for item in reference)
+        regime_threshold = max(.5, .05 * reference_power, 3 * daily_sigma)
+        ordered_days = sorted(day for day in regime_series if day >= reference_end_local_date)
+        window = min(30, max(14, total_days // 4))
+        drift_candidates = []
+        for start_index in range(0, len(ordered_days) - window + 1):
+            dates = ordered_days[start_index:start_index + window]
+            if (dates[-1] - dates[0]).days > len(dates) * 1.2:
+                continue
+            values = [regime_series[day] for day in dates]
+            slope, r_squared = _trend(values, dates)
+            linear_error = (1 - (r_squared or 0)) * sum((v - mean(values)) ** 2 for v in values)
+            step_error = min(sum((v - mean(values[:cut])) ** 2 for v in values[:cut]) +
+                             sum((v - mean(values[cut:])) ** 2 for v in values[cut:])
+                             for cut in range(3, len(values)-2))
+            # A step is not a drift simply because a fitted line has a large R².
+            if (slope > max(.02, regime_threshold / window) and r_squared is not None
+                    and r_squared >= .7 and linear_error < .8 * max(step_error, 1e-12)):
+                drift_candidates.append((slope * r_squared, slope, r_squared, dates))
+        if drift_candidates:
+            _, slope, r_squared, dates = max(drift_candidates, key=lambda item: item[0])
+            event = _date_event(f"C{counter:03d}", "progressive_drift", dates, slope,
+                                site_timezone=data.site_timezone)
+            event.update({"r_squared": r_squared, "scope": regime_scope,
+                          "shape_evidence": "linear_fits_better_than_single_step",
+                          "score_unit": "kW/day"})
+            regime_events.append(event)
+            counter += 1
+        # A stable elevated tail is observable without declaring any machine inactive.
+        # Index zero already means the end of the reference; never skip reference_days twice.
+        minimum_tail = 14
+        for start_index in range(0, len(ordered_days) - minimum_tail + 1):
+            dates = ordered_days[start_index:]
+            if (dates[-1] - dates[0]).days > len(dates) * 1.2:
+                continue
+            values = [regime_series[day] for day in dates]
+            slope, _ = _trend(values, dates)
+            level = mean(values) - baseline_daily
+            spread_limit = max(.25, 2.5 * daily_sigma)
+            slope_limit = max(.01, 2 * daily_sigma / max(1, (dates[-1] - dates[0]).days))
+            stable_halves = abs(median(values[:7]) - median(values[-7:])) <= max(.5, 2 * daily_sigma)
+            if abs(level) > regime_threshold and abs(slope) < slope_limit and pstdev(values) < spread_limit and stable_halves:
+                event = _date_event(f"C{counter:03d}", "permanent_baseline_shift", dates, level,
+                                    site_timezone=data.site_timezone)
+                event.update({"scope": regime_scope, "direction": "increase" if level > 0 else "decrease",
+                              "slope_kw_per_day": slope,
+                              "persistence": "observed_until_dataset_end_not_a_forecast"})
+                regime_events.append(event)
+                counter += 1
+                break
+        # Meter-only temporary changes need a channel distinct from the fixed night clock.
+        if not inactive_mean:
+            for dates, frozen in _past_only_transient_groups(
+                aggregate_mean, threshold=regime_threshold, minimum_history_points=14,
+                minimum_event_points=3, maximum_gap_days=1):
+                if dates[0] < reference_end_local_date:
+                    continue
+                prior = sorted(day for day in aggregate_mean if day < dates[0])[-14:]
+                prior_slope, _ = _trend([aggregate_mean[day] for day in prior], prior)
+                group_slope, _ = _trend([aggregate_mean[day] for day in dates], dates)
+                if abs(prior_slope) * len(prior) > regime_threshold or abs(group_slope) * len(dates) > regime_threshold:
+                    continue
+                event = _date_event(f"C{counter:03d}", "temporary_level_shift", dates,
+                                    mean(aggregate_mean[day] for day in dates)-frozen,
+                                    site_timezone=data.site_timezone)
+                event["scope"] = "aggregate"
+                regime_events.append(event)
+                counter += 1
+    else:
+        regime_threshold = None
 
-    tail_candidates = []
-    minimum_tail = max(14, total_days // 6)
-    first_tail_index = max(reference_days, len(ordered_days) - 45)
-    for start_index in range(first_tail_index, len(ordered_days) - minimum_tail + 1):
-        dates = ordered_days[start_index:]
-        values = [inactive_mean[day] for day in dates]
-        slope, _ = _trend(values)
-        if reference_inactive is None:
-            continue
-        level = mean(values) - reference_inactive
-        deviation = pstdev(values)
-        if level > structured_threshold and abs(slope) < 0.05 and deviation < 2.0:
-            tail_candidates.append((deviation + abs(slope), dates, level, slope))
-    if tail_candidates:
-        _, dates, level, slope = min(tail_candidates, key=lambda item: item[0])
-        event = _date_event(
-            f"C{counter:03d}", "permanent_baseline_shift", dates, level,
-            site_timezone=data.site_timezone,
-        )
-        event["slope_kw_per_day"] = slope
-        events.append(event)
+    # Preserve overlapping observations as evidence, but don't count the same common-mode
+    # change as a new night/weekend event. Distinct inactive-only changes remain separate.
+    consolidated = []
+    for event in events:
+        related = None
+        if event["type"] in {"night_anomaly", "weekend_anomaly"}:
+            start = datetime.fromisoformat(event["start"]).date()
+            end = datetime.fromisoformat(event["end"]).date()
+            for regime in regime_events:
+                rs = datetime.fromisoformat(regime["start"]).date()
+                re = datetime.fromisoformat(regime["end"]).date()
+                overlap = max(0, (min(end,re)-max(start,rs)).days)
+                if overlap / max(1,(end-start).days) < .8:
+                    continue
+                if regime_scope == "aggregate":
+                    related = regime
+                else:
+                    active_ref = [v for d,v in active_mean.items() if d < reference_end_local_date]
+                    active_event = [v for d,v in active_mean.items() if start <= d < end]
+                    inactive_event = [v for d,v in inactive_mean.items() if start <= d < end]
+                    if active_ref and active_event and inactive_event:
+                        a = mean(active_event)-median(active_ref)
+                        i = mean(inactive_event)-baseline_daily
+                        if abs(a-i) <= max(1., .25*abs(i)):
+                            related = regime
+                if related is not None:
+                    break
+        if related is None:
+            consolidated.append(event)
+        else:
+            related.setdefault("related_candidate_evidence", []).append(event)
+    events = consolidated + regime_events
+    unsupported_rows = len(readings) - len(residuals)
 
     return {
         "status": "candidate_signals_only",
+        "regime_threshold_kw": regime_threshold,
+        "regime_scope": regime_scope,
+        "prediction_coverage": {"supported_rows": len(residuals), "unsupported_rows": unsupported_rows,
+            "ratio": len(residuals)/len(readings),
+            "policy": "unsupported_rows_are_not_zero_residuals; investigate_missing_or_new_categories"},
+        "excluded_incomplete_days": sorted(day.isoformat() for day in daily_all if day not in complete_days),
+        "claim_boundary": "aggregate observations only; no cause or recoverable saving",
         "reference_days": reference_days,
         "structured_threshold_kw": structured_threshold,
         "spike_threshold_kw": spike_threshold,
