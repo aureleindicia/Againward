@@ -8,7 +8,11 @@
       "seconds": 89.14
     },
     "after": {
-      "status": "PENDING_FINAL_COMMITTED_RUN"
+      "passed": 452,
+      "failed": 0,
+      "seconds": 87.84,
+      "command": "python -m pytest -q tests prospecting/tests",
+      "holdout_integrity_enabled": true
     },
     "intermediate_full": {
       "passed": 437,
@@ -5940,7 +5944,174 @@
       "Numeric tolerance and provenance do not prove counterfactual defensibility.",
       "Engineering fixtures/nonblind operators are not independent agent performance.",
       "No external validity or financial recoverability measured."
-    ]
+    ],
+    "delivery_gates": {
+      "step_large": "blocked",
+      "transient": "blocked",
+      "noise": "blocked",
+      "weekly": "blocked",
+      "production_explained": "blocked"
+    },
+    "quantification_results": {
+      "step_large": {
+        "status": "BASELINE_SENSITIVITY_RANGE",
+        "estimate_kwh": {
+          "low": 11996.600056410349,
+          "high": 11997.533523389762
+        },
+        "estimand": "signed_net_energy_difference_on_observed_intervals",
+        "range_kind": "baseline_sensitivity_not_confidence_interval",
+        "baselines": {
+          "constant_reference": {
+            "assessment": {
+              "defensible": true,
+              "comparable_regime": true,
+              "rationale": "Conditional comparison with prior stable aggregate regime; preceding holdout stable. Not a normal-production or savings counterfactual."
+            },
+            "reasons": [],
+            "supported_rows": 4800,
+            "reference_validation_metrics": {
+              "mae": 0.1381284054236079,
+              "rmse": 0.172362554826433,
+              "r_squared": -0.026182185982390083,
+              "mape": 1.374167328643006
+            },
+            "deviation": {
+              "signed_net_kwh": 11996.600056410349,
+              "positive_exposure_kwh": 11996.600056410349,
+              "negative_exposure_kwh": 0.0,
+              "observed_energy_kwh": 23996.264086695875,
+              "expected_energy_kwh": 11999.664030285525,
+              "covered_hours": 1200.0,
+              "decision": null,
+              "recoverable_saving_kwh": null,
+              "limitations": [
+                "La partie positive inclut la variabilité normale et n'est pas un excès net.",
+                "Un bilan net dépend du contrefactuel; aucun de ces nombres ne prouve la récupérabilité."
+              ]
+            }
+          },
+          "calendar_reference": {
+            "assessment": {
+              "defensible": true,
+              "comparable_regime": true,
+              "rationale": "Conditional comparison with prior stable aggregate regime; preceding holdout stable. Not a normal-production or savings counterfactual."
+            },
+            "reasons": [],
+            "supported_rows": 4800,
+            "reference_validation_metrics": {
+              "mae": 0.16465450430413286,
+              "rmse": 0.20729081289058623,
+              "r_squared": -0.4842215568824999,
+              "mape": 1.6396668954962306
+            },
+            "deviation": {
+              "signed_net_kwh": 11997.533523389762,
+              "positive_exposure_kwh": 11997.533523389762,
+              "negative_exposure_kwh": 0.0,
+              "observed_energy_kwh": 23996.264086695875,
+              "expected_energy_kwh": 11998.730563306111,
+              "covered_hours": 1200.0,
+              "decision": null,
+              "recoverable_saving_kwh": null,
+              "limitations": [
+                "La partie positive inclut la variabilité normale et n'est pas un excès net.",
+                "Un bilan net dépend du contrefactuel; aucun de ces nombres ne prouve la récupérabilité."
+              ]
+            }
+          }
+        },
+        "reasons": [],
+        "recoverable_saving_kwh": null,
+        "decision": null,
+        "coverage_ratio": 1.0,
+        "observed_hours": 1200.0,
+        "missing_hours": 0,
+        "signed_sensitivity_kwh": {
+          "low": 11996.600056410349,
+          "high": 11997.533523389762
+        }
+      },
+      "transient": {
+        "status": "BASELINE_SENSITIVITY_RANGE",
+        "estimate_kwh": {
+          "low": 2880.1410961241163,
+          "high": 2880.629207355066
+        },
+        "estimand": "signed_net_energy_difference_on_observed_intervals",
+        "range_kind": "baseline_sensitivity_not_confidence_interval",
+        "baselines": {
+          "constant_reference": {
+            "assessment": {
+              "defensible": true,
+              "comparable_regime": true,
+              "rationale": "Conditional comparison with prior stable aggregate regime; preceding holdout stable. Not a normal-production or savings counterfactual."
+            },
+            "reasons": [],
+            "supported_rows": 1440,
+            "reference_validation_metrics": {
+              "mae": 0.1381284054236079,
+              "rmse": 0.172362554826433,
+              "r_squared": -0.026182185982390083,
+              "mape": 1.374167328643006
+            },
+            "deviation": {
+              "signed_net_kwh": 2880.629207355066,
+              "positive_exposure_kwh": 2880.629207355066,
+              "negative_exposure_kwh": 0.0,
+              "observed_energy_kwh": 6480.528416440723,
+              "expected_energy_kwh": 3599.8992090856577,
+              "covered_hours": 360.0,
+              "decision": null,
+              "recoverable_saving_kwh": null,
+              "limitations": [
+                "La partie positive inclut la variabilité normale et n'est pas un excès net.",
+                "Un bilan net dépend du contrefactuel; aucun de ces nombres ne prouve la récupérabilité."
+              ]
+            }
+          },
+          "calendar_reference": {
+            "assessment": {
+              "defensible": true,
+              "comparable_regime": true,
+              "rationale": "Conditional comparison with prior stable aggregate regime; preceding holdout stable. Not a normal-production or savings counterfactual."
+            },
+            "reasons": [],
+            "supported_rows": 1440,
+            "reference_validation_metrics": {
+              "mae": 0.16465450430413286,
+              "rmse": 0.20729081289058623,
+              "r_squared": -0.4842215568824999,
+              "mape": 1.6396668954962306
+            },
+            "deviation": {
+              "signed_net_kwh": 2880.1410961241163,
+              "positive_exposure_kwh": 2880.1410961241163,
+              "negative_exposure_kwh": 0.0,
+              "observed_energy_kwh": 6480.528416440723,
+              "expected_energy_kwh": 3600.387320316607,
+              "covered_hours": 360.0,
+              "decision": null,
+              "recoverable_saving_kwh": null,
+              "limitations": [
+                "La partie positive inclut la variabilité normale et n'est pas un excès net.",
+                "Un bilan net dépend du contrefactuel; aucun de ces nombres ne prouve la récupérabilité."
+              ]
+            }
+          }
+        },
+        "reasons": [],
+        "recoverable_saving_kwh": null,
+        "decision": null,
+        "coverage_ratio": 1.0,
+        "observed_hours": 360.0,
+        "missing_hours": 0,
+        "signed_sensitivity_kwh": {
+          "low": 2880.1410961241163,
+          "high": 2880.629207355066
+        }
+      }
+    }
   },
   "independent_agent_before_after": "NOT_MEASURED",
   "field_calibration": "NOT_MEASURED",
@@ -5948,5 +6119,22 @@
     "Frozen production/weather nuisance predictor constant then changing: zero candidates includes unsupported rows, not demonstrated normal operation.",
     "Nonblind five-case findings do not measure autonomous filtering of the remaining historical false candidates.",
     "Numeric quantification tolerance does not prove physical counterfactual or recoverable savings."
-  ]
+  ],
+  "tested_engine_commit": "4df0359",
+  "final_reproduction": {
+    "all_capture_results_identical_to_after_second": true,
+    "all_original_probes_identical_to_after_second": true,
+    "demo_analysis_identical_to_original_audit_reproduction": true,
+    "capture_sha256": "8ec63682834ae01b304534b5aa9cbf0610d2e9a0a9893a609dc4f1e4b659d315",
+    "final_results_sha256": "1cea15f94075f35bea32fe9db2962248e0faf6e1b42c09fc0c96c4278b3396a3",
+    "probe_sha256": "9815eab9f63170c367ca351fa02c1b19785b83d99b1d8ff69f9ee9385886d179"
+  },
+  "engine_source_sha256": {
+    "energy_mvp/toolbox.py": "b2e5dbf5ae22140b899e1b73a213ad0bcd3b03672559503324b79a541361aa1d",
+    "energy_mvp/signals.py": "e67e882a4793f2658362e32d23070e1d7868755161f1fa735556bb55d8cee060",
+    "energy_mvp/quantification.py": "815b04fad496d8a1c406f8dbd1500952c1aa6d776e934988fa3ccb1d0405f988",
+    "energy_mvp/evidence_card.py": "881db724dbb384ab8e65fde153e6286e305f242e703bff34e5be86261a2b43bb",
+    "energy_mvp/workflow.py": "82c50f4c33ce0837c8c7c81b436dffffce4e3cfa485d3b93c701c1c45909879d",
+    "benchmarking/final_workflow.py": "9b32ef0d0398a3e17658d46e5abc52bd4020680874a846bbcbd4a4e76b255cfe"
+  }
 }

@@ -38,3 +38,7 @@ python -m benchmarking.final_workflow score scratch/critical_remediation_2026090
 Les destinations de capture/scellement/score doivent être nouvelles. Pour une nouvelle session
 indépendante, préparer une nouvelle cohorte et faire écrire la soumission avant ouverture de
 la vérité ; ne pas recycler les décisions non aveugles de cette remédiation.
+
+Validation finale sur le moteur commité `4df0359` : **452 tests passent en 87,84 s**,
+contre 410 avant modification. Les contrôles HOLDOUT restent actifs.
+Voir [VALIDATION_LOG.txt](VALIDATION_LOG.txt).

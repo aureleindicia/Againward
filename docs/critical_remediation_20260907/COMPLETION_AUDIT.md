@@ -60,3 +60,7 @@ trouver des économies chez chaque client, ni de diagnostiquer une panne.
 La décision de lancer un pilote doit dépendre de ces données réelles ; le score synthétique ne
 suffit pas à l'autoriser intellectuellement. La validation indépendante des constats finaux et
 la mesure économique terrain restent ouvertes, explicitement hors des résultats démontrés ici.
+
+Validation finale sur le moteur commité `4df0359` : **452 tests passent en 87,84 s**,
+contre 410 avant modification. Les contrôles HOLDOUT restent actifs.
+Voir [VALIDATION_LOG.txt](VALIDATION_LOG.txt).
