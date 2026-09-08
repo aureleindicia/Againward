@@ -1,6 +1,6 @@
 interface:
   display_name: "INDICIA Client Workflow"
   short_description: "Investigation client INDICIA traçable"
-  default_prompt: "Use $indicia-client-workflow to analyze or resume this INDICIA client case from the repository and Download context."
+  default_prompt: "Use $indicia-client-workflow to inspect this client case status, process supplied answers, and follow the repository workflow with only relevant local inputs."
 policy:
   allow_implicit_invocation: true
