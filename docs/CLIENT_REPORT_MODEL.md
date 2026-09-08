@@ -36,3 +36,9 @@ claims structurés calculés à partir de Goal B.
 Une économie porte `POTENTIAL`, `EXPECTED` ou `VERIFIED`. Goal C ne produit
 actuellement que `POTENTIAL`; aucun calcul seul ne devient une économie
 vérifiée.
+
+## Value Map : énergie, investigation et décision
+
+Voir [VALUE_MAP.md](VALUE_MAP.md) pour le contrat `value_assessment`, la projection
+`value_map.json`, les calculs de temps sourcés, la revue humaine liée à son empreinte,
+la section PDF et les métriques pilotes autorisées. Les décisions restent celles de Goal B.

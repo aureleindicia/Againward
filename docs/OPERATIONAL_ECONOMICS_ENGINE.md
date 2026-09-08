@@ -78,3 +78,9 @@ client ou documentaire native Goal B. Le handoff de reprise expose ces preuves
 à Codex avec les inputs, contraintes et demandes déjà persistés. Python valide
 les liens et les valeurs structurées; Codex décide toujours si la réponse
 modifie l'action, l'hypothèse, la contrainte ou la décision.
+
+## Value Map : énergie, investigation et décision
+
+Voir [VALUE_MAP.md](VALUE_MAP.md) pour le contrat `value_assessment`, la projection
+`value_map.json`, les calculs de temps sourcés, la revue humaine liée à son empreinte,
+la section PDF et les métriques pilotes autorisées. Les décisions restent celles de Goal B.

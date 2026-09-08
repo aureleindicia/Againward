@@ -573,6 +573,9 @@ def build_client_report_model(case_directory: str | Path, narrative: dict[str, A
         "technical_appendix": {"sources": _human_sources(case), "limitations": narrative.get("limitations", []), "method": narrative.get("method", "Les chiffres affichés reprennent les calculs validés et les décisions enregistrées."), "claim_reference_policy": "Chaque carte relie décision, action, finding et calcul Goal A/B; les identifiants restent internes."},
         "claim_fidelity": {"goal_a_findings_ref": "investigation/structured_findings.json", "goal_b_state_ref": "investigation/economic_decision_state.json", "decision_strengthened": False, "savings_status": "POTENTIAL", "internal_claim_refs_present": True, "non_additive_actions_not_summed": True},
     }
+    if state.get("value_assessment"):
+        from value_map import build_value_map, client_value_section
+        model["investigation_value"] = client_value_section(build_value_map(case, state))
     validate_client_report_model(model, case)
     _write(target / "CLIENT_REPORT_MODEL.json", model)
     return model
@@ -669,7 +672,17 @@ def validate_client_report_model(model: dict[str, Any], case_directory: str | Pa
     evidence_ids = {item.get("evidence_id") for item in state.get("goal_b_evidence", [])}
     if set(model.get("client_dialogue", {}).get("resolved_goal_b_evidence_refs", [])) - evidence_ids:
         raise ValueError("Le rapport client référence une preuve Goal B inexistante.")
+    if state.get("value_assessment") or "investigation_value" in model:
+        from value_map import build_value_map, client_value_section
+        expected_value = client_value_section(build_value_map(case, state))
+        if model.get("investigation_value") != expected_value:
+            raise ValueError("Value Map client modifiée ou non conforme à l’état économique.")
+        for item in expected_value["items"]:
+            for line in item["lines"]:
+                _require_text(line, "Valeur de l’investigation", max_length=700, allow_numbers=True)
     total = model.get("executive_summary", {}).get("economic_total")
+    if total != _portfolio_total(state):
+        raise ValueError("Total économique différent du portefeuille validé ; aucun total Value Map autorisé.")
     if total is not None and total.get("scenario_used_as_expected") == "HIGH":
         raise ValueError("Le scénario HIGH ne peut pas devenir une valeur attendue client.")
     for item in model.get("no_action_items", []):
@@ -895,6 +908,13 @@ def _render_pages(model: dict[str, Any], model_path: Path) -> tuple[list[_PdfPag
             current.commands.append(f"q {draw_w:.1f} 0 0 {draw_h:.1f} 80 {y:.1f} cm /{image_name} Do Q")
             current.y = y - 12
             current = add(current, chart["caption"], size=9)
+    value_section = model.get("investigation_value")
+    if value_section and value_section["items"]:
+        current = add(current, value_section["title"], size=14, bold=True)
+        for item in value_section["items"]:
+            for line in item["lines"]:
+                current = add(current, line)
+        current = add(current, value_section["notice"], size=9)
     current = add(current, metadata["regulatory_notice"], size=8)
     return pages, images
 

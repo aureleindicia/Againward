@@ -356,6 +356,16 @@ def evaluate_delivery_gate(case_directory: str | Path) -> dict[str, Any]:
                 )
             except ValueError as exc:
                 reasons.append(str(exc))
+    economic_path = root / "economic_decision_state.json"
+    if economic_path.is_file() and _read_json(economic_path).get("value_assessment"):
+        from value_map import validate_value_map_human_review
+        from .workflow_paths import resolve_case_layout
+        try:
+            human = _read_json(root / "human_review.json") if (root / "human_review.json").exists() else {}
+            validate_value_map_human_review(Path(resolve_case_layout(case_directory)["case_root"]), human)
+        except (OSError, ValueError) as exc:
+            reasons.append(str(exc))
+        evidence_artifacts += ("economic_decision_state.json", "value_map.json")
     payload = {
         "schema_version": 1,
         "evaluated_at_utc": datetime.now(timezone.utc).isoformat(),

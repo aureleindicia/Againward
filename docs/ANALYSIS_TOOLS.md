@@ -567,3 +567,9 @@ le type historique signifie observé jusqu'à la fin du dataset ; le champ `pers
 prévision. Les facettes nocturnes/week-end consolidées restent dans `related_candidate_evidence`.
 Les jours incomplets, nouveaux régimes et familles désactivées sont à lire avant toute conclusion.
 **Zéro candidat ne signifie pas fonctionnement normal.**
+
+## Value Map : énergie, investigation et décision
+
+Voir [VALUE_MAP.md](VALUE_MAP.md) pour le contrat `value_assessment`, la projection
+`value_map.json`, les calculs de temps sourcés, la revue humaine liée à son empreinte,
+la section PDF et les métriques pilotes autorisées. Les décisions restent celles de Goal B.

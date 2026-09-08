@@ -42,3 +42,6 @@ Les détails maintenus du workflow restent dans le skill et dans [CLIENT_WORKFLO
 Le préalable contractuel provient de
 [business/pilot_gtm/DATA_INTAKE_FOR_PILOTS.md](../business/pilot_gtm/DATA_INTAKE_FOR_PILOTS.md) ;
 `status` ne constitue pas à lui seul une vérification de cet accord.
+
+Repères canoniques : les demandes et réponses sont dans `questions.json` ; la reprise analytique
+suit l'état `RESUMING`. Le contexte externe ciblé est `/storage/emulated/0/Download`.

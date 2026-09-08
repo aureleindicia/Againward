@@ -7,7 +7,7 @@ références et la reproductibilité des nombres avant persistance.
 from __future__ import annotations
 
 import json
-from math import isclose
+from math import isclose, isfinite
 from datetime import datetime, timezone
 from itertools import combinations
 from pathlib import Path
@@ -60,7 +60,7 @@ def _require_text(payload: dict[str, Any], fields: Iterable[str], label: str) ->
 def _non_negative(value: Any, name: str, *, allow_none: bool = False) -> float | None:
     if value is None and allow_none:
         return None
-    if not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
+    if not isinstance(value, (int, float)) or isinstance(value, bool) or not isfinite(value) or value < 0:
         raise ValueError(f"{name} doit être un nombre non négatif.")
     return float(value)
 
@@ -95,6 +95,8 @@ def validate_economic_input(payload: dict[str, Any]) -> None:
     status = payload.get("status", "KNOWN")
     if status not in {"KNOWN", "UNKNOWN", "SCENARIO"}:
         raise ValueError("Statut économique inconnu.")
+    if payload["provenance"] == "UNKNOWN" and status != "UNKNOWN":
+        raise ValueError("Une provenance UNKNOWN ne supporte pas une valeur économique connue.")
     if status == "UNKNOWN":
         if payload.get("value") is not None:
             raise ValueError("Une donnée UNKNOWN ne porte pas de valeur inventée.")
@@ -117,6 +119,14 @@ def validate_economic_input(payload: dict[str, Any]) -> None:
 
 
 def validate_scenario_assumption(payload: dict[str, Any]) -> None:
+    if payload.get("quantity_type") == "NON_MONETARY":
+        _require_text(payload, ("assumption_id", "description", "unit", "period"), "Hypothèse non monétaire")
+        if payload.get("provenance") != "SCENARIO_ASSUMPTION" or payload.get("status") != "SCENARIO" or not isinstance(payload.get("source"), dict) or not payload["source"]:
+            raise ValueError("Une quantité hypothétique exige une hypothèse structurée explicite.")
+        if payload.get("currency") is not None or payload["unit"] not in {"person", "h", "day", "count", "kWh", "MWh"}:
+            raise ValueError("Unité non monétaire invalide.")
+        _non_negative(payload.get("value"), "Quantité hypothétique")
+        return
     _require_text(payload, ("assumption_id", "description", "provenance", "unit", "currency", "period"), "Hypothèse de scénario")
     if payload["provenance"] != "SCENARIO_ASSUMPTION" or payload.get("status") != "SCENARIO" or not isinstance(payload.get("source"), dict):
         raise ValueError("Une hypothèse de scénario exige SCENARIO_ASSUMPTION, status=SCENARIO et une provenance structurée.")
@@ -247,6 +257,13 @@ def validate_decision(payload: dict[str, Any], action_ids: set[str]) -> None:
         if not isinstance(evidence, dict):
             raise ValueError("INVESTIGATE_FIRST exige une action d'acquisition de preuve.")
         _require_text(evidence, ("what_it_resolves", "decision_that_can_change", "cost_or_burden", "why_worth_it"), "Acquisition de preuve")
+        for field in ("information_to_acquire", "acquisition_burden", "possible_decision_value"):
+            if field in evidence:
+                _require_text(evidence, (field,), "Valeur de l'information")
+        if "acquisition_cost" in evidence:
+            cost = evidence["acquisition_cost"]
+            if cost is not None and (not isinstance(cost, dict) or set(cost) != {"economic_input_ref"}):
+                raise ValueError("Le coût d'acquisition référence un input économique, jamais un nombre libre.")
     if payload["decision"] == "OPERATIONALLY_NOT_JUSTIFIED" and not payload.get("blocking_constraint_ids"):
         raise ValueError("Une non-justification opérationnelle exige une contrainte explicitement citée.")
     for assessment in payload.get("constraint_assessments", []):
@@ -395,6 +412,8 @@ def aggregate_declared_portfolio(selected_action_ids: list[str], scenario_tables
     value_sources = _value_source_index(economic_value_sources or [], scenario_assumptions or [])
     for table in scenario_tables.values():
         _verify_deterministic_calculation(table)
+    if len({(scenario_tables[a].get("currency"), scenario_tables[a].get("period")) for a in selected}) != 1:
+        raise ValueError("Le portefeuille exige la même devise et période.")
     relationship_by_pair: dict[frozenset[str], dict[str, Any]] = {}
     for relation in relationships:
         pair = frozenset((relation.get("action_a"), relation.get("action_b")))
@@ -409,6 +428,7 @@ def aggregate_declared_portfolio(selected_action_ids: list[str], scenario_tables
             if benefit is None:
                 raise ValueError("Un portefeuille ne somme pas un bénéfice annuel inconnu.")
             base[scenario] += float(benefit)
+    overlapping_actions: set[str] = set()
     for left, right in combinations(sorted(selected), 2):
         relation = relationship_by_pair.get(frozenset((left, right)))
         if relation is None:
@@ -426,6 +446,9 @@ def aggregate_declared_portfolio(selected_action_ids: list[str], scenario_tables
             raise ValueError("Relation dépendante, séquentielle ou inconnue : fournir un modèle combiné explicite.")
         if relation_type != "OVERLAPPING":
             raise ValueError("Relation de portefeuille non traitable.")
+        if {left, right} & overlapping_actions:
+            raise ValueError("Recouvrements multiples : un modèle conjoint est requis ; pas de corrections par paires additionnées.")
+        overlapping_actions.update((left, right))
         reference = relation.get("combined_effect_ref")
         if not reference or not combined_effects or reference not in combined_effects:
             raise ValueError("Recouvrement sans effet combiné déclaré: aucune somme n'est autorisée.")
@@ -753,7 +776,7 @@ def economic_handoff(case_directory: str | Path) -> dict[str, Any]:
     state = _read(state_path) if state_path.exists() else None
     phase = "pre_reasoning" if state is None else "resume_reasoning"
     artifact = "economic_handoff_pre_reasoning.json" if state is None else "economic_handoff_resume.json"
-    payload = {"schema_version": 4, "phase": phase, "artifact": f"investigation/{artifact}", "purpose": "Contexte Goal A → Goal B pour raisonnement Codex; pas une recommandation automatique.", **_pre_reasoning_context(case), "existing_economic_state": None if state is None else {"economic_inputs": state["economic_inputs"], "scenario_assumptions": state.get("scenario_assumptions", []), "constraints": state["operational_constraints"], "candidate_actions": state["candidate_actions"], "relationships": state["relationships"], "combined_effects": state.get("combined_effects", {}), "decisions": state["decisions"], "economic_requests": state["economic_requests"], "goal_b_evidence": state.get("goal_b_evidence", [])}, "codex_must_decide": ["candidate actions", "material constraints", "relationships", "baseline reconciliation", "economic assumptions", "evidence worth buying", "decision", "priority", "validation"], "python_can_calculate": ["scenario table", "time-aligned tariff impact", "payback when meaningful", "declared portfolio arithmetic", "reproducibility validation"], "deterministic_recommendation_engine": False}
+    payload = {"schema_version": 4, "phase": phase, "artifact": f"investigation/{artifact}", "purpose": "Contexte Goal A → Goal B pour raisonnement Codex; pas une recommandation automatique.", **_pre_reasoning_context(case), "existing_economic_state": None if state is None else {"economic_inputs": state["economic_inputs"], "scenario_assumptions": state.get("scenario_assumptions", []), "constraints": state["operational_constraints"], "candidate_actions": state["candidate_actions"], "relationships": state["relationships"], "combined_effects": state.get("combined_effects", {}), "decisions": state["decisions"], "economic_requests": state["economic_requests"], "goal_b_evidence": state.get("goal_b_evidence", []), "value_assessment": state.get("value_assessment", {}), "value_map": state.get("value_map")}, "codex_must_decide": ["candidate actions", "material constraints", "relationships", "baseline reconciliation", "economic assumptions", "evidence worth buying", "decision", "priority", "validation"], "python_can_calculate": ["scenario table", "time-aligned tariff impact", "payback when meaningful", "declared portfolio arithmetic", "reproducibility validation"], "deterministic_recommendation_engine": False}
     _write(case / "investigation" / artifact, payload)
     return payload
 
@@ -967,8 +990,30 @@ def persist_economic_packet(case_directory: str | Path, packet: dict[str, Any]) 
                 "Les demandes Goal B doivent être publiées via publish_economic_request_batch/"
                 "questions.json avant persistance."
             )
+    # Value Map is an extension of this state, validated before any write.
+    from value_map import build_value_map, validate_append_only
+    assessment = packet.get("value_assessment", state.get("value_assessment", {}))
+    validate_append_only(state.get("value_assessment", {}), assessment)
+    projected_state = {**state, "economic_inputs": inputs, "scenario_assumptions": assumptions,
+                       "candidate_actions": actions, "operational_constraints": constraints,
+                       "relationships": relationships, "scenario_calculations": calculations,
+                       "decisions": decisions, "technical_finding_refs": resolved_technical_refs,
+                       "value_assessment": assessment}
+    value_map = build_value_map(case, projected_state)
+    if state.get("value_map"):
+        old_records = {r["value_id"]: r for key in ("investigation_value", "decision_value", "unverified_potential_value", "direct_energy_value", "direct_economic_value") for r in state["value_map"].get(key, []) if "phase" in r}
+        new_records = {r["value_id"]: r for key in ("investigation_value", "decision_value", "unverified_potential_value", "direct_energy_value", "direct_economic_value") for r in value_map.get(key, []) if "phase" in r}
+        if any(new_records.get(k) != v for k, v in old_records.items()):
+            raise ValueError("Une source modifiée réécrit une estimation passée ; conserver les sources et ajouter une nouvelle valeur.")
     provenance_chain = _build_recommendation_provenance(decisions, actions, calculations, value_sources, constraints)
     state.update({"status": "economic_reasoning_recorded", "technical_finding_refs": resolved_technical_refs, "economic_inputs": inputs, "scenario_assumptions": assumptions, "operational_constraints": constraints, "candidate_actions": actions, "relationships": relationships, "combined_effects": combined_effects, "scenario_calculations": calculations, "decisions": decisions, "economic_requests": requests, "unresolved_blockers": packet.get("unresolved_blockers", state["unresolved_blockers"]), "recommendation_provenance": provenance_chain})
+    revisions = state.setdefault("value_map_revisions", [])
+    if not revisions or revisions[-1]["snapshot"] != value_map:
+        revisions.append({"recorded_at_utc": _now(), "snapshot": value_map})
+    state["value_assessment"] = assessment
+    state["value_map"] = value_map
     state["history"].append({"at_utc": _now(), "action": "economic_packet_persisted", "action_ids": sorted(action_ids), "decision_ids": sorted(decision_ids), "decision_classes": [item["decision"] for item in decisions]})
     _write(path, state)
+    if "value_map" in state:
+        _write(case / "investigation" / "value_map.json", state["value_map"])
     return state
