@@ -1,0 +1,51 @@
+{
+  "quantified_energy": {
+    "synthetic": true,
+    "pages": 2,
+    "pdf_sha256": "a145fe61f96d9425fc0dc4ad3947c3a4c6bfeec0c34944862705689c55a5e5e4",
+    "total_value": null,
+    "time_saved_hours": null,
+    "time_value_eur": null,
+    "hypotheses": {
+      "initial": 6,
+      "rejected": 4,
+      "remaining": 2
+    },
+    "direct_energy_components": 1,
+    "realized_values": []
+  },
+  "false_lead_no_energy_saving": {
+    "synthetic": true,
+    "pages": 1,
+    "pdf_sha256": "37d256a4cb031c6aee7dadad93a96074d8e505c0f492b840bbfd3b7820451654",
+    "total_value": null,
+    "time_saved_hours": null,
+    "time_value_eur": null,
+    "hypotheses": {
+      "initial": 2,
+      "rejected": 1,
+      "remaining": 1
+    },
+    "direct_energy_components": 0,
+    "realized_values": []
+  },
+  "energy_and_client_time": {
+    "synthetic": true,
+    "pages": 2,
+    "pdf_sha256": "26a43cebd874b9771412f4ab72e3e64586dc464cf5a63c2b5fe1710f030a7986",
+    "total_value": null,
+    "time_saved_hours": {
+      "LOW": 8.0,
+      "BASE": 10.0,
+      "HIGH": 15.0
+    },
+    "time_value_eur": null,
+    "hypotheses": {
+      "initial": 6,
+      "rejected": 4,
+      "remaining": 2
+    },
+    "direct_energy_components": 1,
+    "realized_values": []
+  }
+}

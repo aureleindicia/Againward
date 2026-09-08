@@ -1,0 +1,62 @@
+{
+  "date": "2026-09-09",
+  "test_runs": {
+    "before": {
+      "command": "python -m pytest -q tests prospecting/tests",
+      "code_commit": "1b799ff",
+      "passed": 446,
+      "failed": 1,
+      "summary": "1 failed, 446 passed in 103.61s (0:01:43)",
+      "log_sha256": "a4259f0e954066acb5c2184175f2de280075df50d8b6b01c2cd7c66dd24080cc",
+      "local_log": "scratch/value_map_before_tests.txt"
+    },
+    "targeted": {
+      "command": "python -m pytest -q tests/test_value_map.py tests/test_pilot_learning.py tests/test_operational_economics.py tests/test_client_delivery.py",
+      "code_commit": "823cf6e",
+      "passed": 88,
+      "failed": 0,
+      "summary": "88 passed in 16.81s",
+      "log_sha256": "39938c7ce5d64b457b4e83da787ac0eecfff302a803a9b5a91dafed49b31c1ce",
+      "local_log": "scratch/value_map_final_targeted.txt"
+    },
+    "intermediate_global": {
+      "command": "python -m pytest -q tests prospecting/tests",
+      "code_commit": "823cf6e",
+      "passed": 489,
+      "failed": 0,
+      "summary": "489 passed in 92.63s (0:01:32)",
+      "log_sha256": "4c433f1ba8383553664eb39bd168d6f3e25b90675efc4fd3325abb201772fc14",
+      "local_log": "scratch/value_map_final_full_suite.txt"
+    },
+    "last_hardening": {
+      "command": "python -m pytest -q tests/test_value_map.py tests/test_pilot_learning.py",
+      "code_commit": "90d93e6",
+      "passed": 44,
+      "failed": 0,
+      "summary": "44 passed in 1.73s",
+      "log_sha256": "1f376817a9bca59a83d08e7d2ecd780f5d90dc353fca7202032b21b542bbbcfe",
+      "local_log": "scratch/value_map_last_hardening_tests.txt"
+    },
+    "final_global": {
+      "command": "python -m pytest -q tests prospecting/tests",
+      "code_commit": "90d93e67d9e68bc03f6a421a5cd2d0d6b9e184ae",
+      "passed": 491,
+      "failed": 0,
+      "summary": "491 passed in 95.76s (0:01:35)",
+      "log_sha256": "f76893a3ad0bd4568f8511baff2f1098e2acbb4efd0f48de9fc75f4527b1b0da",
+      "local_log": "scratch/value_map_verified_full_suite.txt"
+    }
+  },
+  "preexisting_failure": "test_skill_and_prompt_paths: required workflow terms missing from existing prompt; documentation fixed, test unchanged.",
+  "examples": {
+    "command": "PYTHONPATH=. python workspace/generate_value_map_examples.py scratch/value_map_release_examples_20260909",
+    "result": "3 synthetic Value Maps, 3 PDFs, 3 pilot reviews generated successfully",
+    "manifest": "EXAMPLE_RESULTS.json",
+    "visual_review": "C-H page 2 inspected; hours explicitly counterfactual, no EUR for time, no cross-category total."
+  },
+  "scope": "Software contracts and integration only; no evidence of commercial value or field performance.",
+  "tests_added": 44,
+  "detectors_modified": false,
+  "evidence_plane_modified": false,
+  "benchmarks_modified": false
+}
