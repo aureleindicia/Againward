@@ -16,6 +16,8 @@ BOOL_METRICS = {'useful_finding','new_to_client','useful_negative_conclusion','c
 NUMERIC_METRICS = {'hypotheses_eliminated','againward_human_hours','client_hours_potentially_avoided',
                    'energy_value_kwh_per_year','economic_value_eur_per_year',
                    'findings_total','findings_field_verified'}
+VALUE_BASES = {'UNKNOWN','DIRECTLY_MEASURED_HISTORICAL_EXCESS','COUNTERFACTUAL_ESTIMATE',
+               'MODELED_REDUCTION','ENGINEERING_ASSUMPTION','SCENARIO_ESTIMATE'}
 QUESTIONS = {
     'useful_finding':'Un finding utile est-il documenté ?',
     'new_to_client':'Le résultat était-il nouveau pour le client ?',
@@ -129,6 +131,8 @@ def export_authorized_pilot_metrics(review, *, authorization, pilot_id):
         if key in NUMERIC_METRICS and (isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value)):
             raise ValueError('Métrique numérique invalide.')
     _validate_export_metrics(metrics)
+    if any(review['provenance'].get(key,'UNKNOWN') not in VALUE_BASES for key in ('energy_basis','economic_basis')):
+        raise ValueError('Base de valeur hors vocabulaire fermé ; aucun texte client exportable.')
     token=hashlib.sha256(json.dumps(authorization,sort_keys=True).encode()).hexdigest()
     return {'schema_version':'againward-authorized-pilot-metrics-v1','pilot_id':pilot_id,
         'authorized':True,'deidentified':True,'authorization_sha256':token,'metrics':dict(metrics),
@@ -140,6 +144,10 @@ def aggregate_pilot_metrics(records):
     ids=[r.get('pilot_id') for r in records]
     if len(set(ids))!=len(ids):raise ValueError('Un pilote ne peut être compté deux fois.')
     for r in records:
+        if (set(r)!={'schema_version','pilot_id','authorized','deidentified','authorization_sha256','metrics','energy_basis','economic_basis'}
+                or not isinstance(r.get('pilot_id'),str) or not re.fullmatch(r'PILOT-[0-9a-f]{16,32}',r['pilot_id'])
+                or any(r.get(k) not in VALUE_BASES for k in ('energy_basis','economic_basis'))):
+            raise ValueError('Export pilote : schéma fermé et identifiant opaque requis.')
         _validate_export_metrics(r.get('metrics',{}))
         if r.get('schema_version')!='againward-authorized-pilot-metrics-v1' or r.get('authorized') is not True or r.get('deidentified') is not True or not r.get('authorization_sha256'):
             raise ValueError('Export pilote non autorisé.')

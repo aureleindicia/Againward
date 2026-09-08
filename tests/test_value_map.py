@@ -313,3 +313,12 @@ def test_scenario_counterfactual_cannot_be_documented_time(case_packet):
 def test_nonfinite_economic_value_rejected(value):
     from operational_economics import validate_economic_input
     with pytest.raises(ValueError):validate_economic_input(_input('INVALID',value,'EUR','one_off'))
+
+
+def test_client_section_keeps_scenario_energy_hypothetical():
+    q={'scenario_only':False,'values':dict.fromkeys(S,100),'unit':'kWh'}
+    m={'direct_energy_value':[{'value_id':'V','source_status':'SCENARIO_ASSUMPTION',
+        'energy_observation':{'quantity':q,'basis':'COUNTERFACTUAL_ESTIMATE'}}],
+       'direct_economic_value':[],'investigation_value':[],'decision_value':[],'unverified_potential_value':[]}
+    assert 'Hypothèse de scénario' in str(client_value_section(m))
+    assert 'Écart énergétique documenté' not in str(client_value_section(m))

@@ -414,7 +414,7 @@ def client_value_section(value_map):
                    'Économie récupérable : à confirmer.']
         elif energy.get('energy_observation'):
             q=energy['energy_observation']['quantity']
-            label='Hypothèse de scénario' if q['scenario_only'] or energy['energy_observation']['basis'] in {'ENGINEERING_ASSUMPTION','SCENARIO_ESTIMATE'} else 'Écart énergétique documenté'
+            label='Hypothèse de scénario' if q['scenario_only'] or energy['source_status']=='SCENARIO_ASSUMPTION' or energy['energy_observation']['basis'] in {'ENGINEERING_ASSUMPTION','SCENARIO_ESTIMATE'} else 'Écart énergétique documenté'
             lines=[label+' : '+display(q['values'],q['unit']), 'Cet écart ne prouve pas une économie récupérable.']
         else:
             continue
@@ -425,7 +425,8 @@ def client_value_section(value_map):
         counts=record['hypothesis_counts']
         if counts['rejected'] is not None:lines.append(f"Hypothèses éliminées : {counts['rejected']}.")
         for field,label in [('initial_search_scope','Périmètre initial'),('final_search_scope','Périmètre après investigation'),
-                            ('decision_before','Décision avant'),('decision_after','Décision après')]:
+                            ('decision_before','Décision avant'),('decision_after','Décision après'),
+                            ('action_enabled','Action rendue possible'),('evidence_needed_after','Prochaine vérification')]:
             if record.get(field):lines.append(label+' : '+('; '.join(record[field]) if isinstance(record[field],list) else record[field]))
         time=record['time_calculation']
         if time['time_saved_hours'] is not None:

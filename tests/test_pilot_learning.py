@@ -31,3 +31,12 @@ def test_aggregation_cannot_promote_missing_or_unverified_findings(case_packet):
     assert aggregate_pilot_metrics([export])['field_verified_findings_percent'] is None
     bad=copy.deepcopy(export);bad['metrics']['findings_field_verified']=10
     with pytest.raises(ValueError):aggregate_pilot_metrics([bad])
+
+
+def test_export_rejects_free_client_text_in_basis(case_packet):
+    case,p=case_packet;save(case,p,time_record())
+    review=build_pilot_learning_review(case,{})
+    review['provenance']['energy_basis']='Confidential client identity'
+    with pytest.raises(ValueError,match='vocabulaire fermé'):
+        export_authorized_pilot_metrics(review,authorization={'authorized':True,'deidentification_reviewed':True,
+            'authorization_ref':'consent','reviewer':'reviewer'},pilot_id='PILOT-1234567890abcdef')
