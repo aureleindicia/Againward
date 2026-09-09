@@ -62,12 +62,48 @@ L’activité reste représentée séparément, y compris les inconnus. Cette pr
 graphiques reste limitée aux séries et au contexte opérationnel ; des graphiques supplémentaires
 nécessitent un calcul/source et un adaptateur de validation reproductible, pas une image libre.
 
-## Identité visuelle
+## Doctrine visuelle AGAINWARD
 
-A4, marges confortables, Helvetica, fond blanc, encre bleu sombre, accent vert industriel discret.
-Titres courts et contrastés, corps lisible, chiffres avec statut explicite, peu de cadres. Pas de
-jauges, scores décoratifs, gradients, icônes gratuites ou tableau de bord imprimé. Les tailles,
-espacements et compositions restent choisis par l’agent dans ces limites de lisibilité.
+La direction recherchée est celle d’un **industrial editorial consulting** : environ 70 %
+intelligence industrielle moderne et 30 % cabinet de conseil premium. Le rapport doit sembler
+préparé pour la décision d’un site réel, avec une forme calme au service de ce qui est prouvé.
+Cette doctrine guide le jugement de Codex ; elle ne transforme pas la composition en template fixe.
+
+Chaque page a une fonction décisionnelle et raconte une mini-histoire. La hiérarchie à privilégier
+est : **conclusion → preuve → économie → incertitude → action**. Selon le dossier, une page peut
+s’arrêter après la preuve et l’incertitude, ou mettre l’accent sur une abstention : l’ordre ne doit
+jamais rendre une économie ou une action plus certaine que les données ne le permettent.
+
+Les titres sont conclusifs : ils portent le message à retenir plutôt qu’un nom de rubrique générique.
+« Vérifier avant investissement » est préférable à « Analyse économique » lorsqu’il exprime la
+décision sourcée. Un titre ne doit toutefois pas créer de causalité, chiffre, finding ou niveau de
+preuve absent des artefacts canoniques.
+
+Viser des pages denses mais lisibles. L’espace blanc doit séparer des idées, mettre une preuve en
+respiration ou rendre une décision immédiatement repérable ; il ne sert pas à simuler une esthétique
+premium par le vide. Ne jamais entasser du texte ou des micro-blocs pour remplir une page. Codex règle
+librement marges, colonnes, tailles et regroupements selon la matière réelle, avec des marges nettes
+et une typographie sobre.
+
+Utiliser peu de KPI, mais des KPI forts : un chiffre n’est mis en avant que s’il répond directement
+à la décision et porte son statut et sa provenance. Il n’y a pas de quota de KPI. Une abstention,
+contrainte opérationnelle ou hypothèse éliminée peut être le message principal sans KPI artificiel.
+
+La couleur est fonctionnelle, jamais décorative. La palette de base est limitée à l’encre bleu sombre
+AGAINWARD, à un accent vert industriel de marque et à quelques couleurs sémantiques discrètes pour
+différencier preuve, réserve, activité ou état. Conserver un contraste lisible en impression. Pas de
+violet, gradient futuriste, emoji, icône gratuite, série de cartes arrondies ni esthétique SaaS/AI
+générique.
+
+Le choix d’un graphique répond à une question analytique : courbe pour tendance ou rupture dans le
+temps ; barres pour comparer des régimes ; waterfall pour décomposer un calcul économique ; camembert
+uniquement pour une répartition réelle d’un total ; matrice pour relier preuves, hypothèses ou
+alternatives. Une autre représentation est acceptable si elle éclaire mieux les données. Aucun
+graphique n’est ajouté pour meubler une page, et aucun type n’est imposé par son numéro de page.
+
+A4, fond blanc, Helvetica, encre bleu sombre et accent vert industriel discret restent les briques
+par défaut. Les tailles, espacements et compositions restent choisis par l’agent dans ces limites de
+lisibilité et de fidélité.
 
 ## Revue et livraison
 
@@ -83,6 +119,19 @@ la précédente dans les traces plutôt que la réinterprétant.
 Question de qualité obligatoire : **si ce PDF était envoyé demain au directeur d’une PME industrielle
 ayant payé l’analyse, aurait-il l’impression de recevoir un livrable professionnel préparé
 spécialement pour son entreprise ?** Si non, recomposer. Python ne peut pas répondre à cette question.
+
+La revue visuelle finale doit aussi examiner explicitement :
+
+- la densité de chaque page et tout excès de vide sans fonction ;
+- la hiérarchie conclusion, preuve, économie, incertitude et action ;
+- la lisibilité de la typographie, des chiffres, légendes et unités ;
+- la pertinence de chaque graphique pour la question posée ;
+- l’usage cohérent et fonctionnel de la couleur ;
+- la qualité professionnelle globale, y compris la cohérence entre pages.
+
+Ces critères complètent les contrôles techniques d’absence de coupure, de débordement et de contraste.
+Ils appellent un jugement de Codex et une revue humaine du dossier réel ; ils ne deviennent pas des
+quotas ni des règles de pagination.
 
 Un bloc peut aussi porter `heading_ref`, qui résout un claim
 `EDITORIAL_HEADING` sourcé dans `CLIENT_REPORT_MODEL.editorial_headings`.
