@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from energy_mvp.client_workspace import create_client_workspace
+from tests.contract_fixtures import authorize_test_case
 from energy_mvp.privacy import POLICY_VERSION, REVIEW_SCHEMA, validate_codex_privacy_review
 
 
@@ -22,6 +23,8 @@ def _run(size: int, root: Path) -> dict[str, object]:
     identifier = f"privacy_{size}"
     create_client_workspace(identifier, root=root)
     case = root / identifier
+    # The privacy benchmark still exercises REAL_CLIENT gates; only setup gains an explicit fictional agreement.
+    authorize_test_case(case)
     source = case / "incoming" / "energy.csv"
     with source.open("w", encoding="utf-8", newline="") as handle:
         handle.write("timestamp,machine_id,power_kw,production\n")

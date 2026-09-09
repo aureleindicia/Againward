@@ -184,6 +184,8 @@ def inspect_case_status(case_directory: str | Path) -> dict[str, Any]:
     # Local import avoids making path resolution depend on the privacy module.
     from .privacy import inspect_privacy_status, privacy_manifest_path
     privacy = inspect_privacy_status(layout["case_root"])
+    from .contract_policy import inspect_contract_status
+    contract = inspect_contract_status(layout["case_root"])
     privacy_path = privacy_manifest_path(layout["case_root"])
     artifacts["privacy_manifest.json"] = {
         "path": str(privacy_path),
@@ -200,12 +202,14 @@ def inspect_case_status(case_directory: str | Path) -> dict[str, Any]:
         "lifecycle": lifecycle,
         "lifecycle_error": state_error,
         "questions_error": questions_error,
+        "contract": contract,
         "privacy": {key: value for key, value in privacy.items() if key != "case_root"},
         "open_question_count": sum(
             1 for item in questions if isinstance(item, dict) and item.get("status") == "open"
         ),
         "response_count": len(responses),
-        "next_action": _next_action(lifecycle, privacy["state"]),
+        "next_action": ("RESOLVE_CONTRACT_POLICY_BEFORE_REAL_DATA" if not contract["allowed"] and privacy["state"] != "PURGED"
+                        else _next_action(lifecycle, privacy["state"])),
         "artifacts": artifacts,
         "read_only": True,
     }

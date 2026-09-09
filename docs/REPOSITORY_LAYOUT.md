@@ -41,7 +41,9 @@ workspaces/<id>/
 Créer/stager et inspecter :
 
 ```sh
-python create_workspace.py usine_01 --incoming /chemin/du/depot
+python create_workspace.py usine_01
+python manage_investigation.py contract-record workspaces/usine_01 contracts_packet.json
+python manage_investigation.py stage-incoming workspaces/usine_01 /chemin/du/depot
 python manage_investigation.py status workspaces/usine_01
 ```
 

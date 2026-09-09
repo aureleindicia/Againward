@@ -296,6 +296,12 @@ def evaluate_delivery_gate(case_directory: str | Path) -> dict[str, Any]:
     assert_case_privacy_cleared(case_directory)
     root = lifecycle_directory(case_directory)
     reasons: list[str] = []
+    from .contract_policy import assert_contract_permission, contract_policy_digest, POLICY_PATH
+    contract = None
+    try:
+        contract = assert_contract_permission(case_directory, operation="delivery")
+    except ValueError as exc:
+        reasons.append(str(exc))
     lifecycle_path = root / "investigation_state.json"
     lifecycle_state = None
     if lifecycle_path.exists():
@@ -366,9 +372,24 @@ def evaluate_delivery_gate(case_directory: str | Path) -> dict[str, Any]:
         except (OSError, ValueError) as exc:
             reasons.append(str(exc))
         evidence_artifacts += ("economic_decision_state.json", "value_map.json")
+    from .workflow_paths import resolve_case_layout
+    from .privacy import privacy_requirement
+    case_root = Path(resolve_case_layout(case_directory)["case_root"])
+    design_path = case_root / "outputs/client_report/REPORT_DESIGN_MODEL.json"
+    report_validation = None
+    if privacy_requirement(case_directory)["required"] or design_path.exists():
+        from report_design import validate_report_delivery_artifacts
+        try:
+            human = _read_json(root / "human_review.json") if (root / "human_review.json").exists() else {}
+            report_validation = validate_report_delivery_artifacts(case_root, human)
+        except (OSError, ValueError) as exc:
+            reasons.append(str(exc))
     payload = {
+        "report_validation": report_validation,
         "schema_version": 1,
         "evaluated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "contract_policy_ref": POLICY_PATH if contract else None,
+        "contract_policy_sha256": contract_policy_digest(contract) if contract else None,
         "status": "ready_for_delivery" if not reasons else "blocked",
         "ready_for_delivery": not reasons,
         "blocking_reasons": reasons,
@@ -378,9 +399,20 @@ def evaluate_delivery_gate(case_directory: str | Path) -> dict[str, Any]:
         },
     }
     _write_json(root / "delivery_gate.json", payload)
+    if report_validation is not None:
+        receipt_path = case_root / "outputs/client_report/CLIENT_REPORT_DELIVERY.json"
+        receipt = _read_json(receipt_path)
+        receipt["approved_for_delivery"] = not reasons
+        receipt["status"] = "DELIVERABLE" if not reasons else "BLOCKED_BY_DELIVERY_GATE"
+        _write_json(receipt_path, receipt)
     if not reasons and lifecycle_state is not None:
         lifecycle_payload=_read_json(lifecycle_path); lifecycle_payload["client_lifecycle"]["state"]="DELIVERABLE"
         lifecycle_payload["client_lifecycle"]["history"].append({"at_utc":payload["evaluated_at_utc"],"action":"marked_deliverable"}); _write_json(lifecycle_path,lifecycle_payload)
+    if reasons and isinstance(lifecycle_state, dict) and lifecycle_state.get("state") == "DELIVERABLE":
+        lifecycle_payload = _read_json(lifecycle_path)
+        lifecycle_payload["client_lifecycle"]["state"] = "FINALIZABLE"
+        lifecycle_payload["client_lifecycle"]["history"].append({"at_utc": payload["evaluated_at_utc"], "action": "delivery_approval_invalidated"})
+        _write_json(lifecycle_path, lifecycle_payload)
     _append_trace(root, "evaluate_delivery_gate", {
         "status": payload["status"],
         "blocking_reasons": reasons,

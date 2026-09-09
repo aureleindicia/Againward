@@ -9,6 +9,8 @@ from pathlib import Path
 import pytest
 from openpyxl import Workbook, load_workbook
 
+from tests.contract_fixtures import authorize_test_case
+
 from energy_mvp.attribution_workflow import run_minimal_attribution
 from energy_mvp.client_lifecycle import (
     assert_workflow_action_allowed,
@@ -36,7 +38,9 @@ from client_intake_pipeline import create_client_case, ingest_client_drop, recor
 
 def _case(tmp_path: Path, name: str = "client") -> Path:
     create_client_workspace(name, root=tmp_path / "workspaces")
-    return tmp_path / "workspaces" / name
+    case = tmp_path / "workspaces" / name
+    authorize_test_case(case)
+    return case
 
 
 def _file_spec(
@@ -443,6 +447,7 @@ def test_pseudonym_correspondence_table_outside_candidate_is_refused(tmp_path: P
 def test_goal_a_intake_reads_sanitized_not_incoming(tmp_path: Path) -> None:
     create_client_case("goal_a", root=tmp_path / "cases")
     case = tmp_path / "cases/goal_a"
+    authorize_test_case(case)
     (case / "incoming/energy.csv").write_text(
         "timestamp,energy_kwh\n2026-01-01T00:00:00,2\n2026-01-01T00:30:00,3\n",
         encoding="utf-8",
@@ -911,6 +916,8 @@ def test_final_purge_removes_client_data_but_retains_explicit_contract_and_repor
     (case / "scratch/temp.txt").write_text("client temporary", encoding="utf-8")
     (case / "outputs/final.pdf").write_bytes(b"synthetic report")
     (case / "contracts/agreement.txt").write_text("contract", encoding="utf-8")
+    authorize_test_case(case, purge_after_utc="2026-01-01T00:00:00+00:00",
+        permitted_retained_paths=["outputs/final.pdf", "contracts/agreement.txt"])
     policy = configure_retention(case, {
         "schema_version": RETENTION_SCHEMA,
         "configured": True,
@@ -946,6 +953,7 @@ def test_purge_default_denies_derived_retention_and_reports_failures_without_pat
     validate_codex_privacy_review(case, _review(case, [_file_spec("incoming/energy.csv")], status="PASS"))
     (case / "retained_derived/derived.csv").write_text("site,volume\nUniqueSite,12345\n", encoding="utf-8")
     (case / "processed/private-cache.json").write_text('{"operator": "Jean Dupont"}', encoding="utf-8")
+    authorize_test_case(case, purge_after_utc="2026-01-01T00:00:00+00:00")
     configure_retention(case, {
         "schema_version": RETENTION_SCHEMA,
         "configured": True,

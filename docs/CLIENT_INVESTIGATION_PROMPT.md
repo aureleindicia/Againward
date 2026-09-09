@@ -41,7 +41,8 @@ Si l'approbation humaine manque, présente les artefacts à relire puis arrête 
 Les détails maintenus du workflow restent dans le skill et dans [CLIENT_WORKFLOW.md](CLIENT_WORKFLOW.md).
 Le préalable contractuel provient de
 [business/pilot_gtm/DATA_INTAKE_FOR_PILOTS.md](../business/pilot_gtm/DATA_INTAKE_FOR_PILOTS.md) ;
-`status` ne constitue pas à lui seul une vérification de cet accord.
+`status` expose désormais le gate de la policy extraite et revue ; la validation technique ne
+constitue jamais un avis juridique. Voir [FINAL_CLIENT_MISSION.md](FINAL_CLIENT_MISSION.md).
 
 Repères canoniques : les demandes et réponses sont dans `questions.json` ; la reprise analytique
 suit l'état `RESUMING`. Le contexte externe ciblé est `/storage/emulated/0/Download`.

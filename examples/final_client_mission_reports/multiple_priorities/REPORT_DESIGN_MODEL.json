@@ -1,0 +1,289 @@
+{
+  "schema_version": "againward-report-design-v1",
+  "selected_findings": [
+    "F-MULTI-NOW",
+    "F-MULTI-CHECK",
+    "F-MULTI-MONITOR",
+    "F-MULTI-OPS"
+  ],
+  "omitted_actions": {},
+  "pages": [
+    {
+      "intent": "EXECUTIVE_SUMMARY",
+      "blocks": [
+        {
+          "component": "COVER",
+          "content_ref": "cover",
+          "box": [
+            45,
+            80,
+            500,
+            140
+          ],
+          "font_size": 14,
+          "emphasis": "PRIMARY"
+        },
+        {
+          "component": "EXECUTIVE_SUMMARY",
+          "content_ref": "executive",
+          "box": [
+            45,
+            270,
+            500,
+            160
+          ],
+          "font_size": 14,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "LIMITATION",
+          "content_ref": "limitations",
+          "box": [
+            45,
+            475,
+            500,
+            160
+          ],
+          "font_size": 11,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "METHODOLOGY",
+          "content_ref": "notice",
+          "box": [
+            45,
+            695,
+            500,
+            80
+          ],
+          "font_size": 9,
+          "emphasis": "NORMAL"
+        }
+      ]
+    },
+    {
+      "intent": "FINDING",
+      "blocks": [
+        {
+          "component": "FINDING",
+          "content_ref": "A-MULTI-NOW:what_we_found",
+          "box": [
+            45,
+            80,
+            500,
+            150
+          ],
+          "font_size": 13,
+          "emphasis": "PRIMARY"
+        },
+        {
+          "component": "DECISION",
+          "content_ref": "A-MULTI-NOW:decision",
+          "box": [
+            45,
+            245,
+            500,
+            110
+          ],
+          "font_size": 12,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "ECONOMIC_RANGE",
+          "content_ref": "A-MULTI-NOW:economics",
+          "box": [
+            45,
+            385,
+            500,
+            180
+          ],
+          "font_size": 11,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "LIMITATION",
+          "content_ref": "A-MULTI-NOW:uncertainty",
+          "box": [
+            45,
+            610,
+            500,
+            145
+          ],
+          "font_size": 11,
+          "emphasis": "NORMAL"
+        }
+      ]
+    },
+    {
+      "intent": "FINDING",
+      "blocks": [
+        {
+          "component": "FINDING",
+          "content_ref": "A-MULTI-CHECK:what_we_found",
+          "box": [
+            45,
+            80,
+            500,
+            150
+          ],
+          "font_size": 13,
+          "emphasis": "PRIMARY"
+        },
+        {
+          "component": "DECISION",
+          "content_ref": "A-MULTI-CHECK:decision",
+          "box": [
+            45,
+            245,
+            500,
+            110
+          ],
+          "font_size": 12,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "ECONOMIC_RANGE",
+          "content_ref": "A-MULTI-CHECK:economics",
+          "box": [
+            45,
+            385,
+            500,
+            180
+          ],
+          "font_size": 11,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "LIMITATION",
+          "content_ref": "A-MULTI-CHECK:uncertainty",
+          "box": [
+            45,
+            610,
+            500,
+            145
+          ],
+          "font_size": 11,
+          "emphasis": "NORMAL"
+        }
+      ]
+    },
+    {
+      "intent": "SECONDARY_FINDING",
+      "blocks": [
+        {
+          "component": "FINDING",
+          "content_ref": "A-MULTI-MONITOR:what_we_found",
+          "box": [
+            45,
+            75,
+            500,
+            110
+          ],
+          "font_size": 12,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "DECISION",
+          "content_ref": "A-MULTI-MONITOR:decision",
+          "box": [
+            45,
+            195,
+            500,
+            95
+          ],
+          "font_size": 11,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "LIMITATION",
+          "content_ref": "A-MULTI-MONITOR:uncertainty",
+          "box": [
+            45,
+            310,
+            500,
+            110
+          ],
+          "font_size": 10,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "FINDING",
+          "content_ref": "A-MULTI-OPS:what_we_found",
+          "box": [
+            45,
+            435,
+            500,
+            115
+          ],
+          "font_size": 11,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "DECISION",
+          "content_ref": "A-MULTI-OPS:decision",
+          "box": [
+            45,
+            555,
+            500,
+            90
+          ],
+          "font_size": 10,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "LIMITATION",
+          "content_ref": "A-MULTI-OPS:uncertainty",
+          "box": [
+            45,
+            655,
+            500,
+            100
+          ],
+          "font_size": 10,
+          "emphasis": "NORMAL"
+        }
+      ]
+    },
+    {
+      "intent": "NEXT_STEP",
+      "blocks": [
+        {
+          "component": "LIMITATION",
+          "content_ref": "A-MULTI-OPS:constraints",
+          "box": [
+            45,
+            80,
+            500,
+            140
+          ],
+          "font_size": 14,
+          "emphasis": "PRIMARY"
+        },
+        {
+          "component": "NEXT_STEP",
+          "content_ref": "A-MULTI-CHECK:next_step",
+          "box": [
+            45,
+            255,
+            500,
+            215
+          ],
+          "font_size": 12,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "METHODOLOGY",
+          "content_ref": "method",
+          "box": [
+            45,
+            525,
+            500,
+            150
+          ],
+          "font_size": 11,
+          "emphasis": "NORMAL"
+        }
+      ]
+    }
+  ]
+}

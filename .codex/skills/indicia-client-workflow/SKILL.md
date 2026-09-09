@@ -60,11 +60,15 @@ manuellement le lifecycle pour satisfaire un mode demandé.
 
 ## Accord préalable au premier dépôt réel
 
-Appliquer `business/pilot_gtm/DATA_INTAKE_FOR_PILOTS.md` : aucun premier dépôt réel accepté avant
-accord contractuel. Vérifier l'accord déjà documenté ; ne pas le redemander s'il est établi.
-Si cette preuve manque, demander sa confirmation et arrêter avant staging/lecture du brut.
-Avant accord, seules structure d'export et métadonnées sans lignes réelles sont recevables.
-C'est une règle du dépôt, pas un statut ou un contrôle contractuel implémenté par `status`.
+Appliquer `docs/FINAL_CLIENT_MISSION.md` et `business/pilot_gtm/DATA_INTAKE_FOR_PILOTS.md`.
+Créer un dossier vide ; ne pas utiliser le staging comme création initiale avant accord.
+`status` expose le contract gate : `CONTRACT_BLOCKED` ou `HUMAN_LEGAL_REVIEW_REQUIRED` bloque
+staging et analyse réelle. Lire le contrat seulement pour son extraction sémantique opérationnelle,
+minimiser sa propagation, puis enregistrer la policy et la revue humaine réellement fournie avec
+`manage_investigation.py contract-record`. Ne jamais fabriquer une approbation ni un avis juridique.
+Un accord déjà enregistré et valide n’est pas redemandé. UNKNOWN n’autorise rien.
+Après accord : `manage_investigation.py stage-incoming <dossier> <dépôt>` ; avant accord,
+seules structure d’export et métadonnées sans lignes réelles sont recevables.
 Le workspace est local-first ; ne pas promettre que Codex/OpenAI ne traite aucune donnée.
 
 ## PRIVACY GATE — obligatoire avant INITIAL ou REPRISE
@@ -77,8 +81,8 @@ Si `PRIVACY_CLEARED` est déjà établi, vérifier le manifest et les sources ap
 recréer `incoming/` ni recommencer une revue du brut déjà supprimé. Les étapes suivantes concernent
 un dépôt encore en attente de revue.
 
-1. Si le dépôt n'est pas encore staged, créer/stager sans lecture avec `create_workspace.py
-   <id> --incoming <dépôt>` ou `intake_client_case.py stage <id> <dépôt>`.
+1. Après contract gate satisfait, stager sans lecture avec `manage_investigation.py
+   stage-incoming <dossier> <dépôt>` dans le dossier vide déjà créé.
 2. Codex est le premier lecteur sémantique de tous les fichiers `incoming/`. Rechercher personnes,
    contacts, identifiants individuels, texte libre personnel, RH/médical et secrets.
 3. Préserver strictement machines, compteurs, lignes, sites, timestamps, unités, énergie,
@@ -146,11 +150,21 @@ ne jamais fabriquer `human_review.json` approuvé. Après approbation, exécuter
 `python manage_investigation.py check "<dossier>"`, puis `status` : exiger
 `ready_for_delivery=true` dans le gate et `DELIVERABLE` dans le lifecycle avant restitution client.
 
-La revue humaine reste obligatoire. Après livraison/clôture, configurer la rétention contractuelle
-et exécuter `manage_investigation.py purge`. `derived_retention_authorized` reste `false` par
-défaut. Ne conserver un dérivé que dans `retained_derived/`, avec autorisation et revue de
-désidentification explicites. Vérifier `PURGE_RECEIPT.json`; un `partial_failure` n'est jamais une
-purge réussie. Un dossier `PURGED` ne peut pas être repris analytiquement.
+Lire `docs/REPORT_DESIGN_SYSTEM.md` : Codex conçoit la composition du PDF, ses pages, ses blocs,
+ses graphiques et sa hiérarchie. Réutiliser CLIENT_REPORT_MODEL et Value Map ; aucun chiffre libre.
+Fournir REPORT_DESIGN_MODEL via `deliver_client_report.py --design`, générer `client_report.pdf`,
+inspecter chaque page, corriger et enregistrer la revue visuelle réelle. L’ancien renderer rigide
+n’est plus le chemin nominal réel. L’approbation humaine porte sur `report_semantic_sha256` et,
+lorsque nécessaire, `value_map_sha256`. Un changement substantif invalide la revue ; un changement
+esthétique conserve le hash sémantique mais exige une nouvelle inspection visuelle du PDF.
+
+Après feedback/vérification, produire le post-mortem scientifique via `pilot_learning.py` : vingt
+rubriques, trois questions obligatoires, énoncés typés et verdict justifié. Le document complet est
+TEMPORARY_CONFIDENTIAL et purgé avec le dossier. Aucun Markdown libre ne devient conservable par
+simple désidentification. Pour un dérivé, utiliser la projection whitelistée, la finalité contractuelle
+explicite et la revue humaine du risque de réidentification LOW. Clore avec `mission-close`, puis
+exécuter la purge canonique à l’échéance. Vérifier PURGE_RECEIPT.json : partial_failure n’est pas un
+succès ; PURGED interdit toute reprise analytique.
 
 Avant livraison ou modification du workflow, exécuter au minimum :
 

@@ -1,0 +1,156 @@
+{
+  "schema_version": "againward-report-design-v1",
+  "selected_findings": [
+    "F-C-A"
+  ],
+  "omitted_actions": {},
+  "pages": [
+    {
+      "intent": "EXECUTIVE_SUMMARY",
+      "blocks": [
+        {
+          "component": "COVER",
+          "content_ref": "cover",
+          "box": [
+            45,
+            80,
+            500,
+            140
+          ],
+          "font_size": 14,
+          "emphasis": "PRIMARY"
+        },
+        {
+          "component": "EXECUTIVE_SUMMARY",
+          "content_ref": "executive",
+          "box": [
+            45,
+            255,
+            500,
+            150
+          ],
+          "font_size": 13,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "ECONOMIC_RANGE",
+          "content_ref": "A-C-A:economics",
+          "box": [
+            45,
+            440,
+            500,
+            240
+          ],
+          "font_size": 13,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "METHODOLOGY",
+          "content_ref": "notice",
+          "box": [
+            45,
+            710,
+            500,
+            65
+          ],
+          "font_size": 9,
+          "emphasis": "QUIET"
+        }
+      ]
+    },
+    {
+      "intent": "FINDING",
+      "blocks": [
+        {
+          "component": "FINDING",
+          "content_ref": "A-C-A:what_we_found",
+          "box": [
+            45,
+            75,
+            500,
+            125
+          ],
+          "font_size": 12,
+          "emphasis": "PRIMARY"
+        },
+        {
+          "component": "EVIDENCE_CHART",
+          "content_ref": "chart:CHART-01",
+          "box": [
+            45,
+            215,
+            500,
+            390
+          ],
+          "font_size": 9,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "LIMITATION",
+          "content_ref": "A-C-A:uncertainty",
+          "box": [
+            45,
+            630,
+            500,
+            120
+          ],
+          "font_size": 11,
+          "emphasis": "NORMAL"
+        }
+      ]
+    },
+    {
+      "intent": "DECISION",
+      "blocks": [
+        {
+          "component": "DECISION",
+          "content_ref": "A-C-A:decision",
+          "box": [
+            45,
+            80,
+            500,
+            140
+          ],
+          "font_size": 16,
+          "emphasis": "PRIMARY"
+        },
+        {
+          "component": "NEXT_STEP",
+          "content_ref": "A-C-A:next_step",
+          "box": [
+            45,
+            250,
+            500,
+            210
+          ],
+          "font_size": 12,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "LIMITATION",
+          "content_ref": "limitations",
+          "box": [
+            45,
+            495,
+            500,
+            130
+          ],
+          "font_size": 11,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "METHODOLOGY",
+          "content_ref": "method",
+          "box": [
+            45,
+            660,
+            500,
+            110
+          ],
+          "font_size": 10,
+          "emphasis": "NORMAL"
+        }
+      ]
+    }
+  ]
+}

@@ -13,7 +13,7 @@ nécessaire ou ambigu ; Python vérifie ensuite que la décision respecte un con
 ## Flux et responsabilités
 
 ```text
-réception
+accord contractuel extrait et revu
   └─ stage_incoming_drop()              copie sans inspection sémantique
        └─ incoming/                     zone temporaire ignorée par Git
             └─ CODEX PRIVACY GATE       première lecture substantielle
@@ -151,3 +151,10 @@ synthétiques sous racines gérées utilisent un manifest explicite ; les fixtur
 répertoires temporaires des harnesses de benchmark restent hors des racines client et sont déclarés
 comme synthétiques par ces harnesses. Les scripts de développement autonomes hors workflow restent
 hors de cette garantie.
+
+## Fermeture de mission
+
+Le gate contractuel, l’autorisation historique du traitement et les projections retenables sont
+décrits dans [FINAL_CLIENT_MISSION.md](FINAL_CLIENT_MISSION.md). Aucune exemption implicite de
+conservation des contrats/factures ne subsiste : policy explicite, finalité et revue requises.
+Le post-mortem complet est temporaire ; seule la whitelist revue peut survivre à la purge.

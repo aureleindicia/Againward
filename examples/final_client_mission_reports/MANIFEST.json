@@ -1,0 +1,34 @@
+{
+  "clear_energy": {
+    "synthetic_only": true,
+    "pdf": "examples/final_client_mission_reports/clear_energy/client_report.pdf",
+    "page_count": 3,
+    "pdf_sha256": "de7034da7f451ffe09885fe58485835472e01c09a03a9dcaa8762482e5e0d58a",
+    "visual_review": "examples/final_client_mission_reports/clear_energy/REPORT_VISUAL_REVIEW.json",
+    "human_delivery_approved": false
+  },
+  "false_lead": {
+    "synthetic_only": true,
+    "pdf": "examples/final_client_mission_reports/false_lead/client_report.pdf",
+    "page_count": 2,
+    "pdf_sha256": "d730504d40d4831ae1dc15b553fee4676b69304d63571b54faddf439f4080d8e",
+    "visual_review": "examples/final_client_mission_reports/false_lead/REPORT_VISUAL_REVIEW.json",
+    "human_delivery_approved": false
+  },
+  "multiple_priorities": {
+    "synthetic_only": true,
+    "pdf": "examples/final_client_mission_reports/multiple_priorities/client_report.pdf",
+    "page_count": 5,
+    "pdf_sha256": "34b2cc013166afc1a2411f1c56382851fc4dca144f9beabba817405bf059f971",
+    "visual_review": "examples/final_client_mission_reports/multiple_priorities/REPORT_VISUAL_REVIEW.json",
+    "human_delivery_approved": false
+  },
+  "useful_abstention": {
+    "synthetic_only": true,
+    "pdf": "examples/final_client_mission_reports/useful_abstention/client_report.pdf",
+    "page_count": 2,
+    "pdf_sha256": "714505d9bfcd2e92ea866f4d907770f67a397fa92b687dc5f5e1e9bbcc08e03d",
+    "visual_review": "examples/final_client_mission_reports/useful_abstention/REPORT_VISUAL_REVIEW.json",
+    "human_delivery_approved": false
+  }
+}

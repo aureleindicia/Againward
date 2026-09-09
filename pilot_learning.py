@@ -41,7 +41,7 @@ def build_pilot_learning_review(case, assessment):
     ctx=_context(case,state);vm=build_value_map(case,state)
     allowed=BOOL_METRICS|{'investigation_value_ref','energy_value_ref','economic_value_ref',
         'againward_hours_refs','field_verified_finding_ids','field_verification_source_refs',
-        'primary_contribution','uncaptured_value'}
+        'primary_contribution','uncaptured_value','post_mortem'}
     if not isinstance(assessment,dict) or set(assessment)-allowed:raise ValueError('Pilot learning : champs inconnus.')
     metrics={key:None for key in BOOL_METRICS|NUMERIC_METRICS};provenance={}
     for key in BOOL_METRICS:
@@ -93,7 +93,9 @@ def build_pilot_learning_review(case, assessment):
     if uncaptured is not None:
         if not isinstance(uncaptured,dict) or not isinstance(uncaptured.get('text'),str):raise ValueError('Valeur non capturée : réflexion sourcée requise.')
         _refs(uncaptured.get('source_refs'),ctx['source_refs'],'Valeur non capturée',True)
+    scientific=None if assessment.get('post_mortem') is None else _scientific_review(case,assessment['post_mortem'],ctx,metrics)
     return {'schema_version':'againward-pilot-learning-v1','metrics':metrics,'provenance':provenance,
+        'classification':'TEMPORARY_CONFIDENTIAL','case_ref':str(case.resolve()),'scientific_post_mortem':scientific,
         'primary_contribution':contribution,'uncaptured_value':uncaptured,
         'judgments_are_not_automatic_facts':True,'technical_confidence_is_not_economic_confidence':True,
         'value_map_ref':'investigation/value_map.json','energy_and_economic_values_are_potential_not_realized':True}
@@ -110,6 +112,22 @@ def render_pilot_learning_review(review):
     lines+=['','Les montants désignent un composant sélectionné, sans somme transversale. Les heures client restent contrefactuelles.',
             'Contribution principale : '+json.dumps(review.get('primary_contribution'),ensure_ascii=False),
             'Valeur encore mal capturée : '+json.dumps(review.get('uncaptured_value'),ensure_ascii=False)]
+    scientific=review.get('scientific_post_mortem')
+    lines[2:2]=['Classification : TEMPORARY_CONFIDENTIAL — purge avec le dossier sauf dérivé explicitement autorisé.', '']
+    if scientific:
+        def add_statement(item):
+            lines.append('- ['+item['statement_type']+'] '+item['text'])
+            lines.append('  Sources : '+', '.join(item.get('source_refs',[])+item.get('finding_refs',[])+list(item.get('artifact_sha256',{}))))
+            if item.get('resolved_metric'):lines.append('  Résultat référencé : '+json.dumps(item['resolved_metric'],ensure_ascii=False))
+        for key in POST_MORTEM_SECTIONS:
+            lines.extend(['','## '+key,''])
+            for item in scientific['sections'][key]:add_statement(item)
+        for key,question in MANDATORY_QUESTIONS.items():
+            lines.extend(['','## '+question,'']);add_statement(scientific['mandatory_answers'][key])
+        lines.extend(['','## Verdict : '+scientific['verdict']['classification'],''])
+        for key in ('arguments_for','arguments_against','new_elements','known_elements','generalization_limits'):
+            lines.extend(['','### '+key,''])
+            for item in scientific['verdict'][key]:add_statement(item)
     return '\n'.join(lines)+'\n'
 
 
@@ -119,6 +137,10 @@ def export_authorized_pilot_metrics(review, *, authorization, pilot_id):
     Caller must store the authorization locally. No client paths, sources or prose exported.
     This validates declarations, not whether a human actually consented.
     """
+    from energy_mvp.contract_policy import assert_contract_permission
+    if not review.get('case_ref'):
+        raise ValueError('Export learning exige son dossier canonique ; aucune autorisation détachée.')
+    assert_contract_permission(review['case_ref'], operation='retention', purpose='INTERNAL_RND')
     if (authorization.get('authorized') is not True or authorization.get('deidentification_reviewed') is not True
             or not authorization.get('authorization_ref') or not authorization.get('reviewer')):
         raise ValueError('Agrégation exige autorisation et revue de désidentification explicites.')
@@ -186,3 +208,198 @@ def _validate_export_metrics(metrics):
     total=metrics['findings_total'];verified=metrics['findings_field_verified']
     if total is None or not isinstance(total,int) or (verified is not None and (not isinstance(verified,int) or verified>total)):
         raise ValueError('Nombre de findings vérifiés incohérent.')
+
+
+POST_MORTEM_SECTIONS = (
+    'experimental_context', 'data_quality', 'findings', 'rejected_hypotheses',
+    'abstentions', 'investigation_performance', 'value_produced',
+    'evidence_plane_introspection', 'agent_introspection', 'detection_introspection',
+    'quantification_introspection', 'economic_plane_introspection',
+    'contribution_relevance', 'generalization', 'main_limitations_source',
+    'project_verdict', 'falsification', 'proposed_changes', 'do_not_change',
+    'next_pilot_questions',
+)
+STATEMENT_TYPES = {'FAIT_OBSERVE','RESULTAT_CALCULE','RETOUR_CLIENT','INFERENCE',
+                   'HYPOTHESE','INTERPRETATION_POST_MORTEM','INCONNU'}
+PILOT_VERDICTS = {'RENFORCE_FORTEMENT','RENFORCE','NEUTRE','AFFAIBLIT','AFFAIBLIT_FORTEMENT'}
+MANDATORY_QUESTIONS = {
+    'without_againward': 'Si AGAINWARD n’existait pas, quelle partie exacte de cette conclusion aurait réellement été difficile à obtenir ?',
+    'general_capacity': 'Ce pilote démontre-t-il une capacité générale d’AGAINWARD ou seulement une réussite spécifique à ce dataset ?',
+    'limits_origin': 'Les limites observées viennent-elles principalement du moteur, de l’agent, de l’architecture, d’une information physiquement absente, de données de mauvaise qualité, du choix du client, ou de la formulation de la question ?',
+}
+CONTRIBUTION_DIMENSIONS = {'OBVIOUS_OBSERVATION','REPETITIVE_CALCULATION','DIFFICULT_COMPARISON',
+    'CONFOUNDER_ELIMINATION','FALSIFICATION','HYPOTHESIS_SPACE_REDUCTION','QUANTIFICATION','DECISION','UNKNOWN'}
+
+
+def _scientific_review(case, payload, ctx, metrics):
+    """Validate an agent-authored post-mortem; do not choose a verdict or conclusion."""
+    if not isinstance(payload,dict) or set(payload)!={'sections','mandatory_answers','contribution_dimensions','verdict'}:
+        raise ValueError('Post-mortem : sections, questions obligatoires et verdict requis.')
+
+    def statement(item):
+        fields={'statement_type','text','source_refs','finding_refs','artifact_refs','metric_ref'}
+        if not isinstance(item,dict) or set(item)-fields or item.get('statement_type') not in STATEMENT_TYPES:
+            raise ValueError('Typologie explicite des énoncés requise.')
+        text=item.get('text')
+        if not isinstance(text,str) or not text.strip() or re.search(r'\d|€',text):
+            raise ValueError('Énoncé qualitatif requis ; citer les métriques pour les nombres.')
+        source_refs=_refs(item.get('source_refs',[]),ctx['source_refs'],'Source du post-mortem')
+        finding_refs=_refs(item.get('finding_refs',[]),ctx['finding_refs'],'Finding du post-mortem')
+        artifacts={}
+        for relative in item.get('artifact_refs',[]):
+            path=case/relative
+            if (not isinstance(relative,str) or Path(relative).is_absolute() or '..' in Path(relative).parts
+                    or path.is_symlink() or not path.is_file() or not path.resolve().is_relative_to(case.resolve())
+                    or relative.startswith(('incoming/','raw/','contracts/'))):
+                raise ValueError('Artefact de post-mortem absent ou non analytique.')
+            artifacts[relative]=hashlib.sha256(path.read_bytes()).hexdigest()
+        metric=item.get('metric_ref')
+        if metric is not None and (metric not in metrics or metrics[metric] is None):
+            raise ValueError('Métrique du post-mortem inconnue ; ne pas inventer de nombre.')
+        kind=item['statement_type']
+        if kind!='INCONNU' and not (source_refs or finding_refs or artifacts or metric):
+            raise ValueError('Énoncé de post-mortem sans provenance.')
+        if kind=='RESULTAT_CALCULE' and metric not in NUMERIC_METRICS:
+            raise ValueError('Résultat calculé exige une métrique numérique canonique.')
+        if kind=='RETOUR_CLIENT' and not set(source_refs)&ctx['client_statement_refs']:
+            raise ValueError('Retour client exige une déclaration client persistée.')
+        if kind=='INCONNU' and metric is not None:
+            raise ValueError('INCONNU ne porte pas un chiffre connu.')
+        return {**item,'artifact_sha256':artifacts,
+                'resolved_metric':None if metric is None else {'name':metric,'value':metrics[metric]}}
+
+    sections=payload['sections']
+    if not isinstance(sections,dict) or set(sections)!=set(POST_MORTEM_SECTIONS):
+        raise ValueError('Les vingt dimensions du post-mortem sont requises ; INCONNU si nécessaire.')
+    resolved={}
+    for key,items in sections.items():
+        if not isinstance(items,list) or not items:raise ValueError('Section vide : expliciter la limite.')
+        resolved[key]=[statement(item) for item in items]
+    answers=payload['mandatory_answers']
+    if not isinstance(answers,dict) or set(answers)!=set(MANDATORY_QUESTIONS):
+        raise ValueError('Les trois questions obligatoires doivent être traitées.')
+    answers={key:statement(value) for key,value in answers.items()}
+    dimensions=payload['contribution_dimensions']
+    if not isinstance(dimensions,list) or not dimensions or set(dimensions)-CONTRIBUTION_DIMENSIONS:
+        raise ValueError('Nature de la contribution inconnue.')
+    verdict=payload['verdict']
+    if not isinstance(verdict,dict) or set(verdict)!={'classification','arguments_for','arguments_against','new_elements','known_elements','generalization_limits'} or verdict['classification'] not in PILOT_VERDICTS:
+        raise ValueError('Verdict agent explicite et contradictoire requis.')
+    validated={'classification':verdict['classification']}
+    for key in set(verdict)-{'classification'}:
+        if not isinstance(verdict[key],list) or not verdict[key]:raise ValueError('Arguments ou inconnus explicites requis.')
+        validated[key]=[statement(item) for item in verdict[key]]
+    return {'sections':resolved,'mandatory_answers':answers,'contribution_dimensions':dimensions,'verdict':validated,
+            'classification':'TEMPORARY_CONFIDENTIAL','general_validation_demonstrated':False}
+
+
+def persist_pilot_learning_review(case_directory, assessment):
+    """Store the existing review plus its scientific extension inside the client workspace."""
+    from energy_mvp.workflow_paths import resolve_analysis_directory
+    from operational_economics import _write
+    case=Path(case_directory)
+    review=build_pilot_learning_review(case,assessment)
+    if review.get('scientific_post_mortem') is None:
+        raise ValueError('Un post-mortem final doit traiter les vingt sections et les trois questions.')
+    target=resolve_analysis_directory(case)
+    _write(target/'PILOT_LEARNING_REVIEW.json',review)
+    (target/'PILOT_LEARNING_REVIEW.md').write_text(render_pilot_learning_review(review),encoding='utf-8')
+    return review
+
+
+RETENTION_SCHEMA = 'againward-learning-whitelist-v1'
+RETENTION_FIELDS = tuple(sorted(BOOL_METRICS|NUMERIC_METRICS))+('energy_basis','economic_basis','purpose','schema_version')
+RETENTION_BINS = {'UNKNOWN','NEGATIVE','ZERO','LT_10','10_TO_100','100_TO_1000','1000_TO_10000','GE_10000'}
+
+
+def _generalized_metric(value):
+    if value is None:return 'UNKNOWN'
+    if value<0:return 'NEGATIVE'
+    if value==0:return 'ZERO'
+    for bound,label in ((10,'LT_10'),(100,'10_TO_100'),(1000,'100_TO_1000'),(10000,'1000_TO_10000')):
+        if value<bound:return label
+    return 'GE_10000'
+
+
+def create_retention_candidate(case_directory, review, *, purpose='INTERNAL_RND'):
+    """Project a closed, generalized CSV; never retain the free-form post-mortem."""
+    import csv
+    from energy_mvp.contract_policy import assert_contract_permission, contract_policy_digest
+    from energy_mvp.workflow_paths import resolve_case_layout
+    from operational_economics import _write
+    root=resolve_case_layout(case_directory)['case_root']
+    if not review.get('case_ref') or Path(review['case_ref']).resolve()!=root.resolve():
+        raise ValueError('Dérivé et revue doivent appartenir au même dossier.')
+    if purpose not in {'INTERNAL_RND','BENCHMARKING'}:
+        raise ValueError('Projection learning limitée aux finalités R&D ou benchmark autorisées.')
+    policy=assert_contract_permission(root,operation='retention',purpose=purpose)
+    if policy is None:
+        # Synthetic reports can exercise the projection, but cannot grant real reuse rights.
+        policy_digest=None
+    else:policy_digest=contract_policy_digest(policy)
+    metrics=review['metrics'];_validate_export_metrics(metrics)
+    row={key:('UNKNOWN' if metrics[key] is None else 'YES' if metrics[key] else 'NO') for key in BOOL_METRICS}
+    row.update({key:_generalized_metric(metrics[key]) for key in NUMERIC_METRICS})
+    for key in ('energy_basis','economic_basis'):
+        row[key]=review['provenance'].get(key,'UNKNOWN')
+        if row[key] not in VALUE_BASES:raise ValueError('Base de valeur hors whitelist.')
+    row.update(purpose=purpose,schema_version=RETENTION_SCHEMA)
+    target=root/'retained_derived/pilot_learning.csv'
+    if target.exists():raise FileExistsError('Dérivé existant : aucune réécriture silencieuse.')
+    target.parent.mkdir(parents=True,exist_ok=True)
+    with target.open('w',encoding='utf-8',newline='') as handle:
+        writer=csv.DictWriter(handle,fieldnames=RETENTION_FIELDS);writer.writeheader();writer.writerow(row)
+    receipt={'status':'RETENTION_CANDIDATE','path':'retained_derived/pilot_learning.csv',
+        'sha256':hashlib.sha256(target.read_bytes()).hexdigest(),'purpose':purpose,
+        'whitelist_schema':RETENTION_SCHEMA,'contract_policy_sha256':policy_digest,
+        'transformations':['DROP_ALL_FREE_TEXT','DROP_ALL_IDENTIFIERS','DROP_ALL_TIMESTAMPS','BIN_NUMERIC_METRICS'],
+        'approved_for_long_term_retention':False}
+    _write(root/'privacy/learning_retention_candidate.json',receipt)
+    return receipt
+
+
+def validate_retained_learning_projection(path):
+    import csv
+    path=Path(path)
+    if path.suffix!='.csv':raise ValueError('Rétention learning : CSV whitelisté uniquement ; Markdown libre interdit.')
+    with path.open(encoding='utf-8',newline='') as handle:
+        reader=csv.DictReader(handle)
+        if reader.fieldnames!=list(RETENTION_FIELDS):raise ValueError('Colonnes hors whitelist de rétention.')
+        rows=list(reader)
+    if len(rows)!=1:raise ValueError('Dérivé learning : une projection bornée par dossier.')
+    row=rows[0]
+    if (row['schema_version']!=RETENTION_SCHEMA or row['purpose'] not in {'INTERNAL_RND','BENCHMARKING'}
+            or any(row[k] not in {'YES','NO','UNKNOWN'} for k in BOOL_METRICS)
+            or any(row[k] not in RETENTION_BINS for k in NUMERIC_METRICS)
+            or any(row[k] not in VALUE_BASES for k in ('energy_basis','economic_basis'))):
+        raise ValueError('Valeur précise, texte libre ou finalité hors whitelist.')
+    return row
+
+
+def approve_retention_candidate(case_directory, human_review):
+    """Persist only an actual supplied review, bound to the projected bytes and contract."""
+    from energy_mvp.contract_policy import assert_contract_permission, contract_policy_digest
+    from energy_mvp.workflow_paths import resolve_case_layout
+    from operational_economics import _write
+    root=resolve_case_layout(case_directory)['case_root']
+    candidate=_read(root/'privacy/learning_retention_candidate.json')
+    if candidate.get('path')!='retained_derived/pilot_learning.csv':
+        raise ValueError('Chemin de projection non canonique.')
+    path=root/candidate['path']
+    if path.is_symlink() or not path.resolve().is_relative_to(root.resolve()):
+        raise ValueError('Projection hors dossier.')
+    row=validate_retained_learning_projection(path)
+    policy=assert_contract_permission(root,operation='retention',purpose=row['purpose'])
+    digest=hashlib.sha256(path.read_bytes()).hexdigest()
+    if digest!=candidate['sha256'] or candidate['contract_policy_sha256']!=(None if policy is None else contract_policy_digest(policy)):
+        raise ValueError('Candidat ou contrat modifié : nouvelle projection/revue requise.')
+    required=('approved_for_long_term_retention','site_identity_removed','unique_asset_combinations_generalized',
+              'volumes_generalized','timestamps_generalized','no_personal_data_remaining','no_forbidden_industrial_dimensions')
+    if (not isinstance(human_review,dict) or any(human_review.get(k) is not True for k in required)
+            or human_review.get('reidentification_risk')!='LOW' or not human_review.get('reviewer_role')
+            or not human_review.get('reviewed_at_utc') or human_review.get('artifact_sha256')!={candidate['path']:digest}):
+        raise ValueError('RETENTION_APPROVED exige une revue humaine complète, risque LOW et empreinte exacte.')
+    result={**human_review,'status':'RETENTION_APPROVED','purpose':row['purpose'],
+            'contract_policy_sha256':candidate['contract_policy_sha256'],'whitelist_schema':RETENTION_SCHEMA}
+    _write(root/'privacy/derived_retention_review.json',result)
+    return result

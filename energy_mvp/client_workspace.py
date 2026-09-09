@@ -76,6 +76,9 @@ def create_client_workspace(
     (target / "workspace.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
+    if not synthetic:
+        from .contract_policy import contract_policy_template
+        (target / "contracts/CONTRACT_POLICY_TEMPLATE.json").write_text(json.dumps(contract_policy_template(), ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
     (target / "intake.json").write_text(
         json.dumps(intake_template(), ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
@@ -112,7 +115,8 @@ def create_client_workspace(
     (target / "README.md").write_text(
         "# Workspace d'analyse\n\n"
         "1. Completer `intake.json` avec le client.\n"
-        "2. Placer le depot recu dans `incoming/` sans l'analyser.\n"
+        "2. Avant tout depot reel, enregistrer contracts/contract_policy.json et sa revue humaine avec contract-record.\n"
+        "   Stager ensuite via stage_incoming_drop ; ne pas copier de donnees reelles manuellement.\n"
         "3. Codex lit le brut en premier et produit la privacy review/candidat.\n"
         "4. Valider avec `python manage_investigation.py privacy-validate . privacy/review.json`.\n"
         "5. Lancer l'intake uniquement depuis `sanitized/` apres `PRIVACY_CLEARED`.\n"

@@ -259,6 +259,12 @@ def _validate_narrative(
         claim = _validate_claim(item.get("claim"), label="no-action/claim", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding)
         if claim["claim_type"] not in {"NO_ACTION_REQUIRED", "NO_ACTION_ECONOMIC", "NO_ACTION_OPERATIONAL", "INSUFFICIENT_TO_DECIDE"}:
             raise ValueError("Un no-action item ne peut pas porter une recommandation positive.")
+    if not isinstance(narrative.get("editorial_headings", {}), dict):
+        raise ValueError("Titres éditoriaux : mapping de claims attendu.")
+    for heading in narrative.get("editorial_headings", {}).values():
+        _validate_claim(heading, label="editorial-heading", decisions=decisions, actions=actions, findings=findings,
+            constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding,
+            expected_kind="EDITORIAL_HEADING")
     for item in narrative.get("what_we_checked", []):
         _validate_claim(item, label="what_we_checked", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding, expected_kind="WHAT_WAS_CHECKED")
     for item in narrative.get("limitations", []):
@@ -331,9 +337,10 @@ def _write_operation_context_chart(values: list[float], operation: list[bool | N
     if not values or not all(math.isfinite(item) for item in values):
         raise ValueError("Le graphique opérationnel exige une énergie finie.")
     bins = min(plot_width, len(values))
-    energy = [sum(values[index * len(values) // bins:(index + 1) * len(values) // bins]) / max(1, len(values[index * len(values) // bins:(index + 1) * len(values) // bins])) for index in range(bins)]
+    groups = [values[index * len(values) // bins:(index + 1) * len(values) // bins] for index in range(bins)]
+    energy = [sum(group) / len(group) for group in groups]
     activity = None if operation is None else _downsample_operation(operation, bins)
-    minimum, maximum = min(0.0, min(energy)), max(energy)
+    minimum, maximum = min(0.0, min(values)), max(values)
     if math.isclose(minimum, maximum):
         maximum += 1.0
     maximum += (maximum - minimum) * .05
@@ -353,6 +360,10 @@ def _write_operation_context_chart(values: list[float], operation: list[bool | N
     for index, value in enumerate(energy):
         x = left + round(plot_width * index / max(1, len(energy) - 1))
         y = top + plot_height - round((value - minimum) / (maximum - minimum) * plot_height)
+        # Preserve every bin's extrema: the mean must not erase a short event.
+        low_y = top + plot_height - round((min(groups[index]) - minimum) / (maximum - minimum) * plot_height)
+        high_y = top + plot_height - round((max(groups[index]) - minimum) / (maximum - minimum) * plot_height)
+        canvas.line(x, low_y, x, high_y, (31, 119, 180))
         if previous is not None:
             canvas.line(previous[0], previous[1], x, y, (31, 119, 180))
         previous = (x, y)
@@ -419,7 +430,11 @@ def _resolve_chart_requests(case: Path, narrative: dict[str, Any], output_dir: P
         else:
             _write_operation_context_chart(values, None, path, title=title)
         unknown_count = sum(item is None for item in operation) if has_binary_context else 0
-        charts.append({"chart_id": f"CHART-{index:02d}", "type": request["type"], "title": title, "purpose": purpose, "caption": purpose, "dataset_ref": dataset["dataset_id"], "relative_path": f"charts/{filename}", "claim_refs": [dataset["dataset_id"]], "axis_x": "Chronologie des relevés" if not timestamps else f"Chronologie des relevés ({timestamps[0]} à {timestamps[-1]})", "axis_y": "Énergie par intervalle (kWh)" if dataset.get("measurement_type") != "POWER" else "Puissance (kW)", "legend": "Courbe bleue : consommation" + (" ; bandes orange pâle : activité/production active ; bandes grises : inactive" + (" ; bandes violettes pâles : statut inconnu" if unknown_count else "") if has_binary_context else ""), "operation_encoding": "BACKGROUND_BANDS" if has_binary_context else "NONE", "operation_context": None if not has_binary_context else {"source_field": context_field, "coverage_ratio": context_coverage, "unknown_interval_count": unknown_count}, "explains": purpose})
+        chart_findings = request.get("finding_refs", [])
+        known_findings, no_finding = _goal_a_findings(case)
+        if not isinstance(chart_findings, list) or set(chart_findings) - set(known_findings):
+            raise ValueError("Finding graphique absent.")
+        charts.append({"chart_id": f"CHART-{index:02d}", "type": request["type"], "finding_refs": chart_findings, "source_refs": [dataset["dataset_id"]], "method": "FULL_WINDOW_PIXEL_MEAN_WITH_EXTREMA", "no_finding_ref": "GOAL_A_NO_FINDING" if no_finding and not known_findings else None, "title": title, "purpose": purpose, "caption": purpose, "dataset_ref": dataset["dataset_id"], "relative_path": f"charts/{filename}", "claim_refs": [dataset["dataset_id"]], "axis_x": "Chronologie des relevés" if not timestamps else f"Chronologie des relevés ({timestamps[0]} à {timestamps[-1]})", "axis_y": "Énergie par intervalle (kWh)" if dataset.get("measurement_type") != "POWER" else "Puissance (kW)", "legend": "Courbe bleue : consommation" + (" ; bandes orange pâle : activité/production active ; bandes grises : inactive" + (" ; bandes violettes pâles : statut inconnu" if unknown_count else "") if has_binary_context else ""), "operation_encoding": "BACKGROUND_BANDS" if has_binary_context else "NONE", "operation_context": None if not has_binary_context else {"source_field": context_field, "coverage_ratio": context_coverage, "unknown_interval_count": unknown_count}, "explains": purpose})
     return charts
 
 
@@ -569,6 +584,7 @@ def build_client_report_model(case_directory: str | Path, narrative: dict[str, A
         "no_action_items": no_action_items,
         "client_dialogue": {"pending_questions": pending_questions, "resolved_goal_b_evidence_refs": sorted(item.get("evidence_id") for item in state.get("goal_b_evidence", []) if item.get("evidence_id"))},
         "what_we_checked": list(narrative.get("what_we_checked", [])),
+        "editorial_headings": narrative.get("editorial_headings", {}),
         "charts": charts,
         "technical_appendix": {"sources": _human_sources(case), "limitations": narrative.get("limitations", []), "method": narrative.get("method", "Les chiffres affichés reprennent les calculs validés et les décisions enregistrées."), "claim_reference_policy": "Chaque carte relie décision, action, finding et calcul Goal A/B; les identifiants restent internes."},
         "claim_fidelity": {"goal_a_findings_ref": "investigation/structured_findings.json", "goal_b_state_ref": "investigation/economic_decision_state.json", "decision_strengthened": False, "savings_status": "POTENTIAL", "internal_claim_refs_present": True, "non_additive_actions_not_summed": True},
@@ -692,6 +708,12 @@ def validate_client_report_model(model: dict[str, Any], case_directory: str | Pa
             raise ValueError("Un no-action client ne peut pas contenir une recommandation positive.")
         if item.get("explanation") != claim.get("text"):
             raise ValueError("Un no-action client doit afficher le texte de son claim sourcé.")
+    if not isinstance(model.get("editorial_headings", {}), dict):
+        raise ValueError("Titres éditoriaux : mapping de claims attendu.")
+    for heading in model.get("editorial_headings", {}).values():
+        _validate_claim(heading, label="editorial-heading", decisions=decisions, actions=actions, findings=findings,
+            constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding,
+            expected_kind="EDITORIAL_HEADING")
     for item in model.get("what_we_checked", []):
         _validate_claim(item, label="model/what-we-checked", decisions=decisions, actions=actions, findings=findings, constraints=constraints, calculations=calculations, dataset_ids=dataset_ids, no_finding=no_finding, expected_kind="WHAT_WAS_CHECKED")
     for chart in model.get("charts", []):
@@ -926,6 +948,11 @@ def render_client_report_pdf(model: dict[str, Any], model_path: str | Path, pdf_
     pages, images = _render_pages(model, model_file)
     if not 1 <= len(pages) <= 8:
         raise ValueError("Le rapport client doit rester compact et contenir entre une et huit pages.")
+    return _write_pdf_pages(pages, images, pdf_path, renderer="stdlib_minimal_pdf_v2")
+
+
+def _write_pdf_pages(pages, images, pdf_path, *, renderer):
+    """Shared PDF serialization; page composition belongs to the caller."""
     objects: list[bytes] = []
     objects.append(b"<< /Type /Catalog /Pages 2 0 R >>")
     page_object_ids = [3 + index for index in range(len(pages))]
@@ -960,14 +987,21 @@ def render_client_report_pdf(model: dict[str, Any], model_path: str | Path, pdf_
     target = Path(pdf_path)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(bytes(output))
-    return {"pdf_path": str(target), "page_count": len(pages), "renderer": "stdlib_minimal_pdf_v2", "contains_client_internal_ids": False, "validated_immediately_before_render": True}
+    return {"pdf_path": str(target), "page_count": len(pages), "renderer": renderer, "contains_client_internal_ids": False, "validated_immediately_before_render": True}
 
 
-def generate_client_report(case_directory: str | Path, narrative: dict[str, Any], *, output_directory: str | Path | None = None) -> dict[str, Any]:
+def generate_client_report(case_directory: str | Path, narrative: dict[str, Any], *, output_directory: str | Path | None = None, design: dict[str, Any] | None = None) -> dict[str, Any]:
     case = Path(case_directory)
+    from energy_mvp.privacy import privacy_requirement
+    if design is None and privacy_requirement(case)["required"]:
+        raise ValueError("Le rapport réel exige REPORT_DESIGN_MODEL conçu par Codex ; renderer historique réservé aux fixtures.")
     target = Path(output_directory) if output_directory else case / "outputs" / "client_report"
     model = build_client_report_model(case, narrative, output_directory=target)
     model_path = target / "CLIENT_REPORT_MODEL.json"
+    if design is not None:
+        from report_design import render_designed_report
+        rendered = render_designed_report(case, model, model_path, design, output_directory=target)
+        return {"model": model, "model_path": model_path, **rendered}
     rendered = render_client_report_pdf(model, model_path, target / "ENERGY_ANALYSIS_REPORT.pdf", case_directory=case)
     _write(target / "CLIENT_REPORT_DELIVERY.json", {"schema_version": 1, "model": "CLIENT_REPORT_MODEL.json", "pdf": "ENERGY_ANALYSIS_REPORT.pdf", "rendered": rendered, "claim_validation": "passed"})
     return {"model": model, "model_path": model_path, **rendered}

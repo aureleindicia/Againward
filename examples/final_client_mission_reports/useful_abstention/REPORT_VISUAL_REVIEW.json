@@ -1,0 +1,22 @@
+{
+  "reviewer_role": "CODEX",
+  "pdf_sha256": "714505d9bfcd2e92ea866f4d907770f67a397fa92b687dc5f5e1e9bbcc08e03d",
+  "checks": {
+    "accents_currency_units_correct": true,
+    "adequate_contrast": true,
+    "balanced_blocks": true,
+    "consistent_pages": true,
+    "no_clipping": true,
+    "no_excessive_whitespace": true,
+    "no_orphan_headings": true,
+    "no_overflow": true,
+    "no_overflowing_tables": true,
+    "no_unhelpful_repetition": true,
+    "professional_client_ready": true,
+    "readable_captions": true,
+    "readable_charts": true,
+    "readable_density": true,
+    "useful_pagination": true
+  },
+  "notes": "Inspection des pages rasterisées avec pdftoppm. Toutes les pages ont été vues en version précédente ; les pages modifiées ont été réinspectées, les autres comparées octet pour octet. Exemple synthétique de présentation ; aucune approbation humaine de livraison réelle."
+}

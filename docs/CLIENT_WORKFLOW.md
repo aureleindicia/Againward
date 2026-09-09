@@ -9,7 +9,7 @@ quittent jamais l’appareil.
 Le flux obligatoire des futurs dossiers réels est :
 
 ```text
-CLIENT → incoming/ temporaire → CODEX PRIVACY GATE
+CLIENT → dossier vide → contract_policy + revue humaine → incoming/ temporaire → CODEX PRIVACY GATE
        → PASS | SANITIZED | BLOCKED
        → post-check Python → privacy_manifest.json
        → suppression du brut temporaire → PRIVACY_CLEARED
@@ -29,14 +29,18 @@ Références : [architecture privacy](PRIVACY_ARCHITECTURE.md),
 Workspace standard :
 
 ```sh
-python create_workspace.py usine_01 --root workspaces --incoming /chemin/du/depot_recu
+python create_workspace.py usine_01 --root workspaces
+python manage_investigation.py contract-record workspaces/usine_01 contracts_packet.json
+python manage_investigation.py stage-incoming workspaces/usine_01 /chemin/du/depot_recu
 python manage_investigation.py status workspaces/usine_01
 ```
 
 Cas Goal A hétérogène :
 
 ```sh
-python intake_client_case.py stage usine_01 /chemin/du/depot_recu --root client_cases
+python intake_client_case.py create usine_01 --root client_cases
+python manage_investigation.py contract-record client_cases/usine_01 contracts_packet.json
+python manage_investigation.py stage-incoming client_cases/usine_01 /chemin/du/depot_recu
 python manage_investigation.py status client_cases/usine_01
 ```
 
@@ -142,7 +146,9 @@ honnêtement avec `unknown`, `non identifiable` ou `information insuffisante`.
 
 ## 5. Revue, livraison, rétention et purge
 
-La review contradictoire précède toujours l’approbation humaine :
+La review contradictoire précède toujours l’approbation humaine. Pour la composition Codex du PDF,
+les hashes de revue, le post-mortem et les dérivés retenables, suivre
+[FINAL_CLIENT_MISSION.md](FINAL_CLIENT_MISSION.md). La rétention doit être configurée avant livraison.
 
 ```sh
 python manage_investigation.py finalizable workspaces/usine_01 investigation.json
@@ -161,7 +167,7 @@ python manage_investigation.py purge workspaces/usine_01
 `derived_retention_authorized` vaut `false` par défaut. S’il vaut `true`, seuls des fichiers placés
 dans `retained_derived/` et couverts par une revue de désidentification stricte peuvent survivre.
 La purge efface les sources, dérivés reconstructibles, scratch, caches et artefacts temporaires,
-préserve les contrats/facturation ainsi que les livrables explicitement autorisés, écrit
+préserve uniquement les contrats/facturation, PDF et dérivés explicitement autorisés et validés, écrit
 `PURGE_RECEIPT.json`, puis interdit toute nouvelle analyse du dossier purgé.
 
 Cette architecture réduit les risques techniques ; elle ne constitue ni un avis juridique, ni une

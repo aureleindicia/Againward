@@ -147,6 +147,8 @@ def create_client_case(case_id: str, *, root: str | Path = "client_cases", synth
         "ground_truth_used": False,
     })
     if not synthetic:
+        from energy_mvp.contract_policy import contract_policy_template
+        _write_json(target / "contracts/CONTRACT_POLICY_TEMPLATE.json", contract_policy_template())
         _write_json(target / "privacy" / "CODEX_PRIVACY_REVIEW_TEMPLATE.json", {
             "schema_version": REVIEW_SCHEMA, "policy_version": POLICY_VERSION,
             "workspace_id": case_id, "received_at_utc": None,

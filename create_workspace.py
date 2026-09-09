@@ -32,8 +32,8 @@ def main() -> int:
     if receipt is not None:
         print(f"Depot temporaire place dans incoming/: {receipt['file_count']} fichier(s).")
     else:
-        print("Placez le dépôt reçu dans incoming/ sans en lire le contenu.")
-    print("Prochaine étape obligatoire: privacy gate sémantique par Codex, puis validation Python.")
+        print("Enregistrez d’abord la contract policy et sa revue humaine, puis utilisez manage_investigation.py stage-incoming.")
+    print("Aucune donnée réelle avant accord validé ; ensuite privacy gate Codex et validation Python.")
     return 0
 
 

@@ -1,0 +1,101 @@
+{
+  "schema_version": "againward-report-design-v1",
+  "selected_findings": [],
+  "omitted_actions": {},
+  "pages": [
+    {
+      "intent": "EXECUTIVE_SUMMARY",
+      "blocks": [
+        {
+          "component": "COVER",
+          "content_ref": "cover",
+          "box": [
+            45,
+            80,
+            500,
+            140
+          ],
+          "font_size": 14,
+          "emphasis": "PRIMARY"
+        },
+        {
+          "component": "EXECUTIVE_SUMMARY",
+          "content_ref": "executive",
+          "box": [
+            45,
+            255,
+            500,
+            180
+          ],
+          "font_size": 14,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "DECISION",
+          "content_ref": "no_action:0",
+          "box": [
+            45,
+            495,
+            500,
+            145
+          ],
+          "font_size": 13,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "METHODOLOGY",
+          "content_ref": "notice",
+          "box": [
+            45,
+            710,
+            500,
+            65
+          ],
+          "font_size": 9,
+          "emphasis": "NORMAL"
+        }
+      ]
+    },
+    {
+      "intent": "LIMITATION",
+      "blocks": [
+        {
+          "component": "LIMITATION",
+          "content_ref": "limitations",
+          "box": [
+            45,
+            95,
+            500,
+            225
+          ],
+          "font_size": 15,
+          "emphasis": "PRIMARY"
+        },
+        {
+          "component": "METHODOLOGY",
+          "content_ref": "checked:0",
+          "box": [
+            45,
+            365,
+            500,
+            145
+          ],
+          "font_size": 12,
+          "emphasis": "NORMAL"
+        },
+        {
+          "component": "METHODOLOGY",
+          "content_ref": "method",
+          "box": [
+            45,
+            560,
+            500,
+            180
+          ],
+          "font_size": 12,
+          "emphasis": "NORMAL"
+        }
+      ]
+    }
+  ]
+}

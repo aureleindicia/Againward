@@ -258,6 +258,8 @@ def assert_case_privacy_cleared(case_directory: str | Path) -> None:
         return
     if status["state"] != "PRIVACY_CLEARED" or not status["approved_for_analysis"]:
         raise ValueError(f"PRIVACY GATE: analyse interdite; état {status['state']} et approved_for_analysis != true.")
+    from .contract_policy import assert_contract_permission
+    assert_contract_permission(case_directory)
 
 
 def _find_case_root(path: str | Path) -> Path | None:
@@ -326,6 +328,8 @@ def stage_incoming_drop(source_directory: str | Path, case_directory: str | Path
     root: Path = requirement["case_root"]
     if inspect_privacy_status(root)["state"] == "PURGED":
         raise ValueError("Dossier PURGED: aucun nouveau staging ou traitement n'est autorisé.")
+    from .contract_policy import assert_contract_permission, contract_policy_digest, POLICY_PATH
+    contract = assert_contract_permission(root, operation="staging")
     incoming = root / "incoming"
     incoming.mkdir(parents=True, exist_ok=True)
     if not source.is_dir():
@@ -344,6 +348,8 @@ def stage_incoming_drop(source_directory: str | Path, case_directory: str | Path
         copied.append(str(relative))
     receipt = {
         "schema_version": "indicia-incoming-receipt-v1",
+        "contract_policy_ref": POLICY_PATH,
+        "contract_policy_sha256": contract_policy_digest(contract),
         "workspace_id": root.name,
         "received_at_utc": _now(),
         "file_count": len(copied),
@@ -656,7 +662,9 @@ def _assert_privacy_auxiliaries_bounded(root: Path, review_file: Path) -> None:
 
 
 def _manifest_base(root: Path, review: dict[str, Any], status: str) -> dict[str, Any]:
+    extraction = _read_json(root / "contracts/contract_extraction.json")
     return {
+        "contract_authorization_ref": extraction.get("authorization_ref"),
         "schema_version": MANIFEST_SCHEMA,
         "workspace_id": root.name,
         "received_at_utc": review.get("received_at_utc"),
@@ -1146,8 +1154,11 @@ def validate_codex_privacy_review(
     *,
     delete_tree: Callable[[Path], None] = shutil.rmtree,
 ) -> dict[str, Any]:
-    """Run the post-check and persist PRIVACY_BLOCKED on every validation failure."""
+    """Run the post-check after contract clearance; privacy failures remain blocking."""
 
+    from .contract_policy import assert_contract_permission
+    # Do not parse, hash or purge an unauthorized manually copied drop in this path.
+    assert_contract_permission(case_directory)
     try:
         return _validate_codex_privacy_review_impl(
             case_directory, review_path, delete_tree=delete_tree
@@ -1319,6 +1330,10 @@ def configure_retention(case_directory: str | Path, policy: dict[str, Any]) -> d
         or any(not str(item).startswith("retained_derived/") for item in retained_derived)
     ):
         raise ValueError("retained_derived_paths doit rester dans retained_derived/.")
+    if type(policy.get("mission_closed", False)) is not bool:
+        raise ValueError("mission_closed doit être un booléen explicite.")
+    from .contract_policy import validate_retention_authorization, contract_policy_digest, POLICY_PATH
+    contract = validate_retention_authorization(root, policy)
     stored = {
         "schema_version": RETENTION_SCHEMA,
         "configured": True,
@@ -1329,6 +1344,9 @@ def configure_retention(case_directory: str | Path, policy: dict[str, Any]) -> d
         "retained_paths": retained,
         "retained_derived_paths": list(retained_derived),
     }
+    if contract is not None:
+        stored["contract_policy_ref"] = POLICY_PATH
+        stored["contract_policy_sha256"] = contract_policy_digest(contract)
     if stored["retained_derived_paths"] and not stored["derived_retention_authorized"]:
         raise ValueError("Aucun dérivé ne peut être retenu sans autorisation explicite.")
     _atomic_json(root / "privacy" / "retention_policy.json", stored)
@@ -1356,6 +1374,15 @@ def _retained_derived_allowed(root: Path, policy: dict[str, Any]) -> set[str]:
     required_true = ("approved_for_long_term_retention", "site_identity_removed", "unique_asset_combinations_generalized", "volumes_generalized", "timestamps_generalized")
     if any(review.get(field) is not True for field in required_true) or review.get("reidentification_risk") != "LOW":
         raise ValueError("Le dérivé ne possède pas une revue de désidentification suffisante.")
+    from pilot_learning import validate_retained_learning_projection
+    from .contract_policy import assert_contract_permission, contract_policy_digest
+    contract = assert_contract_permission(root, operation="retention", purpose=review.get("purpose"))
+    if (review.get("status") != "RETENTION_APPROVED"
+            or review.get("no_personal_data_remaining") is not True
+            or review.get("no_forbidden_industrial_dimensions") is not True
+            or not review.get("reviewer_role") or not review.get("reviewed_at_utc")
+            or (contract is not None and review.get("contract_policy_sha256") != contract_policy_digest(contract))):
+        raise ValueError("Rétention dérivée sans finalité contractuelle et revue humaine actuelles.")
     for relative in paths:
         path = root / relative
         if (
@@ -1365,6 +1392,9 @@ def _retained_derived_allowed(root: Path, policy: dict[str, Any]) -> set[str]:
             or _scan(path)["categories"]
         ):
             raise ValueError("Dérivé retenu absent, hors zone ou contenant des motifs sensibles.")
+        row = validate_retained_learning_projection(path)
+        if row["purpose"] != review.get("purpose") or review.get("artifact_sha256", {}).get(relative) != _sha256(path):
+            raise ValueError("Dérivé modifié après revue ou finalité incohérente.")
         forbidden_parts = {
             "site", "machine", "equipment", "equipement", "asset", "meter", "compteur",
             "line", "ligne", "workshop", "atelier", "lot", "batch", "product", "produit",
@@ -1427,10 +1457,14 @@ def purge_client_case(
         raise ValueError("purge_after_utc doit inclure un fuseau.")
     if instant.astimezone(timezone.utc) < due.astimezone(timezone.utc):
         raise ValueError("La période contractuelle de rétention n'est pas encore échue.")
+    from .contract_policy import validate_retention_authorization, contract_policy_digest
+    contract = validate_retention_authorization(root, policy)
+    if contract is not None and policy.get("contract_policy_sha256") != contract_policy_digest(contract):
+        raise ValueError("CONTRACT_GATE: rétention à revalider après modification contractuelle.")
     retained = set(str(item) for item in policy.get("retained_paths", []))
     retained_derived = _retained_derived_allowed(root, policy) if policy.get("derived_retention_authorized") else set()
     protected = retained | retained_derived | {
-        "workspace.json", "case_manifest.json", "README.md", "contracts/", "billing/",
+        "workspace.json", "case_manifest.json",
         "privacy/privacy_manifest.json", "privacy/retention_policy.json",
     }
     results: list[dict[str, Any]] = []
@@ -1451,7 +1485,7 @@ def purge_client_case(
             results.append({"category": category, "logical_id": logical_id, "sha256": digest, "status": "failed", "error": type(exc).__name__, "_relative": relative})
     errors = [item for item in results if item["status"] == "failed"]
     purged_at = _now()
-    privacy_manifest = _read_json(privacy_manifest_path(root))
+    privacy_manifest = {"schema_version": MANIFEST_SCHEMA, "policy_version": POLICY_VERSION}
     privacy_manifest["approved_for_analysis"] = False
     privacy_manifest["status"] = "PURGED" if not errors else "PURGE_PARTIAL_FAILURE"
     privacy_manifest["purge"] = {
@@ -1464,7 +1498,11 @@ def purge_client_case(
     for name in ("workspace.json", "case_manifest.json"):
         manifest_path = root / name
         if manifest_path.is_file():
-            case_manifest = _read_json(manifest_path)
+            previous = _read_json(manifest_path)
+            case_manifest = {"schema_version": previous.get("schema_version"),
+                "case_kind": previous.get("case_kind"), "status": "purged" if not errors else "purge_partial_failure",
+                "privacy": {"required": previous.get("privacy", {}).get("required", True),
+                    "policy_version": POLICY_VERSION, "approved_for_analysis": False}}
             retention = case_manifest.setdefault("retention", {})
             retention["purge_status"] = "complete" if not errors else "partial_failure"
             retention["purged_at_utc"] = purged_at

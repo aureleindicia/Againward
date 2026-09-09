@@ -51,6 +51,14 @@ def build_parser() -> argparse.ArgumentParser:
     retention = subparsers.add_parser("retention-configure", help="Configurer la rétention contractuelle")
     retention.add_argument("case_directory")
     retention.add_argument("policy_json")
+    stage = subparsers.add_parser("stage-incoming", help="Copier un dépôt réel après accord contractuel validé")
+    stage.add_argument("case_directory")
+    stage.add_argument("source_directory")
+    contract = subparsers.add_parser("contract-record", help="Enregistrer extraction contractuelle et revue humaine fournies")
+    contract.add_argument("case_directory")
+    contract.add_argument("packet_json")
+    close = subparsers.add_parser("mission-close", help="Clore la mission dans la rétention canonique")
+    close.add_argument("case_directory")
     purge = subparsers.add_parser("purge", help="Exécuter la purge de fin de mission")
     purge.add_argument("case_directory")
     commands = (
@@ -85,10 +93,24 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "status":
             result = inspect_case_status(args.case_directory)
+        elif args.command == "stage-incoming":
+            from .privacy import stage_incoming_drop
+            result = stage_incoming_drop(args.source_directory, args.case_directory)
+        elif args.command == "contract-record":
+            from .contract_policy import record_contract_policy
+            packet = json.loads(Path(args.packet_json).read_text(encoding="utf-8"))
+            result = record_contract_policy(args.case_directory, packet["policy"],
+                semantic_extraction=packet["semantic_extraction"], human_review=packet.get("human_review"))
         elif args.command == "privacy-validate":
             result = validate_codex_privacy_review(args.case_directory, args.review_json)
         elif args.command == "retention-configure":
             policy = json.loads(Path(args.policy_json).read_text(encoding="utf-8"))
+            result = configure_retention(args.case_directory, policy)
+        elif args.command == "mission-close":
+            from .workflow_paths import resolve_case_layout
+            root = resolve_case_layout(args.case_directory)["case_root"]
+            policy = json.loads((root / "privacy/retention_policy.json").read_text(encoding="utf-8"))
+            policy["mission_closed"] = True
             result = configure_retention(args.case_directory, policy)
         elif args.command == "purge":
             result = purge_client_case(args.case_directory)
