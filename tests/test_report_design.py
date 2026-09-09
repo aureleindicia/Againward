@@ -119,7 +119,12 @@ def test_existing_delivery_gate_accepts_only_current_semantic_and_visual_review(
     record_visual_review(case,{'reviewer_role':'CODEX','pdf_sha256':styled_result['pdf_sha256'],
         'checks':dict.fromkeys(VISUAL_CHECKS,True),'notes':'Synthetic aesthetic rerender review.'})
     assert evaluate_delivery_gate(case)['ready_for_delivery']
-    m['executive_summary']['message']='Le résultat doit être réexaminé.';path.write_text(json.dumps(m));render_designed_report(case,m,path,d)
+    m['executive_summary']['message']='Le résultat doit être réexaminé.';path.write_text(json.dumps(m))
+    assert not evaluate_delivery_gate(case)['ready_for_delivery']
+    receipt=json.loads((case/'outputs/client_report/CLIENT_REPORT_DELIVERY.json').read_text())
+    assert receipt['approved_for_delivery'] is False
+    assert receipt['status']=='BLOCKED_BY_DELIVERY_GATE'
+    render_designed_report(case,m,path,d)
     assert not evaluate_delivery_gate(case)['ready_for_delivery']
 
 

@@ -399,12 +399,18 @@ def evaluate_delivery_gate(case_directory: str | Path) -> dict[str, Any]:
         },
     }
     _write_json(root / "delivery_gate.json", payload)
-    if report_validation is not None:
-        receipt_path = case_root / "outputs/client_report/CLIENT_REPORT_DELIVERY.json"
-        receipt = _read_json(receipt_path)
-        receipt["approved_for_delivery"] = not reasons
-        receipt["status"] = "DELIVERABLE" if not reasons else "BLOCKED_BY_DELIVERY_GATE"
-        _write_json(receipt_path, receipt)
+    receipt_path = case_root / "outputs/client_report/CLIENT_REPORT_DELIVERY.json"
+    if receipt_path.is_file():
+        try:
+            receipt = _read_json(receipt_path)
+        except (OSError, ValueError):
+            receipt = None  # Preserve malformed evidence; the gate remains blocked.
+        if isinstance(receipt, dict) and receipt.get("renderer") == "againward_agent_composition_v1":
+            # A failed semantic/reproducibility check must revoke a previous receipt too.
+            approved = not reasons and report_validation is not None
+            receipt["approved_for_delivery"] = approved
+            receipt["status"] = "DELIVERABLE" if approved else "BLOCKED_BY_DELIVERY_GATE"
+            _write_json(receipt_path, receipt)
     if not reasons and lifecycle_state is not None:
         lifecycle_payload=_read_json(lifecycle_path); lifecycle_payload["client_lifecycle"]["state"]="DELIVERABLE"
         lifecycle_payload["client_lifecycle"]["history"].append({"at_utc":payload["evaluated_at_utc"],"action":"marked_deliverable"}); _write_json(lifecycle_path,lifecycle_payload)
