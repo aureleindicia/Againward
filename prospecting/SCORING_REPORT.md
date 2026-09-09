@@ -23,14 +23,14 @@ données ».
 
 | Candidat | Score indicatif | Décision | Jugement |
 |---|---:|---|---|
-| Nouvelle Fonderie Gillet Industries | 78 | Priorité A | Meilleur potentiel documenté ; fusion à contextualiser pour éviter les faux positifs. |
-| Blanchisserie Morellon | 75 | Priorité A | Excellent cas avant/après grâce à l'extension et aux nouveaux équipements de 2026. |
-| Blanchisserie Sainte Anne | 74 | Priorité A | Procédé répétitif, taille accessible et intérêt énergie public ; donnée temporelle inconnue. |
-| Agro'Novae Industrie | 71 | Priorité B | Échelle et procédé thermique crédibles ; production et courbes doivent être associables. |
-| Taglab | 71 | Priorité B | Très bon cas froid et saisonnalité ; aucune mesure confirmée. |
+| Nouvelle Fonderie Gillet Industries | 76 | Priorité A | Meilleur potentiel documenté ; fusion à contextualiser pour éviter les faux positifs. |
+| Blanchisserie Morellon | 74 | Priorité A | Excellent cas avant/après grâce à l'extension et aux nouveaux équipements de 2026. |
+| Blanchisserie Sainte Anne | 72 | Priorité A | Procédé répétitif, taille accessible et intérêt énergie public ; donnée temporelle inconnue. |
+| Agro'Novae Industrie | 70 | Priorité B | Échelle et procédé thermique crédibles ; production et courbes doivent être associables. |
+| Taglab | 70 | Priorité B | Très bon cas froid et saisonnalité ; aucune mesure confirmée. |
 | Meca Forging | 67 | Priorité B | Très bon signal industriel, mais autonomie locale et expertise du groupe incertaines. |
 | Bo&Mie | 59 | Priorité C | Laboratoire central pertinent en théorie, périmètre et taille trop peu documentés. |
-| Biscuiterie de Provence | 55 | Priorité C | Dossier encore trop fondé sur le secteur plutôt que sur un procédé observé. |
+| Biscuiterie de Provence | 56 | Priorité C | Dossier encore trop fondé sur le secteur plutôt que sur un procédé observé. |
 | Dauphiblanc | 68 brut | Rejeté | Potentiel élevé, mais 400 salariés et trois sites : trop complexe pour la cohorte initiale. |
 | Brewen | 53 brut | Rejeté | Procédé intéressant, mais équipe de deux personnes et économie de mission trop incertaine. |
 
@@ -66,3 +66,7 @@ sont confirmés :
 
 À ce stade, zéro candidat sur dix satisfait publiquement ces quatre critères. Ce n'est pas un échec
 du sourcing : ce sont précisément les éléments non publics à qualifier lors d'un premier échange.
+
+## Compatibilité asynchrone
+
+Le scoring v2 ajoute 8 points de compatibilité asynchrone, à partir de signaux publics identifiables. Une absence de signal est traitée comme neutre et explicitement incertaine dans le lot historique ; elle n’est ni un jugement sur une entreprise ni une déduction de son pays. Cette dimension ne peut pas compenser un mauvais fit industriel, l’absence de données temporelles ou un critère d’exclusion.

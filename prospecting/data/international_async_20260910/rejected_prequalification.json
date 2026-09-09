@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "phase": "PRE_SCORING_ONLY",
+  "prospects": [
+    {
+      "prospect_id": "NL-KTC-006",
+      "entity_key": "ktcbv",
+      "name": "KTC BV",
+      "sector": "ingrédients alimentaires et négoce international",
+      "site_url": "https://www.ktcingredients.com/careers/",
+      "discovered_at": "2026-09-10",
+      "prequalification_status": "REJECTED",
+      "facts": [
+        {
+          "field": "async_signal",
+          "value": "entreprise explicitement fully remote/distributed, collègues répartis sur plusieurs continents et contact par email",
+          "source_id": "KT-1",
+          "observed_at": "2026-09-10",
+          "confidence": "high"
+        },
+        {
+          "field": "activity",
+          "value": "activité publique décrite comme ingrédients alimentaires et industrie alimentaire",
+          "source_id": "KT-1",
+          "observed_at": "2026-09-10",
+          "confidence": "medium"
+        }
+      ],
+      "inferences": [
+        {
+          "statement": "La compatibilité async est très forte, mais aucune production propre, site industriel ou procédé consommateur d’énergie n’est établi dans les sources publiques examinées.",
+          "basis_source_ids": [
+            "KT-1"
+          ],
+          "confidence": "high"
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "KT-1",
+          "title": "KTC BV — fully remote/distributed careers",
+          "url": "https://www.ktcingredients.com/careers/",
+          "retrieved_at": "2026-09-10",
+          "source_type": "company_website",
+          "confidence": "high"
+        }
+      ],
+      "missing_information": [
+        "site de production propre",
+        "procédé",
+        "compteur",
+        "périmètre de décision"
+      ],
+      "negative_signals": [
+        {
+          "kind": "no_documented_industrial_site",
+          "detail": "La source examinée ne démontre pas de site industriel propre correspondant à l’ICP Againward.",
+          "source_id": "KT-1"
+        }
+      ],
+      "related_entities": [],
+      "public_contact": {
+        "decision_maker_or_role": null,
+        "professional_email": null,
+        "collection_note": "rejet de préqualification ; aucune cible de contact préparée"
+      },
+      "contradictions": [],
+      "contacting_performed": false,
+      "scoring_performed": false
+    }
+  ]
+}

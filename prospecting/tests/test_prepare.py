@@ -80,5 +80,19 @@ class ProspectPreparationTests(unittest.TestCase):
             self.assertEqual(len(json.loads((root / "rejected_prequalification.json").read_text())["prospects"]), 1)
 
 
+
+    def test_preparation_can_write_an_isolated_research_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            raw = root / "raw.json"
+            opposition = root / "opposition.json"
+            output = root / "international_batch"
+            raw.write_text(json.dumps({"prospects": [prospect("P1", "ateliertest")]}), encoding="utf-8")
+            opposition.write_text(json.dumps({"oppositions": []}), encoding="utf-8")
+            prepare_module.prepare(raw, opposition, output)
+            self.assertTrue((output / "candidates_pre_scoring.json").is_file())
+            self.assertFalse((root / "candidates_pre_scoring.json").exists())
+
+
 if __name__ == "__main__":
     unittest.main()

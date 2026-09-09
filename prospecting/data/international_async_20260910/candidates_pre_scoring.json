@@ -1,0 +1,472 @@
+{
+  "schema_version": 1,
+  "phase": "PRE_SCORING_ONLY",
+  "prospects": [
+    {
+      "prospect_id": "SE-EPISHINE-005",
+      "entity_key": "epishine",
+      "name": "Epishine",
+      "sector": "fabrication de cellules photovoltaïques organiques imprimées",
+      "site_url": "https://www.epishine.com/career",
+      "discovered_at": "2026-09-10",
+      "prequalification_status": "UNCERTAIN",
+      "facts": [
+        {
+          "field": "production_site",
+          "value": "siège et fabrication à Linköping, Suède",
+          "source_id": "EP-1",
+          "observed_at": "2026-09-10",
+          "confidence": "high"
+        },
+        {
+          "field": "production_process",
+          "value": "recrutement public autour du développement de procédés de production, impression et coating",
+          "source_id": "EP-1",
+          "observed_at": "2026-09-10",
+          "confidence": "high"
+        },
+        {
+          "field": "async_signal",
+          "value": "candidatures ouvertes Hybrid Remote et contact email public",
+          "source_id": "EP-1",
+          "observed_at": "2026-09-10",
+          "confidence": "medium"
+        }
+      ],
+      "inferences": [
+        {
+          "statement": "L’impression/coating est un procédé mesurable potentiellement adapté, mais aucun effectif, compteur ou volume de production n’est public dans ce lot.",
+          "basis_source_ids": [
+            "EP-1"
+          ],
+          "confidence": "medium"
+        },
+        {
+          "statement": "Le recrutement hybride est un signal de flexibilité et de communication numérique, non la preuve d’une culture async-first.",
+          "basis_source_ids": [
+            "EP-1"
+          ],
+          "confidence": "medium"
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "EP-1",
+          "title": "Epishine — careers, Hybrid Remote and HQ & Manufacturing",
+          "url": "https://www.epishine.com/career",
+          "retrieved_at": "2026-09-10",
+          "source_type": "company_careers",
+          "confidence": "high"
+        }
+      ],
+      "missing_information": [
+        "effectif",
+        "compteur/export",
+        "planning production",
+        "échelle énergétique",
+        "champion opérationnel"
+      ],
+      "negative_signals": [
+        {
+          "kind": "public_evidence_gap",
+          "detail": "L’échelle économique et la disponibilité de données ne sont pas documentées publiquement.",
+          "source_id": "EP-1"
+        }
+      ],
+      "related_entities": [],
+      "public_contact": {
+        "decision_maker_or_role": "Head of Manufacturing ou Production Process Development",
+        "professional_email": null,
+        "collection_note": "fonction cible seulement ; aucun nom ou email collecté"
+      },
+      "contradictions": [],
+      "contacting_performed": false,
+      "scoring_performed": false
+    },
+    {
+      "prospect_id": "GB-MACKIES-002",
+      "entity_key": "mackiesofscotland",
+      "name": "Mackie’s of Scotland",
+      "sector": "production laitière, glace, chocolat, froid et emballage sur site",
+      "site_url": "https://www.mackies.co.uk/about-mackies/environment/",
+      "discovered_at": "2026-09-10",
+      "prequalification_status": "CANDIDATE",
+      "facts": [
+        {
+          "field": "employee_count",
+          "value": "environ 80 salariés selon le résumé public LinkedIn",
+          "source_id": "MA-1",
+          "observed_at": "2026-09-10",
+          "confidence": "medium"
+        },
+        {
+          "field": "integrated_process",
+          "value": "la ferme produit glaces, chocolat, emballages et énergie renouvelable sur le même site",
+          "source_id": "MA-2",
+          "observed_at": "2026-09-10",
+          "confidence": "high"
+        },
+        {
+          "field": "energy_system",
+          "value": "éoliennes, solaire, biomasse, réfrigération ammoniaque et production/stockage de glace documentés publiquement",
+          "source_id": "MA-2",
+          "observed_at": "2026-09-10",
+          "confidence": "high"
+        },
+        {
+          "field": "async_signal",
+          "value": "documentation technique détaillée accessible publiquement et candidatures spontanées par email",
+          "source_id": "MA-3",
+          "observed_at": "2026-09-10",
+          "confidence": "low"
+        }
+      ],
+      "inferences": [
+        {
+          "statement": "Les nombreux régimes énergétiques co-localisés sont très adaptés à une investigation, mais leur autoconsommation renouvelable rend la baseline et le périmètre de mesure plus complexes.",
+          "basis_source_ids": [
+            "MA-2"
+          ],
+          "confidence": "high"
+        },
+        {
+          "statement": "Les canaux écrits publics constituent seulement un faible signal async ; aucune culture remote ou processus fournisseur asynchrone n’est démontré.",
+          "basis_source_ids": [
+            "MA-3"
+          ],
+          "confidence": "low"
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "MA-1",
+          "title": "Mackie’s of Scotland — profil entreprise",
+          "url": "https://uk.linkedin.com/company/mackie%27s-of-scotland",
+          "retrieved_at": "2026-09-10",
+          "source_type": "company_social_profile",
+          "confidence": "medium"
+        },
+        {
+          "source_id": "MA-2",
+          "title": "Mackie’s — Environment & Sustainability",
+          "url": "https://www.mackies.co.uk/about-mackies/environment/",
+          "retrieved_at": "2026-09-10",
+          "source_type": "company_website",
+          "confidence": "high"
+        },
+        {
+          "source_id": "MA-3",
+          "title": "Mackie’s — People and careers",
+          "url": "https://www.mackies.co.uk/about-mackies/people/",
+          "retrieved_at": "2026-09-10",
+          "source_type": "company_website",
+          "confidence": "medium"
+        }
+      ],
+      "missing_information": [
+        "export compteur horodaté",
+        "séparation production/ferme/renouvelable",
+        "planning de production",
+        "canal de collaboration fournisseur préféré"
+      ],
+      "negative_signals": [
+        {
+          "kind": "energy_expertise_visible",
+          "detail": "La maîtrise publique des systèmes énergétiques réduit l’hypothèse d’absence d’expertise interne.",
+          "source_id": "MA-2"
+        }
+      ],
+      "related_entities": [],
+      "public_contact": {
+        "decision_maker_or_role": "Managing Director ou directeur d’exploitation ; champion ingénierie/réfrigération",
+        "professional_email": null,
+        "collection_note": "fonction cible seulement ; aucun nom ou email collecté"
+      },
+      "contradictions": [],
+      "contacting_performed": false,
+      "scoring_performed": false
+    },
+    {
+      "prospect_id": "GB-NOTPLA-004",
+      "entity_key": "notpla",
+      "name": "Notpla Limited",
+      "sector": "matériaux d’emballage à base d’algues et procédés de coating/extrusion",
+      "site_url": "https://www.notpla.com/company",
+      "discovered_at": "2026-09-10",
+      "prequalification_status": "UNCERTAIN",
+      "facts": [
+        {
+          "field": "employee_count",
+          "value": "56 membres affichés sur la page entreprise",
+          "source_id": "NP-1",
+          "observed_at": "2026-09-10",
+          "confidence": "high"
+        },
+        {
+          "field": "production_process",
+          "value": "postes publics de coating process engineer et extrusion engineer sur le site de Londres",
+          "source_id": "NP-2",
+          "observed_at": "2026-09-10",
+          "confidence": "high"
+        },
+        {
+          "field": "async_signal",
+          "value": "portail de recrutement, formulaire de message et newsletter ; pas de preuve de politique remote",
+          "source_id": "NP-1",
+          "observed_at": "2026-09-10",
+          "confidence": "medium"
+        }
+      ],
+      "inferences": [
+        {
+          "statement": "Un procédé de coating/extrusion en scale-up peut être pertinent, mais l’autonomie du site, la consommation et l’accès aux séries ne sont pas établis.",
+          "basis_source_ids": [
+            "NP-1",
+            "NP-2"
+          ],
+          "confidence": "medium"
+        },
+        {
+          "statement": "Les canaux numériques publics rendent une approche écrite possible mais ne démontrent pas une collaboration opérationnelle principalement asynchrone.",
+          "basis_source_ids": [
+            "NP-1"
+          ],
+          "confidence": "medium"
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "NP-1",
+          "title": "Notpla — company",
+          "url": "https://www.notpla.com/company",
+          "retrieved_at": "2026-09-10",
+          "source_type": "company_website",
+          "confidence": "high"
+        },
+        {
+          "source_id": "NP-2",
+          "title": "Notpla — careers",
+          "url": "https://notpla.jobs.personio.com/",
+          "retrieved_at": "2026-09-10",
+          "source_type": "company_careers",
+          "confidence": "high"
+        }
+      ],
+      "missing_information": [
+        "compteur/site de production",
+        "maturité de la production série",
+        "horaires",
+        "décideur opérations",
+        "préférence de collaboration"
+      ],
+      "negative_signals": [
+        {
+          "kind": "scaleup_uncertainty",
+          "detail": "Les faits publics indiquent de l’ingénierie de procédé mais pas une production stabilisée ni des données disponibles.",
+          "source_id": "NP-2"
+        }
+      ],
+      "related_entities": [],
+      "public_contact": {
+        "decision_maker_or_role": "Head of Technology & Operations ou Process Engineering",
+        "professional_email": null,
+        "collection_note": "fonction cible seulement ; aucun nom ou email collecté"
+      },
+      "contradictions": [],
+      "contacting_performed": false,
+      "scoring_performed": false
+    },
+    {
+      "prospect_id": "SE-PAPERSHELL-003",
+      "entity_key": "papershell",
+      "name": "PaperShell AB",
+      "sector": "fabrication automatisée de composants bio-composites",
+      "site_url": "https://careers.papershell.se/jobs",
+      "discovered_at": "2026-09-10",
+      "prequalification_status": "CANDIDATE",
+      "facts": [
+        {
+          "field": "employee_count",
+          "value": "24 collaborateurs indiqués sur le site de recrutement",
+          "source_id": "PS-1",
+          "observed_at": "2026-09-10",
+          "confidence": "high"
+        },
+        {
+          "field": "production_process",
+          "value": "installation de production hautement automatisée en Suède, composants B2B fabriqués sur mesure",
+          "source_id": "PS-1",
+          "observed_at": "2026-09-10",
+          "confidence": "high"
+        },
+        {
+          "field": "async_signal",
+          "value": "options de travail à distance lorsque possible, explicitement liées à une approche numérique ; formulaire de contact structuré",
+          "source_id": "PS-2",
+          "observed_at": "2026-09-10",
+          "confidence": "high"
+        }
+      ],
+      "inferences": [
+        {
+          "statement": "Automatisation, production sur mesure et petite équipe rendent plausible une discussion directe sur une ligne ou un site, mais aucun compteur ou ordre de fabrication n’est public.",
+          "basis_source_ids": [
+            "PS-1"
+          ],
+          "confidence": "medium"
+        },
+        {
+          "statement": "La politique de télétravail conditionnel, l’approche numérique et le formulaire constituent un signal async élevé pour un premier échange écrit, sans prouver une analyse sans vérification terrain.",
+          "basis_source_ids": [
+            "PS-2"
+          ],
+          "confidence": "high"
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "PS-1",
+          "title": "PaperShell — careers and automated manufacturing",
+          "url": "https://careers.papershell.se/jobs",
+          "retrieved_at": "2026-09-10",
+          "source_type": "company_careers",
+          "confidence": "high"
+        },
+        {
+          "source_id": "PS-2",
+          "title": "PaperShell — careers, digital approach and contact form",
+          "url": "https://papershell.se/careers/",
+          "retrieved_at": "2026-09-10",
+          "source_type": "company_website",
+          "confidence": "high"
+        }
+      ],
+      "missing_information": [
+        "taille énergétique réelle",
+        "compteur et granularité",
+        "cadence/ordres de fabrication",
+        "horaires de production"
+      ],
+      "negative_signals": [
+        {
+          "kind": "small_scale_risk",
+          "detail": "24 collaborateurs : confirmer que l’énergie et le budget de mission sont matériellement significatifs.",
+          "source_id": "PS-1"
+        }
+      ],
+      "related_entities": [],
+      "public_contact": {
+        "decision_maker_or_role": "CEO/fondateur ou responsable opérations ; champion production/maintenance",
+        "professional_email": null,
+        "collection_note": "fonction cible seulement ; formulaire public disponible"
+      },
+      "contradictions": [],
+      "contacting_performed": false,
+      "scoring_performed": false
+    },
+    {
+      "prospect_id": "NO-VESTRE-001",
+      "entity_key": "vestre",
+      "name": "Vestre",
+      "sector": "fabrication de mobilier urbain en métal et bois",
+      "site_url": "https://www.vestre.com/about-us/company",
+      "discovered_at": "2026-09-10",
+      "prequalification_status": "CANDIDATE",
+      "facts": [
+        {
+          "field": "employee_count",
+          "value": "133 employés mondiaux, chiffre public 2025",
+          "source_id": "VE-1",
+          "observed_at": "2026-09-10",
+          "confidence": "high"
+        },
+        {
+          "field": "production_footprint",
+          "value": "usines en Norvège et Suède ; plus de 90 % de la production contrôlée en interne",
+          "source_id": "VE-2",
+          "observed_at": "2026-09-10",
+          "confidence": "high"
+        },
+        {
+          "field": "energy_visibility",
+          "value": "l’entreprise indique avoir une bonne vue de la consommation énergétique et de la gestion des déchets grâce au contrôle interne de la production",
+          "source_id": "VE-2",
+          "observed_at": "2026-09-10",
+          "confidence": "medium"
+        },
+        {
+          "field": "async_signal",
+          "value": "présence dans 27 marchés et publication de postes commerciaux 100 % remote dans certains pays",
+          "source_id": "VE-3",
+          "observed_at": "2026-09-10",
+          "confidence": "medium"
+        }
+      ],
+      "inferences": [
+        {
+          "statement": "Les usines métal/bois et le contrôle interne de production rendent un export énergétique et un contexte de production plausibles, mais ni granularité ni périmètre de compteur ne sont publics.",
+          "basis_source_ids": [
+            "VE-1",
+            "VE-2"
+          ],
+          "confidence": "medium"
+        },
+        {
+          "statement": "Les postes commerciaux à distance et l’organisation internationale sont un signal raisonnable de collaboration écrite distribuée, sans prouver que l’exploitation fonctionne à distance.",
+          "basis_source_ids": [
+            "VE-3"
+          ],
+          "confidence": "medium"
+        }
+      ],
+      "sources": [
+        {
+          "source_id": "VE-1",
+          "title": "Vestre — Company",
+          "url": "https://www.vestre.com/about-us/company",
+          "retrieved_at": "2026-09-10",
+          "source_type": "company_website",
+          "confidence": "high"
+        },
+        {
+          "source_id": "VE-2",
+          "title": "Vestre FAQ — production interne et usines",
+          "url": "https://vestre.com/no/faq/produksjon/hvor-produserer-dere-moblene",
+          "retrieved_at": "2026-09-10",
+          "source_type": "company_website",
+          "confidence": "high"
+        },
+        {
+          "source_id": "VE-3",
+          "title": "Vestre — publication de postes commerciaux 100 % remote",
+          "url": "https://www.linkedin.com/company/vestre",
+          "retrieved_at": "2026-09-10",
+          "source_type": "company_social_profile",
+          "confidence": "medium"
+        }
+      ],
+      "missing_information": [
+        "périmètre de compteur par usine",
+        "historique horodaté",
+        "horaires et ordres de fabrication",
+        "autonomie locale de décision"
+      ],
+      "negative_signals": [
+        {
+          "kind": "multi_site_complexity",
+          "detail": "Deux usines connues impliquent de qualifier un seul site avant toute proposition.",
+          "source_id": "VE-2"
+        }
+      ],
+      "related_entities": [],
+      "public_contact": {
+        "decision_maker_or_role": "Director of Operations ou directeur d’usine ; champion maintenance/production",
+        "professional_email": null,
+        "collection_note": "fonction cible seulement ; aucun nom ou email collecté"
+      },
+      "contradictions": [],
+      "contacting_performed": false,
+      "scoring_performed": false
+    }
+  ]
+}

@@ -15,7 +15,8 @@
         "economic_value_potential": {"rating": 3, "rationale": "Taille compatible avec une mission PME, mais ni dépense énergétique ni volume de linge ne sont connus."},
         "commercial_accessibility": {"rating": 4, "rationale": "Environ 20 salariés et un site identifié suggèrent une chaîne de décision courte."},
         "absence_internal_energy_expertise": {"rating": 3, "rationale": "Aucune fonction énergie n'est visible, mais son absence réelle ne peut pas être affirmée."},
-        "energy_analyzer_fit": {"rating": 5, "rationale": "Cycles répétitifs, périodes actives/inactives et suivi après correction correspondent directement à l'investigation sur données."}
+        "energy_analyzer_fit": {"rating": 5, "rationale": "Cycles répétitifs, périodes actives/inactives et suivi après correction correspondent directement à l'investigation sur données."},
+        "async_compatibility": {"rating": 3, "rationale": "Compatibilité asynchrone non évaluée dans le lot historique : absence de signal public considérée comme neutre, sans en déduire une préférence."}
       },
       "positive_signals": ["site industriel identifié", "taille PME accessible", "activité répétitive", "engagement énergie public"],
       "negative_signals": ["aucune preuve de données temporelles", "aucun volume ou coût énergétique public"],
@@ -36,7 +37,8 @@
         "economic_value_potential": {"rating": 4, "rationale": "Les volumes et le chiffre d'affaires historiques indiquent une activité assez importante pour qu'une perte persistante soit matérielle."},
         "commercial_accessibility": {"rating": 3, "rationale": "PME identifiable, mais aucun rôle production ou maintenance n'a encore été trouvé."},
         "absence_internal_energy_expertise": {"rating": 3, "rationale": "Aucune expertise énergie interne n'est visible ; l'information est seulement absente."},
-        "energy_analyzer_fit": {"rating": 4, "rationale": "Le suivi de cycles, de baselines et d'intensité de production est pertinent si production et horaires sont disponibles."}
+        "energy_analyzer_fit": {"rating": 4, "rationale": "Le suivi de cycles, de baselines et d'intensité de production est pertinent si production et horaires sont disponibles."},
+        "async_compatibility": {"rating": 3, "rationale": "Compatibilité asynchrone non évaluée dans le lot historique : absence de signal public considérée comme neutre, sans en déduire une préférence."}
       },
       "positive_signals": ["site de production identifié", "20 à 49 salariés", "volume industriel documenté", "procédé thermique plausible"],
       "negative_signals": ["donnée de volume datant de 2021", "équipements et courbes inconnus"],
@@ -57,7 +59,8 @@
         "economic_value_potential": {"rating": 3, "rationale": "L'effectif est dans l'ICP, mais l'échelle de production et la dépense énergétique sont inconnues."},
         "commercial_accessibility": {"rating": 3, "rationale": "PME localisée, sans fonction cible identifiée."},
         "absence_internal_energy_expertise": {"rating": 3, "rationale": "Aucune expertise n'est visible, ce qui ne prouve pas son absence."},
-        "energy_analyzer_fit": {"rating": 3, "rationale": "Compatibilité possible, encore fondée surtout sur le secteur."}
+        "energy_analyzer_fit": {"rating": 3, "rationale": "Compatibilité possible, encore fondée surtout sur le secteur."},
+        "async_compatibility": {"rating": 3, "rationale": "Compatibilité asynchrone non évaluée dans le lot historique : absence de signal public considérée comme neutre, sans en déduire une préférence."}
       },
       "positive_signals": ["taille dans l'ICP", "site manufacturier identifié"],
       "negative_signals": ["aucun équipement ou volume public", "compatibilité trop largement inférée du secteur"],
@@ -78,7 +81,8 @@
         "economic_value_potential": {"rating": 3, "rationale": "Une trentaine de salariés et 1 200 à 1 500 m² sont compatibles avec une mission, sans dépense connue."},
         "commercial_accessibility": {"rating": 3, "rationale": "PME identifiable, mais l'ouverture du capital et l'absence de rôle site identifié ajoutent une incertitude."},
         "absence_internal_energy_expertise": {"rating": 3, "rationale": "Aucune fonction énergie n'est observée ; elle peut néanmoins exister."},
-        "energy_analyzer_fit": {"rating": 5, "rationale": "Le froid continu, les cycles de fabrication et la saisonnalité sont très adaptés aux baselines temporelles et au suivi."}
+        "energy_analyzer_fit": {"rating": 5, "rationale": "Le froid continu, les cycles de fabrication et la saisonnalité sont très adaptés aux baselines temporelles et au suivi."},
+        "async_compatibility": {"rating": 3, "rationale": "Compatibilité asynchrone non évaluée dans le lot historique : absence de signal public considérée comme neutre, sans en déduire une préférence."}
       },
       "positive_signals": ["atelier de production identifié", "taille PME", "froid plausible", "extension récente documentée"],
       "negative_signals": ["aucune consommation publique", "écart de description de surface à clarifier"],
@@ -99,7 +103,8 @@
         "economic_value_potential": {"rating": 4, "rationale": "Capacité de 40 millions de pièces et équipements lourds rendent l'enjeu potentiellement matériel."},
         "commercial_accessibility": {"rating": 2, "rationale": "La structure de groupe rend l'autonomie locale et l'accès au décideur incertains."},
         "absence_internal_energy_expertise": {"rating": 2, "rationale": "Une organisation industrielle de groupe peut déjà disposer de compétences ou contrats énergie."},
-        "energy_analyzer_fit": {"rating": 4, "rationale": "Les cycles machines sont adaptés si les horaires ou compteurs permettent de les contextualiser."}
+        "energy_analyzer_fit": {"rating": 4, "rationale": "Les cycles machines sont adaptés si les horaires ou compteurs permettent de les contextualiser."},
+        "async_compatibility": {"rating": 3, "rationale": "Compatibilité asynchrone non évaluée dans le lot historique : absence de signal public considérée comme neutre, sans en déduire une préférence."}
       },
       "positive_signals": ["équipements précisément documentés", "production en série", "extension récente", "taille locale compatible"],
       "negative_signals": ["autonomie locale inconnue", "expertise groupe possible", "aucune preuve de donnée"],
@@ -120,7 +125,8 @@
         "economic_value_potential": {"rating": 4, "rationale": "L'intensité probable du procédé et la taille de 20 à 49 salariés rendent une dérive potentiellement coûteuse."},
         "commercial_accessibility": {"rating": 4, "rationale": "PME mono-site et structure coopérative identifiée, potentiellement plus directe qu'un grand groupe."},
         "absence_internal_energy_expertise": {"rating": 3, "rationale": "Aucune fonction énergie visible, sans preuve de son absence."},
-        "energy_analyzer_fit": {"rating": 4, "rationale": "Très bon potentiel d'analyse, à condition de contextualiser les campagnes de fusion pour éviter les faux positifs."}
+        "energy_analyzer_fit": {"rating": 4, "rationale": "Très bon potentiel d'analyse, à condition de contextualiser les campagnes de fusion pour éviter les faux positifs."},
+        "async_compatibility": {"rating": 3, "rationale": "Compatibilité asynchrone non évaluée dans le lot historique : absence de signal public considérée comme neutre, sans en déduire une préférence."}
       },
       "positive_signals": ["procédé énergétique explicite", "taille dans l'ICP", "site et organisation identifiés", "potentiel économique plausible"],
       "negative_signals": ["type de fours inconnu", "aucune donnée temporelle confirmée", "production indispensable à l'interprétation"],
@@ -141,7 +147,8 @@
         "economic_value_potential": {"rating": 2, "rationale": "L'échelle économique du laboratoire reste trop peu connue."},
         "commercial_accessibility": {"rating": 3, "rationale": "Organisation identifiable, mais ni taille actuelle ni fonction cible ne sont sourcées."},
         "absence_internal_energy_expertise": {"rating": 3, "rationale": "Aucune expertise n'est visible, sans preuve positive d'absence."},
-        "energy_analyzer_fit": {"rating": 4, "rationale": "Le modèle de laboratoire central est cohérent avec l'analyse horaire si un compteur dédié existe."}
+        "energy_analyzer_fit": {"rating": 4, "rationale": "Le modèle de laboratoire central est cohérent avec l'analyse horaire si un compteur dédié existe."},
+        "async_compatibility": {"rating": 3, "rationale": "Compatibilité asynchrone non évaluée dans le lot historique : absence de signal public considérée comme neutre, sans en déduire une préférence."}
       },
       "positive_signals": ["laboratoire central documenté", "production potentiellement répétitive", "plusieurs points de vente alimentés"],
       "negative_signals": ["taille actuelle inconnue", "équipements et compteur non documentés"],
@@ -162,7 +169,8 @@
         "economic_value_potential": {"rating": 3, "rationale": "4,5 M€ de chiffre d'affaires indiquent une mission plausible, sans facture énergétique ni effectif actuel."},
         "commercial_accessibility": {"rating": 3, "rationale": "Entreprise identifiée, mais actionnariat familial et autonomie du site restent à clarifier."},
         "absence_internal_energy_expertise": {"rating": 3, "rationale": "Aucune fonction énergie n'est visible, sans preuve de son absence."},
-        "energy_analyzer_fit": {"rating": 5, "rationale": "Procédé répétitif et changement récent correspondent particulièrement bien à la détection de dérive et au suivi après correction."}
+        "energy_analyzer_fit": {"rating": 5, "rationale": "Procédé répétitif et changement récent correspondent particulièrement bien à la détection de dérive et au suivi après correction."},
+        "async_compatibility": {"rating": 3, "rationale": "Compatibilité asynchrone non évaluée dans le lot historique : absence de signal public considérée comme neutre, sans en déduire une préférence."}
       },
       "positive_signals": ["extension 2026", "nouveaux équipements", "activité répétitive", "taille économique plausible"],
       "negative_signals": ["horaires disponibles seulement en source de 2015", "effectif et autonomie inconnus", "aucune donnée confirmée"],
@@ -183,7 +191,8 @@
         "economic_value_potential": {"rating": 5, "rationale": "L'échelle publiée rend toute dérive persistante potentiellement matérielle."},
         "commercial_accessibility": {"rating": 1, "rationale": "Trois sites et 400 collaborateurs éloignent le prospect du décideur PME directement accessible."},
         "absence_internal_energy_expertise": {"rating": 0, "rationale": "À cette échelle, il serait imprudent de supposer l'absence d'expertise interne ou de prestataires."},
-        "energy_analyzer_fit": {"rating": 3, "rationale": "Compatible techniquement mais trop complexe pour valider le premier modèle commercial."}
+        "energy_analyzer_fit": {"rating": 3, "rationale": "Compatible techniquement mais trop complexe pour valider le premier modèle commercial."},
+        "async_compatibility": {"rating": 3, "rationale": "Compatibilité asynchrone non évaluée dans le lot historique : absence de signal public considérée comme neutre, sans en déduire une préférence."}
       },
       "positive_signals": ["enjeu énergétique potentiellement élevé", "activité et volumes explicites"],
       "negative_signals": ["hors taille ICP", "multi-sites", "expertise interne probable ou inconnue", "vente plus complexe"],
@@ -204,7 +213,8 @@
         "economic_value_potential": {"rating": 1, "rationale": "Deux personnes rendent difficile d'absorber le coût d'une investigation approfondie."},
         "commercial_accessibility": {"rating": 5, "rationale": "La très petite équipe rend le décideur probablement direct."},
         "absence_internal_energy_expertise": {"rating": 5, "rationale": "Une fonction énergie dédiée est très improbable à cette taille."},
-        "energy_analyzer_fit": {"rating": 3, "rationale": "Les cycles peuvent être analysables, mais la valeur économique et l'instrumentation limitent l'adéquation."}
+        "energy_analyzer_fit": {"rating": 3, "rationale": "Les cycles peuvent être analysables, mais la valeur économique et l'instrumentation limitent l'adéquation."},
+        "async_compatibility": {"rating": 3, "rationale": "Compatibilité asynchrone non évaluée dans le lot historique : absence de signal public considérée comme neutre, sans en déduire une préférence."}
       },
       "positive_signals": ["procédé sur site", "cycles de brassage possibles", "accès probable au dirigeant"],
       "negative_signals": ["équipe de deux personnes", "volume et budget inconnus", "aucune donnée confirmée"],

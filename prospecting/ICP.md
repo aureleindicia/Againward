@@ -5,7 +5,7 @@ réels ; il n’est ni un score ni une règle de classement.
 
 ## Cœur de cible
 
-Petite ou moyenne organisation française disposant d’un site de production, laboratoire ou atelier
+Petite ou moyenne organisation disposant d’un site de production, laboratoire ou atelier
 identifiable, avec un fonctionnement répétitif et un procédé susceptible de produire une courbe de
 charge exploitable. La taille recherchée est généralement de 15 à 150 salariés pour le site ou
 l’entreprise, avec exceptions seulement lorsqu’un élément public justifie le périmètre.
@@ -31,6 +31,7 @@ fait sur l’activité ou le procédé et un fait sur la taille, le site, la cro
 - extension, nouvel équipement, modernisation, changement de capacité ou recrutement de production ;
 - effectif compatible avec une discussion directe avec direction, maintenance ou production ;
 - indice, jamais une supposition déguisée, qu’un compteur ou des données temporelles peuvent exister.
+- signaux publics de compatibilité asynchrone : équipe distribuée, culture remote, documentation écrite, portail ou formulaire numérique ; ils complètent le fit métier sans le remplacer.
 
 ## Signaux négatifs et limites
 

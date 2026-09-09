@@ -75,5 +75,11 @@ class ProspectScoringTests(unittest.TestCase):
         self.assertTrue(all(item["response"] is None for item in tracking["prospects"]))
 
 
+    def test_async_compatibility_is_a_required_scoring_dimension(self) -> None:
+        values = dimensions(3)
+        values.pop("async_compatibility")
+        with self.assertRaisesRegex(ValueError, "Dimensions invalides"):
+            score_module.calculate_score(values)
+
 if __name__ == "__main__":
     unittest.main()

@@ -32,6 +32,10 @@ attribue les notes par dimension et Python vérifie les dimensions, applique les
 écrit `data/scoring_results.json`. Un critère d'exclusion factuel reste prioritaire sur le score
 brut. Un écart de quelques points ne doit pas être interprété comme une différence certaine.
 
+La compatibilité asynchrone est un critère complémentaire : elle repose sur des signaux publics
+traçables (organisation distribuée, canaux écrits, documentation ou portails), ne se déduit pas du
+pays, et ne peut pas compenser un mauvais ajustement industriel ou de données.
+
 `SCORING_REPORT.md` donne le jugement lisible, `data/outreach_preparation.json` prépare uniquement
 les angles des candidats retenus, et `data/commercial_tracking.json` conserve leur état. Aucun de
 ces fichiers ne constitue une autorisation d'envoi.

@@ -6,6 +6,7 @@ manuelles sourcées en un paquet compact et vérifiable pour une phase de jugeme
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import unicodedata
@@ -160,7 +161,8 @@ def _contradictions(prospect: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
-def prepare(raw_path: Path = RAW_PATH, opposition_path: Path = OPPOSITION_PATH) -> dict[str, Any]:
+def prepare(raw_path: Path = RAW_PATH, opposition_path: Path = OPPOSITION_PATH, output_directory: Path | None = None) -> dict[str, Any]:
+    output_directory = output_directory or DATA
     raw = json.loads(raw_path.read_text(encoding="utf-8"))
     opposition = json.loads(opposition_path.read_text(encoding="utf-8"))
     _assert_no_scoring_fields(raw)
@@ -205,22 +207,28 @@ def prepare(raw_path: Path = RAW_PATH, opposition_path: Path = OPPOSITION_PATH) 
         "deduplication_actions": len(audit),
         "opposition_entries_checked": len(opposition.get("oppositions", [])),
     }
-    _write(DATA / "candidates_pre_scoring.json", {
+    output_directory.mkdir(parents=True, exist_ok=True)
+    _write(output_directory / "candidates_pre_scoring.json", {
         "schema_version": 1, "phase": "PRE_SCORING_ONLY", "prospects": candidates,
     })
-    _write(DATA / "rejected_prequalification.json", {
+    _write(output_directory / "rejected_prequalification.json", {
         "schema_version": 1, "phase": "PRE_SCORING_ONLY", "prospects": rejected,
     })
-    _write(DATA / "deduplication_audit.json", {
+    _write(output_directory / "deduplication_audit.json", {
         "schema_version": 1, "actions": audit,
         "relations_retained_without_merge": [
             {"prospect_id": item["prospect_id"], "related_entities": item["related_entities"]}
             for item in prepared if item["related_entities"]
         ],
     })
-    _write(DATA / "preparation_summary.json", summary)
+    _write(output_directory / "preparation_summary.json", summary)
     return summary
 
 
 if __name__ == "__main__":
-    print(json.dumps(prepare(), ensure_ascii=False, indent=2))
+    parser = argparse.ArgumentParser(description="Prépare une veille publique de prospects sans scoring.")
+    parser.add_argument("--raw", type=Path, default=RAW_PATH)
+    parser.add_argument("--opposition", type=Path, default=OPPOSITION_PATH)
+    parser.add_argument("--output-dir", type=Path, default=DATA)
+    args = parser.parse_args()
+    print(json.dumps(prepare(args.raw, args.opposition, args.output_dir), ensure_ascii=False, indent=2))

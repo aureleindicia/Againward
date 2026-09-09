@@ -10,13 +10,14 @@ ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
 
 WEIGHTS = {
-    "energy_potential": 20,
-    "optimization_potential": 18,
-    "probable_data_quality": 12,
-    "economic_value_potential": 15,
-    "commercial_accessibility": 12,
-    "absence_internal_energy_expertise": 8,
-    "energy_analyzer_fit": 15,
+    "energy_potential": 19,
+    "optimization_potential": 17,
+    "probable_data_quality": 11,
+    "economic_value_potential": 14,
+    "commercial_accessibility": 11,
+    "absence_internal_energy_expertise": 7,
+    "energy_analyzer_fit": 13,
+    "async_compatibility": 8,
 }
 
 

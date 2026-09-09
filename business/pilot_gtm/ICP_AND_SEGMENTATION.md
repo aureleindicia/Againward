@@ -2,7 +2,7 @@
 
 ## ICP prioritaire
 
-Une entreprise française industrielle **mono-site**, environ 20–250 salariés, où une personne de direction peut sponsoriser une courte investigation et où un responsable production/maintenance peut expliquer les données. Le site doit avoir un périmètre de compteur connu et au moins 8 semaines d'export horodaté (idéalement 10–60 minutes), avec unité et convention d'intervalle identifiables. Une activité/production, des horaires ou un calendrier d'arrêt renforcent fortement la valeur.
+Une entreprise industrielle **mono-site**, environ 20–250 salariés, où une personne de direction peut sponsoriser une courte investigation et où un responsable production/maintenance peut expliquer les données. Le site doit avoir un périmètre de compteur connu et au moins 8 semaines d'export horodaté (idéalement 10–60 minutes), avec unité et convention d'intervalle identifiables. Une activité/production, des horaires ou un calendrier d'arrêt renforcent fortement la valeur.
 
 Le déclencheur d'achat est concret : facture énergétique qui dérive, doute sur nuits/week-ends/démarrages, baisse de production à énergie stable, besoin de décider où envoyer un mainteneur ou s'il faut sous-compter. La cible n'achète pas « de l'IA » ; elle veut éviter une investigation terrain mal ciblée.
 
@@ -36,5 +36,7 @@ La liste de prospection existante est un point de départ documentaire, pas une 
 | Douleur et décision proche | 15 | question précise, action de vérification possible |
 | Sponsor et champion | 15 | décideur + opérationnel identifiés |
 | Simplicité commerciale | 10 | mono-site, transfert possible, cycle court |
+| Compatibilité asynchrone | complément qualitatif | preuves publiques de communication écrite, équipe distribuée, outils ou portails numériques ; ne compense jamais un mauvais fit ou l’absence de données |
 
 Seuils : `≥75` : proposer pilote ; `55–74` : paid data scoping ou collecte complémentaire ; `<55` : ne pas vendre le pilote standard. Une consommation annuelle inconnue n'est pas éliminatoire, mais elle doit être demandée pour repérer une orientation réglementaire potentielle.
+La compatibilité asynchrone est notée séparément dans le scoring de prospection sur la base de faits publics. Une absence de preuve reste neutre ou incertaine ; elle ne devient ni une préférence ni une exclusion par déduction géographique.
