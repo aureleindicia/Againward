@@ -1,0 +1,184 @@
+{
+  "specification": {
+    "name": "AGAINWARD_FINAL_CLIENT_MISSION_GOAL.md",
+    "sha256": "fa8d846b26132a30c5ade23d61b9f5f827b1e15530c91ef8ac5b8ce892b82bda"
+  },
+  "baseline_commit": "82dcb5446eafa18dc13ac4765df2392b11982a2c",
+  "validated_code_commit": "e48929274af9255ab7ea8debd35636f6f6146f57",
+  "commands": {
+    "baseline": "python -m pytest -q tests prospecting/tests",
+    "targeted": "python -m pytest -q tests/test_contract_policy.py tests/test_report_design.py tests/test_scientific_pilot_learning.py tests/test_privacy_gate.py tests/test_client_workflow_unification.py tests/test_workflow_paths.py",
+    "stale_receipt_after": "python -m pytest -q tests/test_report_design.py tests/test_case_lifecycle.py tests/test_client_workflow_unification.py tests/test_workflow_paths.py",
+    "final_global": "python -m pytest -q tests prospecting/tests",
+    "skill_validation": "quick_validate.py .codex/skills/indicia-client-workflow : Skill is valid!",
+    "privacy_benchmark": "python benchmarks/privacy_gate/benchmark.py --output scratch/final_mission_privacy_benchmark.json",
+    "workflow_benchmark": "python benchmarks/client_workflow/benchmark.py (historical RESULTS.json bytes preserved)",
+    "pdf_generation": "PYTHONPATH=. python workspace/generate_final_mission_reports.py scratch/final_mission_reports_v4"
+  },
+  "test_results": {
+    "baseline": {
+      "log": "validation_logs/baseline.txt",
+      "sha256": "5fd5c52d91f80c2cc91dcdbccecbb5b2d64156ecd6bc1ceea67e60c2733a838d",
+      "summary": "491 passed in 127.79s (0:02:07)",
+      "count": 491,
+      "result": "passed",
+      "elapsed_seconds": 127.79
+    },
+    "targeted": {
+      "log": "validation_logs/targeted.txt",
+      "sha256": "87b8ed79ad4620588b84f7ba0c517dffa2770950c07ea5463e395fcd4384e9f0",
+      "summary": "117 passed in 10.77s",
+      "count": 117,
+      "result": "passed",
+      "elapsed_seconds": 10.77
+    },
+    "heading": {
+      "log": "validation_logs/heading.txt",
+      "sha256": "6229e5309138e0cd512980ed99cec74bcb78afd7da5e0ad7ea310008fb87082d",
+      "summary": "13 passed in 8.15s",
+      "count": 13,
+      "result": "passed",
+      "elapsed_seconds": 8.15
+    },
+    "stale_receipt_before": {
+      "log": "validation_logs/stale_receipt_before.txt",
+      "sha256": "fd558e96283b849c4fba332f666decc5e436233f3956ead20131bfd971e22fe2",
+      "summary": "1 failed in 1.44s",
+      "count": 1,
+      "result": "failed",
+      "elapsed_seconds": 1.44
+    },
+    "stale_receipt_after": {
+      "log": "validation_logs/stale_receipt_after.txt",
+      "sha256": "19d815f6cba820c444e9aca2d19d28181b40d56ccd5d8937a36177a204ff348a",
+      "summary": "57 passed in 9.28s",
+      "count": 57,
+      "result": "passed",
+      "elapsed_seconds": 9.28
+    },
+    "final_global": {
+      "log": "validation_logs/final_global.txt",
+      "sha256": "c72a9555daadb4f69c3a67f085aed6c06ac1cd16ec171bb09b686cb64970a564",
+      "summary": "523 passed in 107.48s (0:01:47)",
+      "count": 523,
+      "result": "passed",
+      "elapsed_seconds": 107.48
+    }
+  },
+  "privacy_benchmark": {
+    "schema_version": "indicia-privacy-benchmark-v1",
+    "synthetic_only": true,
+    "python": "3.14.6",
+    "measurements": [
+      {
+        "rows": 10000,
+        "input_bytes": 325691,
+        "elapsed_seconds": 0.067,
+        "rows_per_second": 148156,
+        "max_rss_kib_process": 77536,
+        "status": "PASS",
+        "approved_for_analysis": true
+      },
+      {
+        "rows": 100000,
+        "input_bytes": 3256561,
+        "elapsed_seconds": 0.352,
+        "rows_per_second": 283750,
+        "max_rss_kib_process": 77536,
+        "status": "PASS",
+        "approved_for_analysis": true
+      },
+      {
+        "rows": 500000,
+        "input_bytes": 16282648,
+        "elapsed_seconds": 1.898,
+        "rows_per_second": 263379,
+        "max_rss_kib_process": 243488,
+        "status": "PASS",
+        "approved_for_analysis": true
+      }
+    ],
+    "assertions": {
+      "all_approved": true,
+      "largest_size_exercised": true
+    }
+  },
+  "workflow_benchmark": {
+    "schema_version": "indicia-client-workflow-benchmark-v1",
+    "synthetic_only": true,
+    "python": "3.14.6",
+    "runs_per_size": 5,
+    "measurements": [
+      {
+        "candidate_count": 10,
+        "unique_semantic_branches": 10,
+        "selected_count": 3,
+        "rejected_count": 7,
+        "median_elapsed_ms": 3.017,
+        "max_peak_traced_bytes": 26574
+      },
+      {
+        "candidate_count": 100,
+        "unique_semantic_branches": 37,
+        "selected_count": 3,
+        "rejected_count": 97,
+        "median_elapsed_ms": 31.147,
+        "max_peak_traced_bytes": 235286
+      },
+      {
+        "candidate_count": 1000,
+        "unique_semantic_branches": 37,
+        "selected_count": 3,
+        "rejected_count": 997,
+        "median_elapsed_ms": 320.263,
+        "max_peak_traced_bytes": 2410813
+      }
+    ],
+    "assertions": {
+      "bounded_selection": true,
+      "semantic_deduplication_exercised": true
+    }
+  },
+  "synthetic_pdf_reviews": {
+    "clear_energy": {
+      "synthetic_only": true,
+      "pdf": "examples/final_client_mission_reports/clear_energy/client_report.pdf",
+      "page_count": 3,
+      "pdf_sha256": "de7034da7f451ffe09885fe58485835472e01c09a03a9dcaa8762482e5e0d58a",
+      "visual_review": "examples/final_client_mission_reports/clear_energy/REPORT_VISUAL_REVIEW.json",
+      "human_delivery_approved": false
+    },
+    "false_lead": {
+      "synthetic_only": true,
+      "pdf": "examples/final_client_mission_reports/false_lead/client_report.pdf",
+      "page_count": 2,
+      "pdf_sha256": "d730504d40d4831ae1dc15b553fee4676b69304d63571b54faddf439f4080d8e",
+      "visual_review": "examples/final_client_mission_reports/false_lead/REPORT_VISUAL_REVIEW.json",
+      "human_delivery_approved": false
+    },
+    "multiple_priorities": {
+      "synthetic_only": true,
+      "pdf": "examples/final_client_mission_reports/multiple_priorities/client_report.pdf",
+      "page_count": 5,
+      "pdf_sha256": "34b2cc013166afc1a2411f1c56382851fc4dca144f9beabba817405bf059f971",
+      "visual_review": "examples/final_client_mission_reports/multiple_priorities/REPORT_VISUAL_REVIEW.json",
+      "human_delivery_approved": false
+    },
+    "useful_abstention": {
+      "synthetic_only": true,
+      "pdf": "examples/final_client_mission_reports/useful_abstention/client_report.pdf",
+      "page_count": 2,
+      "pdf_sha256": "714505d9bfcd2e92ea866f4d907770f67a397fa92b687dc5f5e1e9bbcc08e03d",
+      "visual_review": "examples/final_client_mission_reports/useful_abstention/REPORT_VISUAL_REVIEW.json",
+      "human_delivery_approved": false
+    }
+  },
+  "detectors_changed": false,
+  "ground_truth_or_scoring_changed": false,
+  "benchmark_setup_change": "Explicit synthetic agreement added to the REAL_CLIENT privacy fixture only.",
+  "limitations": [
+    "Synthetic validation only; no commercial value demonstrated.",
+    "No real client human delivery approval fabricated.",
+    "Benchmarks measure narrow tools, not a full real investigation."
+  ]
+}

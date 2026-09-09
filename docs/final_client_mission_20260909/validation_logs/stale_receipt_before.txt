@@ -1,0 +1,39 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_ test_existing_delivery_gate_accepts_only_current_semantic_and_visual_review __
+
+report_case = (PosixPath('/data/data/com.termux/files/usr/tmp/pytest-of-u0_a514/pytest-278/test_existing_delivery_gate_ac0/C-A/c_a')..., 'font_size': 11, ...}, {'component': 'METHODOLOGY', 'content_ref': 'notice', 'box': [...], 'font_size': 11, ...}]}]})
+
+    def test_existing_delivery_gate_accepts_only_current_semantic_and_visual_review(report_case):
+        from tests.test_case_lifecycle import _hypothesis, _review
+        from energy_mvp.case_lifecycle import evaluate_delivery_gate
+        case,m,path,d=report_case;root=case/'investigation'
+        (root/'investigation.json').write_text(json.dumps({'ground_truth_used':False,'hypotheses':[{**_hypothesis('A_CONSERVER_AVEC_RESERVES',request=False), 'terminal_status':'non_identifiable','why_no_further_request':'Limite explicitement non identifiable dans ce test de gate.'}]}))
+        (root/'review.json').write_text(json.dumps(_review()))
+        (root/'report.md').write_text('# Synthèse de test\n')
+        (root/'trace.json').write_text(json.dumps({'entries':[]}))
+        result=render_designed_report(case,m,path,d)
+        human={'status':'approved','approved_for_delivery':True,'reviewer_role':'TEST_HUMAN',
+            'reviewed_at_utc':'2026-09-09T00:00:00+00:00','report_semantic_sha256':result['semantic_sha256']}
+        (root/'human_review.json').write_text(json.dumps(human))
+        assert not evaluate_delivery_gate(case)['ready_for_delivery']
+        record_visual_review(case,{'reviewer_role':'CODEX','pdf_sha256':result['pdf_sha256'],
+            'checks':dict.fromkeys(VISUAL_CHECKS,True),'notes':'Test attestation only; visual inspection is not inferred.'})
+        gate=evaluate_delivery_gate(case)
+        assert gate['ready_for_delivery'], gate['blocking_reasons']
+        styled=copy.deepcopy(d);styled['pages'][0]['blocks'][0]['font_size']=12
+        styled_result=render_designed_report(case,m,path,styled)
+        assert styled_result['semantic_sha256']==human['report_semantic_sha256']
+        record_visual_review(case,{'reviewer_role':'CODEX','pdf_sha256':styled_result['pdf_sha256'],
+            'checks':dict.fromkeys(VISUAL_CHECKS,True),'notes':'Synthetic aesthetic rerender review.'})
+        assert evaluate_delivery_gate(case)['ready_for_delivery']
+        m['executive_summary']['message']='Le résultat doit être réexaminé.';path.write_text(json.dumps(m))
+        assert not evaluate_delivery_gate(case)['ready_for_delivery']
+        receipt=json.loads((case/'outputs/client_report/CLIENT_REPORT_DELIVERY.json').read_text())
+>       assert receipt['approved_for_delivery'] is False
+E       assert True is False
+
+tests/test_report_design.py:125: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_report_design.py::test_existing_delivery_gate_accepts_only_current_semantic_and_visual_review
+1 failed in 1.44s
