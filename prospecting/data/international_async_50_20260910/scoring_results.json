@@ -1,0 +1,3387 @@
+{
+  "schema_version": 1,
+  "scored_at": "2026-09-10",
+  "method": {
+    "scale": "0 à 5 par dimension, puis somme pondérée sur 100",
+    "weights": {
+      "energy_potential": 19,
+      "optimization_potential": 17,
+      "probable_data_quality": 11,
+      "economic_value_potential": 14,
+      "commercial_accessibility": 11,
+      "absence_internal_energy_expertise": 7,
+      "energy_analyzer_fit": 13,
+      "async_compatibility": 8
+    },
+    "display_rule": "arrondi à l'entier ; des écarts de 1 à 3 points ne sont pas significatifs",
+    "priority_rules": {
+      "PRIORITY_A": "72 à 100 sans critère d'exclusion",
+      "PRIORITY_B": "65 à 71 sans critère d'exclusion",
+      "PRIORITY_C": "0 à 64 sans critère d'exclusion ; enrichir avant contact",
+      "REJECTED": "critère d'exclusion factuel, quel que soit le score brut"
+    }
+  },
+  "counts": {
+    "PRIORITY_A": 7,
+    "PRIORITY_B": 32,
+    "PRIORITY_C": 11,
+    "REJECTED": 0
+  },
+  "prospects": [
+    {
+      "prospect_id": "INT50-031",
+      "name": "Des Moines Cold Storage",
+      "sector": "Stockage frigorifique et surgélation",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 75.4,
+      "score_display": 75,
+      "priority": "PRIORITY_A",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 5,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Installations frigorifiques et services de surgélation/tempérage."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Rechercher dérives du froid, effets de chargement et consommation de fond ; grande charge répétitive plausible."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 4,
+          "rationale": "Matérialité supposée à partir du périmètre : 23 200 emplacements froid et 852 en blast annoncés ; effectif inconnu. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Facilities / Refrigeration Manager. Limites : Échelle de groupe et sponsor à préciser ; WMS ne fournit pas automatiquement énergie ou ouvertures de portes."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 5,
+          "rationale": "Fit technique conditionnel : Rechercher dérives du froid, effets de chargement et consommation de fond ; grande charge répétitive plausible. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Portail clients et échanges EDI/non-EDI documentés. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Installations frigorifiques et services de surgélation/tempérage.",
+        "Portail clients et échanges EDI/non-EDI documentés."
+      ],
+      "negative_signals": [
+        "Échelle de groupe et sponsor à préciser ; WMS ne fournit pas automatiquement énergie ou ouvertures de portes."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Un entrepôt dispose-t-il d'une courbe électrique avec volumes entrants, températures et calendrier de surgélation ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Échelle de groupe et sponsor à préciser ; WMS ne fournit pas automatiquement énergie ou ouvertures de portes.",
+      "source_ids_used": [
+        "INT50-031-S1"
+      ]
+    },
+    {
+      "prospect_id": "INT50-033",
+      "name": "HIWA Rotterdam Port Cold Stores",
+      "sector": "Froid et transformation de jus",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 75.4,
+      "score_display": 75,
+      "priority": "PRIORITY_A",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 5,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Stockage froid, traitement de jus, échangeurs et équipements propres à Rotterdam."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Distinguer stockage, transformations et températures ; charge continue propice au suivi de régimes."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 4,
+          "rationale": "Matérialité supposée à partir du périmètre : Plus de 100 000 tonnes/an traitées annoncées ; effectif inconnu. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Technical / Operations Manager. Limites : Tonnes traitées ≠ consommation ; mélange d'activités exige planning et périmètre de compteur. Pages ouvertes en erreur 502 ; faits disponibles dans les résultats indexés, à reconfirmer."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 5,
+          "rationale": "Fit technique conditionnel : Distinguer stockage, transformations et températures ; charge continue propice au suivi de régimes. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "ERP et portail clients avec échanges EDI. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Stockage froid, traitement de jus, échangeurs et équipements propres à Rotterdam.",
+        "ERP et portail clients avec échanges EDI."
+      ],
+      "negative_signals": [
+        "Tonnes traitées ≠ consommation ; mélange d'activités exige planning et périmètre de compteur. Pages ouvertes en erreur 502 ; faits disponibles dans les résultats indexés, à reconfirmer."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Peut-on distinguer stockage et transformation des jus, avec consommations et calendrier d'opérations ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Tonnes traitées ≠ consommation ; mélange d'activités exige planning et périmètre de compteur. Pages ouvertes en erreur 502 ; faits disponibles dans les résultats indexés, à reconfirmer.",
+      "source_ids_used": [
+        "INT50-033-S1",
+        "INT50-033-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-032",
+      "name": "Vanmarcke",
+      "sector": "Logistique frigorifique",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 74.0,
+      "score_display": 74,
+      "priority": "PRIORITY_A",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 5,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Entreposage frigorifique de -25 à +15 °C, solaire et récupération de chaleur."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer consommation frigorifique avec flux et température, surveiller changements durables."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 4,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; plusieurs installations. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Technical Manager / responsable entrepôt. Limites : Ne pas confondre avec Van Marcke sanitaire ; plusieurs sites ; expertise énergie déjà présente."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 1,
+          "rationale": "Efforts énergie/environnement visibles ; ne pas présumer absence d'expertise interne."
+        },
+        "energy_analyzer_fit": {
+          "rating": 5,
+          "rationale": "Fit technique conditionnel : Comparer consommation frigorifique avec flux et température, surveiller changements durables. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "WMS/TMS, EDI, portail et documents d'export numériques. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Entreposage frigorifique de -25 à +15 °C, solaire et récupération de chaleur.",
+        "WMS/TMS, EDI, portail et documents d'export numériques."
+      ],
+      "negative_signals": [
+        "Ne pas confondre avec Van Marcke sanitaire ; plusieurs sites ; expertise énergie déjà présente."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Un site peut-il isoler froid, autoproduction et activité à partir de mesures horodatées ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Ne pas confondre avec Van Marcke sanitaire ; plusieurs sites ; expertise énergie déjà présente.",
+      "source_ids_used": [
+        "INT50-032-S1"
+      ]
+    },
+    {
+      "prospect_id": "INT50-004",
+      "name": "Modist Brewing",
+      "sector": "Brasserie",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 72.6,
+      "score_display": 73,
+      "priority": "PRIORITY_A",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Production, fermentation, centrifugation et nettoyage documentés en poste brasseur."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer brassins, refroidissement et nettoyages ; détecter une charge persistante hors brassage."
+        },
+        "probable_data_quality": {
+          "rating": 3,
+          "rationale": "Mesures énergie UNKNOWN. Traces opérationnelles explicitement documentées ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; salle de brassage 20 bbl. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Head Brewer / directeur opérations. Limites : Fiches 2024–2025 ; ne prouvent pas export compteur ; recettes et autres boissons à séparer."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 5,
+          "rationale": "Fit technique conditionnel : Comparer brassins, refroidissement et nettoyages ; détecter une charge persistante hors brassage. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 4,
+          "rationale": "Même fonction de production : Ekos, brewsheets, tableurs, email et Slack ; deuxième fiche packaging cohérente. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Production, fermentation, centrifugation et nettoyage documentés en poste brasseur.",
+        "Même fonction de production : Ekos, brewsheets, tableurs, email et Slack ; deuxième fiche packaging cohérente."
+      ],
+      "negative_signals": [
+        "Fiches 2024–2025 ; ne prouvent pas export compteur ; recettes et autres boissons à séparer."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Les dates de brassins/CIP conservées dans Ekos peuvent-elles être rapprochées d'un compteur électrique ou thermique ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P1 — preuves async opérationnelles convergentes et fit métier. Fiches 2024–2025 ; ne prouvent pas export compteur ; recettes et autres boissons à séparer.",
+      "source_ids_used": [
+        "INT50-004-S1",
+        "INT50-004-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-034",
+      "name": "Auscool Logistics",
+      "sector": "Entreposage frigorifique",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 73.2,
+      "score_display": 73,
+      "priority": "PRIORITY_A",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 5,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Sites de stockage frigorifique opérés en Australie."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Rechercher changement de niveau de froid et effet d'activité sur un seul entrepôt."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 4,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; Brisbane et Melbourne. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 2,
+          "rationale": "Fonction ciblable : Warehouse / Facilities Manager. Limites : Exclure carburant transport ; taille du groupe, propriété des installations et autonomie à confirmer."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 5,
+          "rationale": "Fit technique conditionnel : Rechercher changement de niveau de froid et effet d'activité sur un seul entrepôt. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Portail WMS, rapports et visibilité des stocks côté client. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Sites de stockage frigorifique opérés en Australie.",
+        "Portail WMS, rapports et visibilité des stocks côté client."
+      ],
+      "negative_signals": [
+        "Exclure carburant transport ; taille du groupe, propriété des installations et autonomie à confirmer."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Un entrepôt peut-il partager un périmètre électrique distinct du transport, avec activité de stockage ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Exclure carburant transport ; taille du groupe, propriété des installations et autonomie à confirmer.",
+      "source_ids_used": [
+        "INT50-034-S1"
+      ]
+    },
+    {
+      "prospect_id": "INT50-035",
+      "name": "Canuck Cold Storage",
+      "sector": "Entreposage frigorifique",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 72.6,
+      "score_display": 73,
+      "priority": "PRIORITY_A",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 5,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Stockage frigorifique à Burlington, activités et accréditations publiées."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Suivre dérives de froid et charge de base à flux comparables ; périmètre de site a priori ciblable."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; site Burlington identifié. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Operations / Facility Manager. Limites : Pas d'accès énergie démontré ; EDI logistique ≠ acceptation d'un analyste extérieur."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 5,
+          "rationale": "Fit technique conditionnel : Suivre dérives de froid et charge de base à flux comparables ; périmètre de site a priori ciblable. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Inspired Inventory, visibilité stocks/poids/lots, portail et EDI. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Stockage frigorifique à Burlington, activités et accréditations publiées.",
+        "Inspired Inventory, visibilité stocks/poids/lots, portail et EDI."
+      ],
+      "negative_signals": [
+        "Pas d'accès énergie démontré ; EDI logistique ≠ acceptation d'un analyste extérieur."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Le site de Burlington conserve-t-il consommation électrique, flux de palettes et consignes de froid ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Pas d'accès énergie démontré ; EDI logistique ≠ acceptation d'un analyste extérieur.",
+      "source_ids_used": [
+        "INT50-035-S1",
+        "INT50-035-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-007",
+      "name": "Fort George Brewery",
+      "sector": "Brasserie",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 71.6,
+      "score_display": 72,
+      "priority": "PRIORITY_A",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Installations de brassage propres à Astoria, dont Waterfront Production Facility."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer campagnes de brassage et froid ; surveiller évolution de consommation hors brassage."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 4,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif non vérifié ; plusieurs installations de brassage. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Production Manager / Head Brewer. Limites : Annonce sur agrégateur ; isoler Waterfront des restaurants et autres brasseries ; poste actuel à confirmer."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 5,
+          "rationale": "Fit technique conditionnel : Comparer campagnes de brassage et froid ; surveiller évolution de consommation hors brassage. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Annonce cellar/shift brewer : documentation des fermentations, transmissions sur Slack ou équivalent ; shifts tournants de quatre journées de dix heures. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Installations de brassage propres à Astoria, dont Waterfront Production Facility.",
+        "Annonce cellar/shift brewer : documentation des fermentations, transmissions sur Slack ou équivalent ; shifts tournants de quatre journées de dix heures."
+      ],
+      "negative_signals": [
+        "Annonce sur agrégateur ; isoler Waterfront des restaurants et autres brasseries ; poste actuel à confirmer."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Waterfront dispose-t-il d'un compteur distinct et des dates de brassage, cave et nettoyage ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Annonce sur agrégateur ; isoler Waterfront des restaurants et autres brasseries ; poste actuel à confirmer.",
+      "source_ids_used": [
+        "INT50-007-S1",
+        "INT50-007-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-002",
+      "name": "OSH Cut",
+      "sector": "Découpe et pliage métal",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 70.6,
+      "score_display": 71,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Atelier propre de découpe laser et pliage, avec logiciel de fabrication interne."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Repérer charge auxiliaire persistante et écarts à production comparable ; découpe réelle et répétée."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 4,
+          "rationale": "Matérialité supposée à partir du périmètre : 50 salariés déclarés en 2024 ; second site annoncé en mai 2026, effectif actuel inconnu. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : COO / responsable production. Limites : Croissance depuis 2024 ; commandes numériques ne prouvent pas achats async ; avis Indeed anonyme non déterminant. Second site annoncé près de Cincinnati en mai 2026 : démarrage et maturité des données à vérifier, privilégier un atelier stabilisé."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Repérer charge auxiliaire persistante et écarts à production comparable ; découpe réelle et répétée. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 4,
+          "rationale": "Fichiers, devis et commandes en ligne ; logiciel d'atelier ; avis Indeed ancien d'un service client remote, corroboration faible. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Atelier propre de découpe laser et pliage, avec logiciel de fabrication interne.",
+        "Fichiers, devis et commandes en ligne ; logiciel d'atelier ; avis Indeed ancien d'un service client remote, corroboration faible."
+      ],
+      "negative_signals": [
+        "Croissance depuis 2024 ; commandes numériques ne prouvent pas achats async ; avis Indeed anonyme non déterminant. Second site annoncé près de Cincinnati en mai 2026 : démarrage et maturité des données à vérifier, privilégier un atelier stabilisé."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Conservez-vous, pour un même atelier, la courbe électrique et les heures ou volumes de découpe correspondants ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P1 — preuves async opérationnelles convergentes et fit métier. Croissance depuis 2024 ; commandes numériques ne prouvent pas achats async ; avis Indeed anonyme non déterminant. Second site annoncé près de Cincinnati en mai 2026 : démarrage et maturité des données à vérifier, privilégier un atelier stabilisé.",
+      "source_ids_used": [
+        "INT50-002-S1",
+        "INT50-002-S2",
+        "INT50-002-S3",
+        "INT50-002-S4",
+        "INT50-002-S5"
+      ]
+    },
+    {
+      "prospect_id": "INT50-005",
+      "name": "Driftwood Brewery",
+      "sector": "Brasserie",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 70.4,
+      "score_display": 70,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Brasserie propre à Victoria et distribution régionale."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Analyser froid et charges de fond, séparer production, nettoyage et usages du site."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif non vérifié ; site de Victoria. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : General Manager / responsable brasserie. Limites : Cas fournisseur promotionnel et non daté ; fonctions précises des utilisateurs et maintien actuel à confirmer."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 5,
+          "rationale": "Fit technique conditionnel : Analyser froid et charges de fond, séparer production, nettoyage et usages du site. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 4,
+          "rationale": "Cas ESW : Teams, partage et gestion documentaire entre départements/sites ; commandes par écrit sur site officiel. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Brasserie propre à Victoria et distribution régionale.",
+        "Cas ESW : Teams, partage et gestion documentaire entre départements/sites ; commandes par écrit sur site officiel."
+      ],
+      "negative_signals": [
+        "Cas fournisseur promotionnel et non daté ; fonctions précises des utilisateurs et maintien actuel à confirmer."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Un site conserve-t-il des mesures énergie horodatées et le calendrier de brassage/nettoyage ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P1 — preuves async opérationnelles convergentes et fit métier. Cas fournisseur promotionnel et non daté ; fonctions précises des utilisateurs et maintien actuel à confirmer.",
+      "source_ids_used": [
+        "INT50-005-S1",
+        "INT50-005-S2",
+        "INT50-005-S3"
+      ]
+    },
+    {
+      "prospect_id": "INT50-048",
+      "name": "Buddy Brew Coffee",
+      "sector": "Torréfaction",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 70.0,
+      "score_display": 70,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Torréfaction et conditionnement à Tampa pour retail/wholesale/grocery."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer campagnes de torréfaction et énergie, examiner préchauffage, extraction et charge de fond."
+        },
+        "probable_data_quality": {
+          "rating": 3,
+          "rationale": "Mesures énergie UNKNOWN. Traces opérationnelles explicitement documentées ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : 100 salariés selon Built In ; estimation non auditée. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Roasting Manager / Operations Director. Limites : Annonce officielle consultable via index mais ouverture directe échouée ; ne pas confondre 100 salariés et effectif usine ; gaz à cadrer."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer campagnes de torréfaction et énergie, examiner préchauffage, extraction et charge de fond. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 4,
+          "rationale": "Annonce production : Slack, planning ShipStation/Cropster, inventaires et documentation. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Torréfaction et conditionnement à Tampa pour retail/wholesale/grocery.",
+        "Annonce production : Slack, planning ShipStation/Cropster, inventaires et documentation."
+      ],
+      "negative_signals": [
+        "Annonce officielle consultable via index mais ouverture directe échouée ; ne pas confondre 100 salariés et effectif usine ; gaz à cadrer."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Le planning Cropster peut-il être rapproché des consommations gaz et électricité de la torréfaction Tampa ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P1 — preuves async opérationnelles convergentes et fit métier. Annonce officielle consultable via index mais ouverture directe échouée ; ne pas confondre 100 salariés et effectif usine ; gaz à cadrer.",
+      "source_ids_used": [
+        "INT50-048-S1",
+        "INT50-048-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-006",
+      "name": "Almanac Beer Co.",
+      "sector": "Brasserie",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 68.8,
+      "score_display": 69,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Brassage, vieillissement et conditionnement dans sa brasserie d'Alameda."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Froid, stockage et conditionnement : comparer périodes et charges récurrentes avec contexte de fabrication."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; 30 000 ft² déclarés. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Director of Operations / Head Brewer. Limites : Preuve écrite issue surtout du taproom ; réunions hebdomadaires également prévues. La fiche keyholder retourne 404 à l’ouverture : indice historique indexé uniquement."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 5,
+          "rationale": "Fit technique conditionnel : Froid, stockage et conditionnement : comparer périodes et charges récurrentes avec contexte de fabrication. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Fiche keyholder : Slack et email quotidiens avec direction et départements de brasserie. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Brassage, vieillissement et conditionnement dans sa brasserie d'Alameda.",
+        "Fiche keyholder : Slack et email quotidiens avec direction et départements de brasserie."
+      ],
+      "negative_signals": [
+        "Preuve écrite issue surtout du taproom ; réunions hebdomadaires également prévues. La fiche keyholder retourne 404 à l’ouverture : indice historique indexé uniquement."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "La consommation de la brasserie d'Alameda peut-elle être isolée du taproom et rapprochée des brassins ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Preuve écrite issue surtout du taproom ; réunions hebdomadaires également prévues. La fiche keyholder retourne 404 à l’ouverture : indice historique indexé uniquement.",
+      "source_ids_used": [
+        "INT50-006-S1",
+        "INT50-006-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-017",
+      "name": "Weerg",
+      "sector": "Usinage CNC et fabrication additive",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 69.0,
+      "score_display": 69,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Production intégrée CNC et additive, annoncée en propre."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer cycles thermiques/additifs et charge de parc CNC, avec ordres et heures de production."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 4,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif non vérifié ; production à Scorzè. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Responsabile produzione / operations. Limites : Maturité numérique élevée peut inclure analyse interne ; diversité des technologies à segmenter."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer cycles thermiques/additifs et charge de parc CNC, avec ordres et heures de production. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Chiffrage automatique de fichiers et parcours de commande international en ligne. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Production intégrée CNC et additive, annoncée en propre.",
+        "Chiffrage automatique de fichiers et parcours de commande international en ligne."
+      ],
+      "negative_signals": [
+        "Maturité numérique élevée peut inclure analyse interne ; diversité des technologies à segmenter."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Un atelier CNC ou MJF à Scorzè peut-il être isolé avec ses consommations et ses campagnes ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Maturité numérique élevée peut inclure analyse interne ; diversité des technologies à segmenter.",
+      "source_ids_used": [
+        "INT50-017-S1",
+        "INT50-017-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-022",
+      "name": "Oceanz",
+      "sector": "Fabrication additive SLS",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 69.0,
+      "score_display": 69,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Parc de fabrication propre aux Pays-Bas et finition."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Parc répétitif suffisamment substantiel pour investiguer cycles, charge de fond et évolution d'intensité."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 4,
+          "rationale": "Matérialité supposée à partir du périmètre : 19 machines EOS SLS annoncées ; effectif inconnu. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Operations Manager / directeur de production. Limites : Portail client ≠ achats async ; certifications et expertise technique interne à respecter. Page du portail bloquée à l'ouverture ; signal retenu à partir de l'extrait indexé, à reconfirmer."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Parc répétitif suffisamment substantiel pour investiguer cycles, charge de fond et évolution d'intensité. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Portail YourOceanz intégré aux étapes de production, fichiers, prix et suivi de commandes. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Parc de fabrication propre aux Pays-Bas et finition.",
+        "Portail YourOceanz intégré aux étapes de production, fichiers, prix et suivi de commandes."
+      ],
+      "negative_signals": [
+        "Portail client ≠ achats async ; certifications et expertise technique interne à respecter. Page du portail bloquée à l'ouverture ; signal retenu à partir de l'extrait indexé, à reconfirmer."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Les étapes suivies dans YourOceanz peuvent-elles être rapprochées de mesures énergie d'un atelier ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Portail client ≠ achats async ; certifications et expertise technique interne à respecter. Page du portail bloquée à l'ouverture ; signal retenu à partir de l'extrait indexé, à reconfirmer.",
+      "source_ids_used": [
+        "INT50-022-S1",
+        "INT50-022-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-001",
+      "name": "Geometric Manufacturing",
+      "sector": "Usinage et tôlerie",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 68.4,
+      "score_display": 68,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : CNC, tôlerie et finition en propre ; périmètre de trois sites à isoler."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer charges hors production et changements de régimes d'un atelier CNC, avec planning et mix pièces."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 4,
+          "rationale": "Matérialité supposée à partir du périmètre : Environ 100 personnes ; 3 sites (site actuel). Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 2,
+          "rationale": "Fonction ciblable : Operations Director / responsable de site. Limites : Étude Slack plus ancienne que la taille actuelle ; clients défense, confidentialité et périmètre de compteur à cadrer. Le site actuel décrit une infrastructure air-gapped : la pratique Slack historique ne prouve pas l'accès actuel aux données."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer charges hors production et changements de régimes d'un atelier CNC, avec planning et mix pièces. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 4,
+          "rationale": "Slack utilisé pour transmissions entre équipes, indicateurs de production et tâches ; étude historique. Transfert à un fournisseur externe : low; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "CNC, tôlerie et finition en propre ; périmètre de trois sites à isoler.",
+        "Slack utilisé pour transmissions entre équipes, indicateurs de production et tâches ; étude historique."
+      ],
+      "negative_signals": [
+        "Étude Slack plus ancienne que la taille actuelle ; clients défense, confidentialité et périmètre de compteur à cadrer. Le site actuel décrit une infrastructure air-gapped : la pratique Slack historique ne prouve pas l'accès actuel aux données."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Un atelier hors périmètre sensible dispose-t-il d'un export énergie et d'un planning partageables avec un prestataire externe ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P3 — enrichir avant proposition : async faible ou périmètre métier incertain. Informations de sécurité / infrastructure air-gapped : confirmer un périmètre énergie non sensible partageable avant toute priorité commerciale.",
+      "source_ids_used": [
+        "INT50-001-S1",
+        "INT50-001-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-003",
+      "name": "G&O Springs",
+      "sector": "Ressorts de précision",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 67.8,
+      "score_display": 68,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Fabrication de ressorts ; extension de site et suivi numérique des étapes de fabrication."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer journées et campagnes similaires, veille d'atelier et variations de charge non expliquées par volumes."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif non vérifié ; site industriel en expansion. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Managing Director / Operations Manager. Limites : Ne pas confondre G&O et Goss Springs ; données énergie non démontrées ; exigences aéronautiques."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer journées et campagnes similaires, veille d'atelier et variations de charge non expliquées par volumes. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 4,
+          "rationale": "Teams partagé par tous, documents atelier sur iPad, application APQP et tableau de production. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Fabrication de ressorts ; extension de site et suivi numérique des étapes de fabrication.",
+        "Teams partagé par tous, documents atelier sur iPad, application APQP et tableau de production."
+      ],
+      "negative_signals": [
+        "Ne pas confondre G&O et Goss Springs ; données énergie non démontrées ; exigences aéronautiques."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Le suivi de fabrication APQP peut-il être rapproché d'un export électrique du site, sans données techniques de pièces ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P1 — preuves async opérationnelles convergentes et fit métier. Ne pas confondre G&O et Goss Springs ; données énergie non démontrées ; exigences aéronautiques.",
+      "source_ids_used": [
+        "INT50-003-S1",
+        "INT50-003-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-008",
+      "name": "Headlands Brewing",
+      "sector": "Brasserie",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 67.4,
+      "score_display": 67,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Production documentée à Pittsburg ; récupération d'eau et électricité renouvelable déclarées."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Examiner froid, nettoyage et charge de fond à production comparable sur Pittsburg."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; production à Pittsburg. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Brewery Operations / Production Manager. Limites : Annonce republiée ; preuve Slack logistique, pas achats ; renouvelable ne signifie pas absence d'écarts."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 1,
+          "rationale": "Efforts énergie/environnement visibles ; ne pas présumer absence d'expertise interne."
+        },
+        "energy_analyzer_fit": {
+          "rating": 5,
+          "rationale": "Fit technique conditionnel : Examiner froid, nettoyage et charge de fond à production comparable sur Pittsburg. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Annonce logistique : documents d'expédition dans Slack, inventaire et opérations de conditionnement. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Production documentée à Pittsburg ; récupération d'eau et électricité renouvelable déclarées.",
+        "Annonce logistique : documents d'expédition dans Slack, inventaire et opérations de conditionnement."
+      ],
+      "negative_signals": [
+        "Annonce republiée ; preuve Slack logistique, pas achats ; renouvelable ne signifie pas absence d'écarts."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Le site de Pittsburg conserve-t-il une courbe d'énergie et un journal de production/nettoyage ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Annonce republiée ; preuve Slack logistique, pas achats ; renouvelable ne signifie pas absence d'écarts.",
+      "source_ids_used": [
+        "INT50-008-S1",
+        "INT50-008-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-013",
+      "name": "LaserBoost",
+      "sector": "Découpe laser et pliage",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Production propre à Manresa, après une première phase de sous-traitance."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer charges laser/auxiliaires et régimes à charge de travail comparable."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : 11–50 selon profil LinkedIn ; à confirmer. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Responsable production / directeur industriel. Limites : Portail de vente, pas politique d'achat ; lien Gonvarri signalé historiquement, autonomie à vérifier."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer charges laser/auxiliaires et régimes à charge de travail comparable. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Téléversement de fichiers, chiffrage, commande, facture et paiement en ligne ; clientèle internationale. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Production propre à Manresa, après une première phase de sous-traitance.",
+        "Téléversement de fichiers, chiffrage, commande, facture et paiement en ligne ; clientèle internationale."
+      ],
+      "negative_signals": [
+        "Portail de vente, pas politique d'achat ; lien Gonvarri signalé historiquement, autonomie à vérifier."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Le site de Manresa dispose-t-il d'un compteur exportable et d'un suivi d'heures de découpe/pliage ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Portail de vente, pas politique d'achat ; lien Gonvarri signalé historiquement, autonomie à vérifier.",
+      "source_ids_used": [
+        "INT50-013-S1",
+        "INT50-013-S2",
+        "INT50-013-S3"
+      ]
+    },
+    {
+      "prospect_id": "INT50-014",
+      "name": "Photoncut / KM Blechbearbeitung",
+      "sector": "Découpe laser et tôlerie",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Fabrication propre de tôlerie."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Charge de fond, aspiration et dérives de régimes à mix de commandes comparable."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif non vérifié ; usine identifiée à Seligenstadt. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Geschäftsführung / Produktionsleitung. Limites : Marque et société comptées une seule fois ; offre digitale de vente seulement."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Charge de fond, aspiration et dérives de régimes à mix de commandes comparable. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Fichiers DXF/STEP, devis et commande en ligne ; documentation de production. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Fabrication propre de tôlerie.",
+        "Fichiers DXF/STEP, devis et commande en ligne ; documentation de production."
+      ],
+      "negative_signals": [
+        "Marque et société comptées une seule fois ; offre digitale de vente seulement."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "La production KM peut-elle rapprocher compteur et heures ou volumes d'ordres de fabrication ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Marque et société comptées une seule fois ; offre digitale de vente seulement.",
+      "source_ids_used": [
+        "INT50-014-S1",
+        "INT50-014-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-015",
+      "name": "LaserMaster",
+      "sector": "Découpe et pliage métal",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Usine propre ; découpe de plaques jusqu'à 3 × 1,5 m selon FAQ."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Analyser charge résiduelle d'atelier et écarts liés au planning de découpe."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif non vérifié ; usine à Redruth. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Managing Director / Production Manager. Limites : Export énergie inconnu ; commandes clients UK ne prouvent pas ouverture à un prestataire étranger."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Analyser charge résiduelle d'atelier et écarts liés au planning de découpe. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Commande en ligne pour cas simples, devis complexes par email et fichiers. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Usine propre ; découpe de plaques jusqu'à 3 × 1,5 m selon FAQ.",
+        "Commande en ligne pour cas simples, devis complexes par email et fichiers."
+      ],
+      "negative_signals": [
+        "Export énergie inconnu ; commandes clients UK ne prouvent pas ouverture à un prestataire étranger."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "L'atelier de Redruth conserve-t-il une courbe électrique et un planning de découpe/pliage ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Export énergie inconnu ; commandes clients UK ne prouvent pas ouverture à un prestataire étranger.",
+      "source_ids_used": [
+        "INT50-015-S1"
+      ]
+    },
+    {
+      "prospect_id": "INT50-016",
+      "name": "Laser 24",
+      "sector": "Découpe et pliage métal",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Usine automatisée à Southend-on-Sea ; fonctionnement 24/7 déclaré."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Étudier veille, aspiration et changements de charge par campagne ; fonctionnement continu matériellement pertinent."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; deux lasers 15 kW annoncés. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Operations Manager / directeur d'usine. Limites : 15 kW désigne les lasers, pas la puissance électrique totale ; usage écrit côté vente uniquement."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Étudier veille, aspiration et changements de charge par campagne ; fonctionnement continu matériellement pertinent. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Formulaire technique puis demande des fichiers CAD par email, validation de dessins et devis. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Usine automatisée à Southend-on-Sea ; fonctionnement 24/7 déclaré.",
+        "Formulaire technique puis demande des fichiers CAD par email, validation de dessins et devis."
+      ],
+      "negative_signals": [
+        "15 kW désigne les lasers, pas la puissance électrique totale ; usage écrit côté vente uniquement."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Le fonctionnement automatisé est-il suivi par un compteur et des journaux d'activité comparables ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. 15 kW désigne les lasers, pas la puissance électrique totale ; usage écrit côté vente uniquement.",
+      "source_ids_used": [
+        "INT50-016-S1",
+        "INT50-016-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-018",
+      "name": "3D People",
+      "sector": "Fabrication additive polymères",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Usine propre de fabrication additive polymères, production série."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer préchauffage, campagnes, refroidissement et utilisation des équipements ; pas supposer que toute durée inactive est inutile."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; usine industrielle UK. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Production Manager / cofondateur opérations. Limites : Volume et coût électrique réels inconnus ; production numérique ne prouve pas suivi énergie."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer préchauffage, campagnes, refroidissement et utilisation des équipements ; pas supposer que toute durée inactive est inutile. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "PartsVault conserve spécifications, commandes et réassorts ; fichiers et devis numériques. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Usine propre de fabrication additive polymères, production série.",
+        "PartsVault conserve spécifications, commandes et réassorts ; fichiers et devis numériques."
+      ],
+      "negative_signals": [
+        "Volume et coût électrique réels inconnus ; production numérique ne prouve pas suivi énergie."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Les dates de campagnes et chauffe sont-elles conservées avec un export électrique de l'usine ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Volume et coût électrique réels inconnus ; production numérique ne prouve pas suivi énergie.",
+      "source_ids_used": [
+        "INT50-018-S1",
+        "INT50-018-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-020",
+      "name": "Midlands 3D",
+      "sector": "Fabrication additive polymères",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Usine à Stone, technologies possédées et exploitées, production 24/7 annoncée."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer fonctionnement thermique et taux d'occupation des campagnes, repérer changements persistants."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; usine agrandie en 2025. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Managing Director / Production Manager. Limites : Fort investissement récent : référence historique à segmenter ; consultation téléphonique proposée pour cas complexes."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer fonctionnement thermique et taux d'occupation des campagnes, repérer changements persistants. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Upload, devis et commande numériques ; confidentialité et documentation technique. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Usine à Stone, technologies possédées et exploitées, production 24/7 annoncée.",
+        "Upload, devis et commande numériques ; confidentialité et documentation technique."
+      ],
+      "negative_signals": [
+        "Fort investissement récent : référence historique à segmenter ; consultation téléphonique proposée pour cas complexes."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Avez-vous des mesures comparables depuis le changement de site de 2025, avec les campagnes et équipements en service ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Fort investissement récent : référence historique à segmenter ; consultation téléphonique proposée pour cas complexes.",
+      "source_ids_used": [
+        "INT50-020-S1",
+        "INT50-020-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-021",
+      "name": "Parts on Demand",
+      "sector": "Fabrication additive SLS",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Fabrication additive de séries industrielles."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer énergie de campagnes similaires, attentes thermiques et opérations de finition."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; production de séries. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Operations Manager / directeur production. Limites : Taille et volumes réels inconnus ; nombre de pièces proposé commercialement n'est pas production observée."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer énergie de campagnes similaires, attentes thermiques et opérations de finition. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Fichiers 3D, devis et spécifications techniques publiées pour commande en ligne. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Fabrication additive de séries industrielles.",
+        "Fichiers 3D, devis et spécifications techniques publiées pour commande en ligne."
+      ],
+      "negative_signals": [
+        "Taille et volumes réels inconnus ; nombre de pièces proposé commercialement n'est pas production observée."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Pouvez-vous identifier des campagnes SLS comparables et un historique d'énergie correspondant ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Taille et volumes réels inconnus ; nombre de pièces proposé commercialement n'est pas production observée.",
+      "source_ids_used": [
+        "INT50-021-S1",
+        "INT50-021-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-023",
+      "name": "Rapidobject",
+      "sector": "Fabrication additive métal et polymères",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Production métal SLM interne documentée."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Analyser utilisation des équipements, cycles thermiques et post-traitement à mix comparable."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; production à Leipzig. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Produktionsleitung / Geschäftsführung. Limites : Distinguer technologies internes des services externes ; données temporelles non publiques."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Analyser utilisation des équipements, cycles thermiques et post-traitement à mix comparable. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Devis conservés, suivi des commandes et confirmations par email ; fichiers techniques. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Production métal SLM interne documentée.",
+        "Devis conservés, suivi des commandes et confirmations par email ; fichiers techniques."
+      ],
+      "negative_signals": [
+        "Distinguer technologies internes des services externes ; données temporelles non publiques."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Le SLM interne dispose-t-il d'un compteur et d'un historique de campagnes indépendant des activités sous-traitées ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Distinguer technologies internes des services externes ; données temporelles non publiques.",
+      "source_ids_used": [
+        "INT50-023-S1",
+        "INT50-023-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-024",
+      "name": "Formero",
+      "sector": "Fabrication additive",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Fabrication additive et post-traitement à Melbourne."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer campagnes MJF, cycles de chauffe et demandes de production."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; usine de Melbourne. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Operations Manager / Manufacturing Manager. Limites : Ne pas attribuer tous les procédés vendus à l'usine locale ; décideur et facture inconnus."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer campagnes MJF, cycles de chauffe et demandes de production. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Portail Synter et communication publique de production MJF interne, devis par fichiers. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Fabrication additive et post-traitement à Melbourne.",
+        "Portail Synter et communication publique de production MJF interne, devis par fichiers."
+      ],
+      "negative_signals": [
+        "Ne pas attribuer tous les procédés vendus à l'usine locale ; décideur et facture inconnus."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Les productions MJF à Melbourne peuvent-elles être isolées avec leurs dates et une mesure d'énergie ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Ne pas attribuer tous les procédés vendus à l'usine locale ; décideur et facture inconnus.",
+      "source_ids_used": [
+        "INT50-024-S1",
+        "INT50-024-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-030",
+      "name": "Mackie's of Scotland",
+      "sector": "Glaces, chocolat et emballages",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.0,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 5,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Production intégrée et froid, avec production énergétique sur site."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Froid et charge inactive présentent un bon périmètre potentiel ; séparer consommation et autoproduction."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 4,
+          "rationale": "Matérialité supposée à partir du périmètre : Environ 80 selon dossier antérieur ; à reconfirmer. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 2,
+          "rationale": "Fonction ciblable : Operations Director / Engineering Manager. Limites : Expertise énergie visible, comptage complexe ; trop peu d'indices async pour premier lot."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 1,
+          "rationale": "Efforts énergie/environnement visibles ; ne pas présumer absence d'expertise interne."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Froid et charge inactive présentent un bon périmètre potentiel ; séparer consommation et autoproduction. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 1,
+          "rationale": "Documentation environnementale et email ; aucune preuve retenue d'async opérationnel. Transfert à un fournisseur externe : low; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Production intégrée et froid, avec production énergétique sur site.",
+        "Documentation environnementale et email ; aucune preuve retenue d'async opérationnel."
+      ],
+      "negative_signals": [
+        "Expertise énergie visible, comptage complexe ; trop peu d'indices async pour premier lot."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Un compteur permet-il de distinguer la consommation production/froid de l'autoproduction et des échanges réseau ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P3 — enrichir avant proposition : async faible ou périmètre métier incertain. Expertise énergie visible, comptage complexe ; trop peu d'indices async pour premier lot.",
+      "source_ids_used": [
+        "INT50-030-S1",
+        "INT50-030-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-036",
+      "name": "RAM3D",
+      "sector": "Fabrication additive métal",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Fabrication additive métal dans un site propre documenté."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer charges de campagnes métal, post-traitement et périodes d'attente."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; usine à Tauranga. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Operations Manager / directeur usine. Limites : Cas de processus ancien ; marchés défense possibles ; confidentialité et compteur distinct à qualifier."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer charges de campagnes métal, post-traitement et périodes d'attente. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Processus client documenté, fichiers CAD et demandes initiales par écrit/online. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Fabrication additive métal dans un site propre documenté.",
+        "Processus client documenté, fichiers CAD et demandes initiales par écrit/online."
+      ],
+      "negative_signals": [
+        "Cas de processus ancien ; marchés défense possibles ; confidentialité et compteur distinct à qualifier."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Des campagnes métal comparables et leurs dates de chauffe peuvent-elles être rapprochées d'un compteur non sensible ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Cas de processus ancien ; marchés défense possibles ; confidentialité et compteur distinct à qualifier.",
+      "source_ids_used": [
+        "INT50-036-S1",
+        "INT50-036-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-037",
+      "name": "THINK3D",
+      "sector": "Usinage, injection et additive",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Installation propre de Visakhapatnam ; siège Hyderabad."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer campagnes et charge inactive sur un procédé isolé, plutôt qu'un total multi-technologies."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Parcs CNC et additive détaillés ; effectif inconnu. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Plant Head / Operations Manager. Limites : Chiffres de parc variables selon page ; ne pas additionner ; site/siège distincts ; budget local à qualifier."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer campagnes et charge inactive sur un procédé isolé, plutôt qu'un total multi-technologies. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Upload, devis par email et documentation de fabrication en anglais. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Installation propre de Visakhapatnam ; siège Hyderabad.",
+        "Upload, devis par email et documentation de fabrication en anglais."
+      ],
+      "negative_signals": [
+        "Chiffres de parc variables selon page ; ne pas additionner ; site/siège distincts ; budget local à qualifier."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Quel atelier de Visakhapatnam offre un historique stable d'énergie et d'ordres de fabrication ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Chiffres de parc variables selon page ; ne pas additionner ; site/siège distincts ; budget local à qualifier.",
+      "source_ids_used": [
+        "INT50-037-S1",
+        "INT50-037-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-038",
+      "name": "Beta LAYOUT / PCB-POOL",
+      "sector": "Fabrication PCB et assemblage",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Fabrication de circuits imprimés dans sa propre usine allemande."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Investiguer profils de bains, fours et ventilation seulement sur procédés réellement internes et comparables."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif non vérifié ; usine allemande. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Produktionsleitung / Betriebsleitung. Limites : Marques comptées une fois ; confirmer procédés chimiques internes et autonomie du site ; données énergie inconnues."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Investiguer profils de bains, fours et ventilation seulement sur procédés réellement internes et comparables. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Upload de conception, calcul de devis PCB/assemblage, documentation et suivi numérique. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Fabrication de circuits imprimés dans sa propre usine allemande.",
+        "Upload de conception, calcul de devis PCB/assemblage, documentation et suivi numérique."
+      ],
+      "negative_signals": [
+        "Marques comptées une fois ; confirmer procédés chimiques internes et autonomie du site ; données énergie inconnues."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Quels procédés sont réellement internes à l'usine et ont un compteur et un calendrier exploitables ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Marques comptées une fois ; confirmer procédés chimiques internes et autonomie du site ; données énergie inconnues.",
+      "source_ids_used": [
+        "INT50-038-S1",
+        "INT50-038-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-040",
+      "name": "3ERP",
+      "sector": "Usinage et injection",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Usine principale à Zhongshan, fabrication CNC et injection."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Charges auxiliaires et stabilité énergétique à campagne comparable sur site principal."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; usine Zhongshan. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Factory / Operations Manager. Limites : Volume et horaires inconnus ; portefeuille international ne garantit ni export énergie ni accès fournisseur."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Charges auxiliaires et stabilité énergétique à campagne comparable sur site principal. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Fichiers CAD, analyse de fabricabilité et chiffrage numérique ; échanges en anglais. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Usine principale à Zhongshan, fabrication CNC et injection.",
+        "Fichiers CAD, analyse de fabricabilité et chiffrage numérique ; échanges en anglais."
+      ],
+      "negative_signals": [
+        "Volume et horaires inconnus ; portefeuille international ne garantit ni export énergie ni accès fournisseur."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Le site de Zhongshan dispose-t-il d'un historique énergie et d'heures CNC/injection ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Volume et horaires inconnus ; portefeuille international ne garantit ni export énergie ni accès fournisseur.",
+      "source_ids_used": [
+        "INT50-040-S1",
+        "INT50-040-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-041",
+      "name": "WayKen",
+      "sector": "Usinage CNC",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Usine Shenzhen ; travail 24/7 annoncé."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparaison de charge CNC et auxiliaires, dérives sur journées similaires."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : 60+ employés et 16 CNC déclarés. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Factory Manager / Operations. Limites : Chiffres déclarés par fournisseur, non audités ; mix prototypes à contrôler ; coût de l'énergie non connu."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparaison de charge CNC et auxiliaires, dérives sur journées similaires. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Envoi de fichiers par email, devis et documentation technique en anglais. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Usine Shenzhen ; travail 24/7 annoncé.",
+        "Envoi de fichiers par email, devis et documentation technique en anglais."
+      ],
+      "negative_signals": [
+        "Chiffres déclarés par fournisseur, non audités ; mix prototypes à contrôler ; coût de l'énergie non connu."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Le site de Shenzhen peut-il rapprocher compteur électrique et charge de travail des CNC sur plusieurs semaines ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Chiffres déclarés par fournisseur, non audités ; mix prototypes à contrôler ; coût de l'énergie non connu.",
+      "source_ids_used": [
+        "INT50-041-S1",
+        "INT50-041-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-042",
+      "name": "eMachineShop / Micro Logic",
+      "sector": "Usinage et découpe",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Installation principale de fabrication à Mahwah, CNC et découpe."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer charge d'atelier et jours similaires ; charge de fond et fonctionnement hors travail."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; site Mahwah identifié. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Manufacturing / Operations Manager. Limites : Ne pas attribuer toutes finitions vendues au même site ; autonomie de la division et taille à préciser."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer charge d'atelier et jours similaires ; charge de fond et fonctionnement hors travail. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "CAD, prix, validation et commande en ligne, aide technique documentée. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Installation principale de fabrication à Mahwah, CNC et découpe.",
+        "CAD, prix, validation et commande en ligne, aide technique documentée."
+      ],
+      "negative_signals": [
+        "Ne pas attribuer toutes finitions vendues au même site ; autonomie de la division et taille à préciser."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Le site de Mahwah peut-il isoler sa consommation des finitions externes et fournir un calendrier d'atelier ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Ne pas attribuer toutes finitions vendues au même site ; autonomie de la division et taille à préciser.",
+      "source_ids_used": [
+        "INT50-042-S1",
+        "INT50-042-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-043",
+      "name": "Newbury Electronics / PCB Train",
+      "sector": "Fabrication et assemblage PCB",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Fabricant PCB et assemblage ; PCB Train est une marque/division."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer fours, ventilation et campagnes d'assemblage ; vérifier périmètre des procédés PCB."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif non vérifié ; fabrication à Newbury. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Production / Operations Director. Limites : Une seule société, pas deux prospects ; mix prototypes et séries peut expliquer les variations."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer fours, ventilation et campagnes d'assemblage ; vérifier périmètre des procédés PCB. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Devis en ligne, données de fabrication transmises par écrit, spécifications détaillées. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Fabricant PCB et assemblage ; PCB Train est une marque/division.",
+        "Devis en ligne, données de fabrication transmises par écrit, spécifications détaillées."
+      ],
+      "negative_signals": [
+        "Une seule société, pas deux prospects ; mix prototypes et séries peut expliquer les variations."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "La fabrication et l'assemblage à Newbury ont-ils des compteurs et un suivi de campagnes comparables ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Une seule société, pas deux prospects ; mix prototypes et séries peut expliquer les variations.",
+      "source_ids_used": [
+        "INT50-043-S1",
+        "INT50-043-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-044",
+      "name": "ABL Circuits",
+      "sector": "Fabrication PCB et assemblage",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Prototypage, fabrication et assemblage sous un même toit."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer charge de site, ventilation et campagnes ; identifier écarts persistants défendables."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; site Baldock. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Managing Director / Production Manager. Limites : Devis technique seulement : pas preuve de culture async générale ; faible série et énergie réelle à confirmer."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer charge de site, ventilation et campagnes ; identifier écarts persistants défendables. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Formulaire technique de devis PCB avec fichiers et spécifications. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Prototypage, fabrication et assemblage sous un même toit.",
+        "Formulaire technique de devis PCB avec fichiers et spécifications."
+      ],
+      "negative_signals": [
+        "Devis technique seulement : pas preuve de culture async générale ; faible série et énergie réelle à confirmer."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Le site de Baldock dispose-t-il d'une courbe énergie et d'un calendrier de fabrication/assemblage ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Devis technique seulement : pas preuve de culture async générale ; faible série et énergie réelle à confirmer.",
+      "source_ids_used": [
+        "INT50-044-S1",
+        "INT50-044-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-046",
+      "name": "Extract Coffee Roasters",
+      "sector": "Torréfaction",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Torréfaction et conditionnement propres à Bristol."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer énergie par campagne, préchauffage, extraction et attentes ; distinguer gaz et électricité."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; production à Bristol. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Head of Coffee / Production Manager. Limites : Preuve Slack sociale plutôt que production ; courant seul peut manquer énergie thermique ; volume à qualifier."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer énergie par campagne, préchauffage, extraction et attentes ; distinguer gaz et électricité. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Slack documenté pour échanges d'équipe ; rapport d'absences quotidien par email cité chez Timetastic. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Torréfaction et conditionnement propres à Bristol.",
+        "Slack documenté pour échanges d'équipe ; rapport d'absences quotidien par email cité chez Timetastic."
+      ],
+      "negative_signals": [
+        "Preuve Slack sociale plutôt que production ; courant seul peut manquer énergie thermique ; volume à qualifier."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "L'équipe Bristol conserve-t-elle les dates et volumes de torréfaction avec consommation gaz et électricité ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Preuve Slack sociale plutôt que production ; courant seul peut manquer énergie thermique ; volume à qualifier.",
+      "source_ids_used": [
+        "INT50-046-S1",
+        "INT50-046-S2",
+        "INT50-046-S3"
+      ]
+    },
+    {
+      "prospect_id": "INT50-047",
+      "name": "Clifton Coffee Roasters",
+      "sector": "Torréfaction",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Torréfaction propre depuis 2013 à Bristol/Avonmouth."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Régimes de chauffe, extraction et calendrier de torréfaction peuvent être confrontés à des traces de production."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : 27 salariés dans ancien cas 2018 ; effectif actuel inconnu. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Head of Production / directeur torréfaction. Limites : Cas de déploiement 2018, pas preuve de politique 2026 ; structure juridique actuelle à préciser ; gaz indispensable si procédé au gaz."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Régimes de chauffe, extraction et calendrier de torréfaction peuvent être confrontés à des traces de production. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Cas historique : Teams, Forms, documents de maintenance et checklist numérique d'ouverture de la torréfaction. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Torréfaction propre depuis 2013 à Bristol/Avonmouth.",
+        "Cas historique : Teams, Forms, documents de maintenance et checklist numérique d'ouverture de la torréfaction."
+      ],
+      "negative_signals": [
+        "Cas de déploiement 2018, pas preuve de politique 2026 ; structure juridique actuelle à préciser ; gaz indispensable si procédé au gaz."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "La torréfaction Avonmouth conserve-t-elle encore ses journaux opérationnels et les données gaz/électricité ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Cas de déploiement 2018, pas preuve de politique 2026 ; structure juridique actuelle à préciser ; gaz indispensable si procédé au gaz.",
+      "source_ids_used": [
+        "INT50-047-S1",
+        "INT50-047-S2",
+        "INT50-047-S3"
+      ]
+    },
+    {
+      "prospect_id": "INT50-050",
+      "name": "INARU",
+      "sector": "Fabrication de chocolat",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 66.2,
+      "score_display": 66,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Transformation intégrée de cacao et fabrication de chocolat en République dominicaine."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Étudier charges thermiques/refroidissement et campagnes de chocolat, avec volumes et contexte."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif actuel inconnu ; usine propre. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Factory / Operations Manager. Limites : Preuve Slack historique, périmètre exact inconnu ; capacité et coût actuels à confirmer."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Étudier charges thermiques/refroidissement et campagnes de chocolat, avec volumes et contexte. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Étude Tufts 2024 : Slack associé à l'équipe usine ; entreprise exportatrice anglophone. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Transformation intégrée de cacao et fabrication de chocolat en République dominicaine.",
+        "Étude Tufts 2024 : Slack associé à l'équipe usine ; entreprise exportatrice anglophone."
+      ],
+      "negative_signals": [
+        "Preuve Slack historique, périmètre exact inconnu ; capacité et coût actuels à confirmer."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "L'usine conserve-t-elle volumes par campagne, dates et mesures des usages thermiques/électriques ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Preuve Slack historique, périmètre exact inconnu ; capacité et coût actuels à confirmer.",
+      "source_ids_used": [
+        "INT50-050-S1",
+        "INT50-050-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-009",
+      "name": "Backcountry Brewing",
+      "sector": "Brasserie",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 64.6,
+      "score_display": 65,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Brasserie propre en expansion depuis 2017."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer froid et brassins, charge nocturne et intensité à volume comparable."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; brasserie de Squamish. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Head Brewer / Operations Manager. Limites : Slack marketing ne vaut pas collaboration avec opérations ; capacité annuelle et exports inconnus."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer froid et brassins, charge nocturne et intensité à volume comparable. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 2,
+          "rationale": "Témoignage Ekos sur équipe marketing : Slack partagé avec l'équipe ; périmètre production non prouvé. Transfert à un fournisseur externe : low; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Brasserie propre en expansion depuis 2017.",
+        "Témoignage Ekos sur équipe marketing : Slack partagé avec l'équipe ; périmètre production non prouvé."
+      ],
+      "negative_signals": [
+        "Slack marketing ne vaut pas collaboration avec opérations ; capacité annuelle et exports inconnus."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Le site de Squamish a-t-il une courbe d'énergie et des dates de brassins accessibles à l'équipe production ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P3 — enrichir avant proposition : async faible ou périmètre métier incertain. Slack marketing ne vaut pas collaboration avec opérations ; capacité annuelle et exports inconnus.",
+      "source_ids_used": [
+        "INT50-009-S1",
+        "INT50-009-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-049",
+      "name": "Tony's Coffee",
+      "sector": "Torréfaction",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 64.8,
+      "score_display": 65,
+      "priority": "PRIORITY_B",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Torréfaction propre ; amélioration d'efficacité et suivi environnemental déclarés."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer fonctionnement actuel et campagnes ; réfuter écarts dus au mix ; maintien de performance après changements."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; torréfaction à Bellingham. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Production / Roastery Manager. Limites : Expertise et efforts énergie déjà présents ; ne pas promettre nouveau gisement ; gaz/électricité à séparer."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 1,
+          "rationale": "Efforts énergie/environnement visibles ; ne pas présumer absence d'expertise interne."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer fonctionnement actuel et campagnes ; réfuter écarts dus au mix ; maintien de performance après changements. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Annonce directe de conditionnement : communication interéquipes par email et Asana. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Torréfaction propre ; amélioration d'efficacité et suivi environnemental déclarés.",
+        "Annonce directe de conditionnement : communication interéquipes par email et Asana."
+      ],
+      "negative_signals": [
+        "Expertise et efforts énergie déjà présents ; ne pas promettre nouveau gisement ; gaz/électricité à séparer."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Les campagnes actuelles et leurs consommations sont-elles comparables pour vérifier le maintien des performances déjà améliorées ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P2 — fit métier et échanges écrits plausibles ; valider le transfert. Expertise et efforts énergie déjà présents ; ne pas promettre nouveau gisement ; gaz/électricité à séparer.",
+      "source_ids_used": [
+        "INT50-049-S1",
+        "INT50-049-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-019",
+      "name": "3DPRINTUK",
+      "sector": "Fabrication additive polymères",
+      "prequalification_status": "UNCERTAIN",
+      "score_exact": 64.0,
+      "score_display": 64,
+      "priority": "PRIORITY_C",
+      "score_confidence": "low",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Production SLS/MJF et post-traitement au Royaume-Uni."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Charges thermiques répétées et variabilité des campagnes à isoler ; utilité conditionnée à accès d'un site."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif inconnu ; groupe Solid Solutions/TriMech. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 2,
+          "rationale": "Fonction ciblable : Production / Operations Manager du site. Limites : Acquisition 2023 : autonomie d'achat et expertise de groupe inconnues ; pas une PME indépendante supposée."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Charges thermiques répétées et variabilité des campagnes à isoler ; utilité conditionnée à accès d'un site. Statut : CONDITIONAL"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Parcours de devis et commande en ligne de fichiers 3D. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Production SLS/MJF et post-traitement au Royaume-Uni.",
+        "Parcours de devis et commande en ligne de fichiers 3D."
+      ],
+      "negative_signals": [
+        "Acquisition 2023 : autonomie d'achat et expertise de groupe inconnues ; pas une PME indépendante supposée."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Le responsable du site dispose-t-il de l'autonomie et des données nécessaires à une étude externe limitée ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P3 — enrichir avant proposition : async faible ou périmètre métier incertain. Acquisition 2023 : autonomie d'achat et expertise de groupe inconnues ; pas une PME indépendante supposée.",
+      "source_ids_used": [
+        "INT50-019-S1",
+        "INT50-019-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-039",
+      "name": "Imaginarium",
+      "sector": "Fabrication additive et outillage",
+      "prequalification_status": "UNCERTAIN",
+      "score_exact": 64.0,
+      "score_display": 64,
+      "priority": "PRIORITY_C",
+      "score_confidence": "low",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Outillage et essais de moules en propre, activité de fabrication additive."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer consommations d'essais et campagnes sur un atelier stable ; séparer prototypes et séries."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif non vérifié ; installation outillage documentée. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 2,
+          "rationale": "Fonction ciblable : Manufacturing / Operations Head. Limites : Multiples métiers et implantation à isoler ; prototype variable peut rendre baseline faible."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer consommations d'essais et campagnes sur un atelier stable ; séparer prototypes et séries. Statut : CONDITIONAL"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Plateforme Rapid Online Factory et parcours documenté de commande technique. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Outillage et essais de moules en propre, activité de fabrication additive.",
+        "Plateforme Rapid Online Factory et parcours documenté de commande technique."
+      ],
+      "negative_signals": [
+        "Multiples métiers et implantation à isoler ; prototype variable peut rendre baseline faible."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Un atelier d'outillage dispose-t-il de campagnes assez répétées et de mesures pour distinguer essais et fabrication ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P3 — enrichir avant proposition : async faible ou périmètre métier incertain. Multiples métiers et implantation à isoler ; prototype variable peut rendre baseline faible.",
+      "source_ids_used": [
+        "INT50-039-S1",
+        "INT50-039-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-045",
+      "name": "Bittele Electronics",
+      "sector": "Assemblage électronique",
+      "prequalification_status": "UNCERTAIN",
+      "score_exact": 64.0,
+      "score_display": 64,
+      "priority": "PRIORITY_C",
+      "score_confidence": "low",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Installations d'assemblage dans plusieurs pays déclarées."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Analyser fours de refusion et auxiliaires d'un seul site avec mix et cadence."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif non vérifié ; plusieurs usines. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 2,
+          "rationale": "Fonction ciblable : Plant Operations Manager d'un site. Limites : Périmètre international et autonomie de décision inconnus ; ne pas qualifier groupe entier comme PME mono-site."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Analyser fours de refusion et auxiliaires d'un seul site avec mix et cadence. Statut : CONDITIONAL"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "BOM/fichiers, devis et DFM en ligne ; coordination siège/usines documentée. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Installations d'assemblage dans plusieurs pays déclarées.",
+        "BOM/fichiers, devis et DFM en ligne ; coordination siège/usines documentée."
+      ],
+      "negative_signals": [
+        "Périmètre international et autonomie de décision inconnus ; ne pas qualifier groupe entier comme PME mono-site."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Un seul site d'assemblage dispose-t-il d'un sponsor autonome et de données de ligne ou de site partageables ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P3 — enrichir avant proposition : async faible ou périmètre métier incertain. Périmètre international et autonomie de décision inconnus ; ne pas qualifier groupe entier comme PME mono-site.",
+      "source_ids_used": [
+        "INT50-045-S1",
+        "INT50-045-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-029",
+      "name": "Vestre",
+      "sector": "Mobilier industriel bois et métal",
+      "prequalification_status": "CANDIDATE",
+      "score_exact": 62.2,
+      "score_display": 62,
+      "priority": "PRIORITY_C",
+      "score_confidence": "medium",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 4,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Production majoritairement interne en Norvège et Suède."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Analyser charge de fond et mix de production d'une usine de mobilier."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 4,
+          "rationale": "Matérialité supposée à partir du périmètre : 133 salariés déclarés sur la page entreprise consultée. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 2,
+          "rationale": "Fonction ciblable : Plant Manager / responsable production. Limites : Deux usines et expertise environnementale ; preuve async insuffisante. Aucun bonus pour le pays."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 1,
+          "rationale": "Efforts énergie/environnement visibles ; ne pas présumer absence d'expertise interne."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Analyser charge de fond et mix de production d'une usine de mobilier. Statut : STRONG_CANDIDATE"
+        },
+        "async_compatibility": {
+          "rating": 1,
+          "rationale": "Présence internationale et recrutement numérique ; ancien signal remote commercial non revalidé comme politique opérationnelle. Transfert à un fournisseur externe : low; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Production majoritairement interne en Norvège et Suède.",
+        "Présence internationale et recrutement numérique ; ancien signal remote commercial non revalidé comme politique opérationnelle."
+      ],
+      "negative_signals": [
+        "Deux usines et expertise environnementale ; preuve async insuffisante. Aucun bonus pour le pays."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Une seule usine dispose-t-elle d'un sponsor et d'un historique énergie/production partageable par écrit ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P3 — enrichir avant proposition : async faible ou périmètre métier incertain. Deux usines et expertise environnementale ; preuve async insuffisante. Aucun bonus pour le pays.",
+      "source_ids_used": [
+        "INT50-029-S1",
+        "INT50-029-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-028",
+      "name": "PaperShell",
+      "sector": "Composants composites en papier",
+      "prequalification_status": "UNCERTAIN",
+      "score_exact": 60.8,
+      "score_display": 61,
+      "priority": "PRIORITY_C",
+      "score_confidence": "low",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 3,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Production automatisée à Tibro."
+        },
+        "optimization_potential": {
+          "rating": 4,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer campagnes et charge hors production d'une ligne automatisée stabilisée."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 3,
+          "rationale": "Matérialité supposée à partir du périmètre : 24 collaborateurs déclarés sur le portail carrière consulté. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : COO / Production Manager. Limites : Passage à l'échelle, volumes et budget inconnus ; remote ne prouve pas travail écrit avec fournisseurs."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Comparer campagnes et charge hors production d'une ligne automatisée stabilisée. Statut : CONDITIONAL"
+        },
+        "async_compatibility": {
+          "rating": 2,
+          "rationale": "Télétravail lorsque possible et approche numérique ; pas preuve d'async en production. Transfert à un fournisseur externe : low; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Production automatisée à Tibro.",
+        "Télétravail lorsque possible et approche numérique ; pas preuve d'async en production."
+      ],
+      "negative_signals": [
+        "Passage à l'échelle, volumes et budget inconnus ; remote ne prouve pas travail écrit avec fournisseurs."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "La ligne de Tibro produit-elle déjà des campagnes répétées avec consommation et cadence historisées ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P3 — enrichir avant proposition : async faible ou périmètre métier incertain. Passage à l'échelle, volumes et budget inconnus ; remote ne prouve pas travail écrit avec fournisseurs.",
+      "source_ids_used": [
+        "INT50-028-S1",
+        "INT50-028-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-012",
+      "name": "BACA Systems",
+      "sector": "Fabrication de machines robotisées",
+      "prequalification_status": "UNCERTAIN",
+      "score_exact": 56.8,
+      "score_display": 57,
+      "priority": "PRIORITY_C",
+      "score_confidence": "low",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 3,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Conçoit et fabrique des équipements pour transformation de pierre ; ne pas lui attribuer l'énergie de ses clients."
+        },
+        "optimization_potential": {
+          "rating": 3,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Une investigation de ses essais et ateliers peut être utile ; puissance et heures réelles impératives avant pilote énergie."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 2,
+          "rationale": "Matérialité supposée à partir du périmètre : Environ 50 salariés selon cas Slack. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Operations Manager / VP Business Systems. Limites : Excellent async, mais assemblage/essais possiblement peu énergivores : pas premier choix tant que charge propre inconnue."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 3,
+          "rationale": "Fit technique conditionnel : Une investigation de ses essais et ateliers peut être utile ; puissance et heures réelles impératives avant pilote énergie. Statut : CONDITIONAL"
+        },
+        "async_compatibility": {
+          "rating": 5,
+          "rationale": "Cas explicite : décisions async, opérations, bons de commande et inspections dans Slack depuis septembre 2025. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Conçoit et fabrique des équipements pour transformation de pierre ; ne pas lui attribuer l'énergie de ses clients.",
+        "Cas explicite : décisions async, opérations, bons de commande et inspections dans Slack depuis septembre 2025."
+      ],
+      "negative_signals": [
+        "Excellent async, mais assemblage/essais possiblement peu énergivores : pas premier choix tant que charge propre inconnue."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Vos propres ateliers et essais représentent-ils une charge énergétique significative et mesurée, indépendamment des machines chez vos clients ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P3 — enrichir avant proposition : async faible ou périmètre métier incertain. Excellent async, mais assemblage/essais possiblement peu énergivores : pas premier choix tant que charge propre inconnue.",
+      "source_ids_used": [
+        "INT50-012-S1",
+        "INT50-012-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-025",
+      "name": "Performax Engineering",
+      "sector": "Découpe, pliage et fabrication",
+      "prequalification_status": "UNCERTAIN",
+      "score_exact": 56.2,
+      "score_display": 56,
+      "priority": "PRIORITY_C",
+      "score_confidence": "low",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 3,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Services de découpe, pliage et additive à Glanmire/Gympie."
+        },
+        "optimization_potential": {
+          "rating": 3,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Évaluer veille atelier et régimes de découpe ; comparer des journées de charge analogue."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 2,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif non vérifié ; site de Gympie. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : General Manager / responsable atelier. Limites : Taille de parc non établie ; rentabilité du pilote subordonnée à facture et temps de fonctionnement."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Évaluer veille atelier et régimes de découpe ; comparer des journées de charge analogue. Statut : CONDITIONAL"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Chiffrage et fichiers en ligne, assistance aux heures ouvrées. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Services de découpe, pliage et additive à Glanmire/Gympie.",
+        "Chiffrage et fichiers en ligne, assistance aux heures ouvrées."
+      ],
+      "negative_signals": [
+        "Taille de parc non établie ; rentabilité du pilote subordonnée à facture et temps de fonctionnement."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Quelle est la taille du parc réellement exploité et existe-t-il un historique énergie avec les heures d'atelier ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P3 — enrichir avant proposition : async faible ou périmètre métier incertain. Taille de parc non établie ; rentabilité du pilote subordonnée à facture et temps de fonctionnement.",
+      "source_ids_used": [
+        "INT50-025-S1",
+        "INT50-025-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-010",
+      "name": "Long Live Beerworks",
+      "sector": "Brasserie",
+      "prequalification_status": "UNCERTAIN",
+      "score_exact": 54.6,
+      "score_display": 55,
+      "priority": "PRIORITY_C",
+      "score_confidence": "low",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 3,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Brasserie avec activité de production et taproom."
+        },
+        "optimization_potential": {
+          "rating": 3,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Investigation du froid et des régimes de brassage si site assez chargé et compteur distinct."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 2,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif et capacité non vérifiés. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Head Brewer / cofondateur opérations. Limites : Échelle économique non prouvée ; signal async limité au service ; clarifier production vs lieux de vente."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Investigation du froid et des régimes de brassage si site assez chargé et compteur distinct. Statut : CONDITIONAL"
+        },
+        "async_compatibility": {
+          "rating": 2,
+          "rationale": "Annonce officielle : Slack et Homebase pour équipe de taproom. Transfert à un fournisseur externe : low; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Brasserie avec activité de production et taproom.",
+        "Annonce officielle : Slack et Homebase pour équipe de taproom."
+      ],
+      "negative_signals": [
+        "Échelle économique non prouvée ; signal async limité au service ; clarifier production vs lieux de vente."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Quel site brasse régulièrement, et sa facture et ses mesures justifieraient-elles une petite investigation sur données ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P3 — enrichir avant proposition : async faible ou périmètre métier incertain. Échelle économique non prouvée ; signal async limité au service ; clarifier production vs lieux de vente.",
+      "source_ids_used": [
+        "INT50-010-S1",
+        "INT50-010-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-011",
+      "name": "Zilker Brewing Company",
+      "sector": "Brasserie",
+      "prequalification_status": "UNCERTAIN",
+      "score_exact": 54.6,
+      "score_display": 55,
+      "priority": "PRIORITY_C",
+      "score_confidence": "low",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 3,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Brasserie à Austin avec production et conditionnement."
+        },
+        "optimization_potential": {
+          "rating": 3,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Analyser brassins et froid si charge du site et accès aux données justifient le temps d'étude."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 2,
+          "rationale": "Matérialité supposée à partir du périmètre : Petite équipe déclarée ; effectif non vérifié. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Head Brewer / responsable production. Limites : Source Indeed liste dynamique ; signal bar seulement ; petite échelle économique à confirmer."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 4,
+          "rationale": "Fit technique conditionnel : Analyser brassins et froid si charge du site et accès aux données justifient le temps d'étude. Statut : CONDITIONAL"
+        },
+        "async_compatibility": {
+          "rating": 2,
+          "rationale": "Annonce Indeed de manager : récapitulatifs hebdomadaires email/Slack ; indice du bar. Transfert à un fournisseur externe : low; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Brasserie à Austin avec production et conditionnement.",
+        "Annonce Indeed de manager : récapitulatifs hebdomadaires email/Slack ; indice du bar."
+      ],
+      "negative_signals": [
+        "Source Indeed liste dynamique ; signal bar seulement ; petite échelle économique à confirmer."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "La production dispose-t-elle d'un compteur distinct du bar et d'un historique de brassins/canning ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P3 — enrichir avant proposition : async faible ou périmètre métier incertain. Source Indeed liste dynamique ; signal bar seulement ; petite échelle économique à confirmer.",
+      "source_ids_used": [
+        "INT50-011-S1",
+        "INT50-011-S2",
+        "INT50-011-S3"
+      ]
+    },
+    {
+      "prospect_id": "INT50-026",
+      "name": "NEsolution",
+      "sector": "Usinage et fabrication additive",
+      "prequalification_status": "UNCERTAIN",
+      "score_exact": 53.6,
+      "score_display": 54,
+      "priority": "PRIORITY_C",
+      "score_confidence": "low",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 3,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Usine propre à Sydney annoncée ; CNC et additive."
+        },
+        "optimization_potential": {
+          "rating": 3,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Investigation d'atelier possible si parc réellement chargé et données de campagnes disponibles."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 2,
+          "rationale": "Matérialité supposée à partir du périmètre : Effectif et taille de parc inconnus. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Founder / Operations Manager. Limites : Échelle industrielle insuffisamment documentée : réserve métier ; ne pas sélectionner sur le seul portail."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 3,
+          "rationale": "Fit technique conditionnel : Investigation d'atelier possible si parc réellement chargé et données de campagnes disponibles. Statut : CONDITIONAL"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Téléversement et chiffrage sur plateforme ; détails d'hébergement publiés. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Usine propre à Sydney annoncée ; CNC et additive.",
+        "Téléversement et chiffrage sur plateforme ; détails d'hébergement publiés."
+      ],
+      "negative_signals": [
+        "Échelle industrielle insuffisamment documentée : réserve métier ; ne pas sélectionner sur le seul portail."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Quels équipements fonctionnent régulièrement à Sydney, et quel ordre de grandeur de facture justifierait l'étude ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P3 — enrichir avant proposition : async faible ou périmètre métier incertain. Échelle industrielle insuffisamment documentée : réserve métier ; ne pas sélectionner sur le seul portail.",
+      "source_ids_used": [
+        "INT50-026-S1",
+        "INT50-026-S2"
+      ]
+    },
+    {
+      "prospect_id": "INT50-027",
+      "name": "Ponoko",
+      "sector": "Découpe laser numérique",
+      "prequalification_status": "UNCERTAIN",
+      "score_exact": 53.6,
+      "score_display": 54,
+      "priority": "PRIORITY_C",
+      "score_confidence": "low",
+      "eligibility_gate": null,
+      "dimensions": {
+        "energy_potential": {
+          "rating": 3,
+          "rationale": "Potentiel fondé sur le procédé, pas une facture : Équipe de production actuelle nommée ; atelier Oakland documenté historiquement."
+        },
+        "optimization_potential": {
+          "rating": 3,
+          "rationale": "Hypothèse à tester, aucun écart constaté : Comparer consommation de production laser et veilles si site propre actuel et volumes confirmés."
+        },
+        "probable_data_quality": {
+          "rating": 2,
+          "rationale": "Mesures énergie UNKNOWN. Organisation numérique ou procédé seulement ; aucun export énergie garanti."
+        },
+        "economic_value_potential": {
+          "rating": 2,
+          "rationale": "Matérialité supposée à partir du périmètre : Petite équipe ; effectif non vérifié. Coût et gain inconnus ; pas de ROI établi."
+        },
+        "commercial_accessibility": {
+          "rating": 3,
+          "rationale": "Fonction ciblable : Head of Production / Operations. Limites : Ancien modèle réseau : confirmer atelier contrôlé aujourd'hui, périmètre et échelle avant priorité métier."
+        },
+        "absence_internal_energy_expertise": {
+          "rating": 2,
+          "rationale": "Inconnue : la note 2 est une appréciation prudente, pas preuve d'absence d'expertise."
+        },
+        "energy_analyzer_fit": {
+          "rating": 3,
+          "rationale": "Fit technique conditionnel : Comparer consommation de production laser et veilles si site propre actuel et volumes confirmés. Statut : CONDITIONAL"
+        },
+        "async_compatibility": {
+          "rating": 3,
+          "rationale": "Parcours cloud-to-robot et devis/commandes en ligne. Transfert à un fournisseur externe : medium; accord non obtenu."
+        }
+      },
+      "positive_signals": [
+        "Équipe de production actuelle nommée ; atelier Oakland documenté historiquement.",
+        "Parcours cloud-to-robot et devis/commandes en ligne."
+      ],
+      "negative_signals": [
+        "Ancien modèle réseau : confirmer atelier contrôlé aujourd'hui, périmètre et échelle avant priorité métier."
+      ],
+      "uncertainties": [
+        "Export compteur, fréquence, unité, couverture et périmètre : UNKNOWN",
+        "Facture, tarif, budget de pilote, gisement récupérable : UNKNOWN",
+        "Accord du sponsor pour collaboration principalement écrite : UNKNOWN"
+      ],
+      "minimal_qualification": {
+        "ask": "Quel atelier est directement exploité aujourd'hui, à quelle cadence, et ses mesures sont-elles accessibles ?",
+        "why": "Valider l'utilité avant tout pilote, sans supposer ni anomalie ni économie.",
+        "client_effort": "Réponse écrite de faisabilité ; aucun export demandé avant accord."
+      },
+      "judgment": "P3 — enrichir avant proposition : async faible ou périmètre métier incertain. Ancien modèle réseau : confirmer atelier contrôlé aujourd'hui, périmètre et échelle avant priorité métier.",
+      "source_ids_used": [
+        "INT50-027-S1",
+        "INT50-027-S2"
+      ]
+    }
+  ],
+  "contacting_performed": false
+}

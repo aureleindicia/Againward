@@ -36,6 +36,18 @@ La compatibilité asynchrone est un critère complémentaire : elle repose sur d
 traçables (organisation distribuée, canaux écrits, documentation ou portails), ne se déduit pas du
 pays, et ne peut pas compenser un mauvais ajustement industriel ou de données.
 
+Pour la priorité commerciale principalement écrite, voir [ASYNC_QUALIFICATION.md](ASYNC_QUALIFICATION.md).
+Le [lot international de 50 entreprises du 10 septembre 2026](data/international_async_50_20260910/PROSPECTS_50.md)
+conserve le score existant et distingue premières cibles, qualification complémentaire et réserves.
+L'[audit du lot précédent](data/international_async_50_20260910/RESEARCH_REVIEW.md) expose les limites des preuves.
+Les [notes de personnalisation](data/international_async_50_20260910/EMAIL_PERSONALIZATION.md)
+contiennent une accroche sourcée, une fonction cible et une question métier pour chaque entreprise.
+Elles n'autorisent aucun envoi. Reproduction du lot, sans modifier les anciennes données :
+
+```sh
+python prospecting/data/international_async_50_20260910/build_artifacts.py
+```
+
 `SCORING_REPORT.md` donne le jugement lisible, `data/outreach_preparation.json` prépare uniquement
 les angles des candidats retenus, et `data/commercial_tracking.json` conserve leur état. Aucun de
 ces fichiers ne constitue une autorisation d'envoi.

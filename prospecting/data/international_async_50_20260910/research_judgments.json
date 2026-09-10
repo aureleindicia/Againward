@@ -1,0 +1,3365 @@
+{
+  "schema_version": 1,
+  "research_date": "2026-09-10",
+  "status": "REVIEWED_PUBLIC_RESEARCH_NOT_CLIENT_QUALIFICATION",
+  "methodology_refs": [
+    "prospecting/ICP.md",
+    "prospecting/score.py",
+    "prospecting/prepare.py",
+    "business/pilot_gtm/ICP_AND_SEGMENTATION.md",
+    "prospecting/ASYNC_QUALIFICATION.md"
+  ],
+  "analyst": "Codex — appréciations humaines non calibrées ; score calculé par score.py",
+  "scope": "50 entreprises hors France, réserves séparées ; ni accord async ni donnée énergie obtenus.",
+  "prospects": [
+    {
+      "name": "Geometric Manufacturing",
+      "country": "Royaume-Uni",
+      "sector": "Usinage et tôlerie",
+      "size": "Environ 100 personnes ; 3 sites (site actuel)",
+      "site": "CNC, tôlerie et finition en propre ; périmètre de trois sites à isoler.",
+      "async_signal": "Slack utilisé pour transmissions entre équipes, indicateurs de production et tâches ; étude historique.",
+      "utility_hypothesis": "Comparer charges hors production et changements de régimes d'un atelier CNC, avec planning et mix pièces.",
+      "limitations": "Étude Slack plus ancienne que la taille actuelle ; clients défense, confidentialité et périmètre de compteur à cadrer. Le site actuel décrit une infrastructure air-gapped : la pratique Slack historique ne prouve pas l'accès actuel aux données.",
+      "target_role": "Operations Director / responsable de site",
+      "ratings": [
+        4,
+        4,
+        2,
+        4,
+        2,
+        2,
+        4,
+        4
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Production et équipe",
+          "url": "https://geometricmanufacturing.co.uk/",
+          "claim": "Environ 100 personnes, trois sites, CNC et finition internes ; infrastructure air-gapped déclarée.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "geometricmanufacturing.co.uk",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Étude Slack / Be the Business",
+          "url": "https://bethebusiness.com/files/research-reports/ebook_slack_the_secret_of_productive_work.pdf",
+          "claim": "Transmissions entre shifts, données de production et tâches via Slack ; 50 salariés au moment du cas.",
+          "published_at": "2024 (contexte du cas ; à reconfirmer)",
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "bethebusiness.com",
+          "source_type": "external_case",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "commercial_hold": "Informations de sécurité / infrastructure air-gapped : confirmer un périmètre énergie non sensible partageable avant toute priorité commerciale.",
+      "personalization": {
+        "hook_fr": "Votre parc CNC et votre fonctionnement lights-out rendent les périodes hors présence humaine particulièrement intéressantes à contextualiser.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Un atelier hors périmètre sensible dispose-t-il d'un export énergie et d'un planning partageables avec un prestataire externe ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-001",
+      "async_fact_confidence": "high",
+      "async_transfer_confidence": "low",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "OSH Cut",
+      "country": "États-Unis",
+      "sector": "Découpe et pliage métal",
+      "size": "50 salariés déclarés en 2024 ; second site annoncé en mai 2026, effectif actuel inconnu",
+      "site": "Atelier propre de découpe laser et pliage, avec logiciel de fabrication interne.",
+      "async_signal": "Fichiers, devis et commandes en ligne ; logiciel d'atelier ; avis Indeed ancien d'un service client remote, corroboration faible.",
+      "utility_hypothesis": "Repérer charge auxiliaire persistante et écarts à production comparable ; découpe réelle et répétée.",
+      "limitations": "Croissance depuis 2024 ; commandes numériques ne prouvent pas achats async ; avis Indeed anonyme non déterminant. Second site annoncé près de Cincinnati en mai 2026 : démarrage et maturité des données à vérifier, privilégier un atelier stabilisé.",
+      "target_role": "COO / responsable production",
+      "ratings": [
+        4,
+        4,
+        2,
+        4,
+        3,
+        2,
+        4,
+        4
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Taille et usine",
+          "url": "https://www.oshcut.com/old-articles/software-that-writes-itself",
+          "claim": "50 salariés et atelier de 53 000 ft².",
+          "published_at": "2024-06-19",
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "oshcut.com",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Parcours technique en ligne",
+          "url": "https://www.oshcut.com/articles/the-economics-of-speed-in-metal-fabrication",
+          "claim": "Téléversement, prix et commande numérique de pièces.",
+          "published_at": "2024-09-10",
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "oshcut.com",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Logiciel en atelier",
+          "url": "https://tube.oshcut.com/articles/solving-labor-shortage-problems",
+          "claim": "Logiciel de production conçu pour le fonctionnement de l'atelier.",
+          "published_at": "2022 ; mise à jour 2024",
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "tube.oshcut.com",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Indice Indeed secondaire",
+          "url": "https://www.indeed.com/cmp/Osh-Cut",
+          "claim": "Avis historique d'un poste service client remote ; pas preuve de politique actuelle.",
+          "published_at": "2023 (avis)",
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "indeed.com",
+          "source_type": "job_platform",
+          "confidence": "low",
+          "limitations": "Publication ou reprise de recrutement ; disponibilité et pratiques actuelles à confirmer."
+        },
+        {
+          "title": "Annonce du second site",
+          "url": "https://www.oshcut.com/articles/osh-cut-to-open-a-second-high-tech-factory-near-cincinnati",
+          "claim": "Annonce d’un second site près de Cincinnati ; ouverture alors prévue et emplois projetés, pas effectif constaté.",
+          "published_at": "2026-05-14",
+          "retrieved_at": "2026-09-10",
+          "publisher": "oshcut.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "access_status": "SEARCH_EXTRACT",
+          "limitations": "Annonce de projet ; ne prouve pas mise en service."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre annonce de mai 2026 présente un second site près de Cincinnati, en complément de votre production en Utah.",
+        "hook_source_indices": [
+          4
+        ],
+        "qualification_question_fr": "Conservez-vous, pour un même atelier, la courbe électrique et les heures ou volumes de découpe correspondants ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-002",
+      "async_fact_confidence": "high",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "G&O Springs",
+      "country": "Royaume-Uni",
+      "sector": "Ressorts de précision",
+      "size": "Effectif non vérifié ; site industriel en expansion",
+      "site": "Fabrication de ressorts ; extension de site et suivi numérique des étapes de fabrication.",
+      "async_signal": "Teams partagé par tous, documents atelier sur iPad, application APQP et tableau de production.",
+      "utility_hypothesis": "Comparer journées et campagnes similaires, veille d'atelier et variations de charge non expliquées par volumes.",
+      "limitations": "Ne pas confondre G&O et Goss Springs ; données énergie non démontrées ; exigences aéronautiques.",
+      "target_role": "Managing Director / Operations Manager",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        4
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Retour d'expérience MTC",
+          "url": "https://www.the-mtc.org/insights/go-springs-setting-standard-sme-digital-adoption",
+          "claim": "Teams pour tous, APQP, iPads d'atelier, suivi de production et extension de 3 000 ft².",
+          "published_at": "2026-06-16",
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "the-mtc.org",
+          "source_type": "external_case",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Fabricant",
+          "url": "https://springs.aero/",
+          "claim": "Fabricant de ressorts de précision aéronautiques.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "springs.aero",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Le retour d'expérience MTC décrit votre suivi APQP et l'accès aux documents directement en atelier.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Le suivi de fabrication APQP peut-il être rapproché d'un export électrique du site, sans données techniques de pièces ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-003",
+      "async_fact_confidence": "high",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Modist Brewing",
+      "country": "États-Unis",
+      "sector": "Brasserie",
+      "size": "Effectif inconnu ; salle de brassage 20 bbl",
+      "site": "Production, fermentation, centrifugation et nettoyage documentés en poste brasseur.",
+      "async_signal": "Même fonction de production : Ekos, brewsheets, tableurs, email et Slack ; deuxième fiche packaging cohérente.",
+      "utility_hypothesis": "Comparer brassins, refroidissement et nettoyages ; détecter une charge persistante hors brassage.",
+      "limitations": "Fiches 2024–2025 ; ne prouvent pas export compteur ; recettes et autres boissons à séparer.",
+      "target_role": "Head Brewer / directeur opérations",
+      "ratings": [
+        4,
+        4,
+        3,
+        3,
+        3,
+        2,
+        5,
+        4
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Brasseur : procédé et outils",
+          "url": "https://modistbrewing.com/wp-content/uploads/2025/05/Part-Time-Brewer_Cellarperson-Job-Description-1.pdf",
+          "claim": "Brassage 20 bbl, CIP, traces Ekos/brewsheets ; email et Slack.",
+          "published_at": "2025-05 (chemin du fichier)",
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "modistbrewing.com",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Packaging manager",
+          "url": "https://modistbrewing.com/wp-content/uploads/2024/10/Packaging-Manager-Job-Description-1.pdf",
+          "claim": "Slack, Ekos et outils de suivi dans le rôle packaging.",
+          "published_at": "2024-10 (chemin du fichier)",
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "modistbrewing.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre documentation de production décrit un brassage sur mash filter et un suivi détaillé dans Ekos.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Les dates de brassins/CIP conservées dans Ekos peuvent-elles être rapprochées d'un compteur électrique ou thermique ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-004",
+      "async_fact_confidence": "high",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Driftwood Brewery",
+      "country": "Canada",
+      "sector": "Brasserie",
+      "size": "Effectif non vérifié ; site de Victoria",
+      "site": "Brasserie propre à Victoria et distribution régionale.",
+      "async_signal": "Cas ESW : Teams, partage et gestion documentaire entre départements/sites ; commandes par écrit sur site officiel.",
+      "utility_hypothesis": "Analyser froid et charges de fond, séparer production, nettoyage et usages du site.",
+      "limitations": "Cas fournisseur promotionnel et non daté ; fonctions précises des utilisateurs et maintien actuel à confirmer.",
+      "target_role": "General Manager / responsable brasserie",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        5,
+        4
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Brasserie actuelle",
+          "url": "https://driftwoodbeer.ca/",
+          "claim": "Brassage propre à Victoria et développement de production.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "driftwoodbeer.ca",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Organisation documentaire",
+          "url": "https://eswit.com/resources/case-studies/raising-the-bar-how-esw-transformed-driftwood-brewerys-operations/",
+          "claim": "Teams : documents, accès distant et centralisation entre fonctions.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "eswit.com",
+          "source_type": "vendor_case",
+          "confidence": "high",
+          "limitations": "Cas promotionnel ; récit déclaré et sélectionné par le fournisseur."
+        },
+        {
+          "title": "Canaux opérationnels",
+          "url": "https://driftwoodbeer.ca/contact/",
+          "claim": "Canaux écrits distincts pour commandes et distribution.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "driftwoodbeer.ca",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre brasserie de Victoria combine fabrication et distribution régionale.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Un site conserve-t-il des mesures énergie horodatées et le calendrier de brassage/nettoyage ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-005",
+      "async_fact_confidence": "high",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Almanac Beer Co.",
+      "country": "États-Unis",
+      "sector": "Brasserie",
+      "size": "Effectif inconnu ; 30 000 ft² déclarés",
+      "site": "Brassage, vieillissement et conditionnement dans sa brasserie d'Alameda.",
+      "async_signal": "Fiche keyholder : Slack et email quotidiens avec direction et départements de brasserie.",
+      "utility_hypothesis": "Froid, stockage et conditionnement : comparer périodes et charges récurrentes avec contexte de fabrication.",
+      "limitations": "Preuve écrite issue surtout du taproom ; réunions hebdomadaires également prévues. La fiche keyholder retourne 404 à l’ouverture : indice historique indexé uniquement.",
+      "target_role": "Director of Operations / Head Brewer",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        5,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Production et communications",
+          "url": "https://almanacbeer.com/pages/taproom-keyholder",
+          "claim": "Brasserie propre 30 000 ft² ; Slack/email entre manager et départements ; réunions également.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT_OPEN_FAILED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "almanacbeer.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Implantations actuelles",
+          "url": "https://www.almanacbeer.com/",
+          "claim": "Site actuel : implantations Alameda et West Oakland.",
+          "published_at": null,
+          "retrieved_at": "2026-09-10",
+          "publisher": "almanacbeer.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "access_status": "SEARCH_EXTRACT",
+          "limitations": "Implantations actuelles ; ne revalide pas l’usage Slack de la fiche disparue."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous indiquez brasser, faire vieillir et conditionner vos bières sur le même site à Alameda.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "La consommation de la brasserie d'Alameda peut-elle être isolée du taproom et rapprochée des brassins ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-006",
+      "async_fact_confidence": "low",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Fort George Brewery",
+      "country": "États-Unis",
+      "sector": "Brasserie",
+      "size": "Effectif non vérifié ; plusieurs installations de brassage",
+      "site": "Installations de brassage propres à Astoria, dont Waterfront Production Facility.",
+      "async_signal": "Annonce cellar/shift brewer : documentation des fermentations, transmissions sur Slack ou équivalent ; shifts tournants de quatre journées de dix heures.",
+      "utility_hypothesis": "Comparer campagnes de brassage et froid ; surveiller évolution de consommation hors brassage.",
+      "limitations": "Annonce sur agrégateur ; isoler Waterfront des restaurants et autres brasseries ; poste actuel à confirmer.",
+      "target_role": "Production Manager / Head Brewer",
+      "ratings": [
+        4,
+        4,
+        2,
+        4,
+        3,
+        2,
+        5,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Installations propres",
+          "url": "https://fortgeorgebrewery.com/brewery-tours/",
+          "claim": "Brasseries propres et installation de production Waterfront.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "fortgeorgebrewery.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Poste de production",
+          "url": "https://www.breweryjobs.com/jobs/cellar-shift-brewer-05cc572c",
+          "claim": "Usage de Slack associé aux tâches du cellar/shift brewer ; réunions aussi.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "breweryjobs.com",
+          "source_type": "job_platform",
+          "confidence": "high",
+          "limitations": "Publication ou reprise de recrutement ; disponibilité et pratiques actuelles à confirmer."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre installation Waterfront et vos rotations de production offrent un périmètre concret à étudier.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Waterfront dispose-t-il d'un compteur distinct et des dates de brassage, cave et nettoyage ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-007",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Headlands Brewing",
+      "country": "États-Unis",
+      "sector": "Brasserie",
+      "size": "Effectif inconnu ; production à Pittsburg",
+      "site": "Production documentée à Pittsburg ; récupération d'eau et électricité renouvelable déclarées.",
+      "async_signal": "Annonce logistique : documents d'expédition dans Slack, inventaire et opérations de conditionnement.",
+      "utility_hypothesis": "Examiner froid, nettoyage et charge de fond à production comparable sur Pittsburg.",
+      "limitations": "Annonce republiée ; preuve Slack logistique, pas achats ; renouvelable ne signifie pas absence d'écarts.",
+      "target_role": "Brewery Operations / Production Manager",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        1,
+        5,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Site et procédés",
+          "url": "https://www.headlandsbrewing.com/impact",
+          "claim": "Production à Pittsburg avec récupération d'eau.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "headlandsbrewing.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Usage Slack en logistique",
+          "url": "https://tallo.com/talent/job/business/warehouse-or-distribution-supervisor/ca/pittsburg/warehouse-logistics-lead-ad117113",
+          "claim": "Annonce Warehouse Logistics Lead : documents, Slack et inventaire.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "tallo.com",
+          "source_type": "job_platform",
+          "confidence": "medium",
+          "limitations": "Publication ou reprise de recrutement ; disponibilité et pratiques actuelles à confirmer."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre page impact décrit une récupération d'eau dans la production à Pittsburg.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Le site de Pittsburg conserve-t-il une courbe d'énergie et un journal de production/nettoyage ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-008",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Backcountry Brewing",
+      "country": "Canada",
+      "sector": "Brasserie",
+      "size": "Effectif inconnu ; brasserie de Squamish",
+      "site": "Brasserie propre en expansion depuis 2017.",
+      "async_signal": "Témoignage Ekos sur équipe marketing : Slack partagé avec l'équipe ; périmètre production non prouvé.",
+      "utility_hypothesis": "Comparer froid et brassins, charge nocturne et intensité à volume comparable.",
+      "limitations": "Slack marketing ne vaut pas collaboration avec opérations ; capacité annuelle et exports inconnus.",
+      "target_role": "Head Brewer / Operations Manager",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        2
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Brasserie et expansion",
+          "url": "https://www.backcountrybrewing.com/about/",
+          "claim": "Brasserie propre à Squamish et expansion de production.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "backcountrybrewing.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Usage Slack limité",
+          "url": "https://www.goekos.com/blog/craftlab/a-day-in-the-life-of-the-backcountry-brewing-social-media-team/",
+          "claim": "Témoignage marketing mentionnant Slack dans l'équipe.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "goekos.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre présentation retrace l'expansion de la production de la brasserie à Squamish.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Le site de Squamish a-t-il une courbe d'énergie et des dates de brassins accessibles à l'équipe production ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-009",
+      "async_fact_confidence": "low",
+      "async_transfer_confidence": "low",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Long Live Beerworks",
+      "country": "États-Unis",
+      "sector": "Brasserie",
+      "size": "Effectif et capacité non vérifiés",
+      "site": "Brasserie avec activité de production et taproom.",
+      "async_signal": "Annonce officielle : Slack et Homebase pour équipe de taproom.",
+      "utility_hypothesis": "Investigation du froid et des régimes de brassage si site assez chargé et compteur distinct.",
+      "limitations": "Échelle économique non prouvée ; signal async limité au service ; clarifier production vs lieux de vente.",
+      "target_role": "Head Brewer / cofondateur opérations",
+      "ratings": [
+        3,
+        3,
+        2,
+        2,
+        3,
+        2,
+        4,
+        2
+      ],
+      "utility_status": "CONDITIONAL",
+      "sources": [
+        {
+          "title": "Poste et outils internes",
+          "url": "https://www.longlivebeerworks.com/taproom-servers",
+          "claim": "Usage de Slack et Homebase ; activité de brasserie/taproom.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "longlivebeerworks.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Entreprise",
+          "url": "https://www.longlivebeerworks.com/",
+          "claim": "Site officiel de la brasserie ; périmètres locaux à reconfirmer.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "longlivebeerworks.com",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vos sites permettent de voir l'espace de brassage depuis le taproom.",
+        "hook_source_indices": [
+          1
+        ],
+        "qualification_question_fr": "Quel site brasse régulièrement, et sa facture et ses mesures justifieraient-elles une petite investigation sur données ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-010",
+      "async_fact_confidence": "low",
+      "async_transfer_confidence": "low",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "low"
+    },
+    {
+      "name": "Zilker Brewing Company",
+      "country": "États-Unis",
+      "sector": "Brasserie",
+      "size": "Petite équipe déclarée ; effectif non vérifié",
+      "site": "Brasserie à Austin avec production et conditionnement.",
+      "async_signal": "Annonce Indeed de manager : récapitulatifs hebdomadaires email/Slack ; indice du bar.",
+      "utility_hypothesis": "Analyser brassins et froid si charge du site et accès aux données justifient le temps d'étude.",
+      "limitations": "Source Indeed liste dynamique ; signal bar seulement ; petite échelle économique à confirmer.",
+      "target_role": "Head Brewer / responsable production",
+      "ratings": [
+        3,
+        3,
+        2,
+        2,
+        3,
+        2,
+        4,
+        2
+      ],
+      "utility_status": "CONDITIONAL",
+      "sources": [
+        {
+          "title": "Production et conditionnement",
+          "url": "https://www.indeed.com/cmp/Zilker-Brewing-Company",
+          "claim": "Poste production et canning ; entreprise de fabrication de boissons.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "indeed.com",
+          "source_type": "job_platform",
+          "confidence": "medium",
+          "limitations": "Publication ou reprise de recrutement ; disponibilité et pratiques actuelles à confirmer."
+        },
+        {
+          "title": "Communication écrite",
+          "url": "https://www.indeed.com/q-brewery-l-wells-branch%2C-tx-jobs.html",
+          "claim": "Annonce nommée Zilker : synthèses email/Slack hebdomadaires.",
+          "published_at": "Annonce indexée ; date exacte inconnue",
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "indeed.com",
+          "source_type": "job_platform",
+          "confidence": "medium",
+          "limitations": "Publication ou reprise de recrutement ; disponibilité et pratiques actuelles à confirmer."
+        },
+        {
+          "title": "Corroboration métier",
+          "url": "https://texascraftbrewersguild.org/page/3/?post_type=job_listing",
+          "claim": "Annonce Production & Canning Assistant pour Zilker.",
+          "published_at": "2026-06-03",
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "texascraftbrewersguild.org",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vos recrutements distinguent production et conditionnement de l'activité du bar.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "La production dispose-t-elle d'un compteur distinct du bar et d'un historique de brassins/canning ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-011",
+      "async_fact_confidence": "low",
+      "async_transfer_confidence": "low",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "low"
+    },
+    {
+      "name": "BACA Systems",
+      "country": "États-Unis",
+      "sector": "Fabrication de machines robotisées",
+      "size": "Environ 50 salariés selon cas Slack",
+      "site": "Conçoit et fabrique des équipements pour transformation de pierre ; ne pas lui attribuer l'énergie de ses clients.",
+      "async_signal": "Cas explicite : décisions async, opérations, bons de commande et inspections dans Slack depuis septembre 2025.",
+      "utility_hypothesis": "Une investigation de ses essais et ateliers peut être utile ; puissance et heures réelles impératives avant pilote énergie.",
+      "limitations": "Excellent async, mais assemblage/essais possiblement peu énergivores : pas premier choix tant que charge propre inconnue.",
+      "target_role": "Operations Manager / VP Business Systems",
+      "ratings": [
+        3,
+        3,
+        2,
+        2,
+        3,
+        2,
+        3,
+        5
+      ],
+      "utility_status": "CONDITIONAL",
+      "sources": [
+        {
+          "title": "Pratiques asynchrones",
+          "url": "https://slack.com/customer-stories/baca-systems-story",
+          "claim": "Environ 50 personnes ; déploiement Slack septembre 2025 ; décisions, achats et opérations documentés.",
+          "published_at": "Cas postérieur à 2025-09",
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "slack.com",
+          "source_type": "vendor_case",
+          "confidence": "high",
+          "limitations": "Cas promotionnel ; récit déclaré et sélectionné par le fournisseur."
+        },
+        {
+          "title": "Métier propre",
+          "url": "https://www.bacasystems.com/about/careers/",
+          "claim": "Entreprise de fabrication d'équipements ; postes et activité propres.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "bacasystems.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous fabriquez des équipements robotisés ; le périmètre pertinent serait celui de vos ateliers et essais propres.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Vos propres ateliers et essais représentent-ils une charge énergétique significative et mesurée, indépendamment des machines chez vos clients ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-012",
+      "async_fact_confidence": "high",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "low"
+    },
+    {
+      "name": "LaserBoost",
+      "country": "Espagne",
+      "sector": "Découpe laser et pliage",
+      "size": "11–50 selon profil LinkedIn ; à confirmer",
+      "site": "Production propre à Manresa, après une première phase de sous-traitance.",
+      "async_signal": "Téléversement de fichiers, chiffrage, commande, facture et paiement en ligne ; clientèle internationale.",
+      "utility_hypothesis": "Comparer charges laser/auxiliaires et régimes à charge de travail comparable.",
+      "limitations": "Portail de vente, pas politique d'achat ; lien Gonvarri signalé historiquement, autonomie à vérifier.",
+      "target_role": "Responsable production / directeur industriel",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Production propre",
+          "url": "https://www.laserboost.com/about-us/",
+          "claim": "Passage à des installations propres et fonctionnement de la plateforme.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "laserboost.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Profil entreprise",
+          "url": "https://www.linkedin.com/company/laserboost",
+          "claim": "11–50 ; processus numérique et clientèle internationale.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "linkedin.com",
+          "source_type": "public_linkedin",
+          "confidence": "medium",
+          "limitations": "Contenu public indexé ; ni profil privé ni validation indépendante."
+        },
+        {
+          "title": "Lien de groupe historique",
+          "url": "https://www.linkedin.com/posts/rafael-de-la-flor-riberas-1a7095b_laserboost-linkedin-activity-6977868268501917696-vXe1",
+          "claim": "Publication reliant LaserBoost à Gonvarri ; structure actuelle non établie.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "linkedin.com",
+          "source_type": "public_linkedin",
+          "confidence": "medium",
+          "limitations": "Contenu public indexé ; ni profil privé ni validation indépendante."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre présentation décrit le passage à des installations de fabrication propres à Manresa.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Le site de Manresa dispose-t-il d'un compteur exportable et d'un suivi d'heures de découpe/pliage ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-013",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Photoncut / KM Blechbearbeitung",
+      "country": "Allemagne",
+      "sector": "Découpe laser et tôlerie",
+      "size": "Effectif non vérifié ; usine identifiée à Seligenstadt",
+      "site": "Fabrication propre de tôlerie.",
+      "async_signal": "Fichiers DXF/STEP, devis et commande en ligne ; documentation de production.",
+      "utility_hypothesis": "Charge de fond, aspiration et dérives de régimes à mix de commandes comparable.",
+      "limitations": "Marque et société comptées une seule fois ; offre digitale de vente seulement.",
+      "target_role": "Geschäftsführung / Produktionsleitung",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Fabrication et portail",
+          "url": "https://photoncut.com/",
+          "claim": "Fabrication propre et commande de fichiers numériques.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "photoncut.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Entité légale",
+          "url": "https://photoncut.com/impressum/",
+          "claim": "KM Blechbearbeitung GmbH, Seligenstadt.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "photoncut.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Photoncut associe commande de fichiers et fabrication par KM Blechbearbeitung.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "La production KM peut-elle rapprocher compteur et heures ou volumes d'ordres de fabrication ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-014",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "LaserMaster",
+      "country": "Royaume-Uni",
+      "sector": "Découpe et pliage métal",
+      "size": "Effectif non vérifié ; usine à Redruth",
+      "site": "Usine propre ; découpe de plaques jusqu'à 3 × 1,5 m selon FAQ.",
+      "async_signal": "Commande en ligne pour cas simples, devis complexes par email et fichiers.",
+      "utility_hypothesis": "Analyser charge résiduelle d'atelier et écarts liés au planning de découpe.",
+      "limitations": "Export énergie inconnu ; commandes clients UK ne prouvent pas ouverture à un prestataire étranger.",
+      "target_role": "Managing Director / Production Manager",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Usine et échanges techniques",
+          "url": "https://www.lasermaster.co.uk/pages/faqs",
+          "claim": "Production Redruth, dimensions de découpe ; commandes simples en ligne et demandes complexes par écrit.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "lasermaster.co.uk",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre FAQ décrit la fabrication à Redruth et les échanges techniques pour les découpes sur mesure.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "L'atelier de Redruth conserve-t-il une courbe électrique et un planning de découpe/pliage ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-015",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Laser 24",
+      "country": "Royaume-Uni",
+      "sector": "Découpe et pliage métal",
+      "size": "Effectif inconnu ; deux lasers 15 kW annoncés",
+      "site": "Usine automatisée à Southend-on-Sea ; fonctionnement 24/7 déclaré.",
+      "async_signal": "Formulaire technique puis demande des fichiers CAD par email, validation de dessins et devis.",
+      "utility_hypothesis": "Étudier veille, aspiration et changements de charge par campagne ; fonctionnement continu matériellement pertinent.",
+      "limitations": "15 kW désigne les lasers, pas la puissance électrique totale ; usage écrit côté vente uniquement.",
+      "target_role": "Operations Manager / directeur d'usine",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Installation propre",
+          "url": "https://laser24.co.uk/",
+          "claim": "Deux lasers fibre 15 kW et usine automatisée fonctionnant 24/7.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "laser24.co.uk",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Échanges CAD par email",
+          "url": "https://laser24.co.uk/contact-us/",
+          "claim": "Demande explicite de fichiers CAD par email ; horaires de production.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "laser24.co.uk",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre site annonce un atelier automatisé qui fonctionne 24 heures sur 24.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Le fonctionnement automatisé est-il suivi par un compteur et des journaux d'activité comparables ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-016",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Weerg",
+      "country": "Italie",
+      "sector": "Usinage CNC et fabrication additive",
+      "size": "Effectif non vérifié ; production à Scorzè",
+      "site": "Production intégrée CNC et additive, annoncée en propre.",
+      "async_signal": "Chiffrage automatique de fichiers et parcours de commande international en ligne.",
+      "utility_hypothesis": "Comparer cycles thermiques/additifs et charge de parc CNC, avec ordres et heures de production.",
+      "limitations": "Maturité numérique élevée peut inclure analyse interne ; diversité des technologies à segmenter.",
+      "target_role": "Responsabile produzione / operations",
+      "ratings": [
+        4,
+        4,
+        2,
+        4,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Services industriels",
+          "url": "https://www.weerg.com/",
+          "claim": "Fabrication CNC et additive, parcours numérique de devis.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "weerg.com",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Production interne",
+          "url": "https://www.linkedin.com/company/weerg",
+          "claim": "Fabrication 100 % interne annoncée, CNC cinq axes et technologies additives.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "linkedin.com",
+          "source_type": "public_linkedin",
+          "confidence": "high",
+          "limitations": "Contenu public indexé ; ni profil privé ni validation indépendante."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous présentez une production CNC et additive réalisée en interne.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Un atelier CNC ou MJF à Scorzè peut-il être isolé avec ses consommations et ses campagnes ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-017",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "3D People",
+      "country": "Royaume-Uni",
+      "sector": "Fabrication additive polymères",
+      "size": "Effectif inconnu ; usine industrielle UK",
+      "site": "Usine propre de fabrication additive polymères, production série.",
+      "async_signal": "PartsVault conserve spécifications, commandes et réassorts ; fichiers et devis numériques.",
+      "utility_hypothesis": "Comparer préchauffage, campagnes, refroidissement et utilisation des équipements ; pas supposer que toute durée inactive est inutile.",
+      "limitations": "Volume et coût électrique réels inconnus ; production numérique ne prouve pas suivi énergie.",
+      "target_role": "Production Manager / cofondateur opérations",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Usine propre",
+          "url": "https://www.3dpeople.uk/about-us/",
+          "claim": "Usine UK équipée pour fabrication additive industrielle.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "3dpeople.uk",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Parcours documentaire",
+          "url": "https://www.3dpeople.uk/get-a-quote/",
+          "claim": "Fichiers, devis et PartsVault pour spécifications/réassorts.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "3dpeople.uk",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous décrivez une usine UK dédiée à la fabrication additive industrielle.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Les dates de campagnes et chauffe sont-elles conservées avec un export électrique de l'usine ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-018",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "3DPRINTUK",
+      "country": "Royaume-Uni",
+      "sector": "Fabrication additive polymères",
+      "size": "Effectif inconnu ; groupe Solid Solutions/TriMech",
+      "site": "Production SLS/MJF et post-traitement au Royaume-Uni.",
+      "async_signal": "Parcours de devis et commande en ligne de fichiers 3D.",
+      "utility_hypothesis": "Charges thermiques répétées et variabilité des campagnes à isoler ; utilité conditionnée à accès d'un site.",
+      "limitations": "Acquisition 2023 : autonomie d'achat et expertise de groupe inconnues ; pas une PME indépendante supposée.",
+      "target_role": "Production / Operations Manager du site",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        2,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "CONDITIONAL",
+      "sources": [
+        {
+          "title": "Production et acquisition",
+          "url": "https://www.3dprint-uk.co.uk/3dprintuk-acquired-by-solid-solutions/",
+          "claim": "Acquisition Solid Solutions/TriMech ; activité SLS/MJF et finition.",
+          "published_at": "2023",
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "3dprint-uk.co.uk",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Fabricant et devis",
+          "url": "https://www.3dprint-uk.co.uk/",
+          "claim": "Production additive et parcours de chiffrage en ligne.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "3dprint-uk.co.uk",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre offre distingue plusieurs technologies de fabrication et de post-traitement.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Le responsable du site dispose-t-il de l'autonomie et des données nécessaires à une étude externe limitée ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-019",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "low"
+    },
+    {
+      "name": "Midlands 3D",
+      "country": "Royaume-Uni",
+      "sector": "Fabrication additive polymères",
+      "size": "Effectif inconnu ; usine agrandie en 2025",
+      "site": "Usine à Stone, technologies possédées et exploitées, production 24/7 annoncée.",
+      "async_signal": "Upload, devis et commande numériques ; confidentialité et documentation technique.",
+      "utility_hypothesis": "Comparer fonctionnement thermique et taux d'occupation des campagnes, repérer changements persistants.",
+      "limitations": "Fort investissement récent : référence historique à segmenter ; consultation téléphonique proposée pour cas complexes.",
+      "target_role": "Managing Director / Production Manager",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Production et commande",
+          "url": "https://midlands3d.com/",
+          "claim": "Technologies propres, fonctionnement 24/7 et commande par fichiers.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "midlands3d.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Nouvelle usine",
+          "url": "https://midlands3d.com/midlands-3d-opens-most-automated-3dprinting-operation-in-the-uk/",
+          "claim": "Extension du site et automatisation de production et finition.",
+          "published_at": "2025-07-15",
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "midlands3d.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre publication de juillet 2025 présente la nouvelle usine et l'automatisation de la finition.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Avez-vous des mesures comparables depuis le changement de site de 2025, avec les campagnes et équipements en service ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-020",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Parts on Demand",
+      "country": "Pays-Bas",
+      "sector": "Fabrication additive SLS",
+      "size": "Effectif inconnu ; production de séries",
+      "site": "Fabrication additive de séries industrielles.",
+      "async_signal": "Fichiers 3D, devis et spécifications techniques publiées pour commande en ligne.",
+      "utility_hypothesis": "Comparer énergie de campagnes similaires, attentes thermiques et opérations de finition.",
+      "limitations": "Taille et volumes réels inconnus ; nombre de pièces proposé commercialement n'est pas production observée.",
+      "target_role": "Operations Manager / directeur production",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Production de séries",
+          "url": "https://partsondemand.nl/over-parts-on-demand/",
+          "claim": "Activité de production additive de séries.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "partsondemand.nl",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Échanges de fichiers",
+          "url": "https://partsondemand.nl/3d-printen-online/",
+          "claim": "Commande par fichiers et caractéristiques techniques SLS.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "partsondemand.nl",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre présentation met l'accent sur la fabrication additive de séries.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Pouvez-vous identifier des campagnes SLS comparables et un historique d'énergie correspondant ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-021",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Oceanz",
+      "country": "Pays-Bas",
+      "sector": "Fabrication additive SLS",
+      "size": "19 machines EOS SLS annoncées ; effectif inconnu",
+      "site": "Parc de fabrication propre aux Pays-Bas et finition.",
+      "async_signal": "Portail YourOceanz intégré aux étapes de production, fichiers, prix et suivi de commandes.",
+      "utility_hypothesis": "Parc répétitif suffisamment substantiel pour investiguer cycles, charge de fond et évolution d'intensité.",
+      "limitations": "Portail client ≠ achats async ; certifications et expertise technique interne à respecter. Page du portail bloquée à l'ouverture ; signal retenu à partir de l'extrait indexé, à reconfirmer.",
+      "target_role": "Operations Manager / directeur de production",
+      "ratings": [
+        4,
+        4,
+        2,
+        4,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Parc de machines",
+          "url": "https://www.oceanz.eu/en/3d-printing/",
+          "claim": "19 machines EOS SLS et production néerlandaise.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT_OPEN_FAILED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "oceanz.eu",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Portail de suivi",
+          "url": "https://www.oceanz.eu/en/blogs/youroceanz-hassle-free-order-management/",
+          "claim": "YourOceanz : fichiers, commandes et lien avec production.",
+          "published_at": "2026-05-27",
+          "access_status": "SEARCH_EXTRACT_CHALLENGE",
+          "retrieved_at": "2026-09-10",
+          "publisher": "oceanz.eu",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous annoncez un parc de 19 machines EOS SLS et un suivi numérique de production.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Les étapes suivies dans YourOceanz peuvent-elles être rapprochées de mesures énergie d'un atelier ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-022",
+      "async_fact_confidence": "low",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Rapidobject",
+      "country": "Allemagne",
+      "sector": "Fabrication additive métal et polymères",
+      "size": "Effectif inconnu ; production à Leipzig",
+      "site": "Production métal SLM interne documentée.",
+      "async_signal": "Devis conservés, suivi des commandes et confirmations par email ; fichiers techniques.",
+      "utility_hypothesis": "Analyser utilisation des équipements, cycles thermiques et post-traitement à mix comparable.",
+      "limitations": "Distinguer technologies internes des services externes ; données temporelles non publiques.",
+      "target_role": "Produktionsleitung / Geschäftsführung",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Production interne métal",
+          "url": "https://rapidobject.com/en/metall-3d-druck/",
+          "claim": "Fabrication métal SLM en interne.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "rapidobject.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Workflow client numérique",
+          "url": "https://rapidobject.com/en/was-ist-3d-druck/3d-druck-faq/",
+          "claim": "Devis, commande et suivi numérique avec confirmations email.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "rapidobject.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre offre métal décrit la production SLM en interne.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Le SLM interne dispose-t-il d'un compteur et d'un historique de campagnes indépendant des activités sous-traitées ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-023",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Formero",
+      "country": "Australie",
+      "sector": "Fabrication additive",
+      "size": "Effectif inconnu ; usine de Melbourne",
+      "site": "Fabrication additive et post-traitement à Melbourne.",
+      "async_signal": "Portail Synter et communication publique de production MJF interne, devis par fichiers.",
+      "utility_hypothesis": "Comparer campagnes MJF, cycles de chauffe et demandes de production.",
+      "limitations": "Ne pas attribuer tous les procédés vendus à l'usine locale ; décideur et facture inconnus.",
+      "target_role": "Operations Manager / Manufacturing Manager",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Usine et production locale",
+          "url": "https://formero.com.au/",
+          "claim": "Production additive et finition à Melbourne.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "formero.com.au",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Portail et MJF",
+          "url": "https://www.linkedin.com/posts/formero_3dprinting-additivemanufacturing-australianmade-activity-7403569010451423232-GXSQ",
+          "claim": "MJF interne et devis via Synter ; publication entreprise.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "linkedin.com",
+          "source_type": "public_linkedin",
+          "confidence": "medium",
+          "limitations": "Contenu public indexé ; ni profil privé ni validation indépendante."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous présentez votre fabrication et post-traitement à Melbourne.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Les productions MJF à Melbourne peuvent-elles être isolées avec leurs dates et une mesure d'énergie ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-024",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Performax Engineering",
+      "country": "Australie",
+      "sector": "Découpe, pliage et fabrication",
+      "size": "Effectif non vérifié ; site de Gympie",
+      "site": "Services de découpe, pliage et additive à Glanmire/Gympie.",
+      "async_signal": "Chiffrage et fichiers en ligne, assistance aux heures ouvrées.",
+      "utility_hypothesis": "Évaluer veille atelier et régimes de découpe ; comparer des journées de charge analogue.",
+      "limitations": "Taille de parc non établie ; rentabilité du pilote subordonnée à facture et temps de fonctionnement.",
+      "target_role": "General Manager / responsable atelier",
+      "ratings": [
+        3,
+        3,
+        2,
+        2,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "CONDITIONAL",
+      "sources": [
+        {
+          "title": "Site et devis",
+          "url": "https://performaxengineering.com.au/pages/laser-cutting-quotes",
+          "claim": "Site Gympie, découpe/pliage et devis numériques.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "performaxengineering.com.au",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Entreprise et services",
+          "url": "https://performaxengineering.com.au/",
+          "claim": "Services de fabrication ; échelle à préciser.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "performaxengineering.com.au",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre site décrit des moyens propres d'usinage et de découpe à Gympie.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Quelle est la taille du parc réellement exploité et existe-t-il un historique énergie avec les heures d'atelier ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-025",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "low"
+    },
+    {
+      "name": "NEsolution",
+      "country": "Australie",
+      "sector": "Usinage et fabrication additive",
+      "size": "Effectif et taille de parc inconnus",
+      "site": "Usine propre à Sydney annoncée ; CNC et additive.",
+      "async_signal": "Téléversement et chiffrage sur plateforme ; détails d'hébergement publiés.",
+      "utility_hypothesis": "Investigation d'atelier possible si parc réellement chargé et données de campagnes disponibles.",
+      "limitations": "Échelle industrielle insuffisamment documentée : réserve métier ; ne pas sélectionner sur le seul portail.",
+      "target_role": "Founder / Operations Manager",
+      "ratings": [
+        3,
+        3,
+        2,
+        2,
+        3,
+        2,
+        3,
+        3
+      ],
+      "utility_status": "CONDITIONAL",
+      "sources": [
+        {
+          "title": "Production propre",
+          "url": "https://www.nesolution.com.au/our-services/",
+          "claim": "Usine de Sydney et services CNC/additifs annoncés.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "nesolution.com.au",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Parcours en ligne",
+          "url": "https://www.nesolution.com.au/",
+          "claim": "Téléversement et devis numériques ; indications d'hébergement.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "nesolution.com.au",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous indiquez fabriquer des pièces dans votre installation de Sydney.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Quels équipements fonctionnent régulièrement à Sydney, et quel ordre de grandeur de facture justifierait l'étude ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-026",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "low"
+    },
+    {
+      "name": "Ponoko",
+      "country": "États-Unis",
+      "sector": "Découpe laser numérique",
+      "size": "Petite équipe ; effectif non vérifié",
+      "site": "Équipe de production actuelle nommée ; atelier Oakland documenté historiquement.",
+      "async_signal": "Parcours cloud-to-robot et devis/commandes en ligne.",
+      "utility_hypothesis": "Comparer consommation de production laser et veilles si site propre actuel et volumes confirmés.",
+      "limitations": "Ancien modèle réseau : confirmer atelier contrôlé aujourd'hui, périmètre et échelle avant priorité métier.",
+      "target_role": "Head of Production / Operations",
+      "ratings": [
+        3,
+        3,
+        2,
+        2,
+        3,
+        2,
+        3,
+        3
+      ],
+      "utility_status": "CONDITIONAL",
+      "sources": [
+        {
+          "title": "Organisation actuelle",
+          "url": "https://www.ponoko.com/about",
+          "claim": "Équipe production et parcours de fabrication numérique.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "ponoko.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Atelier historique",
+          "url": "https://www.ponoko.com/blog/ponoko/ponoko-hiring-production-manager/",
+          "claim": "Recrutement responsable de production pour usine Oakland.",
+          "published_at": "2017",
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "ponoko.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre modèle relie directement fichiers de conception et fabrication laser.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Quel atelier est directement exploité aujourd'hui, à quelle cadence, et ses mesures sont-elles accessibles ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-027",
+      "async_fact_confidence": "low",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "low"
+    },
+    {
+      "name": "PaperShell",
+      "country": "Suède",
+      "sector": "Composants composites en papier",
+      "size": "24 collaborateurs déclarés sur le portail carrière consulté",
+      "site": "Production automatisée à Tibro.",
+      "async_signal": "Télétravail lorsque possible et approche numérique ; pas preuve d'async en production.",
+      "utility_hypothesis": "Comparer campagnes et charge hors production d'une ligne automatisée stabilisée.",
+      "limitations": "Passage à l'échelle, volumes et budget inconnus ; remote ne prouve pas travail écrit avec fournisseurs.",
+      "target_role": "COO / Production Manager",
+      "ratings": [
+        3,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        2
+      ],
+      "utility_status": "CONDITIONAL",
+      "sources": [
+        {
+          "title": "Culture affichée",
+          "url": "https://papershell.se/careers/",
+          "claim": "Approche numérique et remote lorsque compatible.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "papershell.se",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Équipe et fabrication",
+          "url": "https://careers.papershell.se/jobs",
+          "claim": "Équipe de 24 annoncée et production automatisée.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "careers.papershell.se",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre site carrière décrit une production automatisée à Tibro.",
+        "hook_source_indices": [
+          1
+        ],
+        "qualification_question_fr": "La ligne de Tibro produit-elle déjà des campagnes répétées avec consommation et cadence historisées ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-028",
+      "async_fact_confidence": "low",
+      "async_transfer_confidence": "low",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "low"
+    },
+    {
+      "name": "Vestre",
+      "country": "Norvège / Suède",
+      "sector": "Mobilier industriel bois et métal",
+      "size": "133 salariés déclarés sur la page entreprise consultée",
+      "site": "Production majoritairement interne en Norvège et Suède.",
+      "async_signal": "Présence internationale et recrutement numérique ; ancien signal remote commercial non revalidé comme politique opérationnelle.",
+      "utility_hypothesis": "Analyser charge de fond et mix de production d'une usine de mobilier.",
+      "limitations": "Deux usines et expertise environnementale ; preuve async insuffisante. Aucun bonus pour le pays.",
+      "target_role": "Plant Manager / responsable production",
+      "ratings": [
+        4,
+        4,
+        2,
+        4,
+        2,
+        1,
+        4,
+        1
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Organisation",
+          "url": "https://www.vestre.com/about-us/company",
+          "claim": "133 salariés déclarés ; fabricant international de mobilier.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "vestre.com",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Production propre",
+          "url": "https://vestre.com/no/faq/produksjon/hvor-produserer-dere-moblene",
+          "claim": "Production interne majoritaire et usines.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "vestre.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous documentez une fabrication majoritairement interne, répartie entre deux pays.",
+        "hook_source_indices": [
+          1
+        ],
+        "qualification_question_fr": "Une seule usine dispose-t-elle d'un sponsor et d'un historique énergie/production partageable par écrit ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-029",
+      "async_fact_confidence": "low",
+      "async_transfer_confidence": "low",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Mackie's of Scotland",
+      "country": "Royaume-Uni",
+      "sector": "Glaces, chocolat et emballages",
+      "size": "Environ 80 selon dossier antérieur ; à reconfirmer",
+      "site": "Production intégrée et froid, avec production énergétique sur site.",
+      "async_signal": "Documentation environnementale et email ; aucune preuve retenue d'async opérationnel.",
+      "utility_hypothesis": "Froid et charge inactive présentent un bon périmètre potentiel ; séparer consommation et autoproduction.",
+      "limitations": "Expertise énergie visible, comptage complexe ; trop peu d'indices async pour premier lot.",
+      "target_role": "Operations Director / Engineering Manager",
+      "ratings": [
+        5,
+        4,
+        2,
+        4,
+        2,
+        1,
+        4,
+        1
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Procédés et énergie",
+          "url": "https://www.mackies.co.uk/about-mackies/environment/",
+          "claim": "Production intégrée, froid et sources énergétiques propres.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "mackies.co.uk",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Équipe / canaux publics",
+          "url": "https://www.mackies.co.uk/about-mackies/people/",
+          "claim": "Page équipe et contact ; pas de politique async démontrée.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "mackies.co.uk",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre page environnement présente un site combinant procédés de fabrication, froid et autoproduction.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Un compteur permet-il de distinguer la consommation production/froid de l'autoproduction et des échanges réseau ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-030",
+      "async_fact_confidence": "low",
+      "async_transfer_confidence": "low",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Des Moines Cold Storage",
+      "country": "États-Unis",
+      "sector": "Stockage frigorifique et surgélation",
+      "size": "23 200 emplacements froid et 852 en blast annoncés ; effectif inconnu",
+      "site": "Installations frigorifiques et services de surgélation/tempérage.",
+      "async_signal": "Portail clients et échanges EDI/non-EDI documentés.",
+      "utility_hypothesis": "Rechercher dérives du froid, effets de chargement et consommation de fond ; grande charge répétitive plausible.",
+      "limitations": "Échelle de groupe et sponsor à préciser ; WMS ne fournit pas automatiquement énergie ou ouvertures de portes.",
+      "target_role": "Facilities / Refrigeration Manager",
+      "ratings": [
+        5,
+        4,
+        2,
+        4,
+        3,
+        2,
+        5,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Capacité et opérations numériques",
+          "url": "https://www.dmcoldstorage.com/",
+          "claim": "Stockage froid, blast freezing ; portail et EDI.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "dmcoldstorage.com",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous proposez à la fois stockage frigorifique, surgélation et tempérage.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Un entrepôt dispose-t-il d'une courbe électrique avec volumes entrants, températures et calendrier de surgélation ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-031",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Vanmarcke",
+      "country": "Belgique",
+      "sector": "Logistique frigorifique",
+      "size": "Effectif inconnu ; plusieurs installations",
+      "site": "Entreposage frigorifique de -25 à +15 °C, solaire et récupération de chaleur.",
+      "async_signal": "WMS/TMS, EDI, portail et documents d'export numériques.",
+      "utility_hypothesis": "Comparer consommation frigorifique avec flux et température, surveiller changements durables.",
+      "limitations": "Ne pas confondre avec Van Marcke sanitaire ; plusieurs sites ; expertise énergie déjà présente.",
+      "target_role": "Technical Manager / responsable entrepôt",
+      "ratings": [
+        5,
+        4,
+        2,
+        4,
+        3,
+        1,
+        5,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Sites, énergie et portail",
+          "url": "https://www.vanmarcke.info/en",
+          "claim": "Installations froid, WMS/TMS/EDI, portail, solaire et récupération de chaleur.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "vanmarcke.info",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous documentez stockage froid, solaire et récupération de chaleur.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Un site peut-il isoler froid, autoproduction et activité à partir de mesures horodatées ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-032",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "HIWA Rotterdam Port Cold Stores",
+      "country": "Pays-Bas",
+      "sector": "Froid et transformation de jus",
+      "size": "Plus de 100 000 tonnes/an traitées annoncées ; effectif inconnu",
+      "site": "Stockage froid, traitement de jus, échangeurs et équipements propres à Rotterdam.",
+      "async_signal": "ERP et portail clients avec échanges EDI.",
+      "utility_hypothesis": "Distinguer stockage, transformations et températures ; charge continue propice au suivi de régimes.",
+      "limitations": "Tonnes traitées ≠ consommation ; mélange d'activités exige planning et périmètre de compteur. Pages ouvertes en erreur 502 ; faits disponibles dans les résultats indexés, à reconfirmer.",
+      "target_role": "Technical / Operations Manager",
+      "ratings": [
+        5,
+        4,
+        2,
+        4,
+        3,
+        2,
+        5,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Procédés et données de service",
+          "url": "https://www.hiwa.nl/services/",
+          "claim": "Traitement de jus, stockage froid, ERP/portail/EDI et volume annoncé.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT_OPEN_FAILED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "hiwa.nl",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Site propre",
+          "url": "https://www.hiwa.nl/about-us/",
+          "claim": "Implantation industrielle à Rotterdam.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT_OPEN_FAILED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "hiwa.nl",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vos services associent stockage frigorifique et transformation de jus.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Peut-on distinguer stockage et transformation des jus, avec consommations et calendrier d'opérations ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-033",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Auscool Logistics",
+      "country": "Australie",
+      "sector": "Entreposage frigorifique",
+      "size": "Effectif inconnu ; Brisbane et Melbourne",
+      "site": "Sites de stockage frigorifique opérés en Australie.",
+      "async_signal": "Portail WMS, rapports et visibilité des stocks côté client.",
+      "utility_hypothesis": "Rechercher changement de niveau de froid et effet d'activité sur un seul entrepôt.",
+      "limitations": "Exclure carburant transport ; taille du groupe, propriété des installations et autonomie à confirmer.",
+      "target_role": "Warehouse / Facilities Manager",
+      "ratings": [
+        5,
+        4,
+        2,
+        4,
+        2,
+        2,
+        5,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Stockage et portail",
+          "url": "https://auscoollogistics.com/cold-storage-overview",
+          "claim": "Stockage Brisbane/Melbourne et portail WMS avec rapports.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "auscoollogistics.com",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous exploitez des activités de stockage frigorifique à Brisbane et Melbourne.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Un entrepôt peut-il partager un périmètre électrique distinct du transport, avec activité de stockage ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-034",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Canuck Cold Storage",
+      "country": "Canada",
+      "sector": "Entreposage frigorifique",
+      "size": "Effectif inconnu ; site Burlington identifié",
+      "site": "Stockage frigorifique à Burlington, activités et accréditations publiées.",
+      "async_signal": "Inspired Inventory, visibilité stocks/poids/lots, portail et EDI.",
+      "utility_hypothesis": "Suivre dérives de froid et charge de base à flux comparables ; périmètre de site a priori ciblable.",
+      "limitations": "Pas d'accès énergie démontré ; EDI logistique ≠ acceptation d'un analyste extérieur.",
+      "target_role": "Operations / Facility Manager",
+      "ratings": [
+        5,
+        4,
+        2,
+        3,
+        3,
+        2,
+        5,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Service et portail",
+          "url": "https://www.canuckcoldstorage.ca/",
+          "claim": "WMS, portail stocks et EDI pour stockage frigorifique.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "canuckcoldstorage.ca",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Site",
+          "url": "https://www.canuckcoldstorage.ca/About-Us",
+          "claim": "Site à Burlington et activités frigorifiques.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "canuckcoldstorage.ca",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre site de Burlington fournit un suivi numérique des lots et stocks frigorifiques.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Le site de Burlington conserve-t-il consommation électrique, flux de palettes et consignes de froid ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-035",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "RAM3D",
+      "country": "Nouvelle-Zélande",
+      "sector": "Fabrication additive métal",
+      "size": "Effectif inconnu ; usine à Tauranga",
+      "site": "Fabrication additive métal dans un site propre documenté.",
+      "async_signal": "Processus client documenté, fichiers CAD et demandes initiales par écrit/online.",
+      "utility_hypothesis": "Comparer charges de campagnes métal, post-traitement et périodes d'attente.",
+      "limitations": "Cas de processus ancien ; marchés défense possibles ; confidentialité et compteur distinct à qualifier.",
+      "target_role": "Operations Manager / directeur usine",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Processus client et usine",
+          "url": "https://www.ram3d.co.nz/category/customers/",
+          "claim": "Articles sur usine et parcours de demande client par fichiers.",
+          "published_at": "Articles notamment 2021",
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "ram3d.co.nz",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Entreprise actuelle",
+          "url": "https://www.ram3d.co.nz/",
+          "claim": "Fabrication additive métal à Tauranga.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "ram3d.co.nz",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous présentez une fabrication additive métal implantée à Tauranga.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Des campagnes métal comparables et leurs dates de chauffe peuvent-elles être rapprochées d'un compteur non sensible ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-036",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "THINK3D",
+      "country": "Inde",
+      "sector": "Usinage, injection et additive",
+      "size": "Parcs CNC et additive détaillés ; effectif inconnu",
+      "site": "Installation propre de Visakhapatnam ; siège Hyderabad.",
+      "async_signal": "Upload, devis par email et documentation de fabrication en anglais.",
+      "utility_hypothesis": "Comparer campagnes et charge inactive sur un procédé isolé, plutôt qu'un total multi-technologies.",
+      "limitations": "Chiffres de parc variables selon page ; ne pas additionner ; site/siège distincts ; budget local à qualifier.",
+      "target_role": "Plant Head / Operations Manager",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Installation et parc",
+          "url": "https://www.think3d.in/about-us/",
+          "claim": "Site Visakhapatnam avec CNC, injection et additive ; chiffres déclaratifs.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "think3d.in",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Processus de demande",
+          "url": "https://www.think3d.in/services/3d-printing/",
+          "claim": "Devis par fichiers et email, documentation technique.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "think3d.in",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre page entreprise décrit les moyens industriels de Visakhapatnam.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Quel atelier de Visakhapatnam offre un historique stable d'énergie et d'ordres de fabrication ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-037",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Beta LAYOUT / PCB-POOL",
+      "country": "Allemagne",
+      "sector": "Fabrication PCB et assemblage",
+      "size": "Effectif non vérifié ; usine allemande",
+      "site": "Fabrication de circuits imprimés dans sa propre usine allemande.",
+      "async_signal": "Upload de conception, calcul de devis PCB/assemblage, documentation et suivi numérique.",
+      "utility_hypothesis": "Investiguer profils de bains, fours et ventilation seulement sur procédés réellement internes et comparables.",
+      "limitations": "Marques comptées une fois ; confirmer procédés chimiques internes et autonomie du site ; données énergie inconnues.",
+      "target_role": "Produktionsleitung / Betriebsleitung",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Usine et parcours fichiers",
+          "url": "https://uk.beta-layout.com/pcb/layout/general/",
+          "claim": "Usine PCB allemande et demande technique numérique.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "uk.beta-layout.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Chiffrage en ligne",
+          "url": "https://eu.beta-layout.com/3d-print/order/",
+          "claim": "Interface de devis/commande de fichiers 3D ; un autre service, pas preuve énergie.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "eu.beta-layout.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous présentez une fabrication de PCB dans votre propre usine allemande.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Quels procédés sont réellement internes à l'usine et ont un compteur et un calendrier exploitables ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-038",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Imaginarium",
+      "country": "Inde",
+      "sector": "Fabrication additive et outillage",
+      "size": "Effectif non vérifié ; installation outillage documentée",
+      "site": "Outillage et essais de moules en propre, activité de fabrication additive.",
+      "async_signal": "Plateforme Rapid Online Factory et parcours documenté de commande technique.",
+      "utility_hypothesis": "Comparer consommations d'essais et campagnes sur un atelier stable ; séparer prototypes et séries.",
+      "limitations": "Multiples métiers et implantation à isoler ; prototype variable peut rendre baseline faible.",
+      "target_role": "Manufacturing / Operations Head",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        2,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "CONDITIONAL",
+      "sources": [
+        {
+          "title": "Installation et essais",
+          "url": "https://imaginarium.io/rapid-tooling/",
+          "claim": "Installation outillage et essais ; plateforme Rapid.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "imaginarium.io",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Parcours client documenté",
+          "url": "https://imaginarium.io/entrepreneur-leverages-online-manufacturing-platform-to-start-her-own-jewellery-brand/",
+          "claim": "Exemple de commande via plateforme de fabrication.",
+          "published_at": "2020",
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "imaginarium.io",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre offre d'outillage inclut des essais de moules avant mise en production.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Un atelier d'outillage dispose-t-il de campagnes assez répétées et de mesures pour distinguer essais et fabrication ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-039",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "low"
+    },
+    {
+      "name": "3ERP",
+      "country": "Chine",
+      "sector": "Usinage et injection",
+      "size": "Effectif inconnu ; usine Zhongshan",
+      "site": "Usine principale à Zhongshan, fabrication CNC et injection.",
+      "async_signal": "Fichiers CAD, analyse de fabricabilité et chiffrage numérique ; échanges en anglais.",
+      "utility_hypothesis": "Charges auxiliaires et stabilité énergétique à campagne comparable sur site principal.",
+      "limitations": "Volume et horaires inconnus ; portefeuille international ne garantit ni export énergie ni accès fournisseur.",
+      "target_role": "Factory / Operations Manager",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Usine et demande technique",
+          "url": "https://www.3erp.com/contact/",
+          "claim": "Usine Zhongshan et formulaire fichiers/devis.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "3erp.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Workflow de fabrication",
+          "url": "https://www.3erp.com/",
+          "claim": "CAD, analyse, validation et fabrication.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "3erp.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre page contact identifie l'usine principale de Zhongshan.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Le site de Zhongshan dispose-t-il d'un historique énergie et d'heures CNC/injection ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-040",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "WayKen",
+      "country": "Chine",
+      "sector": "Usinage CNC",
+      "size": "60+ employés et 16 CNC déclarés",
+      "site": "Usine Shenzhen ; travail 24/7 annoncé.",
+      "async_signal": "Envoi de fichiers par email, devis et documentation technique en anglais.",
+      "utility_hypothesis": "Comparaison de charge CNC et auxiliaires, dérives sur journées similaires.",
+      "limitations": "Chiffres déclarés par fournisseur, non audités ; mix prototypes à contrôler ; coût de l'énergie non connu.",
+      "target_role": "Factory Manager / Operations",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Parc et rythme",
+          "url": "https://waykenrm.com/technologies/cnc-machining/",
+          "claim": "60+ salariés, 16 CNC et fonctionnement 24/7 annoncés.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "waykenrm.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Échanges techniques",
+          "url": "https://waykenrm.com/contact-us/",
+          "claim": "Usine Shenzhen, devis par fichiers/email et canaux écrits.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "waykenrm.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre offre CNC annonce un fonctionnement 24/7 à Shenzhen.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Le site de Shenzhen peut-il rapprocher compteur électrique et charge de travail des CNC sur plusieurs semaines ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-041",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "eMachineShop / Micro Logic",
+      "country": "États-Unis",
+      "sector": "Usinage et découpe",
+      "size": "Effectif inconnu ; site Mahwah identifié",
+      "site": "Installation principale de fabrication à Mahwah, CNC et découpe.",
+      "async_signal": "CAD, prix, validation et commande en ligne, aide technique documentée.",
+      "utility_hypothesis": "Comparer charge d'atelier et jours similaires ; charge de fond et fonctionnement hors travail.",
+      "limitations": "Ne pas attribuer toutes finitions vendues au même site ; autonomie de la division et taille à préciser.",
+      "target_role": "Manufacturing / Operations Manager",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Usine et équipements",
+          "url": "https://www.emachineshop.com/faq/",
+          "claim": "Installation principale Mahwah et procédés CNC/découpe.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "emachineshop.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Entité et workflow",
+          "url": "https://www.emachineshop.com/about-emachineshop/",
+          "claim": "Division Micro Logic ; fichiers, prix et commande numériques.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "emachineshop.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre FAQ identifie l'installation principale de fabrication à Mahwah.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Le site de Mahwah peut-il isoler sa consommation des finitions externes et fournir un calendrier d'atelier ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-042",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Newbury Electronics / PCB Train",
+      "country": "Royaume-Uni",
+      "sector": "Fabrication et assemblage PCB",
+      "size": "Effectif non vérifié ; fabrication à Newbury",
+      "site": "Fabricant PCB et assemblage ; PCB Train est une marque/division.",
+      "async_signal": "Devis en ligne, données de fabrication transmises par écrit, spécifications détaillées.",
+      "utility_hypothesis": "Comparer fours, ventilation et campagnes d'assemblage ; vérifier périmètre des procédés PCB.",
+      "limitations": "Une seule société, pas deux prospects ; mix prototypes et séries peut expliquer les variations.",
+      "target_role": "Production / Operations Director",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Fabrication et offre",
+          "url": "https://www.pcbtrain.co.uk/products-and-services/",
+          "claim": "Fabrication PCB/assemblage et devis numériques.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "pcbtrain.co.uk",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Division et échanges",
+          "url": "https://www.pcbtrain.co.uk/contact/",
+          "claim": "Lien Newbury Electronics et échanges techniques écrits.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "pcbtrain.co.uk",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "PCB Train fait partie de Newbury Electronics et couvre fabrication et assemblage.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "La fabrication et l'assemblage à Newbury ont-ils des compteurs et un suivi de campagnes comparables ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-043",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "ABL Circuits",
+      "country": "Royaume-Uni",
+      "sector": "Fabrication PCB et assemblage",
+      "size": "Effectif inconnu ; site Baldock",
+      "site": "Prototypage, fabrication et assemblage sous un même toit.",
+      "async_signal": "Formulaire technique de devis PCB avec fichiers et spécifications.",
+      "utility_hypothesis": "Comparer charge de site, ventilation et campagnes ; identifier écarts persistants défendables.",
+      "limitations": "Devis technique seulement : pas preuve de culture async générale ; faible série et énergie réelle à confirmer.",
+      "target_role": "Managing Director / Production Manager",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Production intégrée",
+          "url": "https://www.ablcircuits.co.uk/pcb-services/pcb-prototypes",
+          "claim": "Fabrication et assemblage au site Baldock.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "ablcircuits.co.uk",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Fichiers et devis",
+          "url": "https://www.ablcircuits.co.uk/request-a-pcb-quote",
+          "claim": "Demande structurée de devis et spécifications PCB.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "ablcircuits.co.uk",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre offre décrit fabrication et assemblage sous un même toit à Baldock.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Le site de Baldock dispose-t-il d'une courbe énergie et d'un calendrier de fabrication/assemblage ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-044",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Bittele Electronics",
+      "country": "Canada / Chine / Malaisie",
+      "sector": "Assemblage électronique",
+      "size": "Effectif non vérifié ; plusieurs usines",
+      "site": "Installations d'assemblage dans plusieurs pays déclarées.",
+      "async_signal": "BOM/fichiers, devis et DFM en ligne ; coordination siège/usines documentée.",
+      "utility_hypothesis": "Analyser fours de refusion et auxiliaires d'un seul site avec mix et cadence.",
+      "limitations": "Périmètre international et autonomie de décision inconnus ; ne pas qualifier groupe entier comme PME mono-site.",
+      "target_role": "Plant Operations Manager d'un site",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        2,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "CONDITIONAL",
+      "sources": [
+        {
+          "title": "Fabrication et parcours",
+          "url": "https://www.7pcb.com/",
+          "claim": "Installations et devis/DFM numériques.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "7pcb.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Coordination internationale",
+          "url": "https://www.7pcb.com/offshore-pcb-assembly",
+          "claim": "Processus entre siège et production offshore.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "7pcb.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous documentez un fonctionnement entre siège et installations d'assemblage dans plusieurs pays.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Un seul site d'assemblage dispose-t-il d'un sponsor autonome et de données de ligne ou de site partageables ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-045",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "low"
+    },
+    {
+      "name": "Extract Coffee Roasters",
+      "country": "Royaume-Uni",
+      "sector": "Torréfaction",
+      "size": "Effectif inconnu ; production à Bristol",
+      "site": "Torréfaction et conditionnement propres à Bristol.",
+      "async_signal": "Slack documenté pour échanges d'équipe ; rapport d'absences quotidien par email cité chez Timetastic.",
+      "utility_hypothesis": "Comparer énergie par campagne, préchauffage, extraction et attentes ; distinguer gaz et électricité.",
+      "limitations": "Preuve Slack sociale plutôt que production ; courant seul peut manquer énergie thermique ; volume à qualifier.",
+      "target_role": "Head of Coffee / Production Manager",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Production actuelle",
+          "url": "https://extractcoffee.co.uk/work-with-us/production-roaster/",
+          "claim": "Poste de torréfacteur dans la production de Bristol.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "extractcoffee.co.uk",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Slack d'équipe",
+          "url": "https://extractcoffee.co.uk/about-us/behind-roastery-doors/breaking-the-silence-on-mental-health-in-hospitality/",
+          "claim": "Slack et échanges d'équipe ; contexte bien-être.",
+          "published_at": "2024-02-06 (mise à jour)",
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "extractcoffee.co.uk",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Rapports email",
+          "url": "https://timetastic.co.uk/features/email-reports/",
+          "claim": "Témoignage Extract sur rapport d'absences par email ; fonction RH.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "timetastic.co.uk",
+          "source_type": "vendor_case",
+          "confidence": "medium",
+          "limitations": "Cas promotionnel ; récit déclaré et sélectionné par le fournisseur."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vos recrutements décrivent la production de torréfaction à Bristol.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "L'équipe Bristol conserve-t-elle les dates et volumes de torréfaction avec consommation gaz et électricité ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-046",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Clifton Coffee Roasters",
+      "country": "Royaume-Uni",
+      "sector": "Torréfaction",
+      "size": "27 salariés dans ancien cas 2018 ; effectif actuel inconnu",
+      "site": "Torréfaction propre depuis 2013 à Bristol/Avonmouth.",
+      "async_signal": "Cas historique : Teams, Forms, documents de maintenance et checklist numérique d'ouverture de la torréfaction.",
+      "utility_hypothesis": "Régimes de chauffe, extraction et calendrier de torréfaction peuvent être confrontés à des traces de production.",
+      "limitations": "Cas de déploiement 2018, pas preuve de politique 2026 ; structure juridique actuelle à préciser ; gaz indispensable si procédé au gaz.",
+      "target_role": "Head of Production / directeur torréfaction",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Torréfaction propre",
+          "url": "https://cliftoncoffee.co.uk/pages/about-us",
+          "claim": "Installation de torréfaction interne depuis 2013.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "cliftoncoffee.co.uk",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Pratiques documentaires historiques",
+          "url": "https://www.changingsocial.com/case-studies/clifton-coffee/",
+          "claim": "Teams et Forms, documents maintenance, checklist d'ouverture ; 27 salariés au moment du cas.",
+          "published_at": "Déploiement 2018 ; publication non datée",
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "changingsocial.com",
+          "source_type": "vendor_case",
+          "confidence": "high",
+          "limitations": "Cas promotionnel ; récit déclaré et sélectionné par le fournisseur."
+        },
+        {
+          "title": "Organisation production",
+          "url": "https://cliftoncoffee.co.uk/pages/team",
+          "claim": "Équipe Roastery & Production actuelle.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "cliftoncoffee.co.uk",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre histoire décrit le développement d'une torréfaction interne à Avonmouth.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "La torréfaction Avonmouth conserve-t-elle encore ses journaux opérationnels et les données gaz/électricité ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-047",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Buddy Brew Coffee",
+      "country": "États-Unis",
+      "sector": "Torréfaction",
+      "size": "100 salariés selon Built In ; estimation non auditée",
+      "site": "Torréfaction et conditionnement à Tampa pour retail/wholesale/grocery.",
+      "async_signal": "Annonce production : Slack, planning ShipStation/Cropster, inventaires et documentation.",
+      "utility_hypothesis": "Comparer campagnes de torréfaction et énergie, examiner préchauffage, extraction et charge de fond.",
+      "limitations": "Annonce officielle consultable via index mais ouverture directe échouée ; ne pas confondre 100 salariés et effectif usine ; gaz à cadrer.",
+      "target_role": "Roasting Manager / Operations Director",
+      "ratings": [
+        4,
+        4,
+        3,
+        3,
+        3,
+        2,
+        4,
+        4
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Rôle de production",
+          "url": "https://buddybrew.hrmdirect.com/employment/job-opening.php?req=3741077&req_loc=1362112",
+          "claim": "Production roaster : planning ShipStation/Cropster et communication Slack ; résultat indexé.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT_OPEN_FAILED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "buddybrew.hrmdirect.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Corroboration de l'annonce",
+          "url": "https://builtin.com/company/buddy-brew-coffee/teams",
+          "claim": "Rôles de production et estimation 100 salariés ; reprise de recrutement, pas preuve indépendante de toutes les pratiques.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "builtin.com",
+          "source_type": "job_platform",
+          "confidence": "medium",
+          "limitations": "Publication ou reprise de recrutement ; disponibilité et pratiques actuelles à confirmer."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre recrutement en production décrit un planning de torréfaction suivi dans Cropster.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Le planning Cropster peut-il être rapproché des consommations gaz et électricité de la torréfaction Tampa ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-048",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "Tony's Coffee",
+      "country": "États-Unis",
+      "sector": "Torréfaction",
+      "size": "Effectif inconnu ; torréfaction à Bellingham",
+      "site": "Torréfaction propre ; amélioration d'efficacité et suivi environnemental déclarés.",
+      "async_signal": "Annonce directe de conditionnement : communication interéquipes par email et Asana.",
+      "utility_hypothesis": "Comparer fonctionnement actuel et campagnes ; réfuter écarts dus au mix ; maintien de performance après changements.",
+      "limitations": "Expertise et efforts énergie déjà présents ; ne pas promettre nouveau gisement ; gaz/électricité à séparer.",
+      "target_role": "Production / Roastery Manager",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        1,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Procédé et efforts antérieurs",
+          "url": "https://www.tonyscoffee.com/sustainability/",
+          "claim": "Torréfaction, efficacité améliorée et démarches énergie.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "tonyscoffee.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Écrit au conditionnement",
+          "url": "https://recruiting.paylocity.com/recruiting/jobs/Details/4250381/Tonys-Coffees-Teas-Inc/COFFEE-PACKAGER-I---FULL-TIME",
+          "claim": "Email et Asana dans la coordination interéquipes et checks d'équipement.",
+          "published_at": null,
+          "access_status": "OPENED",
+          "retrieved_at": "2026-09-10",
+          "publisher": "recruiting.paylocity.com",
+          "source_type": "company_publication",
+          "confidence": "high",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Vous avez déjà communiqué sur l'amélioration de l'efficacité de votre torréfaction.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "Les campagnes actuelles et leurs consommations sont-elles comparables pour vérifier le maintien des performances déjà améliorées ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-049",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    },
+    {
+      "name": "INARU",
+      "country": "République dominicaine",
+      "sector": "Fabrication de chocolat",
+      "size": "Effectif actuel inconnu ; usine propre",
+      "site": "Transformation intégrée de cacao et fabrication de chocolat en République dominicaine.",
+      "async_signal": "Étude Tufts 2024 : Slack associé à l'équipe usine ; entreprise exportatrice anglophone.",
+      "utility_hypothesis": "Étudier charges thermiques/refroidissement et campagnes de chocolat, avec volumes et contexte.",
+      "limitations": "Preuve Slack historique, périmètre exact inconnu ; capacité et coût actuels à confirmer.",
+      "target_role": "Factory / Operations Manager",
+      "ratings": [
+        4,
+        4,
+        2,
+        3,
+        3,
+        2,
+        4,
+        3
+      ],
+      "utility_status": "STRONG_CANDIDATE",
+      "sources": [
+        {
+          "title": "Production intégrée",
+          "url": "https://inaru.com/pages/about",
+          "claim": "Production cacao/chocolat intégrée en République dominicaine.",
+          "published_at": null,
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "inaru.com",
+          "source_type": "company_publication",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        },
+        {
+          "title": "Étude externe",
+          "url": "https://innovation.nutrition.tufts.edu/wp-content/uploads/2024/10/5-INARU-Redefining-Cocoa-Supply-Chains-with-Purpose-Driven-Innovation.pdf",
+          "claim": "Usine et équipe utilisant Slack décrites par la fondatrice.",
+          "published_at": "2024-10 (fichier)",
+          "access_status": "SEARCH_EXTRACT",
+          "retrieved_at": "2026-09-10",
+          "publisher": "innovation.nutrition.tufts.edu",
+          "source_type": "external_case",
+          "confidence": "medium",
+          "limitations": "Déclaration publique ; ne constitue pas un audit du site."
+        }
+      ],
+      "personalization": {
+        "hook_fr": "Votre présentation décrit une transformation intégrée du cacao jusqu'au chocolat.",
+        "hook_source_indices": [
+          0
+        ],
+        "qualification_question_fr": "L'usine conserve-t-elle volumes par campagne, dates et mesures des usages thermiques/électriques ?",
+        "use_async_signal_in_opening": false,
+        "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+        "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+        "send_status": "NOT_SENT"
+      },
+      "prospect_id": "INT50-050",
+      "async_fact_confidence": "medium",
+      "async_transfer_confidence": "medium",
+      "energy_data_availability": "UNKNOWN",
+      "paid_pilot_qualification": "NOT_QUALIFIED",
+      "utility_probability": null,
+      "utility_confidence": "medium"
+    }
+  ]
+}

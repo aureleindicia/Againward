@@ -1,0 +1,1506 @@
+{
+  "status": "PREPARATION_ONLY_NOT_SENT",
+  "language_note": "Informations et accroches en français pour rédaction ultérieure ; anglais proposé à confirmer, pas email final validé.",
+  "prospects": [
+    {
+      "prospect_id": "INT50-004",
+      "name": "Modist Brewing",
+      "rank": 1,
+      "target_function": "Head Brewer / directeur opérations",
+      "hook_fr": "Votre documentation de production décrit un brassage sur mash filter et un suivi détaillé dans Ekos.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Les dates de brassins/CIP conservées dans Ekos peuvent-elles être rapprochées d'un compteur électrique ou thermique ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-004-S1"
+      ],
+      "value_angle_fr": "Comparer brassins, refroidissement et nettoyages ; détecter une charge persistante hors brassage.",
+      "critical_limit": "Fiches 2024–2025 ; ne prouvent pas export compteur ; recettes et autres boissons à séparer.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://modistbrewing.com/wp-content/uploads/2025/05/Part-Time-Brewer_Cellarperson-Job-Description-1.pdf"
+      ]
+    },
+    {
+      "prospect_id": "INT50-002",
+      "name": "OSH Cut",
+      "rank": 2,
+      "target_function": "COO / responsable production",
+      "hook_fr": "Votre annonce de mai 2026 présente un second site près de Cincinnati, en complément de votre production en Utah.",
+      "hook_source_indices": [
+        4
+      ],
+      "qualification_question_fr": "Conservez-vous, pour un même atelier, la courbe électrique et les heures ou volumes de découpe correspondants ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-002-S5"
+      ],
+      "value_angle_fr": "Repérer charge auxiliaire persistante et écarts à production comparable ; découpe réelle et répétée.",
+      "critical_limit": "Croissance depuis 2024 ; commandes numériques ne prouvent pas achats async ; avis Indeed anonyme non déterminant. Second site annoncé près de Cincinnati en mai 2026 : démarrage et maturité des données à vérifier, privilégier un atelier stabilisé.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.oshcut.com/articles/osh-cut-to-open-a-second-high-tech-factory-near-cincinnati"
+      ]
+    },
+    {
+      "prospect_id": "INT50-048",
+      "name": "Buddy Brew Coffee",
+      "rank": 3,
+      "target_function": "Roasting Manager / Operations Director",
+      "hook_fr": "Votre recrutement en production décrit un planning de torréfaction suivi dans Cropster.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Le planning Cropster peut-il être rapproché des consommations gaz et électricité de la torréfaction Tampa ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-048-S1"
+      ],
+      "value_angle_fr": "Comparer campagnes de torréfaction et énergie, examiner préchauffage, extraction et charge de fond.",
+      "critical_limit": "Annonce officielle consultable via index mais ouverture directe échouée ; ne pas confondre 100 salariés et effectif usine ; gaz à cadrer.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://buddybrew.hrmdirect.com/employment/job-opening.php?req=3741077&req_loc=1362112"
+      ]
+    },
+    {
+      "prospect_id": "INT50-005",
+      "name": "Driftwood Brewery",
+      "rank": 4,
+      "target_function": "General Manager / responsable brasserie",
+      "hook_fr": "Votre brasserie de Victoria combine fabrication et distribution régionale.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Un site conserve-t-il des mesures énergie horodatées et le calendrier de brassage/nettoyage ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-005-S1"
+      ],
+      "value_angle_fr": "Analyser froid et charges de fond, séparer production, nettoyage et usages du site.",
+      "critical_limit": "Cas fournisseur promotionnel et non daté ; fonctions précises des utilisateurs et maintien actuel à confirmer.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://driftwoodbeer.ca/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-003",
+      "name": "G&O Springs",
+      "rank": 5,
+      "target_function": "Managing Director / Operations Manager",
+      "hook_fr": "Le retour d'expérience MTC décrit votre suivi APQP et l'accès aux documents directement en atelier.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Le suivi de fabrication APQP peut-il être rapproché d'un export électrique du site, sans données techniques de pièces ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-003-S1"
+      ],
+      "value_angle_fr": "Comparer journées et campagnes similaires, veille d'atelier et variations de charge non expliquées par volumes.",
+      "critical_limit": "Ne pas confondre G&O et Goss Springs ; données énergie non démontrées ; exigences aéronautiques.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.the-mtc.org/insights/go-springs-setting-standard-sme-digital-adoption"
+      ]
+    },
+    {
+      "prospect_id": "INT50-031",
+      "name": "Des Moines Cold Storage",
+      "rank": 6,
+      "target_function": "Facilities / Refrigeration Manager",
+      "hook_fr": "Vous proposez à la fois stockage frigorifique, surgélation et tempérage.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Un entrepôt dispose-t-il d'une courbe électrique avec volumes entrants, températures et calendrier de surgélation ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-031-S1"
+      ],
+      "value_angle_fr": "Rechercher dérives du froid, effets de chargement et consommation de fond ; grande charge répétitive plausible.",
+      "critical_limit": "Échelle de groupe et sponsor à préciser ; WMS ne fournit pas automatiquement énergie ou ouvertures de portes.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.dmcoldstorage.com/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-033",
+      "name": "HIWA Rotterdam Port Cold Stores",
+      "rank": 7,
+      "target_function": "Technical / Operations Manager",
+      "hook_fr": "Vos services associent stockage frigorifique et transformation de jus.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Peut-on distinguer stockage et transformation des jus, avec consommations et calendrier d'opérations ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-033-S1"
+      ],
+      "value_angle_fr": "Distinguer stockage, transformations et températures ; charge continue propice au suivi de régimes.",
+      "critical_limit": "Tonnes traitées ≠ consommation ; mélange d'activités exige planning et périmètre de compteur. Pages ouvertes en erreur 502 ; faits disponibles dans les résultats indexés, à reconfirmer.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.hiwa.nl/services/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-032",
+      "name": "Vanmarcke",
+      "rank": 8,
+      "target_function": "Technical Manager / responsable entrepôt",
+      "hook_fr": "Vous documentez stockage froid, solaire et récupération de chaleur.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Un site peut-il isoler froid, autoproduction et activité à partir de mesures horodatées ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-032-S1"
+      ],
+      "value_angle_fr": "Comparer consommation frigorifique avec flux et température, surveiller changements durables.",
+      "critical_limit": "Ne pas confondre avec Van Marcke sanitaire ; plusieurs sites ; expertise énergie déjà présente.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.vanmarcke.info/en"
+      ]
+    },
+    {
+      "prospect_id": "INT50-034",
+      "name": "Auscool Logistics",
+      "rank": 9,
+      "target_function": "Warehouse / Facilities Manager",
+      "hook_fr": "Vous exploitez des activités de stockage frigorifique à Brisbane et Melbourne.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Un entrepôt peut-il partager un périmètre électrique distinct du transport, avec activité de stockage ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-034-S1"
+      ],
+      "value_angle_fr": "Rechercher changement de niveau de froid et effet d'activité sur un seul entrepôt.",
+      "critical_limit": "Exclure carburant transport ; taille du groupe, propriété des installations et autonomie à confirmer.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://auscoollogistics.com/cold-storage-overview"
+      ]
+    },
+    {
+      "prospect_id": "INT50-035",
+      "name": "Canuck Cold Storage",
+      "rank": 10,
+      "target_function": "Operations / Facility Manager",
+      "hook_fr": "Votre site de Burlington fournit un suivi numérique des lots et stocks frigorifiques.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Le site de Burlington conserve-t-il consommation électrique, flux de palettes et consignes de froid ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-035-S1"
+      ],
+      "value_angle_fr": "Suivre dérives de froid et charge de base à flux comparables ; périmètre de site a priori ciblable.",
+      "critical_limit": "Pas d'accès énergie démontré ; EDI logistique ≠ acceptation d'un analyste extérieur.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.canuckcoldstorage.ca/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-007",
+      "name": "Fort George Brewery",
+      "rank": 11,
+      "target_function": "Production Manager / Head Brewer",
+      "hook_fr": "Votre installation Waterfront et vos rotations de production offrent un périmètre concret à étudier.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Waterfront dispose-t-il d'un compteur distinct et des dates de brassage, cave et nettoyage ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-007-S1"
+      ],
+      "value_angle_fr": "Comparer campagnes de brassage et froid ; surveiller évolution de consommation hors brassage.",
+      "critical_limit": "Annonce sur agrégateur ; isoler Waterfront des restaurants et autres brasseries ; poste actuel à confirmer.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://fortgeorgebrewery.com/brewery-tours/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-006",
+      "name": "Almanac Beer Co.",
+      "rank": 12,
+      "target_function": "Director of Operations / Head Brewer",
+      "hook_fr": "Vous indiquez brasser, faire vieillir et conditionner vos bières sur le même site à Alameda.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "La consommation de la brasserie d'Alameda peut-elle être isolée du taproom et rapprochée des brassins ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-006-S1"
+      ],
+      "value_angle_fr": "Froid, stockage et conditionnement : comparer périodes et charges récurrentes avec contexte de fabrication.",
+      "critical_limit": "Preuve écrite issue surtout du taproom ; réunions hebdomadaires également prévues. La fiche keyholder retourne 404 à l’ouverture : indice historique indexé uniquement.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://almanacbeer.com/pages/taproom-keyholder"
+      ]
+    },
+    {
+      "prospect_id": "INT50-022",
+      "name": "Oceanz",
+      "rank": 13,
+      "target_function": "Operations Manager / directeur de production",
+      "hook_fr": "Vous annoncez un parc de 19 machines EOS SLS et un suivi numérique de production.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Les étapes suivies dans YourOceanz peuvent-elles être rapprochées de mesures énergie d'un atelier ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-022-S1"
+      ],
+      "value_angle_fr": "Parc répétitif suffisamment substantiel pour investiguer cycles, charge de fond et évolution d'intensité.",
+      "critical_limit": "Portail client ≠ achats async ; certifications et expertise technique interne à respecter. Page du portail bloquée à l'ouverture ; signal retenu à partir de l'extrait indexé, à reconfirmer.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.oceanz.eu/en/3d-printing/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-017",
+      "name": "Weerg",
+      "rank": 14,
+      "target_function": "Responsabile produzione / operations",
+      "hook_fr": "Vous présentez une production CNC et additive réalisée en interne.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Un atelier CNC ou MJF à Scorzè peut-il être isolé avec ses consommations et ses campagnes ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-017-S1"
+      ],
+      "value_angle_fr": "Comparer cycles thermiques/additifs et charge de parc CNC, avec ordres et heures de production.",
+      "critical_limit": "Maturité numérique élevée peut inclure analyse interne ; diversité des technologies à segmenter.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.weerg.com/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-008",
+      "name": "Headlands Brewing",
+      "rank": 15,
+      "target_function": "Brewery Operations / Production Manager",
+      "hook_fr": "Votre page impact décrit une récupération d'eau dans la production à Pittsburg.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Le site de Pittsburg conserve-t-il une courbe d'énergie et un journal de production/nettoyage ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-008-S1"
+      ],
+      "value_angle_fr": "Examiner froid, nettoyage et charge de fond à production comparable sur Pittsburg.",
+      "critical_limit": "Annonce republiée ; preuve Slack logistique, pas achats ; renouvelable ne signifie pas absence d'écarts.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.headlandsbrewing.com/impact"
+      ]
+    },
+    {
+      "prospect_id": "INT50-018",
+      "name": "3D People",
+      "rank": 16,
+      "target_function": "Production Manager / cofondateur opérations",
+      "hook_fr": "Vous décrivez une usine UK dédiée à la fabrication additive industrielle.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Les dates de campagnes et chauffe sont-elles conservées avec un export électrique de l'usine ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-018-S1"
+      ],
+      "value_angle_fr": "Comparer préchauffage, campagnes, refroidissement et utilisation des équipements ; pas supposer que toute durée inactive est inutile.",
+      "critical_limit": "Volume et coût électrique réels inconnus ; production numérique ne prouve pas suivi énergie.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.3dpeople.uk/about-us/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-040",
+      "name": "3ERP",
+      "rank": 17,
+      "target_function": "Factory / Operations Manager",
+      "hook_fr": "Votre page contact identifie l'usine principale de Zhongshan.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Le site de Zhongshan dispose-t-il d'un historique énergie et d'heures CNC/injection ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-040-S1"
+      ],
+      "value_angle_fr": "Charges auxiliaires et stabilité énergétique à campagne comparable sur site principal.",
+      "critical_limit": "Volume et horaires inconnus ; portefeuille international ne garantit ni export énergie ni accès fournisseur.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.3erp.com/contact/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-044",
+      "name": "ABL Circuits",
+      "rank": 18,
+      "target_function": "Managing Director / Production Manager",
+      "hook_fr": "Votre offre décrit fabrication et assemblage sous un même toit à Baldock.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Le site de Baldock dispose-t-il d'une courbe énergie et d'un calendrier de fabrication/assemblage ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-044-S1"
+      ],
+      "value_angle_fr": "Comparer charge de site, ventilation et campagnes ; identifier écarts persistants défendables.",
+      "critical_limit": "Devis technique seulement : pas preuve de culture async générale ; faible série et énergie réelle à confirmer.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.ablcircuits.co.uk/pcb-services/pcb-prototypes"
+      ]
+    },
+    {
+      "prospect_id": "INT50-038",
+      "name": "Beta LAYOUT / PCB-POOL",
+      "rank": 19,
+      "target_function": "Produktionsleitung / Betriebsleitung",
+      "hook_fr": "Vous présentez une fabrication de PCB dans votre propre usine allemande.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Quels procédés sont réellement internes à l'usine et ont un compteur et un calendrier exploitables ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-038-S1"
+      ],
+      "value_angle_fr": "Investiguer profils de bains, fours et ventilation seulement sur procédés réellement internes et comparables.",
+      "critical_limit": "Marques comptées une fois ; confirmer procédés chimiques internes et autonomie du site ; données énergie inconnues.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://uk.beta-layout.com/pcb/layout/general/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-047",
+      "name": "Clifton Coffee Roasters",
+      "rank": 20,
+      "target_function": "Head of Production / directeur torréfaction",
+      "hook_fr": "Votre histoire décrit le développement d'une torréfaction interne à Avonmouth.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "La torréfaction Avonmouth conserve-t-elle encore ses journaux opérationnels et les données gaz/électricité ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-047-S1"
+      ],
+      "value_angle_fr": "Régimes de chauffe, extraction et calendrier de torréfaction peuvent être confrontés à des traces de production.",
+      "critical_limit": "Cas de déploiement 2018, pas preuve de politique 2026 ; structure juridique actuelle à préciser ; gaz indispensable si procédé au gaz.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://cliftoncoffee.co.uk/pages/about-us"
+      ]
+    },
+    {
+      "prospect_id": "INT50-046",
+      "name": "Extract Coffee Roasters",
+      "rank": 21,
+      "target_function": "Head of Coffee / Production Manager",
+      "hook_fr": "Vos recrutements décrivent la production de torréfaction à Bristol.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "L'équipe Bristol conserve-t-elle les dates et volumes de torréfaction avec consommation gaz et électricité ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-046-S1"
+      ],
+      "value_angle_fr": "Comparer énergie par campagne, préchauffage, extraction et attentes ; distinguer gaz et électricité.",
+      "critical_limit": "Preuve Slack sociale plutôt que production ; courant seul peut manquer énergie thermique ; volume à qualifier.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://extractcoffee.co.uk/work-with-us/production-roaster/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-024",
+      "name": "Formero",
+      "rank": 22,
+      "target_function": "Operations Manager / Manufacturing Manager",
+      "hook_fr": "Vous présentez votre fabrication et post-traitement à Melbourne.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Les productions MJF à Melbourne peuvent-elles être isolées avec leurs dates et une mesure d'énergie ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-024-S1"
+      ],
+      "value_angle_fr": "Comparer campagnes MJF, cycles de chauffe et demandes de production.",
+      "critical_limit": "Ne pas attribuer tous les procédés vendus à l'usine locale ; décideur et facture inconnus.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://formero.com.au/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-050",
+      "name": "INARU",
+      "rank": 23,
+      "target_function": "Factory / Operations Manager",
+      "hook_fr": "Votre présentation décrit une transformation intégrée du cacao jusqu'au chocolat.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "L'usine conserve-t-elle volumes par campagne, dates et mesures des usages thermiques/électriques ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-050-S1"
+      ],
+      "value_angle_fr": "Étudier charges thermiques/refroidissement et campagnes de chocolat, avec volumes et contexte.",
+      "critical_limit": "Preuve Slack historique, périmètre exact inconnu ; capacité et coût actuels à confirmer.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://inaru.com/pages/about"
+      ]
+    },
+    {
+      "prospect_id": "INT50-016",
+      "name": "Laser 24",
+      "rank": 24,
+      "target_function": "Operations Manager / directeur d'usine",
+      "hook_fr": "Votre site annonce un atelier automatisé qui fonctionne 24 heures sur 24.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Le fonctionnement automatisé est-il suivi par un compteur et des journaux d'activité comparables ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-016-S1"
+      ],
+      "value_angle_fr": "Étudier veille, aspiration et changements de charge par campagne ; fonctionnement continu matériellement pertinent.",
+      "critical_limit": "15 kW désigne les lasers, pas la puissance électrique totale ; usage écrit côté vente uniquement.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://laser24.co.uk/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-013",
+      "name": "LaserBoost",
+      "rank": 25,
+      "target_function": "Responsable production / directeur industriel",
+      "hook_fr": "Votre présentation décrit le passage à des installations de fabrication propres à Manresa.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Le site de Manresa dispose-t-il d'un compteur exportable et d'un suivi d'heures de découpe/pliage ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-013-S1"
+      ],
+      "value_angle_fr": "Comparer charges laser/auxiliaires et régimes à charge de travail comparable.",
+      "critical_limit": "Portail de vente, pas politique d'achat ; lien Gonvarri signalé historiquement, autonomie à vérifier.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.laserboost.com/about-us/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-015",
+      "name": "LaserMaster",
+      "rank": 26,
+      "target_function": "Managing Director / Production Manager",
+      "hook_fr": "Votre FAQ décrit la fabrication à Redruth et les échanges techniques pour les découpes sur mesure.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "L'atelier de Redruth conserve-t-il une courbe électrique et un planning de découpe/pliage ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-015-S1"
+      ],
+      "value_angle_fr": "Analyser charge résiduelle d'atelier et écarts liés au planning de découpe.",
+      "critical_limit": "Export énergie inconnu ; commandes clients UK ne prouvent pas ouverture à un prestataire étranger.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.lasermaster.co.uk/pages/faqs"
+      ]
+    },
+    {
+      "prospect_id": "INT50-020",
+      "name": "Midlands 3D",
+      "rank": 27,
+      "target_function": "Managing Director / Production Manager",
+      "hook_fr": "Votre publication de juillet 2025 présente la nouvelle usine et l'automatisation de la finition.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Avez-vous des mesures comparables depuis le changement de site de 2025, avec les campagnes et équipements en service ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-020-S1"
+      ],
+      "value_angle_fr": "Comparer fonctionnement thermique et taux d'occupation des campagnes, repérer changements persistants.",
+      "critical_limit": "Fort investissement récent : référence historique à segmenter ; consultation téléphonique proposée pour cas complexes.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://midlands3d.com/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-043",
+      "name": "Newbury Electronics / PCB Train",
+      "rank": 28,
+      "target_function": "Production / Operations Director",
+      "hook_fr": "PCB Train fait partie de Newbury Electronics et couvre fabrication et assemblage.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "La fabrication et l'assemblage à Newbury ont-ils des compteurs et un suivi de campagnes comparables ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-043-S1"
+      ],
+      "value_angle_fr": "Comparer fours, ventilation et campagnes d'assemblage ; vérifier périmètre des procédés PCB.",
+      "critical_limit": "Une seule société, pas deux prospects ; mix prototypes et séries peut expliquer les variations.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.pcbtrain.co.uk/products-and-services/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-021",
+      "name": "Parts on Demand",
+      "rank": 29,
+      "target_function": "Operations Manager / directeur production",
+      "hook_fr": "Votre présentation met l'accent sur la fabrication additive de séries.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Pouvez-vous identifier des campagnes SLS comparables et un historique d'énergie correspondant ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-021-S1"
+      ],
+      "value_angle_fr": "Comparer énergie de campagnes similaires, attentes thermiques et opérations de finition.",
+      "critical_limit": "Taille et volumes réels inconnus ; nombre de pièces proposé commercialement n'est pas production observée.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://partsondemand.nl/over-parts-on-demand/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-014",
+      "name": "Photoncut / KM Blechbearbeitung",
+      "rank": 30,
+      "target_function": "Geschäftsführung / Produktionsleitung",
+      "hook_fr": "Photoncut associe commande de fichiers et fabrication par KM Blechbearbeitung.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "La production KM peut-elle rapprocher compteur et heures ou volumes d'ordres de fabrication ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-014-S1"
+      ],
+      "value_angle_fr": "Charge de fond, aspiration et dérives de régimes à mix de commandes comparable.",
+      "critical_limit": "Marque et société comptées une seule fois ; offre digitale de vente seulement.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://photoncut.com/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-036",
+      "name": "RAM3D",
+      "rank": 31,
+      "target_function": "Operations Manager / directeur usine",
+      "hook_fr": "Vous présentez une fabrication additive métal implantée à Tauranga.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Des campagnes métal comparables et leurs dates de chauffe peuvent-elles être rapprochées d'un compteur non sensible ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-036-S1"
+      ],
+      "value_angle_fr": "Comparer charges de campagnes métal, post-traitement et périodes d'attente.",
+      "critical_limit": "Cas de processus ancien ; marchés défense possibles ; confidentialité et compteur distinct à qualifier.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.ram3d.co.nz/category/customers/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-023",
+      "name": "Rapidobject",
+      "rank": 32,
+      "target_function": "Produktionsleitung / Geschäftsführung",
+      "hook_fr": "Votre offre métal décrit la production SLM en interne.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Le SLM interne dispose-t-il d'un compteur et d'un historique de campagnes indépendant des activités sous-traitées ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-023-S1"
+      ],
+      "value_angle_fr": "Analyser utilisation des équipements, cycles thermiques et post-traitement à mix comparable.",
+      "critical_limit": "Distinguer technologies internes des services externes ; données temporelles non publiques.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://rapidobject.com/en/metall-3d-druck/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-037",
+      "name": "THINK3D",
+      "rank": 33,
+      "target_function": "Plant Head / Operations Manager",
+      "hook_fr": "Votre page entreprise décrit les moyens industriels de Visakhapatnam.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Quel atelier de Visakhapatnam offre un historique stable d'énergie et d'ordres de fabrication ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-037-S1"
+      ],
+      "value_angle_fr": "Comparer campagnes et charge inactive sur un procédé isolé, plutôt qu'un total multi-technologies.",
+      "critical_limit": "Chiffres de parc variables selon page ; ne pas additionner ; site/siège distincts ; budget local à qualifier.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.think3d.in/about-us/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-041",
+      "name": "WayKen",
+      "rank": 34,
+      "target_function": "Factory Manager / Operations",
+      "hook_fr": "Votre offre CNC annonce un fonctionnement 24/7 à Shenzhen.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Le site de Shenzhen peut-il rapprocher compteur électrique et charge de travail des CNC sur plusieurs semaines ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-041-S1"
+      ],
+      "value_angle_fr": "Comparaison de charge CNC et auxiliaires, dérives sur journées similaires.",
+      "critical_limit": "Chiffres déclarés par fournisseur, non audités ; mix prototypes à contrôler ; coût de l'énergie non connu.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://waykenrm.com/technologies/cnc-machining/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-042",
+      "name": "eMachineShop / Micro Logic",
+      "rank": 35,
+      "target_function": "Manufacturing / Operations Manager",
+      "hook_fr": "Votre FAQ identifie l'installation principale de fabrication à Mahwah.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Le site de Mahwah peut-il isoler sa consommation des finitions externes et fournir un calendrier d'atelier ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-042-S1"
+      ],
+      "value_angle_fr": "Comparer charge d'atelier et jours similaires ; charge de fond et fonctionnement hors travail.",
+      "critical_limit": "Ne pas attribuer toutes finitions vendues au même site ; autonomie de la division et taille à préciser.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.emachineshop.com/faq/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-049",
+      "name": "Tony's Coffee",
+      "rank": 36,
+      "target_function": "Production / Roastery Manager",
+      "hook_fr": "Vous avez déjà communiqué sur l'amélioration de l'efficacité de votre torréfaction.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Les campagnes actuelles et leurs consommations sont-elles comparables pour vérifier le maintien des performances déjà améliorées ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-049-S1"
+      ],
+      "value_angle_fr": "Comparer fonctionnement actuel et campagnes ; réfuter écarts dus au mix ; maintien de performance après changements.",
+      "critical_limit": "Expertise et efforts énergie déjà présents ; ne pas promettre nouveau gisement ; gaz/électricité à séparer.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.tonyscoffee.com/sustainability/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-001",
+      "name": "Geometric Manufacturing",
+      "rank": 37,
+      "target_function": "Operations Director / responsable de site",
+      "hook_fr": "Votre parc CNC et votre fonctionnement lights-out rendent les périodes hors présence humaine particulièrement intéressantes à contextualiser.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Un atelier hors périmètre sensible dispose-t-il d'un export énergie et d'un planning partageables avec un prestataire externe ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-001-S1"
+      ],
+      "value_angle_fr": "Comparer charges hors production et changements de régimes d'un atelier CNC, avec planning et mix pièces.",
+      "critical_limit": "Étude Slack plus ancienne que la taille actuelle ; clients défense, confidentialité et périmètre de compteur à cadrer. Le site actuel décrit une infrastructure air-gapped : la pratique Slack historique ne prouve pas l'accès actuel aux données.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://geometricmanufacturing.co.uk/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-030",
+      "name": "Mackie's of Scotland",
+      "rank": 38,
+      "target_function": "Operations Director / Engineering Manager",
+      "hook_fr": "Votre page environnement présente un site combinant procédés de fabrication, froid et autoproduction.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Un compteur permet-il de distinguer la consommation production/froid de l'autoproduction et des échanges réseau ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-030-S1"
+      ],
+      "value_angle_fr": "Froid et charge inactive présentent un bon périmètre potentiel ; séparer consommation et autoproduction.",
+      "critical_limit": "Expertise énergie visible, comptage complexe ; trop peu d'indices async pour premier lot.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.mackies.co.uk/about-mackies/environment/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-009",
+      "name": "Backcountry Brewing",
+      "rank": 39,
+      "target_function": "Head Brewer / Operations Manager",
+      "hook_fr": "Votre présentation retrace l'expansion de la production de la brasserie à Squamish.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Le site de Squamish a-t-il une courbe d'énergie et des dates de brassins accessibles à l'équipe production ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-009-S1"
+      ],
+      "value_angle_fr": "Comparer froid et brassins, charge nocturne et intensité à volume comparable.",
+      "critical_limit": "Slack marketing ne vaut pas collaboration avec opérations ; capacité annuelle et exports inconnus.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.backcountrybrewing.com/about/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-019",
+      "name": "3DPRINTUK",
+      "rank": 40,
+      "target_function": "Production / Operations Manager du site",
+      "hook_fr": "Votre offre distingue plusieurs technologies de fabrication et de post-traitement.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Le responsable du site dispose-t-il de l'autonomie et des données nécessaires à une étude externe limitée ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-019-S1"
+      ],
+      "value_angle_fr": "Charges thermiques répétées et variabilité des campagnes à isoler ; utilité conditionnée à accès d'un site.",
+      "critical_limit": "Acquisition 2023 : autonomie d'achat et expertise de groupe inconnues ; pas une PME indépendante supposée.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.3dprint-uk.co.uk/3dprintuk-acquired-by-solid-solutions/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-045",
+      "name": "Bittele Electronics",
+      "rank": 41,
+      "target_function": "Plant Operations Manager d'un site",
+      "hook_fr": "Vous documentez un fonctionnement entre siège et installations d'assemblage dans plusieurs pays.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Un seul site d'assemblage dispose-t-il d'un sponsor autonome et de données de ligne ou de site partageables ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-045-S1"
+      ],
+      "value_angle_fr": "Analyser fours de refusion et auxiliaires d'un seul site avec mix et cadence.",
+      "critical_limit": "Périmètre international et autonomie de décision inconnus ; ne pas qualifier groupe entier comme PME mono-site.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.7pcb.com/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-039",
+      "name": "Imaginarium",
+      "rank": 42,
+      "target_function": "Manufacturing / Operations Head",
+      "hook_fr": "Votre offre d'outillage inclut des essais de moules avant mise en production.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Un atelier d'outillage dispose-t-il de campagnes assez répétées et de mesures pour distinguer essais et fabrication ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-039-S1"
+      ],
+      "value_angle_fr": "Comparer consommations d'essais et campagnes sur un atelier stable ; séparer prototypes et séries.",
+      "critical_limit": "Multiples métiers et implantation à isoler ; prototype variable peut rendre baseline faible.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://imaginarium.io/rapid-tooling/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-029",
+      "name": "Vestre",
+      "rank": 43,
+      "target_function": "Plant Manager / responsable production",
+      "hook_fr": "Vous documentez une fabrication majoritairement interne, répartie entre deux pays.",
+      "hook_source_indices": [
+        1
+      ],
+      "qualification_question_fr": "Une seule usine dispose-t-elle d'un sponsor et d'un historique énergie/production partageable par écrit ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-029-S2"
+      ],
+      "value_angle_fr": "Analyser charge de fond et mix de production d'une usine de mobilier.",
+      "critical_limit": "Deux usines et expertise environnementale ; preuve async insuffisante. Aucun bonus pour le pays.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://vestre.com/no/faq/produksjon/hvor-produserer-dere-moblene"
+      ]
+    },
+    {
+      "prospect_id": "INT50-028",
+      "name": "PaperShell",
+      "rank": 44,
+      "target_function": "COO / Production Manager",
+      "hook_fr": "Votre site carrière décrit une production automatisée à Tibro.",
+      "hook_source_indices": [
+        1
+      ],
+      "qualification_question_fr": "La ligne de Tibro produit-elle déjà des campagnes répétées avec consommation et cadence historisées ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-028-S2"
+      ],
+      "value_angle_fr": "Comparer campagnes et charge hors production d'une ligne automatisée stabilisée.",
+      "critical_limit": "Passage à l'échelle, volumes et budget inconnus ; remote ne prouve pas travail écrit avec fournisseurs.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://careers.papershell.se/jobs"
+      ]
+    },
+    {
+      "prospect_id": "INT50-012",
+      "name": "BACA Systems",
+      "rank": 45,
+      "target_function": "Operations Manager / VP Business Systems",
+      "hook_fr": "Vous fabriquez des équipements robotisés ; le périmètre pertinent serait celui de vos ateliers et essais propres.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Vos propres ateliers et essais représentent-ils une charge énergétique significative et mesurée, indépendamment des machines chez vos clients ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-012-S1"
+      ],
+      "value_angle_fr": "Une investigation de ses essais et ateliers peut être utile ; puissance et heures réelles impératives avant pilote énergie.",
+      "critical_limit": "Excellent async, mais assemblage/essais possiblement peu énergivores : pas premier choix tant que charge propre inconnue.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://slack.com/customer-stories/baca-systems-story"
+      ]
+    },
+    {
+      "prospect_id": "INT50-025",
+      "name": "Performax Engineering",
+      "rank": 46,
+      "target_function": "General Manager / responsable atelier",
+      "hook_fr": "Votre site décrit des moyens propres d'usinage et de découpe à Gympie.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Quelle est la taille du parc réellement exploité et existe-t-il un historique énergie avec les heures d'atelier ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-025-S1"
+      ],
+      "value_angle_fr": "Évaluer veille atelier et régimes de découpe ; comparer des journées de charge analogue.",
+      "critical_limit": "Taille de parc non établie ; rentabilité du pilote subordonnée à facture et temps de fonctionnement.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://performaxengineering.com.au/pages/laser-cutting-quotes"
+      ]
+    },
+    {
+      "prospect_id": "INT50-010",
+      "name": "Long Live Beerworks",
+      "rank": 47,
+      "target_function": "Head Brewer / cofondateur opérations",
+      "hook_fr": "Vos sites permettent de voir l'espace de brassage depuis le taproom.",
+      "hook_source_indices": [
+        1
+      ],
+      "qualification_question_fr": "Quel site brasse régulièrement, et sa facture et ses mesures justifieraient-elles une petite investigation sur données ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-010-S2"
+      ],
+      "value_angle_fr": "Investigation du froid et des régimes de brassage si site assez chargé et compteur distinct.",
+      "critical_limit": "Échelle économique non prouvée ; signal async limité au service ; clarifier production vs lieux de vente.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.longlivebeerworks.com/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-011",
+      "name": "Zilker Brewing Company",
+      "rank": 48,
+      "target_function": "Head Brewer / responsable production",
+      "hook_fr": "Vos recrutements distinguent production et conditionnement de l'activité du bar.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "La production dispose-t-elle d'un compteur distinct du bar et d'un historique de brassins/canning ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-011-S1"
+      ],
+      "value_angle_fr": "Analyser brassins et froid si charge du site et accès aux données justifient le temps d'étude.",
+      "critical_limit": "Source Indeed liste dynamique ; signal bar seulement ; petite échelle économique à confirmer.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.indeed.com/cmp/Zilker-Brewing-Company"
+      ]
+    },
+    {
+      "prospect_id": "INT50-026",
+      "name": "NEsolution",
+      "rank": 49,
+      "target_function": "Founder / Operations Manager",
+      "hook_fr": "Vous indiquez fabriquer des pièces dans votre installation de Sydney.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Quels équipements fonctionnent régulièrement à Sydney, et quel ordre de grandeur de facture justifierait l'étude ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-026-S1"
+      ],
+      "value_angle_fr": "Investigation d'atelier possible si parc réellement chargé et données de campagnes disponibles.",
+      "critical_limit": "Échelle industrielle insuffisamment documentée : réserve métier ; ne pas sélectionner sur le seul portail.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.nesolution.com.au/our-services/"
+      ]
+    },
+    {
+      "prospect_id": "INT50-027",
+      "name": "Ponoko",
+      "rank": 50,
+      "target_function": "Head of Production / Operations",
+      "hook_fr": "Votre modèle relie directement fichiers de conception et fabrication laser.",
+      "hook_source_indices": [
+        0
+      ],
+      "qualification_question_fr": "Quel atelier est directement exploité aujourd'hui, à quelle cadence, et ses mesures sont-elles accessibles ?",
+      "use_async_signal_in_opening": false,
+      "why_not_async_in_opening": "Le signal async sert à qualifier le mode de relation ; éviter une accroche intrusive fondée sur une annonce RH.",
+      "suggested_language": "Anglais de travail proposé ; préférence du destinataire à confirmer",
+      "send_status": "NOT_SENT",
+      "hook_source_refs": [
+        "INT50-027-S1"
+      ],
+      "value_angle_fr": "Comparer consommation de production laser et veilles si site propre actuel et volumes confirmés.",
+      "critical_limit": "Ancien modèle réseau : confirmer atelier contrôlé aujourd'hui, périmètre et échelle avant priorité métier.",
+      "async_proposal_fr": "Je peux d'abord vous envoyer une courte liste de questions par email, à traiter à votre rythme. Ce mode de travail vous conviendrait-il ?",
+      "avoid_claims": [
+        "Anomalie déjà détectée chez vous",
+        "Économies ou ROI garantis",
+        "Vous utilisez Slack, donc vous acceptez nos prestations async",
+        "Votre ERP contient nécessairement une courbe énergétique"
+      ],
+      "source_urls": [
+        "https://www.ponoko.com/about"
+      ]
+    }
+  ]
+}
