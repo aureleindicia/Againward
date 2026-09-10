@@ -4,11 +4,11 @@ Les messages restent sobres, spécifiques et sans promesse de gain. Personnalise
 
 ## Positionnement en une phrase
 
-« INDICIA aide un site industriel à transformer ses exports énergétiques en vérifications opérationnelles prioritaires : ce que les données prouvent, ce qu'elles n'expliquent pas encore et où regarder d'abord. »
+« Againward aide un site industriel à transformer ses exports énergétiques en vérifications opérationnelles prioritaires : ce que les données prouvent, ce qu'elles n'expliquent pas encore et où regarder d'abord. »
 
 ## Pitch de 30 secondes
 
-« Beaucoup de sites ont des courbes ou des factures sans avoir le temps d'en tirer une décision fiable. INDICIA travaille à partir de l'export existant : nous vérifions d'abord les unités et la qualité, comparons des périodes vraiment comparables, testons les explications alternatives et livrons un rapport court sur les vérifications terrain à prioriser. Ce n'est ni un audit réglementaire ni une promesse d'économie ; c'est une investigation de données à distance, sur un site. »
+« Beaucoup de sites ont des courbes ou des factures sans avoir le temps d'en tirer une décision fiable. Againward travaille à partir de l'export existant : nous vérifions d'abord les unités et la qualité, comparons des périodes vraiment comparables, testons les explications alternatives et livrons un rapport court sur les vérifications terrain à prioriser. Ce n'est ni un audit réglementaire ni une promesse d'économie ; c'est une investigation de données à distance, sur un site. »
 
 ## Email initial
 
@@ -16,7 +16,7 @@ Objet : Peut-on vérifier ce que révèle déjà votre export énergie ?
 
 Bonjour [Prénom],
 
-Je vous contacte car [raison concrète et vérifiée liée au site/activité]. INDICIA réalise une investigation courte sur les exports énergétiques existants d'un site industriel : l'objectif est de distinguer une dérive ou une charge à vérifier des simples variations normales de production, horaires ou température.
+Je vous contacte car [raison concrète et vérifiée liée au site/activité]. Againward réalise une investigation courte sur les exports énergétiques existants d'un site industriel : l'objectif est de distinguer une dérive ou une charge à vérifier des simples variations normales de production, horaires ou température.
 
 Il ne s'agit pas d'un audit réglementaire ni d'une promesse d'économie. En dix jours ouvrés après validation des données, le site reçoit une analyse des pistes réellement étayées, des limites et des vérifications terrain prioritaires.
 
@@ -25,7 +25,7 @@ Si vous pouvez exporter 8 semaines ou plus de données horodatées (idéalement 
 Seriez-vous la bonne personne pour ce sujet, ou pourriez-vous m'indiquer qui gère énergie/maintenance/production ?
 
 Bien cordialement,
-[Nom] — INDICIA
+[Nom] — Againward
 [coordonnées] — « Ne plus être contacté »
 
 ## Message LinkedIn court

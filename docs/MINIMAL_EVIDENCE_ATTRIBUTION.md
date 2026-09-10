@@ -143,7 +143,7 @@ compare ensuite cette projection à l'assessment calculé. Il refuse :
 Le maximum possible dans cette couche est `ROBUST_ATTRIBUTION`. La confiance qualifie la
 solidité de l'assessment, pas la probabilité qu'un actif soit responsable.
 
-## Intégration avec INDICIA
+## Intégration avec Againward
 
 `attribution_workflow.run_minimal_attribution()` est le chemin production conditionnel :
 `not_applicable` sans signature/inventaire, sinon `guarded_evidence`, ledger, assessment et

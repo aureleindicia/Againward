@@ -124,7 +124,7 @@ python manage_investigation.py check workspaces/usine_01
 
 Le workflow canonique utilise `investigation_state.json.client_lifecycle` et `questions.json` :
 zéro question par défaut, STOP réel sur BLOCKING, reprise avec provenance/recalcul/review, deux
-cycles maximum et finalisation honnête. Le contexte INDICIA peut être réparti entre le dépôt et
+cycles maximum et finalisation honnête. Le contexte Againward peut être réparti entre le dépôt et
 `/storage/emulated/0/Download`.
 
 Le détail des formats et du passage humain est dans

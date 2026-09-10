@@ -1,8 +1,8 @@
 ---
-name: indicia-client-workflow
-description: Conduire ou reprendre un dossier client INDICIA / Energy Analyzer local, avec analyse exhaustive, questions à forte valeur, STOP bloquant, provenance, attribution minimale et finalisation honnête. Utiliser pour toute investigation client réelle, reprise après réponse, sélection de demande ou préparation de livraison INDICIA.
+name: againward-client-workflow
+description: Conduire ou reprendre un dossier client Againward / Energy Analyzer local, avec analyse exhaustive, questions à forte valeur, STOP bloquant, provenance, attribution minimale et finalisation honnête. Utiliser pour toute investigation client réelle, reprise après réponse, sélection de demande ou préparation de livraison Againward.
 ---
-# Workflow client INDICIA
+# Workflow client Againward
 
 Reconstruire le contexte depuis les artefacts persistés du dossier et le dépôt, sans supposer
 une mémoire conversationnelle. Le dépôt reste autoritatif pour le code et le workflow.

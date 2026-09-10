@@ -12,7 +12,7 @@
 | Investigation complexe | 3 500–4 200 € | plusieurs compteurs, historique long, contexte additionnel ou question plus exigeante |
 | Suivi de vérification | 900–1 500 € | avant/après cadré, après action client, périmètre comparable |
 
-Ne pas lancer une offre de succès-fee seul. L'attribution dépend d'actions et de conditions hors contrôle d'INDICIA ; elle crée des litiges et encourage la sur-promesse. Plus tard, un hybride (forfait substantiel + bonus plafonné) n'est envisageable qu'avec protocole de mesure et de vérification signé avant action.
+Ne pas lancer une offre de succès-fee seul. L'attribution dépend d'actions et de conditions hors contrôle d'Againward ; elle crée des litiges et encourage la sur-promesse. Plus tard, un hybride (forfait substantiel + bonus plafonné) n'est envisageable qu'avec protocole de mesure et de vérification signé avant action.
 
 ## Modèle unitaire pilote standard
 

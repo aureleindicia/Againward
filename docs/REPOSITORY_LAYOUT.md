@@ -16,7 +16,7 @@ energy-analyzer/
 ├── reports/          rapports R&D sans données client
 ├── workspace/        générateurs/expériences réutilisables
 ├── workspaces/       guide seulement ; cas ignorés par Git
-└── .codex/skills/    procédure agentique INDICIA
+└── .codex/skills/    procédure agentique Againward
 ```
 
 ## Workspace standard réel

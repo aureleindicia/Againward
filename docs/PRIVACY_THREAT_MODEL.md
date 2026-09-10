@@ -1,4 +1,4 @@
-# Modèle de menaces privacy INDICIA
+# Modèle de menaces privacy Againward
 
 ## Périmètre
 
@@ -73,7 +73,7 @@ protocole ; elle ne consiste pas à diminuer les contrôles.
 - preuve mathématique d’anonymat ou conformité juridique définitive ;
 - données temps réel, multi-tenant, SaaS ou API externe ajoutée avant Codex.
 - interception du langage Python arbitraire ou identification par contenu d’un fichier client placé
-  hors des racines et commandes officielles INDICIA.
+  hors des racines et commandes officielles Againward.
 
 Ces limites doivent être examinées avant chaque pilote et communiquées sans transformer une mesure
 technique en promesse juridique.

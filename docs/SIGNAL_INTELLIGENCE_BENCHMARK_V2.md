@@ -1,4 +1,4 @@
-# INDICIA Signal Intelligence Benchmark V2
+# Againward Signal Intelligence Benchmark V2
 
 ## Question de recherche
 
@@ -6,7 +6,7 @@ Ce benchmark ne présume ni que le compteur central suffit, ni qu'il est insuffi
 Il mesure la frontière empirique suivante :
 
 > À partir d'un seul point de mesure électrique et d'un budget limité d'informations
-> métier, jusqu'où le système INDICIA peut-il découvrir des signatures d'actifs,
+> métier, jusqu'où le système Againward peut-il découvrir des signatures d'actifs,
 > détecter un phénomène anormal, localiser un sous-système, quantifier une dépense
 > énergétique, recommander une vérification sûre et anticiper un événement maintenance ?
 
@@ -50,7 +50,7 @@ Le benchmark compare au minimum :
 
 - une réponse nulle pré-enregistrée ;
 - un moteur quantitatif sans raisonnement agentique ;
-- INDICIA complet ;
+- Againward complet ;
 - plus tard, un ou plusieurs analystes humains soumis aux mêmes données.
 
 ## Niveaux de données

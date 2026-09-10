@@ -1,15 +1,15 @@
-# INDICIA — modèle pilote et go-to-market initial
+# Againward — modèle pilote et go-to-market initial
 
 Date : 31 août 2026. Ce document est une recommandation commerciale fondée sur l'état réel du dépôt et sur une veille ciblée ; il ne remplace ni conseil juridique, ni étude de marché exhaustive.
 
 ## Décision recommandée
 
-INDICIA doit démarrer comme une **prestation d'investigation de performance énergétique sur données**, à distance, sur un site unique. Le client achète une décision étayée : où regarder, ce que les données démontrent, ce qu'elles ne démontrent pas et quelle vérification terrain prioriser. Il n'achète ni un logiciel, ni une promesse d'économie, ni un audit réglementaire.
+Againward doit démarrer comme une **prestation d'investigation de performance énergétique sur données**, à distance, sur un site unique. Le client achète une décision étayée : où regarder, ce que les données démontrent, ce qu'elles ne démontrent pas et quelle vérification terrain prioriser. Il n'achète ni un logiciel, ni une promesse d'économie, ni un audit réglementaire.
 
 | Choix | Décision de lancement |
 | --- | --- |
 | Client cible | PME industrielle française mono-site, 20–250 salariés, procédé répétitif, données horodatées exportables et interlocuteur opérationnel disponible |
-| Offre | `INDICIA — Investigation pilote sur données` |
+| Offre | `Againward — Investigation pilote sur données` |
 | Prix courant de lancement | 2 400 € HT, données prêtes et périmètre standard |
 | Remise fondatrice | une seule mission à 1 500 € HT, contre droit de demander un retour structuré et un cas anonymisé si le client l'accepte |
 | Montée de prix | 3 200 € HT après trois livraisons payantes validées ; 3 500–4 200 € HT après cinq, selon complexité |
@@ -25,7 +25,7 @@ La prestation comprend la validation des données, l'analyse quantitative reprod
 
 Elle n'inclut pas visite de site, sous-comptage, installation de capteurs, pilotage d'équipement, conception de travaux, négociation d'énergie, accompagnement de conformité, certification ou garantie d'économies. La formule obligatoire dans les devis et livrables est : « Cette prestation ne constitue pas un audit énergétique réglementaire. »
 
-En France, les obligations d'audit/SME et les exigences de compétence associées sont encadrées par le ministère ; elles ne doivent pas être revendiquées par INDICIA. L'offre peut en revanche orienter un client qui relève de ce cadre vers un auditeur compétent ou un partenaire. Voir [veille marché et concurrence](MARKET_AND_COMPETITOR_RESEARCH.md).
+En France, les obligations d'audit/SME et les exigences de compétence associées sont encadrées par le ministère ; elles ne doivent pas être revendiquées par Againward. L'offre peut en revanche orienter un client qui relève de ce cadre vers un auditeur compétent ou un partenaire. Voir [veille marché et concurrence](MARKET_AND_COMPETITOR_RESEARCH.md).
 
 ## Pourquoi ce point de départ est crédible
 

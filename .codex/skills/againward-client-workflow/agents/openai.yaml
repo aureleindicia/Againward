@@ -1,0 +1,6 @@
+interface:
+  display_name: "Againward Client Workflow"
+  short_description: "Investigation client Againward traçable"
+  default_prompt: "Use $againward-client-workflow to inspect this client case status, process supplied answers, and follow the repository workflow with only relevant local inputs."
+policy:
+  allow_implicit_invocation: true

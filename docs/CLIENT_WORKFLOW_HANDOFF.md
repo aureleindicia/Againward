@@ -1,6 +1,6 @@
 # Handoff court — workflow client unifié
 
-Skill : `.codex/skills/indicia-client-workflow/SKILL.md`. Prompt :
+Skill : `.codex/skills/againward-client-workflow/SKILL.md`. Prompt :
 `docs/CLIENT_INVESTIGATION_PROMPT.md`. Le contexte peut être réparti entre le dépôt et
 `/storage/emulated/0/Download`; le dépôt reste autoritatif pour le code.
 

@@ -2030,12 +2030,12 @@ La finalité est de construire **le laboratoire spécialisé qui permet à Codex
 
 ## 67. Contexte et cycle client canonique
 
-Pour INDICIA, reconstruire le contexte depuis le dépôt courant **et** tout
+Pour Againward, reconstruire le contexte depuis le dépôt courant **et** tout
 `/storage/emulated/0/Download`, qui peut contenir objectifs, handoffs, R&D, benchmarks et pièces
 client absents du dépôt. Le dépôt reste autoritatif pour le code; ne jamais versionner les données
 client de Download ni considérer automatiquement un ancien clone comme plus récent.
 
-Lire `docs/CLIENT_WORKFLOW.md` et `.codex/skills/indicia-client-workflow/SKILL.md`. Les sources de
+Lire `docs/CLIENT_WORKFLOW.md` et `.codex/skills/againward-client-workflow/SKILL.md`. Les sources de
 vérité sont `privacy/privacy_manifest.json`, `investigation_state.json.client_lifecycle` et
 `questions.json`. États : `AWAITING_PRIVACY_REVIEW`, `PRIVACY_CLEARED`, `PRIVACY_BLOCKED`, `ANALYZING`,
 `WAITING_FOR_REQUIRED_INFORMATION`, `RESUMING`, `FINALIZABLE`, `DELIVERABLE`, puis `PURGED`. Un BLOCKING impose

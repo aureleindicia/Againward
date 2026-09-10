@@ -143,7 +143,7 @@ au moteur. Codex/OpenAI doit néanmoins traiter les données nécessaires au ser
 configuration employée. Cette architecture est un contrôle technique, pas une certification, un
 avis juridique ou une preuve d’anonymisation parfaite.
 
-Les assertions couvrent les entrées officielles INDICIA, pas la capacité générale de Python ou d’un
+Les assertions couvrent les entrées officielles Againward, pas la capacité générale de Python ou d’un
 outil externe à ouvrir arbitrairement un fichier. Un chemin autonome hors des racines de dossiers
 gérés ne peut pas être identifié comme client par son seul contenu sans violer la règle Codex-first :
 les données client réelles doivent donc toujours être créées dans un workspace officiel. Les cas

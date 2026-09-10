@@ -1,8 +1,8 @@
-# Offre : INDICIA — Investigation pilote sur données
+# Offre : Againward — Investigation pilote sur données
 
 ## Texte d'offre client
 
-INDICIA analyse vos exports énergétiques existants pour distinguer des signaux utiles des fausses pistes, quantifier les écarts observés et prioriser les vérifications opérationnelles. En dix jours ouvrés après validation des données, vous recevez un rapport court et une restitution : ce que les données démontrent, les hypothèses écartées, les limites et les prochaines vérifications terrain.
+Againward analyse vos exports énergétiques existants pour distinguer des signaux utiles des fausses pistes, quantifier les écarts observés et prioriser les vérifications opérationnelles. En dix jours ouvrés après validation des données, vous recevez un rapport court et une restitution : ce que les données démontrent, les hypothèses écartées, les limites et les prochaines vérifications terrain.
 
 ## Périmètre standard — 2 400 € HT
 
@@ -20,7 +20,7 @@ Codex/OpenAI traite néanmoins le contenu nécessaire au service selon la config
 
 Le livrable contient : qualité/périmètre des données, profil énergétique, investigations réellement menées, signaux confirmés ou conservés avec réserves, hypothèses rejetées importantes, impact énergétique et coût associé lorsqu'un tarif fiable est fourni, recommandations de vérification et limites.
 
-Un résultat « aucune opportunité suffisamment étayée » reste une livraison complète. INDICIA ne transforme pas un signal faible en recommandation pour remplir un rapport.
+Un résultat « aucune opportunité suffisamment étayée » reste une livraison complète. Againward ne transforme pas un signal faible en recommandation pour remplir un rapport.
 
 ## Exclusions et limites
 

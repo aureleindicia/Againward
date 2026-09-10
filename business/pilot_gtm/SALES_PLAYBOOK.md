@@ -3,7 +3,7 @@
 ## Conversation de vente
 
 1. Partir d'un problème observé : énergie hors activité, dérive de facture, démarrages, production comparable mais énergie différente.
-2. Dire ce qu'INDICIA fait : investiguer les exports existants et hiérarchiser les vérifications.
+2. Dire ce qu'Againward fait : investiguer les exports existants et hiérarchiser les vérifications.
 3. Dire immédiatement ce qu'il ne fait pas : pas d'audit réglementaire, pas de capteur, pas de promesse d'économies, pas d'attribution mécanique sans preuve.
 4. Proposer un appel de faisabilité de 20 minutes, pas une démonstration générique.
 5. Qualifier avec le score ICP ; refuser/réorienter les mauvais cas rapidement.
@@ -27,7 +27,7 @@ Ces cibles sont des tests de traction, non des prévisions. Si les appels montre
 ## Canaux par ordre
 
 1. Contacts ciblés de la liste existante, avec une hypothèse métier propre à chaque site.
-2. Introductions d'auditeurs, mainteneurs, frigoristes, électriciens et bureaux d'études : INDICIA prépare/complète la vérification, ne les remplace pas.
+2. Introductions d'auditeurs, mainteneurs, frigoristes, électriciens et bureaux d'études : Againward prépare/complète la vérification, ne les remplace pas.
 3. CCI, UIMM, CETIM, clubs industriels régionaux : atelier court sur « que peut-on démontrer avec un export quart-horaire ? ».
 4. Références après livraison réellement utile.
 
@@ -38,7 +38,7 @@ Ces cibles sont des tests de traction, non des prévisions. Si les appels montre
 | Objection | Réponse courte |
 | --- | --- |
 | « Nous avons déjà des factures. » | Les factures disent combien ; les exports horodatés peuvent aider à comprendre quand l'écart apparaît et quoi vérifier. |
-| « Il nous faut un audit. » | Si vous recherchez conformité/certification, il faut un auditeur qualifié. INDICIA peut seulement préparer une investigation de données distincte. |
+| « Il nous faut un audit. » | Si vous recherchez conformité/certification, il faut un auditeur qualifié. Againward peut seulement préparer une investigation de données distincte. |
 | « Pouvez-vous garantir l'économie ? » | Non. Nous quantifions un écart et ses limites ; l'économie dépend de la cause, de l'action et de sa tenue. |
 | « Nos données sont imparfaites. » | C'est fréquent. L'appel de faisabilité dira précisément ce qui reste analysable ; sinon le Data Scoping évite de payer une étude inutile. |
 | « Pourquoi payer avant de savoir ? » | Le premier livrable est justement une analyse reproductible et un tri de fausses pistes, avec un périmètre limité et un résultat honnête même si aucune piste n'est confirmée. |

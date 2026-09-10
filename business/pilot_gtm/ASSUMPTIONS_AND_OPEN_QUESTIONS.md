@@ -21,7 +21,7 @@
 | Faux positifs / conclusions trop fortes | investigations contradictoires, revue humaine, possibilité de rejeter une piste |
 | Données confidentielles | minimisation, espace local isolé, règles de transfert/rétention validées avec le client |
 | Dépendance excessive au fondateur | journal d'investigation, playbook, mesure des heures ; ne pas automatiser le jugement avant preuves |
-| Partenaires perçus comme concurrents | positionner INDICIA en amont/complément de la vérification terrain |
+| Partenaires perçus comme concurrents | positionner Againward en amont/complément de la vérification terrain |
 
 ## Décisions ouvertes avant passage à l'échelle
 

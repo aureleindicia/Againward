@@ -106,7 +106,7 @@ def test_lifecycle_and_question_artifacts_must_agree(tmp_path):
     ready(tmp_path); publish_client_requests(tmp_path,[candidate()]); state=json.loads((tmp_path/"investigation_state.json").read_text()); state["client_lifecycle"]["open_request_ids"]=[]; (tmp_path/"investigation_state.json").write_text(json.dumps(state))
     with pytest.raises(ValueError,match="incohérents"): assert_workflow_action_allowed(tmp_path,"report_generation")
 def test_skill_and_prompt_paths():
-    root=Path(__file__).resolve().parents[1]; skill=root/".codex/skills/indicia-client-workflow/SKILL.md"; texts=[skill.read_text(),(root/"docs/CLIENT_INVESTIGATION_PROMPT.md").read_text()]
+    root=Path(__file__).resolve().parents[1]; skill=root/".codex/skills/againward-client-workflow/SKILL.md"; texts=[skill.read_text(),(root/"docs/CLIENT_INVESTIGATION_PROMPT.md").read_text()]
     assert all("/storage/emulated/0/Download" in x and "questions.json" in x and "RESUMING" in x for x in texts)
     for relative in ("docs/CLIENT_WORKFLOW.md","docs/CLIENT_INFORMATION_REQUEST_POLICY.md","docs/VALUE_OF_INFORMATION_POLICY.md","docs/MINIMAL_EVIDENCE_ATTRIBUTION.md","docs/REPOSITORY_LAYOUT.md","energy_mvp/client_lifecycle.py","energy_mvp/client_requests.py","energy_mvp/attribution_workflow.py","energy_mvp/case_lifecycle.py"):
         assert (root/relative).is_file(), relative

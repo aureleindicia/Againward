@@ -1,12 +1,12 @@
-# Prompt de lancement — dossier client INDICIA
+# Prompt de lancement — dossier client Againward
 
 Remplacer les chemins avant envoi. `AUTO` suffit normalement : les artefacts déterminent l'étape.
 Ce prompt lance une investigation ; pour seulement l'auditer, demander explicitement une revue.
 Utiliser une session normale, sans `/goal`, pour respecter l'arrêt après une demande bloquante.
 
 ```text
-Utilise $indicia-client-workflow dans le dépôt courant INDICIA / Energy Analyzer.
-Si le skill n'est pas proposé, lis .codex/skills/indicia-client-workflow/SKILL.md.
+Utilise $againward-client-workflow dans le dépôt courant Againward / Energy Analyzer.
+Si le skill n'est pas proposé, lis .codex/skills/againward-client-workflow/SKILL.md.
 
 DOSSIER CLIENT : <CHEMIN_DOSSIER>
 MODE : AUTO

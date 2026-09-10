@@ -1,6 +1,6 @@
-# Workflow d’un dossier client INDICIA
+# Workflow d’un dossier client Againward
 
-INDICIA est local-first pour le workspace et l’orchestration. Codex reste l’analyste et la
+Againward est local-first pour le workspace et l’orchestration. Codex reste l’analyste et la
 première étape capable de lire sémantiquement le contenu brut reçu ; Python applique ensuite les
 contrats fail-closed, calcule et trace. Le fonctionnement du service implique donc un traitement
 par Codex/OpenAI selon la configuration utilisée : il ne faut pas promettre que les données ne
