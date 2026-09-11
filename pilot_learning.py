@@ -124,6 +124,29 @@ def render_pilot_learning_review(review):
             for item in scientific['sections'][key]:add_statement(item)
         for key,question in MANDATORY_QUESTIONS.items():
             lines.extend(['','## '+question,'']);add_statement(scientific['mandatory_answers'][key])
+        simplicity=scientific.get('simplicity_counterfactual')
+        if simplicity:
+            labels={
+                'raw_plus_python':'Raw data + Python + bon prompt',
+                'tool_value':'Valeur des outils Againward',
+                'workflow_friction':'Étapes du workflow qui ont contraint ou ralenti',
+                'deterministic_python':'Calculs à confier au Python déterministe simple',
+                'architecture_rationalization':'Briques à supprimer, fusionner ou rendre optionnelles',
+                'unique_againward_capability':'Ce qu’Againward a permis de ne pas rater',
+                'architecture_workarounds':'Contournements ou compensations de l’agent',
+                'minimal_design':'Design minimal recommandé pour un dossier similaire',
+            }
+            lines.extend(['','## Comparaison contrefactuelle de simplicité',''])
+            for key,label in labels.items():
+                assessment=simplicity[key]
+                lines.extend(['### '+label+' : '+assessment['outcome'],''])
+                for item in assessment['evidence']:add_statement(item)
+            lines.extend(['','### Dimensions comparées',''])
+            for key,assessment in simplicity['dimensions'].items():
+                lines.extend(['#### '+key+' : '+assessment['outcome'],''])
+                for item in assessment['evidence']:add_statement(item)
+            lines.extend(['','### Verdict : '+simplicity['verdict']['classification'],''])
+            for item in simplicity['verdict']['rationale']:add_statement(item)
         lines.extend(['','## Verdict : '+scientific['verdict']['classification'],''])
         for key in ('arguments_for','arguments_against','new_elements','known_elements','generalization_limits'):
             lines.extend(['','### '+key,''])
@@ -229,12 +252,19 @@ MANDATORY_QUESTIONS = {
 }
 CONTRIBUTION_DIMENSIONS = {'OBVIOUS_OBSERVATION','REPETITIVE_CALCULATION','DIFFICULT_COMPARISON',
     'CONFOUNDER_ELIMINATION','FALSIFICATION','HYPOTHESIS_SPACE_REDUCTION','QUANTIFICATION','DECISION','UNKNOWN'}
+SIMPLICITY_VERDICTS = {'AGAINWARD_CLEARLY_BETTER','AGAINWARD_BETTER_ON_RELIABILITY',
+    'ROUGHLY_EQUIVALENT','RAW_PLUS_PYTHON_LIKELY_BETTER','INCONCLUSIVE'}
+SIMPLICITY_DIMENSIONS = ('discovery_and_investigation','calculation_reliability',
+    'false_positives_and_abstentions','traceability_and_reproducibility',
+    'time_and_complexity','final_client_value')
+SIMPLICITY_DIMENSION_OUTCOMES = {'AGAINWARD_ADVANTAGE','RAW_PLUS_PYTHON_ADVANTAGE',
+    'ROUGHLY_EQUIVALENT','INCONCLUSIVE'}
 
 
 def _scientific_review(case, payload, ctx, metrics):
     """Validate an agent-authored post-mortem; do not choose a verdict or conclusion."""
-    if not isinstance(payload,dict) or set(payload)!={'sections','mandatory_answers','contribution_dimensions','verdict'}:
-        raise ValueError('Post-mortem : sections, questions obligatoires et verdict requis.')
+    if not isinstance(payload,dict) or set(payload)!={'sections','mandatory_answers','contribution_dimensions','verdict','simplicity_counterfactual'}:
+        raise ValueError('Post-mortem : sections, questions, comparaison de simplicité et verdict requis.')
 
     def statement(item):
         fields={'statement_type','text','source_refs','finding_refs','artifact_refs','metric_ref'}
@@ -268,6 +298,58 @@ def _scientific_review(case, payload, ctx, metrics):
         return {**item,'artifact_sha256':artifacts,
                 'resolved_metric':None if metric is None else {'name':metric,'value':metrics[metric]}}
 
+    def simplicity_counterfactual(value):
+        required = {
+            'raw_plus_python', 'tool_value', 'workflow_friction', 'deterministic_python',
+            'architecture_rationalization', 'unique_againward_capability',
+            'architecture_workarounds', 'minimal_design', 'dimensions', 'verdict',
+        }
+        if not isinstance(value, dict) or set(value) != required:
+            raise ValueError('Comparaison contrefactuelle de simplicité complète requise.')
+
+        def assessed_axis(item):
+            if (not isinstance(item, dict) or set(item) != {'outcome', 'evidence'}
+                    or item['outcome'] not in SIMPLICITY_DIMENSION_OUTCOMES):
+                raise ValueError('Chaque axe de simplicité exige un résultat fermé et des preuves.')
+            evidence = item['evidence']
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError('Chaque axe de simplicité exige une conclusion sourcée.')
+            resolved_evidence = [statement(entry) for entry in evidence]
+            if not any(entry['statement_type'] != 'INCONNU' for entry in resolved_evidence):
+                raise ValueError('Une conclusion de simplicité ne peut pas être seulement INCONNU.')
+            return {'outcome': item['outcome'], 'evidence': resolved_evidence}
+
+        resolved = {
+            key: assessed_axis(value[key])
+            for key in (
+                'raw_plus_python', 'tool_value', 'workflow_friction',
+                'deterministic_python', 'architecture_rationalization',
+                'unique_againward_capability', 'architecture_workarounds', 'minimal_design',
+            )
+        }
+        dimensions = value['dimensions']
+        if not isinstance(dimensions, dict) or set(dimensions) != set(SIMPLICITY_DIMENSIONS):
+            raise ValueError('Les six dimensions de comparaison sont requises.')
+        resolved_dimensions = {key: assessed_axis(item) for key, item in dimensions.items()}
+        verdict = value['verdict']
+        if (not isinstance(verdict, dict) or set(verdict) != {'classification', 'rationale'}
+                or verdict['classification'] not in SIMPLICITY_VERDICTS):
+            raise ValueError('Verdict fermé de simplicité requis.')
+        rationale = verdict['rationale']
+        if not isinstance(rationale, list) or not rationale:
+            raise ValueError('Le verdict de simplicité exige une justification sourcée.')
+        resolved_rationale = [statement(item) for item in rationale]
+        if not any(item['statement_type'] != 'INCONNU' for item in resolved_rationale):
+            raise ValueError('Le verdict de simplicité ne peut pas être seulement INCONNU.')
+        return {
+            **resolved,
+            'dimensions': resolved_dimensions,
+            'verdict': {
+                'classification': verdict['classification'],
+                'rationale': resolved_rationale,
+            },
+        }
+
     sections=payload['sections']
     if not isinstance(sections,dict) or set(sections)!=set(POST_MORTEM_SECTIONS):
         raise ValueError('Les vingt dimensions du post-mortem sont requises ; INCONNU si nécessaire.')
@@ -279,6 +361,7 @@ def _scientific_review(case, payload, ctx, metrics):
     if not isinstance(answers,dict) or set(answers)!=set(MANDATORY_QUESTIONS):
         raise ValueError('Les trois questions obligatoires doivent être traitées.')
     answers={key:statement(value) for key,value in answers.items()}
+    simplicity=simplicity_counterfactual(payload['simplicity_counterfactual'])
     dimensions=payload['contribution_dimensions']
     if not isinstance(dimensions,list) or not dimensions or set(dimensions)-CONTRIBUTION_DIMENSIONS:
         raise ValueError('Nature de la contribution inconnue.')
@@ -289,7 +372,8 @@ def _scientific_review(case, payload, ctx, metrics):
     for key in set(verdict)-{'classification'}:
         if not isinstance(verdict[key],list) or not verdict[key]:raise ValueError('Arguments ou inconnus explicites requis.')
         validated[key]=[statement(item) for item in verdict[key]]
-    return {'sections':resolved,'mandatory_answers':answers,'contribution_dimensions':dimensions,'verdict':validated,
+    return {'sections':resolved,'mandatory_answers':answers,'simplicity_counterfactual':simplicity,
+            'contribution_dimensions':dimensions,'verdict':validated,
             'classification':'TEMPORARY_CONFIDENTIAL','general_validation_demonstrated':False}
 
 
@@ -300,7 +384,7 @@ def persist_pilot_learning_review(case_directory, assessment):
     case=Path(case_directory)
     review=build_pilot_learning_review(case,assessment)
     if review.get('scientific_post_mortem') is None:
-        raise ValueError('Un post-mortem final doit traiter les vingt sections et les trois questions.')
+        raise ValueError('Un post-mortem final doit traiter les vingt sections, les trois questions et la comparaison de simplicité.')
     target=resolve_analysis_directory(case)
     _write(target/'PILOT_LEARNING_REVIEW.json',review)
     (target/'PILOT_LEARNING_REVIEW.md').write_text(render_pilot_learning_review(review),encoding='utf-8')

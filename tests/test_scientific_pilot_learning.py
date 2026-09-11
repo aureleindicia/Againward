@@ -2,14 +2,24 @@ import copy
 import json
 import pytest
 from tests.test_value_map import case_packet, save, time_record
-from pilot_learning import (POST_MORTEM_SECTIONS, MANDATORY_QUESTIONS, build_pilot_learning_review,
-    persist_pilot_learning_review, render_pilot_learning_review)
+from pilot_learning import (POST_MORTEM_SECTIONS, MANDATORY_QUESTIONS, SIMPLICITY_DIMENSIONS,
+    build_pilot_learning_review, persist_pilot_learning_review, render_pilot_learning_review)
 
 
 def post_mortem():
     unknown={'statement_type':'INCONNU','text':'Les preuves actuelles ne permettent pas de trancher.'}
+    observed={'statement_type':'FAIT_OBSERVE','text':'Le journal du pilote documente cette comparaison.',
+              'source_refs':['GBE-V']}
+    counterfactual={key:{'outcome':'INCONCLUSIVE','evidence':[copy.deepcopy(observed)]} for key in (
+        'raw_plus_python','tool_value','workflow_friction','deterministic_python',
+        'architecture_rationalization','unique_againward_capability',
+        'architecture_workarounds','minimal_design')}
+    counterfactual['dimensions']={key:{'outcome':'INCONCLUSIVE','evidence':[copy.deepcopy(observed)]}
+                                  for key in SIMPLICITY_DIMENSIONS}
+    counterfactual['verdict']={'classification':'INCONCLUSIVE','rationale':[copy.deepcopy(observed)]}
     return {'sections':{key:[copy.deepcopy(unknown)] for key in POST_MORTEM_SECTIONS},
         'mandatory_answers':{key:copy.deepcopy(unknown) for key in MANDATORY_QUESTIONS},
+        'simplicity_counterfactual':counterfactual,
         'contribution_dimensions':['UNKNOWN'],
         'verdict':{'classification':'NEUTRE',**{key:[copy.deepcopy(unknown)] for key in
             ('arguments_for','arguments_against','new_elements','known_elements','generalization_limits')}}}
@@ -42,6 +52,31 @@ def test_no_automatic_verdict_or_complete_review_from_missing_sections(case_pack
     with pytest.raises(ValueError,match='vingt'):persist_pilot_learning_review(case,{'post_mortem':post})
     with pytest.raises(ValueError,match='post-mortem final'):persist_pilot_learning_review(case,{})
     assert not (case/'investigation/PILOT_LEARNING_REVIEW.md').exists()
+
+
+def test_simplicity_counterfactual_requires_all_axes_evidence_and_closed_verdict(case_packet):
+    case,p=case_packet;save(case,p,time_record());post=post_mortem()
+    post.pop('simplicity_counterfactual')
+    with pytest.raises(ValueError,match='comparaison de simplicité'):persist_pilot_learning_review(case,{'post_mortem':post})
+    post=post_mortem();counter=post['simplicity_counterfactual']
+    counter['tool_value']['evidence']=[{'statement_type':'INCONNU','text':'Les preuves actuelles ne permettent pas de trancher.'}]
+    with pytest.raises(ValueError,match='seulement INCONNU'):persist_pilot_learning_review(case,{'post_mortem':post})
+    post=post_mortem();counter=post['simplicity_counterfactual']
+    counter['tool_value'].pop('outcome')
+    with pytest.raises(ValueError,match='résultat fermé'):persist_pilot_learning_review(case,{'post_mortem':post})
+    post=post_mortem();counter=post['simplicity_counterfactual']
+    counter['verdict']['classification']='Againward semble meilleur'
+    with pytest.raises(ValueError,match='Verdict fermé'):persist_pilot_learning_review(case,{'post_mortem':post})
+
+
+def test_simplicity_counterfactual_is_rendered_by_dimension(case_packet):
+    case,p=case_packet;save(case,p,time_record());review=persist_pilot_learning_review(case,{'post_mortem':post_mortem()})
+    counter=review['scientific_post_mortem']['simplicity_counterfactual']
+    assert counter['verdict']['classification']=='INCONCLUSIVE'
+    text=render_pilot_learning_review(review)
+    assert 'Comparaison contrefactuelle de simplicité' in text
+    assert 'raw_plus_python'.replace('_',' ') not in text
+    assert 'Dimensions comparées' in text and 'final_client_value : INCONCLUSIVE' in text
 
 
 def test_retained_markdown_or_precise_industrial_data_is_rejected(case_packet):

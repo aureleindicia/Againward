@@ -116,6 +116,22 @@ HYPOTHESE, INTERPRETATION_POST_MORTEM ou INCONNU ; les chiffres référencent un
 Python ne choisit ni verdict ni généralisation. Les cinq verdicts vont de RENFORCE_FORTEMENT à
 AFFAIBLIT_FORTEMENT ; NEUTRE n’équivaut pas à une preuve générale.
 
+Chaque post-mortem final contient aussi une **comparaison contrefactuelle de simplicité**. Elle
+compare explicitement Againward à « raw data + Python + bon prompt » et exige des constats sourcés
+sur la valeur des outils, les frictions du workflow, les calculs qui relèvent mieux d’un Python
+simple, les briques à supprimer/fusionner/rendre optionnelles, les capacités réellement uniques,
+les contournements de l’agent et le design minimal recommandé pour un dossier semblable.
+
+Les dimensions sont séparées : découverte et investigation, fiabilité des calculs, faux positifs et
+abstentions, traçabilité et reproductibilité, temps et complexité, puis valeur finale pour le client.
+Chaque axe et chaque dimension reçoivent un résultat fermé (`AGAINWARD_ADVANTAGE`,
+`RAW_PLUS_PYTHON_ADVANTAGE`, `ROUGHLY_EQUIVALENT` ou `INCONCLUSIVE`) et au moins une preuve issue des sources, findings,
+artefacts hachés ou métriques existantes. Le verdict global est obligatoirement l’un de
+`AGAINWARD_CLEARLY_BETTER`, `AGAINWARD_BETTER_ON_RELIABILITY`, `ROUGHLY_EQUIVALENT`,
+`RAW_PLUS_PYTHON_LIKELY_BETTER` ou `INCONCLUSIVE`. Une formulation libre comme « Againward semble
+meilleur » est rejetée. Le constat peut conclure qu’une brique est inutile ou contre-productive si
+les artefacts du pilote le justifient.
+
 `PILOT_LEARNING_REVIEW.json` et `.md` sont TEMPORARY_CONFIDENTIAL dans l’investigation. Les sources
 et chemins locaux ne doivent pas sortir avec des métriques. Le système ne conserve pas ce Markdown
 simplement parce qu’un modèle l’aurait « anonymisé ».
