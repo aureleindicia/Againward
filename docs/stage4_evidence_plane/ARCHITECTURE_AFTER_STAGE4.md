@@ -1,5 +1,9 @@
 # Architecture INDICIA après Stage 4
 
+Ce document conserve la conception historique Stage 4. Les limites de tentatives et
+l'atomicité par fichier décrites ci-dessous sont remplacées par les checkpoints de
+continuation et transactions récupérables de [INVESTIGATION_CONTINUATION.md](../INVESTIGATION_CONTINUATION.md).
+
 ## Chemin nominal
 
 ```text

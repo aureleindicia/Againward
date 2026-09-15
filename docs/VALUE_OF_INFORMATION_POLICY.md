@@ -18,6 +18,12 @@ valeur comparable seulement, l'ordre est : inférence, micro-question, document,
 export, instrumentation. Le seuil de publication par défaut est `0.05`. C'est un garde-fou
 conservateur non calibré sur des dossiers réels, à réévaluer après les premiers pilotes.
 
+Depuis la révision architecture 2026-09-16, la sélection recalcule l'information marginale
+conditionnelle après chaque choix. Une même branche peut nécessiter plusieurs partitions
+complémentaires. Le modèle uniforme et le classement glouton restent des heuristiques :
+ni valeur monétaire attendue, ni probabilités calibrées. Voir
+[INVESTIGATION_CONTINUATION.md](INVESTIGATION_CONTINUATION.md).
+
 Une demande `INVESTIGATE_FIRST` doit expliciter : ce qu'elle peut départager,
 la décision qui pourrait changer, son coût/effort et pourquoi elle est justifiée.
 Une facture ou un devis existant est préféré à une demande de calcul technique au

@@ -262,7 +262,7 @@ class EvidencePlaneTests(unittest.TestCase):
                 dataset,
                 self.query(dataset, "more", "raw_slice", {"fields": ["power_kw"], "limit": 1}),
             )
-        self.assertEqual(session.status, "budget_exhausted")
+        self.assertEqual(session.status, "open")  # Rejections have their own bounded allowance.
 
     def test_session_round_trip_detects_tampering(self) -> None:
         dataset = self.dataset()

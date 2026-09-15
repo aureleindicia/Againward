@@ -122,13 +122,20 @@ un dépôt encore en attente de revue.
    `EXISTING_DOCUMENT` n'est jamais automatiquement une ancre vérifiée.
 3. Recalculer avec Python, revoir alternatives, attribution, confiance, économie, priorité/action;
    tracer avant/après pour les huit dimensions exigées par `complete_resume` et refaire la review.
-4. Fermer via `complete-resume`. Second cycle seulement pour une branche matérielle nouvelle; deux
-   cycles maximum, jamais de question équivalente.
+4. Fermer via `complete-resume`. Tout cycle suivant exige une branche matérielle nouvelle;
+   deux cycles par défaut, jamais de question équivalente. Si une décision matérielle reste
+   ouverte après réponses et review, lire `docs/INVESTIGATION_CONTINUATION.md` et utiliser
+   `continue-clarification` avec les nouvelles preuves; aucun budget n'est réinitialisé.
 5. Si le budget est réellement épuisé, `close-budget` puis finaliser unknown/non identifiable/cause
    non démontrée. Ne pas fermer prématurément une demande en attente pour obtenir FINALIZABLE.
 
 Toujours séparer détection, signature, composant anonyme, compatibilité, attribution, mécanisme et
 pronostic. Python porte les chiffres; Codex choisit et interprète les tests.
+
+Une limite d'appels n'établit jamais une conclusion. Pour une continuation Evidence Plane
+justifiée, ou un statut `RECOVER_ARTIFACT_TRANSACTION`, lire `docs/INVESTIGATION_CONTINUATION.md`.
+Ne pas supprimer un journal de transaction en attente. Toute réponse nouvelle, même non bloquante,
+impose la reprise et la revue des hypothèses concernées.
 
 ## Quantification et support des baselines
 

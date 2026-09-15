@@ -65,7 +65,9 @@ def test_two_cycles_max(tmp_path):
     publish_client_requests(tmp_path,[candidate("Q2",related="H2")],new_material_branch={"trigger_response_ids":["Q1"],"decision_change":"nouvelle branche"}); record_canonical_answers(tmp_path,[answer("Q2")]); resume(tmp_path,"H2")
     with pytest.raises(ValueError,match="Budget"): publish_client_requests(tmp_path,[candidate("Q3",related="H3")],new_material_branch={"trigger_response_ids":["Q2"],"decision_change":"autre"})
 def test_budget_exhaustion_unknown(tmp_path):
-    ready(tmp_path); publish_client_requests(tmp_path,[candidate()]); close_clarification_budget(tmp_path,terminal_limitations=["Actif unknown et cause non démontrée: information insuffisante."]); assert mark_finalizable(tmp_path,conclusion_ref="i.json")["client_lifecycle"]["exhausted"]
+    ready(tmp_path); publish_client_requests(tmp_path,[candidate()])
+    with pytest.raises(ValueError, match="STOP"):
+        close_clarification_budget(tmp_path,terminal_limitations=["Actif unknown et cause non démontrée: information insuffisante."])
 def test_missing_answer_not_confirmation(tmp_path):
     ready(tmp_path); publish_client_requests(tmp_path,[candidate()]); q=json.loads((tmp_path/"questions.json").read_text()); assert q["questions"][0]["status"]=="open" and not q["responses"]
 def test_mea_not_applicable(tmp_path): assert run_minimal_attribution(tmp_path,component=None,inventory=None)["status"]=="not_applicable"

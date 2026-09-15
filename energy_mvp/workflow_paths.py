@@ -155,6 +155,8 @@ def inspect_case_status(case_directory: str | Path) -> dict[str, Any]:
 
     layout = resolve_case_layout(case_directory)
     analysis_root: Path = layout["analysis_root"]
+    from .artifact_store import JOURNAL
+    recovery_required = (analysis_root / JOURNAL).exists()
     state_path = analysis_root / "investigation_state.json"
     state_payload, state_error = _read_json_object(state_path)
     lifecycle = None if state_payload is None else state_payload.get("client_lifecycle")
@@ -212,4 +214,6 @@ def inspect_case_status(case_directory: str | Path) -> dict[str, Any]:
                         else _next_action(lifecycle, privacy["state"])),
         "artifacts": artifacts,
         "read_only": True,
+        **({"next_action":"RECOVER_ARTIFACT_TRANSACTION", "lifecycle_error":"ARTIFACT_RECOVERY_REQUIRED"}
+           if recovery_required else {}),
     }

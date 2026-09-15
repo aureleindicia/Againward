@@ -19,6 +19,7 @@ from .client_lifecycle import (
     publish_client_requests,
     record_canonical_answers,
     record_existing_data_exhaustion,
+    continue_clarification,
 )
 from .workflow_paths import inspect_case_status
 from .privacy import configure_retention, purge_client_case, validate_codex_privacy_review
@@ -33,6 +34,8 @@ def build_parser() -> argparse.ArgumentParser:
         "status", help="Afficher les dossiers, artefacts et la prochaine action sans rien modifier"
     )
     status.add_argument("case_directory")
+    recovery = subparsers.add_parser("recover-artifacts", help="Recover an interrupted artifact transaction")
+    recovery.add_argument("case_directory")
     questions = subparsers.add_parser("questions", help="Publier les prochaines questions minimales")
     questions.add_argument("case_directory")
     questions.add_argument("--investigation-name", default="investigation.json")
@@ -68,6 +71,7 @@ def build_parser() -> argparse.ArgumentParser:
         ("record-answers", "Enregistrer les réponses typées"),
         ("complete-resume", "Clore une reprise"),
         ("close-budget", "Clore le budget"),
+        ("continue-clarification", "Prolonger un cycle sur progrès documenté"),
         ("finalizable", "Marquer finalisable"),
     )
     for name, help_text in commands:
@@ -81,6 +85,7 @@ def build_parser() -> argparse.ArgumentParser:
             "record-answers",
             "complete-resume",
             "close-budget",
+            "continue-clarification",
         }:
             command.add_argument("payload_json")
         elif name == "finalizable":
@@ -93,6 +98,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "status":
             result = inspect_case_status(args.case_directory)
+        elif args.command == "recover-artifacts":
+            from .artifact_store import recover_artifacts
+            result = recover_artifacts(args.case_directory)
         elif args.command == "stage-incoming":
             from .privacy import stage_incoming_drop
             result = stage_incoming_drop(args.source_directory, args.case_directory)
@@ -127,9 +135,12 @@ def main(argv: list[str] | None = None) -> int:
             "record-answers",
             "complete-resume",
             "close-budget",
+            "continue-clarification",
         }:
             source = json.loads(Path(args.payload_json).read_text(encoding="utf-8"))
-            if args.command == "publish-candidates":
+            if args.command == "continue-clarification":
+                result = continue_clarification(args.case_directory, **source)
+            elif args.command == "publish-candidates":
                 candidates = source.get("candidates", []) if isinstance(source, dict) else source
                 branch = source.get("new_material_branch") if isinstance(source, dict) else None
                 result = publish_client_requests(

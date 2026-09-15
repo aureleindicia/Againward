@@ -2,7 +2,7 @@
 
 La valeur par défaut est **zéro question client**. Le système doit d’abord utiliser les fichiers déjà reçus, l’horodatage, les unités visibles, les séries comparables, les totaux, les notes et les documents disponibles.
 
-Une demande est justifiée seulement si au moins deux réponses plausibles changent une décision matérielle (preuve, attribution, économie, priorité, action ou risque). `client_requests` valide ce contrefactuel, déduplique et sélectionne globalement. Un cycle contient une à trois demandes, cible une; deux cycles maximum, le second lié à une réponse créant une branche matérielle.
+Une demande est justifiée seulement si au moins deux réponses plausibles changent une décision matérielle (preuve, attribution, économie, priorité, action ou risque). `client_requests` vérifie que les effets déclarés diffèrent; Codex doit juger leur pertinence réelle. La sélection déduplique les partitions équivalentes et tient compte de l'information marginale. Un cycle contient une à trois demandes, cible une; deux cycles par défaut, les suivants liés à des réponses créant une branche matérielle. Une continuation bornée et tracée est possible selon [INVESTIGATION_CONTINUATION.md](INVESTIGATION_CONTINUATION.md).
 
 ## Types
 
