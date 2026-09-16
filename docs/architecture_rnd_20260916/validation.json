@@ -1,0 +1,41 @@
+{
+  "schema_version": "againward-architecture-validation-v1",
+  "synthetic_only": true,
+  "validated_engine_commit": "cf4a4d37d22d026cfa5c704ed267fceebc190da9",
+  "full_suite": {
+    "command": "python -m pytest -q",
+    "passed": 544,
+    "failed": 0,
+    "elapsed_seconds": 174.44,
+    "holdout_integrity_guards_enabled": true
+  },
+  "baseline_suite": {
+    "commit": "c27f261cd560cb005dd8d9367c8cf6567ebfa155",
+    "passed": 516,
+    "elapsed_seconds": 132.20
+  },
+  "demo_regression": {
+    "scenario": "factory_variable",
+    "seed": 42,
+    "days": 90,
+    "input_rows": 8639,
+    "analysis_json_byte_identical": true,
+    "markdown_report_byte_identical": true
+  },
+  "question_challenges": {
+    "random_partition_cases": 50,
+    "production_suboptimal_cases": 0,
+    "scope": "uniform synthetic partitions; not client decision accuracy"
+  },
+  "client_workflow_benchmark_assertions_passed": true,
+  "skill_validation_passed": true,
+  "diff_check_passed": true,
+  "repository_visibility": "PRIVATE",
+  "publication_branch": "rnd/architecture-autonomy-20260916",
+  "limitations": [
+    "No live-client or blinded model outcome comparison was performed.",
+    "Large snapshots remain memory-intensive on Termux.",
+    "Continuation decision relevance remains an analyst judgment.",
+    "Journaled JSON adds metadata-write latency and does not cover every cross-directory operation."
+  ]
+}

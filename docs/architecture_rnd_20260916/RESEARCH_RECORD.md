@@ -222,5 +222,24 @@ Here the concrete counterexamples, not the literature alone, justified implement
 
 The full pre-commit suite found the expected legacy answer-shortcut test and two HOLDOUT
 integrity guards requiring committed engine code. The shortcut expectation was corrected;
-the HOLDOUT guards remain intact. Final committed-suite results and the remote commit are
-recorded in the completion section after validation.
+the HOLDOUT guards remain intact.
+
+### Completion validation
+
+Final engine revision: `cf4a4d37d22d026cfa5c704ed267fceebc190da9`.
+
+- `python -m pytest -q`: **544 passed in 174.44 seconds** on the committed engine.
+- Dedicated retry/evidence/adaptive suite: **36 passed** before its implementation commit.
+- Client workflow benchmark: 10/100/1,000 candidates, bounded-selection and semantic-
+  deduplication assertions passed; machine-readable results are in the existing benchmark folder.
+- R&D probes: all four baseline failures corrected; numerical unit check unchanged.
+- Question evaluation: final exact policy matches the exhaustive reference in all 50
+  random-partition challenges; greedy limitations remain explicit outside its applicable scope.
+- Original 90-day demo analysis JSON and Markdown: **byte-for-byte unchanged** after redesign.
+- Skill validation, CLI discovery and `git diff --check`: passed.
+- GitHub metadata confirms `aureleindicia/Againward` is **PRIVATE**; push permission was
+  checked with a dry run. The publication branch is `rnd/architecture-autonomy-20260916`.
+
+The R&D worktree was clean after testing. Only this validation record is added afterwards;
+the original worktree's uncommitted prospecting work remains outside these commits. Actual
+push and remote-head verification are performed at handoff, after the final documentation commit.
