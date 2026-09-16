@@ -95,3 +95,11 @@ def test_status_does_not_offer_delivery_for_inconsistent_state(tmp_path):
     status=inspect_case_status(tmp_path)
     assert status["lifecycle_error"]
     assert status["next_action"]=="REPAIR_INVALID_LIFECYCLE_STATE"
+
+
+def test_idempotent_transport_retries_cannot_create_an_unbounded_loop(tmp_path):
+    case,request=prepared(tmp_path)
+    execute_case_query(case,request)
+    for _ in range(8):execute_case_query(case,request)
+    with pytest.raises(ValueError,match="replay"):
+        execute_case_query(case,request)

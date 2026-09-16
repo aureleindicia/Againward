@@ -236,6 +236,7 @@ class EvidenceQuerySession:
     pair_comparisons_used: int = 0
     status: str = "open"
     continuations: list[dict[str, Any]] = field(default_factory=list)
+    transport_replays: int = 0
 
     @classmethod
     def create(
@@ -611,6 +612,7 @@ class EvidenceQuerySession:
                 "context_bytes": self.context_bytes_used,
                 "pair_comparisons": self.pair_comparisons_used,
                 "handles": len(self.handles),
+                "transport_replays": self.transport_replays,
             },
             "calls": self.calls,
             "handles": self.handles,
@@ -632,6 +634,8 @@ class EvidenceQuerySession:
             raise ValueError("Usage de session Evidence Plane absent.")
         if any(type(usage.get(key)) is not int for key in ("calls","handles","returned_rows","context_bytes","pair_comparisons")):
             raise ValueError("Compteurs de session entiers requis.")
+        if type(usage.get("transport_replays",0)) is not int:
+            raise ValueError("Compteur de replay entier requis.")
         if (not isinstance(payload.get("calls"),list) or any(not isinstance(x,dict) or
             x.get("status") not in {"success","rejected"} for x in payload["calls"])
             or not isinstance(payload.get("handles"),dict)):
@@ -648,6 +652,7 @@ class EvidenceQuerySession:
             pair_comparisons_used=int(usage.get("pair_comparisons", 0)),
             status=str(payload.get("status", "open")),
             continuations=list(payload.get("continuations", [])),
+            transport_replays=usage.get("transport_replays",0),
         )
         if usage.get("calls") != len(session.calls) or usage.get("handles") != len(session.handles):
             raise ValueError("Compteurs de session Evidence Plane incohérents.")
@@ -676,6 +681,8 @@ class EvidenceQuerySession:
                 raise ValueError("Compteurs de session incohérents avec les preuves réussies.")
         if len(session.handles) > session.budget.maximum_handles or session.status not in {"open", "closed", "budget_exhausted", "failure_budget_exhausted"}:
             raise ValueError("État ou handles de session invalides.")
+        if not 0 <= session.transport_replays <= session.budget.maximum_rejected_calls:
+            raise ValueError("Compteur de replay hors budget.")
         return session
 
 

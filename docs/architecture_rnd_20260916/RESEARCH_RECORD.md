@@ -69,6 +69,10 @@ An additional adversarial pass injected interruptions at all four evidence commi
 (journal, response, session, trace); recovery preserves their association. An exact replay
 after a lost CLI acknowledgement returns the verified prior response without new usage.
 Changed content under the same query ID remains rejected.
+The retry feature was itself attacked with repeated identical requests: the first version
+allowed unlimited successful replays. A separate bounded transport-replay counter now prevents
+that loop while preserving evidence usage. The unbounded version and its regression are recorded
+in the two successive commits and the dedicated adversarial test.
 
 The same pass found that status navigation trusted a syntactically valid `DELIVERABLE`
 label without validating its preconditions. Status now uses the canonical validator and

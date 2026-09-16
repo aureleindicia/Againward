@@ -14,6 +14,9 @@ even after the bounded session rejection ledger fills.
 Retrying the exact same successful request ID after a lost acknowledgement returns the
 verified persisted response with no additional usage; it is recorded as a replay, not new
 evidence. Changing a request under that ID is refused.
+Transport replay has its own counter, bounded by the rejection allowance (eight by default),
+so retries cannot form an unbounded successful tool loop. Read the persisted response directly
+when that allowance is exhausted. Continuation does not reset this counter.
 
 When further evidence could change a material decision, Codex records a checkpoint:
 

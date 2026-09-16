@@ -77,7 +77,11 @@ def _execute_case_query(case_directory, request_path):
             existing = _read_json(response_path)
             if (parsed.query_id in session.successful_query_ids
                 and existing.get("request_sha256") == stable_hash(parsed.to_dict())):
+                if session.transport_replays >= session.budget.maximum_rejected_calls:
+                    raise ValueError("Budget de replay épuisé; lire la réponse persistée existante.")
                 validate_session_artifacts(root, session, dataset=dataset)
+                session.transport_replays += 1
+                _atomic_write_json(session_path, session.to_dict())
                 _append_trace(root, "evidence_query_replayed", {
                     "query_id":parsed.query_id, "response_sha256":existing["response_sha256"],
                     "new_evidence":False, "additional_resource_charge":False,
