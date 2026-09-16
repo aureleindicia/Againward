@@ -188,6 +188,12 @@ def inspect_case_status(case_directory: str | Path) -> dict[str, Any]:
     privacy = inspect_privacy_status(layout["case_root"])
     from .contract_policy import inspect_contract_status
     contract = inspect_contract_status(layout["case_root"])
+    if lifecycle is not None and not recovery_required:
+        from .client_lifecycle import validate_client_lifecycle_artifacts
+        try:
+            lifecycle = validate_client_lifecycle_artifacts(analysis_root)
+        except (OSError, ValueError) as exc:
+            state_error = str(exc)
     privacy_path = privacy_manifest_path(layout["case_root"])
     artifacts["privacy_manifest.json"] = {
         "path": str(privacy_path),
@@ -211,6 +217,7 @@ def inspect_case_status(case_directory: str | Path) -> dict[str, Any]:
         ),
         "response_count": len(responses),
         "next_action": ("RESOLVE_CONTRACT_POLICY_BEFORE_REAL_DATA" if not contract["allowed"] and privacy["state"] != "PURGED"
+                        else "REPAIR_INVALID_LIFECYCLE_STATE" if state_error or questions_error
                         else _next_action(lifecycle, privacy["state"])),
         "artifacts": artifacts,
         "read_only": True,

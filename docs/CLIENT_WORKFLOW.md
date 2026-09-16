@@ -147,7 +147,8 @@ python manage_investigation.py complete-resume workspaces/usine_01 resume.json
 
 Une déclaration n’est pas une preuve terrain. La reprise recalcule avec Python et réévalue les huit
 dimensions du contrat : preuve, attribution, alternatives, confiance, importance économique,
-priorité, action terrain et risque de fausse conclusion. Après le budget de deux cycles, finaliser
+priorité, action terrain et risque de fausse conclusion. Après le budget courant, si aucune
+continuation n'est justifiée par de nouvelles preuves décisionnelles, finaliser
 honnêtement avec `unknown`, `non identifiable` ou `information insuffisante`.
 
 ## 5. Revue, livraison, rétention et purge

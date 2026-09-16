@@ -11,6 +11,10 @@ are audited separately. Successful repeated tests remain rejected; a failed test
 be retried after its resource constraint is corrected. The CLI trace records attempts
 even after the bounded session rejection ledger fills.
 
+Retrying the exact same successful request ID after a lost acknowledgement returns the
+verified persisted response with no additional usage; it is recorded as a replay, not new
+evidence. Changing a request under that ID is refused.
+
 When further evidence could change a material decision, Codex records a checkpoint:
 
 ```json

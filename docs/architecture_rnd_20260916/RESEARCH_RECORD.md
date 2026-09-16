@@ -65,6 +65,17 @@ recovers the same waiting state and request. Invalid batches produce no partial 
 A second process is refused while an update is active. Conflicting external edits cause
 recovery to refuse rather than overwrite. The read-only status exposes recovery explicitly.
 
+An additional adversarial pass injected interruptions at all four evidence commit boundaries
+(journal, response, session, trace); recovery preserves their association. An exact replay
+after a lost CLI acknowledgement returns the verified prior response without new usage.
+Changed content under the same query ID remains rejected.
+
+The same pass found that status navigation trusted a syntactically valid `DELIVERABLE`
+label without validating its preconditions. Status now uses the canonical validator and
+routes inconsistent artifacts to repair, never directly to delivery. Forged response bytes,
+repetition disguised by raw-slice defaults, and computation discarded by a context limit
+are also covered by dedicated tests.
+
 This is not a universal database transaction around all repository operations. Privacy
 promotion/purge and rendering into outputs retain their existing safeguards. A custom script
 that ignores locks is outside cooperative isolation. POSIX rename/fsync and working local
@@ -108,7 +119,8 @@ greedy prototype missed the exhaustive optimum in **16/50** cases, by up to **1/
 It was consequently replaced for small comparable sets by exhaustive subset selection.
 Production uses exact selection only for ≤12 candidates with the same complete hypothesis
 model, scope and equal utility weights; heterogeneous/larger sets remain greedy. The final
-JSON records the greedy ablation and final production gaps separately.
+JSON records the greedy ablation and final production gaps separately. The final production
+selector matches the exhaustive reference in **50/50** random-partition challenges.
 
 The utility model still assumes uniform hypotheses and declared answer partitions. It is
 not a calibrated probability model, causal discriminator, or monetary EVSI. Unmapped

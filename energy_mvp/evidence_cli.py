@@ -74,6 +74,15 @@ def _execute_case_query(case_directory, request_path):
         parsed = EvidenceQuery.from_dict(request)
         response_path = root / "evidence_queries" / f"{parsed.query_id}.json"
         if response_path.exists():
+            existing = _read_json(response_path)
+            if (parsed.query_id in session.successful_query_ids
+                and existing.get("request_sha256") == stable_hash(parsed.to_dict())):
+                validate_session_artifacts(root, session, dataset=dataset)
+                _append_trace(root, "evidence_query_replayed", {
+                    "query_id":parsed.query_id, "response_sha256":existing["response_sha256"],
+                    "new_evidence":False, "additional_resource_charge":False,
+                })
+                return existing
             session._audit_failure(request, "query_id déjà matérialisé dans evidence_queries.")
             raise ValueError("query_id déjà matérialisé dans evidence_queries.")
         response = session.execute(dataset, request)
@@ -135,9 +144,9 @@ def validate_case_findings(
     return {"status": "valid", "findings": len(findings["findings"])}
 
 
-def validate_session_artifacts(root: Path, session: EvidenceQuerySession) -> None:
+def validate_session_artifacts(root: Path, session: EvidenceQuerySession, *, dataset=None) -> None:
     """Check materialized evidence, not just references in a self-consistent ledger."""
-    dataset = EvidenceDataset.from_dict(_read_json(root / "evidence_dataset.json"))
+    dataset = dataset or EvidenceDataset.from_dict(_read_json(root / "evidence_dataset.json"))
     if dataset.dataset_sha256 != session.dataset_sha256 or dataset.dataset_id != session.dataset_id:
         raise ValueError("Evidence session refers to another dataset snapshot.")
     for call in session.calls:
