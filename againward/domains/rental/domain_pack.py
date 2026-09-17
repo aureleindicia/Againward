@@ -17,6 +17,11 @@ class RentalDomainPack:
     def __init__(self, *, profile=None):
         self.profile = get_profile(profile)
 
+    @property
+    def privacy_preservation(self):
+        from .privacy_policy import RENTAL_PRESERVATION
+        return RENTAL_PRESERVATION
+
     def intake_template(self):
         return {"schema_version": "againward-rental-intake-v1", "domain": self.name,
                 "profile": self.profile.name, "scope": None, "supplier_ids": [],

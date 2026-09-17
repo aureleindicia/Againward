@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterable
 
 from .workflow_paths import resolve_case_layout
+from .privacy_rules import current_preservation_policy, with_preservation_policy
 
 
 POLICY_VERSION = "indicia-privacy-policy-v1.1"
@@ -73,23 +74,6 @@ _RELATION_HEADER_TOKENS = {
     "matricule", "employee_id", "operator_id", "badge_id", "user_id",
 }
 _FREE_TEXT_HEADER_TOKENS = {"comment", "comments", "commentaire", "commentaires", "note", "notes", "free_text", "texte_libre"}
-_INDUSTRIAL_HEADER_PARTS = {
-    "timestamp", "date", "time", "heure", "energy", "energie", "kwh", "mwh", "wh",
-    "power", "puissance", "kw", "mw", "production", "volume", "cadence", "cycle",
-    "machine", "equipment", "equipement", "asset", "meter", "compteur", "line", "ligne",
-    "workshop", "atelier", "site", "shift", "poste", "campaign", "campagne", "lot",
-    "batch", "product", "produit", "reference", "temperature", "temp", "state", "etat",
-    "status", "on", "off", "maintenance", "arret", "stop", "model", "modele", "type",
-}
-_INDUSTRIAL_TEXT_PATTERNS = (
-    re.compile(r"\b\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2})?)?(?:Z|[+-]\d{2}:?\d{2})?\b"),
-    re.compile(r"(?i)\b\d+(?:[.,]\d+)?\s*(?:kwh|mwh|wh|kw|mw|w|°c|degc)\b"),
-    re.compile(
-        r"(?i)\b(?:machine|equipement|équipement|compteur|meter|ligne|line|atelier|site|"
-        r"shift|poste|lot|batch|cycle|campagne|campaign|produit|product|reference|référence)"
-        r"\s*(?:[:=#-]|est|nommé|appele|appelé)?\s*([A-Za-z0-9_.-]+)"
-    ),
-)
 
 
 def _now() -> str:
@@ -441,7 +425,7 @@ def _header_kind(header: str) -> str:
         return "free_text"
     if slug in _PERSONAL_HEADER_TOKENS or any(token in slug for token in ("email", "telephone", "phone", "matricule")):
         return "relation" if slug in _RELATION_HEADER_TOKENS else "personal"
-    if parts & _INDUSTRIAL_HEADER_PARTS:
+    if parts & current_preservation_policy().header_parts:
         return "industrial"
     return "other"
 
@@ -475,7 +459,30 @@ def _scan(path: Path) -> dict[str, Any]:
     tables = _tables(path)
     categories: dict[str, int] = {}
     sensitive_values: set[str] = set()
-    if not tables:
+    if path.suffix.casefold() == ".json":
+        payload = json.loads(path.read_text(encoding="utf-8"))
+
+        def inspect_json(value, header=""):
+            if isinstance(value, dict):
+                for key, item in value.items():
+                    inspect_json(item, key)
+            elif isinstance(value, list):
+                for item in value:
+                    inspect_json(item, header)
+            elif value is not None:
+                text = str(value).strip()
+                kind = _header_kind(header)
+                digest = header.endswith("sha256") and re.fullmatch(r"[a-f0-9]{64}", text)
+                if kind != "industrial" and not digest:
+                    _scan_text_patterns(text, categories, sensitive_values)
+                if text and kind in {"personal", "relation"}:
+                    if kind == "relation" and _PSEUDONYM.fullmatch(text):
+                        return
+                    category = "INDIVIDUAL_IDENTIFIER" if kind == "relation" else "EXPLICIT_PERSONAL_COLUMN"
+                    categories[category] = categories.get(category, 0) + 1
+                    sensitive_values.add(text)
+        inspect_json(payload)
+    elif not tables:
         _scan_text_patterns(_flatten_text(path, tables), categories, sensitive_values)
     for table in tables:
         for index, header in enumerate(table.headers):
@@ -514,7 +521,7 @@ def _identity_key(value: str) -> str:
 def _industrial_text_markers(path: Path) -> Counter[str]:
     text = _flatten_text(path, [])
     markers: list[str] = []
-    for pattern in _INDUSTRIAL_TEXT_PATTERNS:
+    for pattern in current_preservation_policy().text_patterns:
         for match in pattern.finditer(text):
             marker = match.group(1) if match.lastindex else match.group(0)
             markers.append(marker.casefold())
@@ -531,6 +538,48 @@ def _compare_preservation(
 ) -> dict[str, Any]:
     if original.suffix.casefold() != sanitized.suffix.casefold():
         raise ValueError("La sanitation ne peut pas changer le type de fichier tabulaire.")
+    if original.suffix.casefold() == ".json":
+        before = json.loads(original.read_text(encoding="utf-8"))
+        after = json.loads(sanitized.read_text(encoding="utf-8"))
+
+        def compare(left, right):
+            if isinstance(left, dict):
+                if not isinstance(right, dict) or set(right) - set(left):
+                    raise ValueError("JSON structure changed during privacy cleanup.")
+                for key, value in left.items():
+                    kind = _header_kind(key)
+                    if kind == "personal":
+                        if key in right and right[key] not in (None, "", []):
+                            raise ValueError("Personal JSON field must be removed or empty.")
+                    elif kind == "relation":
+                        new = right.get(key)
+                        if not value and not new:
+                            continue
+                        if new is None and not require_relation_preservation:
+                            continue
+                        if not isinstance(value, str) or not isinstance(new, str) or not _PSEUDONYM.fullmatch(new):
+                            raise ValueError("Stable JSON relation pseudonym required.")
+                        identity, pseudonym = _identity_key(value), new.casefold()
+                        if (identity in identity_to_pseudonym and identity_to_pseudonym[identity] != pseudonym
+                                or pseudonym in pseudonym_to_identity and pseudonym_to_identity[pseudonym] != identity):
+                            raise ValueError("Inconsistent or colliding JSON pseudonyms.")
+                        identity_to_pseudonym[identity] = pseudonym
+                        pseudonym_to_identity[pseudonym] = identity
+                    else:
+                        if key not in right:
+                            raise ValueError("Business JSON field removed during privacy cleanup.")
+                        compare(value, right[key])
+            elif isinstance(left, list):
+                if not isinstance(right, list) or len(left) != len(right):
+                    raise ValueError("JSON rows changed during privacy cleanup.")
+                for old, new in zip(left, right):
+                    compare(old, new)
+            elif type(left) is not type(right) or left != right:
+                raise ValueError("Business JSON value changed during privacy cleanup.")
+
+        compare(before, after)
+        return {"tabular": False, "industrial_columns_checked": 0, "rows_checked": 0,
+                "structured_json_values_preserved": True}
     if original.suffix.casefold() not in _TABULAR_EXTENSIONS:
         before_markers = _industrial_text_markers(original)
         after_markers = _industrial_text_markers(sanitized)
@@ -675,6 +724,7 @@ def _manifest_base(root: Path, review: dict[str, Any], status: str) -> dict[str,
         "received_at_utc": review.get("received_at_utc"),
         "validated_at_utc": _now(),
         "policy_version": POLICY_VERSION,
+        "business_preservation_policy": current_preservation_policy().policy_id,
         "status": status,
         "detected_categories": _clean_category_counts(review.get("detected_categories", [])),
         "transformations": [],
@@ -1153,6 +1203,7 @@ def _validate_codex_privacy_review_impl(
         raise
 
 
+@with_preservation_policy
 def validate_codex_privacy_review(
     case_directory: str | Path,
     review_path: str | Path,

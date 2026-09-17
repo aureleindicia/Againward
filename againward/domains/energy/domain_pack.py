@@ -94,6 +94,15 @@ class EnergyDomainPack:
     intake_template = staticmethod(intake_template)
     analyst_brief = staticmethod(_brief)
 
+    @property
+    def privacy_preservation(self):
+        from againward.core.privacy_rules import LEGACY_PRESERVATION
+        return LEGACY_PRESERVATION
+
+    def delivery_policy(self):
+        from .review_policy import EnergyDeliveryPolicy
+        return EnergyDeliveryPolicy()
+
     def prepare(self, source: Path, *, source_sha256, intake, options, evidence_plane_mode):
         source_path = source
         default_tariff = options.get("default_tariff")

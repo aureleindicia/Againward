@@ -42,6 +42,7 @@ def create_client_workspace(
         "schema_version": 3,
         "workspace_id": identifier,
         "domain": domain_name,
+        "domain_profile": intake_payload.get("profile"),
         "case_kind": "SYNTHETIC" if synthetic else "REAL_CLIENT",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "status": "awaiting_input" if synthetic else "awaiting_privacy_review",

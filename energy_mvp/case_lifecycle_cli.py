@@ -110,7 +110,9 @@ def main(argv: list[str] | None = None) -> int:
             result = record_contract_policy(args.case_directory, packet["policy"],
                 semantic_extraction=packet["semantic_extraction"], human_review=packet.get("human_review"))
         elif args.command == "privacy-validate":
-            result = validate_codex_privacy_review(args.case_directory, args.review_json)
+            from againward.entrypoints import get_case_domain
+            result = validate_codex_privacy_review(args.case_directory, args.review_json,
+                preservation_policy=get_case_domain(args.case_directory).privacy_preservation)
         elif args.command == "retention-configure":
             policy = json.loads(Path(args.policy_json).read_text(encoding="utf-8"))
             result = configure_retention(args.case_directory, policy)
