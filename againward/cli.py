@@ -14,6 +14,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Prépare une investigation Againward avec domaine explicite pour Codex."
     )
     parser.add_argument("--domain", default="energy", help="Domaine explicite (energy par défaut historique)")
+    parser.add_argument("--profile", help="Profil Rental optionnel : generic ou construction")
     parser.add_argument("source", help="CSV ou XLSX du client")
     parser.add_argument("--output-dir", required=True, help="Dossier de travail isolé")
     parser.add_argument("--intake", help="Questionnaire intake.json complété")
@@ -75,7 +76,7 @@ def main(argv: list[str] | None = None) -> int:
         state = prepare_investigation(
             args.source,
             args.output_dir,
-            domain=get_domain(args.domain), intake=intake,
+            domain=get_domain(args.domain, profile=args.profile), intake=intake,
             options={"default_tariff": args.price_per_kwh, "load_options": load_options},
             evidence_plane_mode=args.evidence_plane_mode,
         )

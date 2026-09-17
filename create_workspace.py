@@ -4,8 +4,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from energy_mvp.client_workspace import create_client_workspace
-from energy_mvp.privacy import stage_incoming_drop
+from againward.core.workspace import create_client_workspace
+from againward.core.privacy import stage_incoming_drop
+from againward.entrypoints import get_domain
 
 
 def main() -> int:
@@ -14,13 +15,17 @@ def main() -> int:
     )
     parser.add_argument("identifier", help="Identifiant local court, par exemple usine_demo")
     parser.add_argument("--root", default="workspaces", help="Racine des workspaces")
+    parser.add_argument("--domain", default="energy", help="energy ou rental")
+    parser.add_argument("--profile", help="Profil optionnel du domaine")
     parser.add_argument(
         "--incoming",
         help="Dossier reçu à copier sans lecture dans incoming/ immédiatement après création",
     )
     args = parser.parse_args()
     try:
-        manifest = create_client_workspace(args.identifier, root=args.root)
+        domain = get_domain(args.domain, profile=args.profile)
+        manifest = create_client_workspace(args.identifier, root=args.root,
+                                           domain_name=domain.name, intake_payload=domain.intake_template())
         receipt = None
         if args.incoming:
             receipt = stage_incoming_drop(
