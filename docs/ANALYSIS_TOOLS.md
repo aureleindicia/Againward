@@ -7,6 +7,18 @@ hypothese.
 
 Toutes les energies retournees sont en `kWh` et toutes les puissances en `kW`.
 
+## Continuation et récupération
+
+- `query_evidence.py CASE --continue-investigation checkpoint.json` : étend un budget sur
+  preuves nouvelles, hypothèses non résolues et prochains tests explicites. Les compteurs
+  persistent; les plafonds globaux et les limites épistémiques restent actifs.
+- `manage_investigation.py continue-clarification CASE checkpoint.json` : ouvre un cycle
+  supplémentaire après réponses, recalcul et review; ne publie aucune question.
+- `manage_investigation.py recover-artifacts CASE` : termine un commit interrompu après
+  vérification des empreintes, sans inventer de réponse ni conclusion.
+
+Contrats, exemples, hypothèses et limites : [INVESTIGATION_CONTINUATION.md](INVESTIGATION_CONTINUATION.md).
+
 ## Privacy gate préalable aux outils analytiques
 
 ### `stage_incoming_drop(source_directory, case_directory)`

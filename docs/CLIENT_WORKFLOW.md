@@ -121,11 +121,17 @@ reproductible et inventaire, utiliser l’attribution minimale ; sinon consigner
 
 Les candidats à une demande sont dédupliqués et classés par valeur décisionnelle. Zéro question est
 la valeur par défaut ; une micro-question ou observation ponctuelle prévaut sur un export lourd à
-valeur équivalente. Au plus trois demandes par cycle (cible : une) et deux cycles :
+valeur équivalente. Au plus trois demandes par cycle (cible : une) et deux cycles par défaut :
 
 ```sh
 python manage_investigation.py publish-candidates workspaces/usine_01 candidates.json
 ```
+
+La sélection utilise l'information marginale conditionnelle quand les partitions de réponses
+sont complètes. Deux demandes sur la même hypothèse ne sont pas nécessairement équivalentes.
+Les continuations justifiées et la récupération après interruption sont décrites dans
+[INVESTIGATION_CONTINUATION.md](INVESTIGATION_CONTINUATION.md). Un plafond de ressources ne
+constitue jamais une preuve de complétude. `close-budget` ne contourne ni STOP ni REPRISE.
 
 Un candidat `BLOCKING` passe à `WAITING_FOR_REQUIRED_INFORMATION`. Codex transmet la question et
 son utilité puis arrête complètement la session : aucune réponse inventée, promotion, économie,
@@ -141,7 +147,8 @@ python manage_investigation.py complete-resume workspaces/usine_01 resume.json
 
 Une déclaration n’est pas une preuve terrain. La reprise recalcule avec Python et réévalue les huit
 dimensions du contrat : preuve, attribution, alternatives, confiance, importance économique,
-priorité, action terrain et risque de fausse conclusion. Après le budget de deux cycles, finaliser
+priorité, action terrain et risque de fausse conclusion. Après le budget courant, si aucune
+continuation n'est justifiée par de nouvelles preuves décisionnelles, finaliser
 honnêtement avec `unknown`, `non identifiable` ou `information insuffisante`.
 
 ## 5. Revue, livraison, rétention et purge

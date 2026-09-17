@@ -16,6 +16,7 @@ from .client_lifecycle import (
     validate_client_lifecycle_artifacts,
 )
 from .privacy import assert_case_privacy_cleared
+from .artifact_store import case_mutation, read_json, write_json, artifact_sha256
 
 
 DECISIONS = {
@@ -39,7 +40,7 @@ REVIEW_CHECK_STATUSES = {"passed", "failed", "not_applicable"}
 
 def _read_json(path: Path) -> dict[str, Any]:
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = read_json(path)
     except FileNotFoundError as exc:
         raise ValueError(f"Fichier requis absent: {path}.") from exc
     except json.JSONDecodeError as exc:
@@ -50,17 +51,11 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
+    write_json(path, payload)
 
 
 def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for block in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
+    return artifact_sha256(path)
 
 
 def _append_trace(case_directory: Path, action: str, details: dict[str, Any]) -> None:
@@ -165,6 +160,7 @@ def _question_candidates(payload: dict[str, Any]) -> Iterable[dict[str, Any]]:
         }
 
 
+@case_mutation
 def publish_minimum_questions(
     case_directory: str | Path,
     *,
@@ -188,6 +184,7 @@ def publish_minimum_questions(
     return payload
 
 
+@case_mutation
 def record_client_answers(
     case_directory: str | Path,
     answers_path: str | Path,
@@ -209,6 +206,7 @@ def record_client_answers(
     return questions_payload
 
 
+@case_mutation
 def archive_answered_question_cycle(case_directory: str | Path) -> Path:
     """Archive un cycle entièrement répondu avant une nouvelle série de questions."""
 
@@ -357,6 +355,8 @@ def evaluate_delivery_gate(case_directory: str | Path) -> dict[str, Any]:
                 session = EvidenceQuerySession.from_dict(
                     _read_json(root / "evidence_query_session.json")
                 )
+                from .evidence_cli import validate_session_artifacts
+                validate_session_artifacts(root, session)
                 validate_finding_provenance(
                     _read_json(root / "agent_findings.json"), session
                 )

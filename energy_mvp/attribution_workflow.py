@@ -7,10 +7,11 @@ from pathlib import Path
 from typing import Any,Sequence
 from .client_lifecycle import lifecycle_directory,record_canonical_answers,assert_workflow_action_allowed
 from .privacy import assert_case_privacy_cleared
+from .artifact_store import case_mutation, read_json, write_json
 from .minimal_attribution import AnonymousElectricalComponent,EquipmentRecord,EvidenceItem,EvidenceLedger,MicroQuestion,assess_attribution,rank_micro_questions
-def _write(path,payload): path.parent.mkdir(parents=True,exist_ok=True); path.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+def _write(path,payload): write_json(path,payload)
 def _read(path):
-    value=json.loads(path.read_text(encoding="utf-8"))
+    value=read_json(path)
     if not isinstance(value,dict): raise ValueError(f"Objet JSON attendu: {path}.")
     return value
 def _component(value):
@@ -39,6 +40,7 @@ def _requests(assessment,questions,related):
           "decision_impact_dimensions":["asset_attribution","false_conclusion_risk"],"effort":q.effort,"availability":q.availability,
           "reliability":q.reliability,"source_cost":0,"expected_source_type":"CLIENT_DECLARATION","expected_effort":"micro-réponse ponctuelle","importance":"BLOCKING","mea_voi":rank})
     return result
+@case_mutation
 def run_minimal_attribution(case_directory:str|Path,*,component:AnonymousElectricalComponent|None,inventory:Sequence[EquipmentRecord]|None,micro_questions:Sequence[MicroQuestion]=(),related_hypothesis_ids:Sequence[str]=(),applicability_reason:str|None=None):
     root=lifecycle_directory(case_directory); path=root/"minimal_attribution.json"
     assert_workflow_action_allowed(case_directory,"asset_attribution")
@@ -51,6 +53,7 @@ def run_minimal_attribution(case_directory:str|Path,*,component:AnonymousElectri
       "component":component.to_dict(),"inventory":[x.to_dict() for x in inventory],"micro_questions":[asdict(x) for x in micro_questions],"related_hypothesis_ids":list(related_hypothesis_ids),
       "ledger_ref":str(ledger_path.relative_to(root)),"assessment":assessment.to_dict(),"candidate_requests":_requests(assessment,micro_questions,related_hypothesis_ids),"claim_boundary":"attribution_only_no_physical_mechanism_no_prognosis"}
     _write(ledger_path,ledger.to_dict()); _write(path,payload); return payload
+@case_mutation
 def record_attribution_answer(case_directory:str|Path,*,answer:dict[str,Any],evidence:dict[str,Any]):
     root=lifecycle_directory(case_directory); workflow=_read(root/"minimal_attribution.json")
     assert_case_privacy_cleared(case_directory)

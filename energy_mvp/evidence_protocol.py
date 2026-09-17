@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+from copy import deepcopy
 from datetime import datetime, timezone
 from enum import Enum
+import math
 from typing import Any
 
 from .evidence_plane import (
@@ -88,8 +90,13 @@ class QueryBudget:
     maximum_context_bytes: int = 400_000
     maximum_pair_comparisons: int = 2_000_000
     maximum_handles: int = 80
+    maximum_rejected_calls: int = 8
 
     def __post_init__(self) -> None:
+        if any(type(value) is not int for value in asdict(self).values()):
+            raise ValueError("Les budgets doivent être des entiers.")
+        if not 1 <= self.maximum_rejected_calls <= 100:
+            raise ValueError("maximum_rejected_calls doit être compris entre 1 et 100.")
         if not 1 <= self.maximum_calls <= 100:
             raise ValueError("maximum_calls doit être compris entre 1 et 100.")
         if not 1 <= self.maximum_returned_rows <= 10_000:
@@ -170,6 +177,31 @@ def _selection_rows(dataset: EvidenceDataset, selector: dict[str, Any]) -> list[
     raise ValueError("Sélecteur de handle inconnu.")
 
 
+def _semantic_arguments(query: EvidenceQuery) -> dict[str, Any]:
+    """Normalize equivalent requests without changing the declared test or field values."""
+    arguments = deepcopy(query.arguments)
+    for key in {"start", "limit", "minimum_group_rows", "maximum_categories", "minimum_controls",
+                "maximum_pair_comparisons", "omitted_examples_limit", "minimum_segment_rows",
+                "candidate_stride", "comparison_window_rows", "maximum_coarse_boundaries",
+                "maximum_candidates", "maximum_field_evidence"}:
+        if key in arguments and type(arguments[key]) is not int:
+            raise ValueError(f"{key} doit être un entier explicite.")
+    if query.operation is QueryOperation.RAW_SLICE:
+        for key, value in (("start",0),("limit",50),("representation","typed")):
+            arguments.setdefault(key,value)
+    for key in ("fields", "forbidden_outcome_fields"):
+        if isinstance(arguments.get(key), list):
+            if any(not isinstance(x,str) for x in arguments[key]):
+                raise ValueError(f"{key} exige des noms de champs textuels.")
+            arguments[key] = sorted(set(arguments[key]))
+    for dimension in arguments.get("dimensions", []):
+        if isinstance(dimension,dict) and "tolerance" in dimension:
+            value=dimension["tolerance"]
+            if not isinstance(value,(int,float)) or isinstance(value,bool) or not math.isfinite(value) or value<0:
+                raise ValueError("Tolérance numérique finie et non négative requise.")
+    return arguments
+
+
 def _handle_descriptor(
     dataset: EvidenceDataset,
     *,
@@ -203,6 +235,8 @@ class EvidenceQuerySession:
     context_bytes_used: int = 0
     pair_comparisons_used: int = 0
     status: str = "open"
+    continuations: list[dict[str, Any]] = field(default_factory=list)
+    transport_replays: int = 0
 
     @classmethod
     def create(
@@ -225,7 +259,10 @@ class EvidenceQuerySession:
         message: str,
         *,
         semantic_sha256: str | None = None,
+        pair_comparisons: int = 0,
     ) -> None:
+        if sum(item.get("status") == "rejected" for item in self.calls) >= self.budget.maximum_rejected_calls:
+            return  # CLI trace records further refused attempts without growing session context.
         query_id = payload.get("query_id") if isinstance(payload, dict) else None
         self.calls.append(
             {
@@ -236,29 +273,36 @@ class EvidenceQuerySession:
                 "semantic_sha256": semantic_sha256,
                 "request_sha256": stable_hash(payload),
                 "error": message,
+                "pair_comparisons": pair_comparisons,
             }
         )
+        self.pair_comparisons_used += pair_comparisons
+        if sum(item.get("status") == "rejected" for item in self.calls) >= self.budget.maximum_rejected_calls:
+            self.status = "failure_budget_exhausted"
 
     def execute(self, dataset: EvidenceDataset, payload: dict[str, Any]) -> dict[str, Any]:
         if self.status != "open":
             raise ValueError("La session Evidence Plane est fermée.")
         if dataset.dataset_id != self.dataset_id or dataset.dataset_sha256 != self.dataset_sha256:
             raise ValueError("La session ne correspond pas au snapshot Evidence Plane.")
-        if len(self.calls) >= self.budget.maximum_calls:
+        if len(self.successful_query_ids) >= self.budget.maximum_calls:
             self.status = "budget_exhausted"
             raise ValueError("Budget d’appels Evidence Plane épuisé; conclure ou s’abstenir.")
         try:
             query = EvidenceQuery.from_dict(payload)
+            query = EvidenceQuery(query.query_id, query.dataset_id, query.operation, deepcopy(query.arguments), query.purpose)
+            if query.query_id in self.successful_query_ids:
+                raise ValueError("query_id déjà utilisé par une requête réussie.")
             if query.dataset_id != dataset.dataset_id:
                 raise ValueError("dataset_id ne correspond pas à la session.")
             semantic_sha256 = stable_hash(
                 {
                     "dataset_sha256": dataset.dataset_sha256,
                     "operation": query.operation.value,
-                    "arguments": query.arguments,
+                    "arguments": _semantic_arguments(query),
                 }
             )
-            if any(item.get("semantic_sha256") == semantic_sha256 for item in self.calls):
+            if any(item.get("status") == "success" and item.get("semantic_sha256") == semantic_sha256 for item in self.calls):
                 raise ValueError("Requête sémantiquement répétée; utilisez la preuve existante ou changez le test.")
             response, pending_handles, returned_rows, pair_comparisons, relations = self._dispatch(dataset, query)
             if len(self.handles) + len(pending_handles) > self.budget.maximum_handles:
@@ -331,9 +375,13 @@ class EvidenceQuerySession:
                     "budget": asdict(self.budget),
                 }
             )
+            # The digest field is part of the actual response bytes. Its length is fixed.
+            envelope["response_sha256"] = "0" * 64
             encoded_size = 0
-            for _ in range(3):
+            for _ in range(10):
                 encoded_size = len(stable_json_bytes(envelope))
+                if envelope["resource_usage"]["response_bytes"] == encoded_size:
+                    break
                 envelope["resource_usage"]["response_bytes"] = encoded_size
                 envelope["resource_usage"]["cumulative_context_bytes"] = (
                     self.context_bytes_used + encoded_size
@@ -347,8 +395,9 @@ class EvidenceQuerySession:
                 raise ValueError("Budget cumulé d’octets de contexte dépassé.")
         except (TypeError, ValueError, KeyError) as exc:
             semantic = locals().get("semantic_sha256")
-            self._audit_failure(payload, str(exc), semantic_sha256=semantic)
-            if len(self.calls) >= self.budget.maximum_calls:
+            self._audit_failure(payload, str(exc), semantic_sha256=semantic,
+                                pair_comparisons=locals().get("pair_comparisons", 0))
+            if len(self.successful_query_ids) >= self.budget.maximum_calls:
                 self.status = "budget_exhausted"
             raise ValueError(str(exc)) from exc
         for descriptor in pending_handles:
@@ -356,6 +405,7 @@ class EvidenceQuerySession:
         self.returned_rows_used += returned_rows
         self.context_bytes_used += encoded_size
         self.pair_comparisons_used += pair_comparisons
+        del envelope["response_sha256"]
         response_sha256 = stable_hash(envelope)
         envelope["response_sha256"] = response_sha256
         self.calls.append(
@@ -375,9 +425,47 @@ class EvidenceQuerySession:
                 "pair_comparisons": pair_comparisons,
             }
         )
-        if len(self.calls) >= self.budget.maximum_calls:
+        if len(self.successful_query_ids) >= self.budget.maximum_calls:
             self.status = "budget_exhausted"
         return envelope
+
+    def continue_investigation(self, *, budget: dict[str, Any], progress_query_ids: list[str],
+                               unresolved_hypotheses: list[str], next_tests: list[str],
+                               decision_impact: str) -> dict[str, Any]:
+        """Bounded continuation chosen by the analyst; never an evidence promotion.
+
+        Retains all usage/history. Requires new successful evidence since the last
+        continuation. Hard resource ceilings still apply to the entire session.
+        This is an auditable planning checkpoint, not a calibrated value estimate.
+        """
+        if self.status in {"closed", "failure_budget_exhausted"}:
+            raise ValueError("Une session close ou sans progrès ne peut être prolongée.")
+        previous = {q for entry in self.continuations for q in entry["progress_query_ids"]}
+        ids = set(progress_query_ids)
+        if not ids or ids - self.successful_query_ids or ids & previous:
+            raise ValueError("La continuation exige de nouvelles preuves réussies non réutilisées.")
+        if (not unresolved_hypotheses or not next_tests or
+            any(not isinstance(x, str) or not x.strip() for x in [*unresolved_hypotheses, *next_tests, decision_impact])):
+            raise ValueError("Hypothèses non résolues, prochains tests et impact décisionnel requis.")
+        current = asdict(self.budget)
+        if set(budget) - set(current):
+            raise ValueError("Ressource de budget inconnue.")
+        proposed = QueryBudget(**{**current, **budget})
+        target = asdict(proposed)
+        if any(target[k] < current[k] for k in current) or target == current:
+            raise ValueError("La continuation doit augmenter un budget sans remettre les compteurs à zéro.")
+        if target["maximum_rejected_calls"] != current["maximum_rejected_calls"]:
+            raise ValueError("Le budget d'échecs ne peut être prolongé.")
+        if target["maximum_calls"] - current["maximum_calls"] > max(4, 2*len(set(unresolved_hypotheses))):
+            raise ValueError("Prolongation trop large pour les hypothèses déclarées.")
+        record = {"at_utc":datetime.now(timezone.utc).isoformat(),
+                  "progress_query_ids":sorted(ids), "unresolved_hypotheses":unresolved_hypotheses,
+                  "next_tests":next_tests, "decision_impact":decision_impact,
+                  "before":current, "after":target, "decision":None}
+        self.continuations.append(record)
+        self.budget = proposed
+        self.status = "open"
+        return record
 
     def _dispatch(
         self, dataset: EvidenceDataset, query: EvidenceQuery
@@ -524,10 +612,12 @@ class EvidenceQuerySession:
                 "context_bytes": self.context_bytes_used,
                 "pair_comparisons": self.pair_comparisons_used,
                 "handles": len(self.handles),
+                "transport_replays": self.transport_replays,
             },
             "calls": self.calls,
             "handles": self.handles,
             "status": self.status,
+            "continuations": self.continuations,
             "termination_policy": "agent concludes, abstains, or stops when budgets/repetition prevent useful new evidence",
         }
         return {**body, "session_sha256": stable_hash(body)}
@@ -542,6 +632,14 @@ class EvidenceQuerySession:
         usage = payload.get("usage")
         if not isinstance(usage, dict):
             raise ValueError("Usage de session Evidence Plane absent.")
+        if any(type(usage.get(key)) is not int for key in ("calls","handles","returned_rows","context_bytes","pair_comparisons")):
+            raise ValueError("Compteurs de session entiers requis.")
+        if type(usage.get("transport_replays",0)) is not int:
+            raise ValueError("Compteur de replay entier requis.")
+        if (not isinstance(payload.get("calls"),list) or any(not isinstance(x,dict) or
+            x.get("status") not in {"success","rejected"} for x in payload["calls"])
+            or not isinstance(payload.get("handles"),dict)):
+            raise ValueError("Journal de session invalide.")
         session = cls(
             session_id=str(payload.get("session_id")),
             dataset_id=str(payload.get("dataset_id")),
@@ -553,10 +651,12 @@ class EvidenceQuerySession:
             context_bytes_used=int(usage.get("context_bytes", 0)),
             pair_comparisons_used=int(usage.get("pair_comparisons", 0)),
             status=str(payload.get("status", "open")),
+            continuations=list(payload.get("continuations", [])),
+            transport_replays=usage.get("transport_replays",0),
         )
         if usage.get("calls") != len(session.calls) or usage.get("handles") != len(session.handles):
             raise ValueError("Compteurs de session Evidence Plane incohérents.")
-        if len(session.calls) > session.budget.maximum_calls:
+        if len(session.successful_query_ids) > session.budget.maximum_calls:
             raise ValueError("La session dépasse son budget d’appels déclaré.")
         if any(value < 0 for value in (
             session.returned_rows_used,
@@ -567,6 +667,22 @@ class EvidenceQuerySession:
         for handle, descriptor in session.handles.items():
             if descriptor.get("handle") != handle or descriptor.get("dataset_sha256") != session.dataset_sha256:
                 raise ValueError("Handle de session Evidence Plane incohérent.")
+            body = {key:value for key,value in descriptor.items() if key != "handle"}
+            if handle != "evh-" + stable_hash(body)[:24] or descriptor.get("query_id") not in session.successful_query_ids:
+                raise ValueError("Handle de session Evidence Plane sans provenance valide.")
+        successful = [call for call in session.calls if call.get("status") == "success"]
+        if len(successful) != len(session.successful_query_ids):
+            raise ValueError("Identifiants de requête dupliqués.")
+        for key, used, limit in (("returned_rows", session.returned_rows_used, session.budget.maximum_returned_rows),
+                                ("context_bytes", session.context_bytes_used, session.budget.maximum_context_bytes),
+                                ("pair_comparisons", session.pair_comparisons_used, session.budget.maximum_pair_comparisons)):
+            accounted = session.calls if key == "pair_comparisons" else successful
+            if any(type(call.get(key,0)) is not int or call.get(key,0) < 0 for call in accounted) or sum(call.get(key,0) for call in accounted) != used or used > limit:
+                raise ValueError("Compteurs de session incohérents avec les preuves réussies.")
+        if len(session.handles) > session.budget.maximum_handles or session.status not in {"open", "closed", "budget_exhausted", "failure_budget_exhausted"}:
+            raise ValueError("État ou handles de session invalides.")
+        if not 0 <= session.transport_replays <= session.budget.maximum_rejected_calls:
+            raise ValueError("Compteur de replay hors budget.")
         return session
 
 
@@ -598,10 +714,12 @@ def validate_finding_provenance(
         "ABSTAIN",
     }
     successful = session.successful_query_ids
+    seen = set()
     for finding in findings:
         identifier = str(finding.get("finding_id", "")).strip()
-        if not identifier:
+        if not identifier or identifier in seen:
             raise ValueError("Chaque constat exige finding_id.")
+        seen.add(identifier)
         if finding.get("status") not in allowed_statuses:
             raise ValueError(f"{identifier}: statut inconnu.")
         if not str(finding.get("claim_or_abstention", "")).strip():
@@ -614,6 +732,8 @@ def validate_finding_provenance(
         unknown_handles = sorted(set(handles) - set(session.handles))
         if unknown_queries or unknown_handles:
             raise ValueError(f"{identifier}: référence de preuve inconnue.")
+        if any(session.handles[h]["query_id"] not in query_ids for h in handles):
+            raise ValueError(f"{identifier}: handle sans sa requête source.")
         if finding["status"] in {"CONFIRME", "A_CONSERVER_AVEC_RESERVES"}:
             if not query_ids or not handles:
                 raise ValueError(f"{identifier}: une conclusion conservée exige requêtes et handles.")

@@ -634,6 +634,11 @@ def _assert_no_pre_gate_derivatives(root: Path, layout: str) -> None:
             root / "investigation" / "investigation_state.json",
             root / "investigation" / "questions.json",
         }
+    from .artifact_store import LOCK
+    analysis = root / ("processed" if layout == "STANDARD_WORKSPACE" else "investigation")
+    lock = analysis / LOCK
+    if lock.is_file() and not lock.is_symlink() and lock.stat().st_size == 0:
+        allowed.add(lock)  # Empty synchronization metadata, never a content-bearing journal.
     escaped = [path for directory in checked for path in _safe_files(directory) if path not in allowed]
     if escaped:
         raise ValueError(

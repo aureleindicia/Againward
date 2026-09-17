@@ -1,0 +1,8 @@
+{
+  "scope": "deterministic synthetic counterexamples; not model quality evaluation",
+  "pending_blocking_can_be_finalized": false,
+  "nonblocking_answer_requires_resume": true,
+  "independent_questions_preserved": 2,
+  "two_quarter_hours_at_100kw_kwh": 50.0,
+  "exhausted_session_remains_readable": true
+}
