@@ -55,3 +55,24 @@ architecture/user documentation; branch push and unmerged PR.
 
 Initial main baseline: `python -m pytest -q` — **516 passed in 108.22 s**.
 New characterization checks: **3 passed**; both reports and the snapshot match.
+
+## Kernel and Evidence checkpoints
+
+The shared mechanics now live in `againward/core`; historical module aliases refer
+to the same objects (including transaction locks and monkeypatch points). Workspace
+creation accepts explicit domain context. Question utility no longer imports the
+electrical attribution engine. The existing closed learning-retention schema is
+isolated in `againward/compat`, without importing Energy learning/economics.
+
+Targeted extraction: **128 passed**; workspace/attribution/learning: **39 passed**;
+dependency checks: **3 passed**. A broad run begun before extraction finished with
+546 passed and one HOLDOUT integrity failure because files changed during the run.
+That is not accepted as full validation; the immutable committed engine must be
+rerun at a later checkpoint. HOLDOUT integrity checks remain enabled.
+
+The v2 evidence envelope accepts typed records and hashes dataset identity, source
+set, per-row document locations and arbitrary metadata. It has no physical model.
+The Energy adapter constructs its existing v1 envelope without changing bytes.
+Generic queries can read v1 without importing Energy, and v2 source slices include
+only their bounded source references. Benchmark engine exports now include the
+new package, preventing incomplete participant environments after extraction.
