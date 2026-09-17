@@ -76,3 +76,11 @@ The Energy adapter constructs its existing v1 envelope without changing bytes.
 Generic queries can read v1 without importing Energy, and v2 source slices include
 only their bounded source references. Benchmark engine exports now include the
 new package, preventing incomplete participant environments after extraction.
+
+Committed Evidence/kernel checkpoint `ede4029`: **561 passed in 196.44 s** in a
+separate immutable worktree (full suite including HOLDOUT packaging/integrity).
+Energy preparation now delegates through `DomainPack` to the shared workflow;
+quantitative work and physical policy remain in `EnergyDomainPack`. A document-only
+pack exercises the same orchestration with no physical fields. Explicit workspace
+and selected-domain mismatches fail before parsing. Routing-focused checks:
+**97 passed**, then **19 passed** including direct domain equivalence checks.
