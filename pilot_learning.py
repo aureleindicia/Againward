@@ -442,22 +442,7 @@ def create_retention_candidate(case_directory, review, *, purpose='INTERNAL_RND'
     return receipt
 
 
-def validate_retained_learning_projection(path):
-    import csv
-    path=Path(path)
-    if path.suffix!='.csv':raise ValueError('Rétention learning : CSV whitelisté uniquement ; Markdown libre interdit.')
-    with path.open(encoding='utf-8',newline='') as handle:
-        reader=csv.DictReader(handle)
-        if reader.fieldnames!=list(RETENTION_FIELDS):raise ValueError('Colonnes hors whitelist de rétention.')
-        rows=list(reader)
-    if len(rows)!=1:raise ValueError('Dérivé learning : une projection bornée par dossier.')
-    row=rows[0]
-    if (row['schema_version']!=RETENTION_SCHEMA or row['purpose'] not in {'INTERNAL_RND','BENCHMARKING'}
-            or any(row[k] not in {'YES','NO','UNKNOWN'} for k in BOOL_METRICS)
-            or any(row[k] not in RETENTION_BINS for k in NUMERIC_METRICS)
-            or any(row[k] not in VALUE_BASES for k in ('energy_basis','economic_basis'))):
-        raise ValueError('Valeur précise, texte libre ou finalité hors whitelist.')
-    return row
+from againward.compat.learning_retention import validate_retained_learning_projection
 
 
 def approve_retention_candidate(case_directory, human_review):
