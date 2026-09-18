@@ -585,3 +585,20 @@ Les jours incomplets, nouveaux régimes et familles désactivées sont à lire a
 Voir [VALUE_MAP.md](VALUE_MAP.md) pour le contrat `value_assessment`, la projection
 `value_map.json`, les calculs de temps sourcés, la revue humaine liée à son empreinte,
 la section PDF et les métriques pilotes autorisées. Les décisions restent celles de Goal B.
+# Outils Rental
+
+Le catalogue historique ci-dessous reste spécifique à Energy. Pour Rental, voir
+[RENTAL.md](RENTAL.md) pour les schémas, conventions et commandes complètes.
+
+| Outil | Entrée → sortie | Hypothèses et limites | Exemple |
+|---|---|---|---|
+| `load_rental_case` | Extraction JSON → modèle + inventaire | Mapping sémantique fourni, hashes/privacy vérifiés ; pas d'OCR | `load_rental_case(path)` |
+| `build_evidence_dataset` | RentalCase → dataset neutre v2 | Références par document/emplacement ; pas d'autorité déduite du hash | `build_evidence_dataset(case)` |
+| `resolve_timeline` | Case, période, tarif → dates et contradictions | Événements documentés, convention de cessation explicite ; retour partiel non quantifié | `resolve_timeline(case, period, term)` |
+| `build_expected_ledger` | Case → charges contractuelles | Conventions explicites, net de taxe, aucun tarif deviné | `build_expected_ledger(case)` |
+| `build_actual_ledger` | Case → lignes nettes d'avoirs émis | Pas de conversion de devises, pas d'avoir promis soustrait | `build_actual_ledger(case)` |
+| `reconcile` | Case → groupes, écarts, candidats | Une somme par groupe, aucun diagnostic automatique | `reconcile(case)` |
+| `review_findings` | Case, calculs, assessments → décisions bornées | Agent teste les alternatives ; Python interdit les montants libres | `review_findings(case, result, assessments)` |
+| `record_assessments` | Dossier + assessments → artefacts revus | Revalide sources et handles matérialisés | `manage_investigation.py rental-review CASE assessments.json` |
+| `recalculate` | Dossier + nouvelle extraction → révision | Hors WAIT, budget restant, nouvelles reviews requises | `manage_investigation.py rental-recalculate CASE extraction.json` |
+| `render_report` | Dossier finalisable + synthèse → Markdown et preuves | Synthèse par l'agent, approbation humaine distincte | `manage_investigation.py rental-report CASE synthese.md` |

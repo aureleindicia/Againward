@@ -1,4 +1,28 @@
-# Energy Analyzer — investigation energetique sur donnees
+# AGAINWARD — investigations Energy et Rental sur preuves
+
+AGAINWARD partage un noyau d'investigation entre **Energy** (performance énergétique)
+et **Rental** (rapprochement de locations, contrats, factures, retours et avoirs).
+Rental est générique ; `construction` est son premier profil facultatif de vocabulaire
+et de vérifications métier. Les calculs restent identiques avec le profil `generic`.
+
+Codex sélectionne les hypothèses, teste les explications concurrentes et rédige la
+synthèse. Python calcule, conserve les preuves et impose les limites du workflow.
+Un écart Rental n'est jamais automatiquement une somme récupérable.
+
+Voir [l'architecture](docs/ARCHITECTURE.md), le [guide Rental](docs/RENTAL.md) et les
+[benchmarks reproductibles](docs/RENTAL_BENCHMARKS.md). Les commandes Energy historiques
+restent disponibles ; `investigate.py` utilise `energy` par défaut pour compatibilité.
+
+```sh
+python investigate.py extraction.json --domain rental --profile construction --output-dir scratch/rental_case
+python run_rental_benchmark.py --output scratch/rental_benchmark --performance
+```
+
+Ces chemins d'exemple sont destinés aux données synthétiques. Pour un client réel,
+créer un workspace avec `--domain rental`, obtenir la clearance privacy, puis utiliser
+les sources `sanitized/` et les dérivés autorisés dans ce même workspace.
+
+## Energy — capacités existantes
 
 Energy Analyzer est un environnement local-first dans lequel Codex agit comme analyste
 energetique et Python comme couche de calcul verifiable.

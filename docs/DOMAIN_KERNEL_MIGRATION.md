@@ -8,9 +8,9 @@ uncommitted prospecting work; it is preserved without stashing or including it.
 Migration work lives in the sibling `againward-domain-kernel` worktree on
 `refactor/domain-kernel`. No changes are made to `main`.
 
-An existing, unmerged architecture branch at `0736bf6` contains proven lifecycle,
-artifact recovery and evidence-budget corrections. Those corrections will be
-integrated before extraction, preserving their history and regression tests.
+An existing, unmerged architecture branch at `0736bf6` contained lifecycle,
+artifact recovery and evidence-budget corrections. Those corrections were merged
+before extraction, preserving their history and regression tests.
 In particular, a pending blocking request must not be dismissed by budget closure.
 
 ## Inspection and intended boundaries
@@ -48,10 +48,10 @@ below as execution completes.
 
 ## Completion tracking
 
-Pending: neutral kernel extraction; neutral evidence boundary; domain routing;
-Energy compatibility; Rental model/ingestion/ledgers/findings; Construction profile;
-R01–R06 and adversarial benchmarks; privacy and delivery integration; broad tests;
-architecture/user documentation; branch push and unmerged PR.
+Implemented: neutral kernel and evidence boundary; explicit domain routing; Energy
+adapter and compatibility; generic Rental ingestion/model/ledgers/findings;
+Construction profile; R01–R06 plus seven adversarial benchmarks; shared review and
+delivery integration; additional privacy batches preserving WAIT/RESUME.
 
 Initial main baseline: `python -m pytest -q` — **516 passed in 108.22 s**.
 New characterization checks: **3 passed**; both reports and the snapshot match.
@@ -84,3 +84,33 @@ quantitative work and physical policy remain in `EnergyDomainPack`. A document-o
 pack exercises the same orchestration with no physical fields. Explicit workspace
 and selected-domain mismatches fail before parsing. Routing-focused checks:
 **97 passed**, then **19 passed** including direct domain equivalence checks.
+
+## Rental integration and audit
+
+`9496e15`: full suite in the immutable validation worktree — **619 passed in
+234.19 s**, no skips or failures. This includes the existing Energy, privacy,
+Evidence Plane, lifecycle, delivery and benchmark tests plus Rental integration.
+
+R01–R06 plus seven adversarial variants: **13/13 passed**. The scorer reports three
+supported-positive cases, zero false positives, zero false negatives and ten
+negative/ambiguous cases before the R06 answer. No automatic recovery claim is
+created. R06 proves a single BLOCKING request, a blocked query during WAIT, a
+synthetic answer, budget-preserving recalculation, review and FINALIZABLE state.
+These scripted fixtures are not an evaluation of autonomous agent reasoning.
+
+The numerical review additionally fixed caller-dependent Decimal precision,
+duration-tier selection after return, documentary authority for operational events,
+and quadratic amendment/percentage dependency traversal. Seven dedicated adverse
+tests brought targeted Rental coverage to **61 passed**.
+
+Additional evidence uncovered a real workflow gap: a previously cleared manifest
+must not authorize a new incoming batch. New batches now need their own semantic
+review and deterministic post-check. They preserve earlier sanitized documents,
+approval history and pending client questions; they cannot overwrite old sources.
+An unsolicited accepted batch requires RESUME. Rental calculations bind the privacy
+manifest version and require recalculation after it changes. Validation: **141
+targeted tests passed**, then the enriched five privacy tests passed separately.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md), [RENTAL.md](RENTAL.md) and
+[RENTAL_BENCHMARKS.md](RENTAL_BENCHMARKS.md) for final boundaries, supported conventions,
+explicit limits and reproducible commands. Compatibility aliases remain deliberate.
