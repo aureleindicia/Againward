@@ -135,3 +135,14 @@ uncommitted prospecting work was left in place; this worktree stays separate.
 The feature branch is published as `refactor/domain-kernel`; no automatic merge
 is performed. [DOMAIN_KERNEL_ACCEPTANCE.md](DOMAIN_KERNEL_ACCEPTANCE.md) maps the
 Goal's completion criteria to concrete implementation and validation evidence.
+
+## CI portability correction
+
+The first GitHub CPython 3.11 run passed 628 tests and exposed one characterization
+fixture mismatch: the demo JSON had been frozen on CPython 3.14. The Energy engine
+was unchanged; the pre-3.12 `sum()` algorithm explains the low-order float difference.
+An independent export of original `c27f261` with that left-fold algorithm reproduced
+the exact failing CI hash. Native and legacy fixtures are now both checked strictly,
+without numeric tolerances or changing production calculations. Monthly JSON and
+both Markdown hashes are identical across these two summation paths. The two new
+parameterized checks pass locally; full CI is rerun on the corrected fixtures.

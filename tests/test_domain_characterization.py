@@ -1,6 +1,8 @@
 """Frozen pre-migration Energy semantics, independent of the future adapter."""
 import hashlib
 import json
+import builtins
+import sys
 from pathlib import Path
 
 import pytest
@@ -18,13 +20,23 @@ FIXTURES = Path(__file__).parent / "fixtures/domain_kernel"
     ("monthly", "examples/sample_energy.csv", None),
     ("demo", "examples/demo_15min.csv", 0.175),
 ])
-def test_energy_reports_match_pre_migration_bytes(tmp_path, name, source, tariff):
+@pytest.mark.parametrize("summation", ["runtime", "legacy_left_fold"])
+def test_energy_reports_match_pre_migration_bytes(tmp_path, monkeypatch, name, source, tariff, summation):
+    # CPython 3.12 changed float sum(). Both exact fixtures come from the
+    # pre-migration c27f261 engine, never from a new output blessed after failure.
+    if summation == "legacy_left_fold":
+        def legacy_sum(values, start=0):
+            for value in values:
+                start += value
+            return start
+        monkeypatch.setattr(builtins, "sum", legacy_sum)
     result = analyze(load_data(source), source=source, default_tariff=tariff)
     target = tmp_path / "report.json"
     write_json(result, target)
     for extension, content in [("json", target.read_bytes()),
                                ("md", render_markdown(result).encode())]:
-        expected = (FIXTURES / f"energy_{name}.{extension}.sha256").read_text().strip()
+        suffix = ".legacy_sum" if summation == "legacy_left_fold" or sys.version_info < (3, 12) else ""
+        expected = (FIXTURES / f"energy_{name}.{extension}{suffix}.sha256").read_text().strip()
         assert hashlib.sha256(content).hexdigest() == expected
 
 
