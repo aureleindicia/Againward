@@ -35,6 +35,8 @@ def current_calculations(case_directory):
     inventory = read_json(root / "artifact_inventory.json")
     extraction = inventory["extraction"]
     case, fresh_inventory = load_rental_case(extraction["path"], output_directory=root)
+    if fresh_inventory.get("privacy_manifest_sha256") != inventory.get("privacy_manifest_sha256"):
+        raise ValueError("Privacy evidence batch changed; explicit recalculation and review required.")
     if fresh_inventory["extraction"]["sha256"] != extraction["sha256"]:
         raise ValueError("Rental extraction changed; explicit recalculation required.")
     if case.to_dict() != read_json(root / "rental_case.json"):

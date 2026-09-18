@@ -12,7 +12,7 @@ import json
 from datetime import date, datetime
 from pathlib import Path
 
-from againward.core.privacy import assert_source_approved_for_analysis, case_root_for_path
+from againward.core.privacy import assert_source_approved_for_analysis, case_root_for_path, privacy_manifest_path
 from againward.core.workflow import fingerprint
 from againward.evidence.dataset import EvidenceDataset
 from againward.evidence.hashing import stable_hash
@@ -145,7 +145,10 @@ def load_rental_case(source: str | Path, *, output_directory=None):
         if fingerprint(path) != doc.sha256:
             raise ValueError("Source document hash does not match the semantic extraction: " + doc.document_id)
         inventory.append({**asdict(doc), "bytes": path.stat().st_size, "classification_basis": "EXPLICIT_SEMANTIC_EXTRACTION"})
+    owner = case_root_for_path(source)
+    privacy_path = privacy_manifest_path(owner) if owner is not None else None
     return case, {"schema_version": "againward-rental-inventory-v1", "documents": inventory,
+                  "privacy_manifest_sha256": fingerprint(privacy_path) if privacy_path and privacy_path.is_file() else None,
                   "extraction": {"path": str(source.resolve()), "sha256": fingerprint(source)},
                   "transformations": transformations, "semantic_extraction_required": True,
                   "no_silent_corrections": True, "decision": None}

@@ -56,6 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
     privacy_validate = subparsers.add_parser("privacy-validate", help="Valider le privacy gate Codex et promouvoir sanitized/")
     privacy_validate.add_argument("case_directory")
     privacy_validate.add_argument("review_json")
+    privacy_validate.add_argument("--supplemental", action="store_true", help="Revoir de nouvelles pièces sans réinitialiser le dossier")
     retention = subparsers.add_parser("retention-configure", help="Configurer la rétention contractuelle")
     retention.add_argument("case_directory")
     retention.add_argument("policy_json")
@@ -127,7 +128,8 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "privacy-validate":
             from againward.entrypoints import get_case_domain
             result = validate_codex_privacy_review(args.case_directory, args.review_json,
-                preservation_policy=get_case_domain(args.case_directory).privacy_preservation)
+                preservation_policy=get_case_domain(args.case_directory).privacy_preservation,
+                supplemental=args.supplemental)
         elif args.command == "retention-configure":
             policy = json.loads(Path(args.policy_json).read_text(encoding="utf-8"))
             result = configure_retention(args.case_directory, policy)

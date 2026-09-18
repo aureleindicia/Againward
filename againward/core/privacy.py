@@ -233,6 +233,11 @@ def inspect_privacy_status(case_directory: str | Path) -> dict[str, Any]:
         state = "PRIVACY_BLOCKED"
     else:
         state = "PRIVACY_CLEARED" if approved else "AWAITING_PRIVACY_REVIEW"
+    # A subsequent raw drop never inherits clearance from the previous batch.
+    # Inspect directory entries only; Codex remains the first semantic reader.
+    incoming = requirement["case_root"] / "incoming"
+    if approved and incoming.exists() and any(incoming.iterdir()):
+        state, approved = "AWAITING_PRIVACY_REVIEW", False
     return {"state": state, "approved_for_analysis": approved, "manifest": str(path), **requirement}
 
 
@@ -858,6 +863,24 @@ def _merge_detected_category(manifest: dict[str, Any], category: str, count: int
 
 
 def _sync_lifecycle(root: Path, state: str, *, reason: str) -> None:
+    analysis = Path(resolve_case_layout(root)["analysis_root"])
+    path = analysis / "investigation_state.json"
+    if path.is_file():
+        payload = _read_json(path)
+        life = payload.get("client_lifecycle", {})
+        if state in {"PRIVACY_CLEARED", "PRIVACY_BLOCKED"} and life.get("state") in {"ANALYZING", "WAITING_FOR_REQUIRED_INFORMATION", "RESUMING", "FINALIZABLE", "DELIVERABLE"}:
+            # Privacy is a gate over an existing investigation, never permission to
+            # erase its pending questions, answer history or resume obligation.
+            life["privacy_approved_for_analysis"] = state == "PRIVACY_CLEARED"
+            life["history"].append({"at_utc": _now(), "action": "additional_privacy_review", "privacy_state": state, "reason": reason})
+            if state == "PRIVACY_CLEARED":
+                life["resume_required"] = True
+                if life["state"] != "WAITING_FOR_REQUIRED_INFORMATION":
+                    life["state"] = "RESUMING"
+            elif life["state"] == "DELIVERABLE":
+                life["state"] = "FINALIZABLE"
+            _atomic_json(path, payload)
+            return
     from .client_lifecycle import synchronize_privacy_state
     synchronize_privacy_state(root, state, reason=reason)
 
@@ -886,6 +909,7 @@ def _validate_codex_privacy_review_impl(
     review_path: str | Path,
     *,
     delete_tree: Callable[[Path], None] = shutil.rmtree,
+    prior_manifest: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Fail-closed post-check and promotion after Codex's semantic review."""
 
@@ -933,6 +957,11 @@ def _validate_codex_privacy_review_impl(
     if status not in {"PASS", "SANITIZED", "BLOCKED"}:
         raise ValueError("Statut privacy inconnu.")
     manifest = _manifest_base(root, review, status)
+    if prior_manifest is not None:
+        manifest["previous_reviews"] = [*prior_manifest.get("previous_reviews", []),
+            {k: v for k, v in prior_manifest.items() if k != "previous_reviews"}]
+        manifest["supplemental_review"] = True
+        manifest["files"] = list(prior_manifest["files"])
     blocked_reasons = review.get("blocked_reasons", [])
     if not isinstance(blocked_reasons, list) or any(not _SAFE_CODE.fullmatch(str(reason)) for reason in blocked_reasons):
         raise ValueError("blocked_reasons doit contenir uniquement des codes structurés sans donnée source.")
@@ -940,13 +969,14 @@ def _validate_codex_privacy_review_impl(
     incoming_files = _safe_files(incoming)
     if not incoming_files:
         raise ValueError("incoming/ est vide: aucun brut temporaire à valider.")
-    _assert_no_pre_gate_derivatives(root, requirement["layout"])
+    if prior_manifest is None:
+        _assert_no_pre_gate_derivatives(root, requirement["layout"])
     _assert_privacy_auxiliaries_bounded(root, review_file)
     file_specs = review.get("files")
     if not isinstance(file_specs, list) or len(file_specs) != len(incoming_files):
         raise ValueError("La privacy review doit couvrir exactement tous les fichiers incoming.")
     by_source: dict[str, dict[str, Any]] = {}
-    file_ids: set[str] = set()
+    file_ids: set[str] = {item["file_id"] for item in prior_manifest["files"]} if prior_manifest else set()
     for spec in file_specs:
         if not isinstance(spec, dict) or set(spec) - {"file_id", "source", "action", "sanitized", "categories", "transformations", "industrial_content_absent"}:
             raise ValueError("Contrat de fichier privacy invalide ou champ libre interdit.")
@@ -1107,10 +1137,20 @@ def _validate_codex_privacy_review_impl(
                 entry["duplicate_of_file_id"] = hashes[digest]
             else:
                 hashes[digest] = entry["file_id"]
-        if sanitized_root.exists() and any(sanitized_root.iterdir()):
-            raise FileExistsError("sanitized/ n'est pas vide; aucune promotion/écrasement silencieux.")
-        sanitized_root.rmdir()
-        os.replace(staging, sanitized_root)
+        if prior_manifest is None:
+            if sanitized_root.exists() and any(sanitized_root.iterdir()):
+                raise FileExistsError("sanitized/ n'est pas vide; aucune promotion/écrasement silencieux.")
+            sanitized_root.rmdir()
+            os.replace(staging, sanitized_root)
+        else:
+            promoted = _safe_files(staging)
+            if any((sanitized_root / item.relative_to(staging)).exists() for item in promoted):
+                raise FileExistsError("Additional evidence cannot replace an existing sanitized document; use a new filename.")
+            for item in promoted:
+                target = sanitized_root / item.relative_to(staging)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                os.replace(item, target)
+            delete_tree(staging)
         cleanup_errors: list[str] = []
         for target in (incoming, candidate_root):
             if target.exists():
@@ -1209,15 +1249,33 @@ def validate_codex_privacy_review(
     review_path: str | Path,
     *,
     delete_tree: Callable[[Path], None] = shutil.rmtree,
+    supplemental: bool = False,
 ) -> dict[str, Any]:
     """Run the post-check after contract clearance; privacy failures remain blocking."""
 
     from .contract_policy import assert_contract_permission
     # Do not parse, hash or purge an unauthorized manually copied drop in this path.
     assert_contract_permission(case_directory)
+    prior_manifest = None
+    if supplemental:
+        root = Path(privacy_requirement(case_directory)["case_root"])
+        prior_manifest = _read_json(privacy_manifest_path(root))
+        if (prior_manifest.get("approved_for_analysis") is not True
+                or prior_manifest.get("schema_version") != MANIFEST_SCHEMA
+                or prior_manifest.get("policy_version") != POLICY_VERSION
+                or prior_manifest.get("status") not in {"PASS", "SANITIZED"}
+                or prior_manifest.get("deterministic_validation", {}).get("passed") is not True
+                or prior_manifest.get("original_deletion", {}).get("succeeded") is not True):
+            raise ValueError("Additional evidence requires a previously cleared privacy batch.")
+        if prior_manifest.get("business_preservation_policy") != current_preservation_policy().policy_id:
+            raise ValueError("Additional evidence must retain the case's business preservation policy.")
+        approved_hashes = {entry.get("sanitized_sha256") for entry in prior_manifest["files"] if entry.get("sanitized_sha256")}
+        actual_hashes = {_sha256(path) for path in _safe_files(root / "sanitized")}
+        if actual_hashes != approved_hashes:
+            raise ValueError("Previous sanitized evidence is missing, altered or contains unapproved files.")
     try:
         return _validate_codex_privacy_review_impl(
-            case_directory, review_path, delete_tree=delete_tree
+            case_directory, review_path, delete_tree=delete_tree, prior_manifest=prior_manifest
         )
     except Exception as exc:
         try:
