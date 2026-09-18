@@ -114,3 +114,24 @@ targeted tests passed**, then the enriched five privacy tests passed separately.
 See [ARCHITECTURE.md](ARCHITECTURE.md), [RENTAL.md](RENTAL.md) and
 [RENTAL_BENCHMARKS.md](RENTAL_BENCHMARKS.md) for final boundaries, supported conventions,
 explicit limits and reproducible commands. Compatibility aliases remain deliberate.
+
+## Final validation
+
+Committed implementation and documentation checkpoint `72170ec`, executed from a
+separate immutable worktree: `python -m pytest -q` — **629 executed, 629 passed,
+0 skipped, 0 failed in 215.76 s**. No test expectations were relaxed to conceal
+Energy regressions. Monthly and 15-minute report hashes and the original v1
+evidence fixture remain identical.
+
+The final standalone Rental benchmark also passed **13/13** on `72170ec`.
+Portable aggregates, exact metrics and timing scope are committed under
+`benchmarks/rental/`. Final timing: 1,000 invoice lines in 0.397 s and 10,000 in
+3.836 s for canonical validation, ledgers and reconciliation. The subsequent
+acceptance/results commit changes documentation and benchmark result artifacts
+only, not the tested implementation.
+
+Main remained `c27f261` locally and remotely at the final verification. Its original
+uncommitted prospecting work was left in place; this worktree stays separate.
+The feature branch is published as `refactor/domain-kernel`; no automatic merge
+is performed. [DOMAIN_KERNEL_ACCEPTANCE.md](DOMAIN_KERNEL_ACCEPTANCE.md) maps the
+Goal's completion criteria to concrete implementation and validation evidence.

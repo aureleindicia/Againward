@@ -1,0 +1,147 @@
+{
+  "cases": {
+    "A01_same_description_distinct_assets_sites": {
+      "automatic_recovery_claims": 0,
+      "candidate_count": 0,
+      "families": [],
+      "passed": true,
+      "supported_discrepancy": "0.00"
+    },
+    "A02_later_extension": {
+      "automatic_recovery_claims": 0,
+      "candidate_count": 1,
+      "families": [
+        "UNKNOWN_CONTRACTUAL_BASIS"
+      ],
+      "passed": true,
+      "supported_discrepancy": "0.00"
+    },
+    "A03_authorized_weekend_surcharge": {
+      "automatic_recovery_claims": 0,
+      "candidate_count": 0,
+      "families": [],
+      "passed": true,
+      "supported_discrepancy": "0.00"
+    },
+    "A04_correct_credit": {
+      "automatic_recovery_claims": 0,
+      "candidate_count": 0,
+      "families": [],
+      "passed": true,
+      "supported_discrepancy": "0.00"
+    },
+    "A05_accepted_changed_rate": {
+      "automatic_recovery_claims": 0,
+      "candidate_count": 0,
+      "families": [],
+      "passed": true,
+      "supported_discrepancy": "0.00"
+    },
+    "A06_missing_contract": {
+      "automatic_recovery_claims": 0,
+      "candidate_count": 1,
+      "families": [
+        "UNKNOWN_CONTRACTUAL_BASIS"
+      ],
+      "passed": true,
+      "supported_discrepancy": "0.00"
+    },
+    "A07_authorized_split_quantity": {
+      "automatic_recovery_claims": 0,
+      "candidate_count": 0,
+      "families": [],
+      "passed": true,
+      "supported_discrepancy": "0.00"
+    },
+    "R01_correct": {
+      "automatic_recovery_claims": 0,
+      "candidate_count": 0,
+      "families": [],
+      "passed": true,
+      "supported_discrepancy": "0.00"
+    },
+    "R02_wrong_rate": {
+      "automatic_recovery_claims": 0,
+      "candidate_count": 1,
+      "families": [
+        "WRONG_RATE"
+      ],
+      "passed": true,
+      "supported_discrepancy": "150.00"
+    },
+    "R03_post_return": {
+      "automatic_recovery_claims": 0,
+      "candidate_count": 2,
+      "families": [
+        "INCORRECT_DURATION",
+        "POST_RETURN_BILLING"
+      ],
+      "passed": true,
+      "supported_discrepancy": "300.00"
+    },
+    "R04_duplicate": {
+      "automatic_recovery_claims": 0,
+      "candidate_count": 2,
+      "families": [
+        "DUPLICATE_BILLING",
+        "INCORRECT_DURATION"
+      ],
+      "passed": true,
+      "supported_discrepancy": "700.00"
+    },
+    "R05_unsupported_fee": {
+      "automatic_recovery_claims": 0,
+      "candidate_count": 2,
+      "families": [
+        "UNAUTHORIZED_FEE",
+        "UNKNOWN_CONTRACTUAL_BASIS"
+      ],
+      "passed": true,
+      "supported_discrepancy": "0.00"
+    },
+    "R06_ambiguous_return": {
+      "automatic_recovery_claims": 0,
+      "candidate_count": 1,
+      "families": [
+        "UNKNOWN_CONTRACTUAL_BASIS"
+      ],
+      "passed": true,
+      "resume": {
+        "after_answer_supported_discrepancy": "300.00",
+        "human_approval_fabricated": false,
+        "recovery_grade_totals": {},
+        "request_count": 1,
+        "review_validated": true,
+        "states": [
+          "WAITING_FOR_REQUIRED_INFORMATION",
+          "RESUMING",
+          "RESUMING",
+          "FINALIZABLE"
+        ],
+        "synthetic_answer": true,
+        "wait_query_blocked": true
+      },
+      "supported_discrepancy": "0.00"
+    }
+  },
+  "limits": [
+    "Small explicit contract fixtures, not unseen vendor-document accuracy.",
+    "Reviews and the R06 answer are scripted synthetic fixtures, not autonomous agent or human approval.",
+    "No real client data or ground truth provided to the engine."
+  ],
+  "metrics": {
+    "F1": 1.0,
+    "false_negatives": 0,
+    "false_positives": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "true_negatives": 10,
+    "true_positives": 3,
+    "unit": "case-level supported positive discrepancy, not candidate-family or agent quality"
+  },
+  "passed": 13,
+  "schema_version": "againward-rental-benchmark-v1",
+  "total": 13,
+  "validated_code_commit": "72170ec",
+  "command": "python run_rental_benchmark.py --output EMPTY_DIRECTORY --performance"
+}

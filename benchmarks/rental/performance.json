@@ -1,0 +1,19 @@
+{
+  "measurements": [
+    {
+      "candidates": 0,
+      "groups": 1000,
+      "invoice_lines": 1000,
+      "seconds": 0.396825
+    },
+    {
+      "candidates": 0,
+      "groups": 10000,
+      "invoice_lines": 10000,
+      "seconds": 3.836377
+    }
+  ],
+  "scope": "canonical validation plus both ledgers and reconciliation; excludes document extraction and report I/O",
+  "validated_code_commit": "72170ec",
+  "command": "python run_rental_benchmark.py --output EMPTY_DIRECTORY --performance"
+}

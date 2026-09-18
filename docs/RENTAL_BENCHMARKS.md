@@ -11,8 +11,12 @@ scorer et n'est lue qu'après exécution ; le moteur n'importe aucun module benc
 `validation.json` contient les sorties et les assertions, `performance.json` les
 mesures locales, les dossiers `cases/` conservent requêtes et traces.
 
-Résultat au checkpoint `9496e15` : **13/13 cas**. Les montants ci-dessous proviennent
+Résultat initial `9496e15`, reproduit sur `72170ec` : **13/13 cas**. Les montants ci-dessous proviennent
 de `validation.json`, pas d'une estimation de l'agent.
+
+Les résultats agrégés sont conservés dans
+[`benchmarks/rental/validation.json`](../benchmarks/rental/validation.json) et
+[`performance.json`](../benchmarks/rental/performance.json), avec le commit testé.
 
 | Cas | Résultat attendu et obtenu |
 |---|---|
@@ -42,6 +46,9 @@ en 0,333 s ; 10 000 lignes en 3,291 s. Ce relevé exclut extraction documentaire
 requêtes et I/O de rapport. Les timings dépendent de l'appareil et ne sont pas des
 seuils de réussite des tests. Les comparaisons utilisent des index par clé, pas une
 recherche de toutes les paires de factures.
+
+Après durcissement du contexte décimal et de l'autorité documentaire, le relevé
+final `72170ec` donne **0,397 s pour 1 000 lignes**, **3,836 s pour 10 000 lignes**.
 
 Tests complémentaires : arithmétique décimale indépendante du contexte, mois
 calendaires, prorata/minimum/week-ends, retour partiel, faux document opérationnel,
