@@ -11,7 +11,7 @@ from dataclasses import asdict, fields
 import json
 from pathlib import Path
 
-from againward.core.privacy import assert_source_approved_for_analysis
+from againward.core.privacy import assert_source_approved_for_analysis, case_root_for_path
 from againward.core.workflow import fingerprint
 from againward.evidence.dataset import EvidenceDataset
 from againward.evidence.hashing import stable_hash
@@ -21,10 +21,11 @@ EXTRACTION_SCHEMA = "againward-rental-extraction-v1"
 
 
 def _local_source(root: Path, relative: str) -> Path:
-    if not isinstance(relative, str) or Path(relative).is_absolute() or ".." in Path(relative).parts:
+    owner = case_root_for_path(root)
+    if not isinstance(relative, str) or Path(relative).is_absolute() or (owner is None and ".." in Path(relative).parts):
         raise ValueError("Rental document path must be relative to the extraction directory.")
     path = root / relative
-    if not path.is_file() or not path.resolve().is_relative_to(root.resolve()):
+    if not path.is_file() or not path.resolve().is_relative_to((owner or root).resolve()):
         raise ValueError("Rental document is absent or outside the extraction directory.")
     if any(p.is_symlink() for p in (path, *path.parents)):
         raise ValueError("Symlink source documents are refused.")
@@ -139,6 +140,7 @@ def load_rental_case(source: str | Path, *, output_directory=None):
             raise ValueError("Source document hash does not match the semantic extraction: " + doc.document_id)
         inventory.append({**asdict(doc), "bytes": path.stat().st_size, "classification_basis": "EXPLICIT_SEMANTIC_EXTRACTION"})
     return case, {"schema_version": "againward-rental-inventory-v1", "documents": inventory,
+                  "extraction": {"path": str(source.resolve()), "sha256": fingerprint(source)},
                   "transformations": transformations, "semantic_extraction_required": True,
                   "no_silent_corrections": True, "decision": None}
 

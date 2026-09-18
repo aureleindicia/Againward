@@ -44,6 +44,11 @@ def build_parser() -> argparse.ArgumentParser:
     answers.add_argument("answers_json")
     gate = subparsers.add_parser("check", help="Évaluer le verrou de livraison")
     gate.add_argument("case_directory")
+    for name, argument in (("rental-recalculate", "source_json"),
+                           ("rental-review", "assessments_json"), ("rental-report", "synthesis_md")):
+        command = subparsers.add_parser(name, help="Rental evidence revision, analyst review or report composition")
+        command.add_argument("case_directory")
+        command.add_argument(argument)
     archive = subparsers.add_parser(
         "next-cycle", help="Archiver un cycle entièrement répondu"
     )
@@ -96,7 +101,17 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        if args.command == "status":
+        if args.command.startswith("rental-"):
+            from againward.domains.rental.workflow import recalculate, record_assessments
+            from againward.domains.rental.reporting import render_report
+            if args.command == "rental-recalculate":
+                result = recalculate(args.case_directory, args.source_json)
+            elif args.command == "rental-review":
+                packet = json.loads(Path(args.assessments_json).read_text(encoding="utf-8"))
+                result = record_assessments(args.case_directory, packet["assessments"])
+            else:
+                result = render_report(args.case_directory, Path(args.synthesis_md).read_text(encoding="utf-8"))
+        elif args.command == "status":
             result = inspect_case_status(args.case_directory)
         elif args.command == "recover-artifacts":
             from .artifact_store import recover_artifacts
@@ -154,6 +169,10 @@ def main(argv: list[str] | None = None) -> int:
                 answers = source.get("answers", []) if isinstance(source, dict) else source
                 result = record_canonical_answers(args.case_directory, answers)
             elif args.command == "complete-resume":
+                from againward.entrypoints import get_case_domain
+                if get_case_domain(args.case_directory).name == "rental":
+                    from againward.domains.rental.review_policy import validate_current_review
+                    validate_current_review(args.case_directory)
                 result = complete_resume(
                     args.case_directory,
                     recalculation_refs=source.get("recalculation_refs", []),
@@ -172,6 +191,10 @@ def main(argv: list[str] | None = None) -> int:
                     terminal_limitations=limitations,
                 )["client_lifecycle"]
         elif args.command == "finalizable":
+            from againward.entrypoints import get_case_domain
+            if get_case_domain(args.case_directory).name == "rental":
+                from againward.domains.rental.review_policy import validate_current_review
+                validate_current_review(args.case_directory)
             result = mark_finalizable(
                 args.case_directory, conclusion_ref=args.conclusion_ref
             )["client_lifecycle"]
@@ -187,7 +210,9 @@ def main(argv: list[str] | None = None) -> int:
             target = archive_answered_question_cycle(args.case_directory)
             result = {"archived_cycle": str(target)}
         else:
-            payload = evaluate_delivery_gate(args.case_directory)
+            from againward.core.delivery import evaluate_delivery_gate as domain_delivery_gate
+            from againward.entrypoints import get_case_domain
+            payload = domain_delivery_gate(args.case_directory, policy=get_case_domain(args.case_directory).delivery_policy())
             result = {
                 "status": payload["status"],
                 "blocking_reasons": payload["blocking_reasons"],

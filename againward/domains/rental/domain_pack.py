@@ -27,6 +27,10 @@ class RentalDomainPack:
                 "profile": self.profile.name, "scope": None, "supplier_ids": [],
                 "source_conventions_reviewed": False, "contract_completeness": "UNKNOWN"}
 
+    def delivery_policy(self):
+        from .review_policy import RentalDeliveryPolicy
+        return RentalDeliveryPolicy()
+
     def prepare(self, source, *, source_sha256, intake, options, evidence_plane_mode):
         if evidence_plane_mode != "preferred":
             raise ValueError("Rental has no legacy or shadow numerical engine; use preferred mode.")

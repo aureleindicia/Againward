@@ -33,6 +33,11 @@ class DomainPack(Protocol):
 
     def analyst_brief(self, state: dict[str, Any]) -> str: ...
 
+    @property
+    def privacy_preservation(self): ...
+
+    def delivery_policy(self): ...
+
 
 class DomainRegistry:
     """Registration is explicit; core never imports or guesses an implementation."""
