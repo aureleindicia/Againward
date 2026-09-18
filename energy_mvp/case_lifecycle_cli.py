@@ -19,6 +19,7 @@ from .client_lifecycle import (
     publish_client_requests,
     record_canonical_answers,
     record_existing_data_exhaustion,
+    continue_clarification,
 )
 from .workflow_paths import inspect_case_status
 from .privacy import configure_retention, purge_client_case, validate_codex_privacy_review
@@ -33,6 +34,8 @@ def build_parser() -> argparse.ArgumentParser:
         "status", help="Afficher les dossiers, artefacts et la prochaine action sans rien modifier"
     )
     status.add_argument("case_directory")
+    recovery = subparsers.add_parser("recover-artifacts", help="Recover an interrupted artifact transaction")
+    recovery.add_argument("case_directory")
     questions = subparsers.add_parser("questions", help="Publier les prochaines questions minimales")
     questions.add_argument("case_directory")
     questions.add_argument("--investigation-name", default="investigation.json")
@@ -41,6 +44,11 @@ def build_parser() -> argparse.ArgumentParser:
     answers.add_argument("answers_json")
     gate = subparsers.add_parser("check", help="Évaluer le verrou de livraison")
     gate.add_argument("case_directory")
+    for name, argument in (("rental-recalculate", "source_json"),
+                           ("rental-review", "assessments_json"), ("rental-report", "synthesis_md")):
+        command = subparsers.add_parser(name, help="Rental evidence revision, analyst review or report composition")
+        command.add_argument("case_directory")
+        command.add_argument(argument)
     archive = subparsers.add_parser(
         "next-cycle", help="Archiver un cycle entièrement répondu"
     )
@@ -48,6 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
     privacy_validate = subparsers.add_parser("privacy-validate", help="Valider le privacy gate Codex et promouvoir sanitized/")
     privacy_validate.add_argument("case_directory")
     privacy_validate.add_argument("review_json")
+    privacy_validate.add_argument("--supplemental", action="store_true", help="Revoir de nouvelles pièces sans réinitialiser le dossier")
     retention = subparsers.add_parser("retention-configure", help="Configurer la rétention contractuelle")
     retention.add_argument("case_directory")
     retention.add_argument("policy_json")
@@ -68,6 +77,7 @@ def build_parser() -> argparse.ArgumentParser:
         ("record-answers", "Enregistrer les réponses typées"),
         ("complete-resume", "Clore une reprise"),
         ("close-budget", "Clore le budget"),
+        ("continue-clarification", "Prolonger un cycle sur progrès documenté"),
         ("finalizable", "Marquer finalisable"),
     )
     for name, help_text in commands:
@@ -81,6 +91,7 @@ def build_parser() -> argparse.ArgumentParser:
             "record-answers",
             "complete-resume",
             "close-budget",
+            "continue-clarification",
         }:
             command.add_argument("payload_json")
         elif name == "finalizable":
@@ -91,8 +102,21 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        if args.command == "status":
+        if args.command.startswith("rental-"):
+            from againward.domains.rental.workflow import recalculate, record_assessments
+            from againward.domains.rental.reporting import render_report
+            if args.command == "rental-recalculate":
+                result = recalculate(args.case_directory, args.source_json)
+            elif args.command == "rental-review":
+                packet = json.loads(Path(args.assessments_json).read_text(encoding="utf-8"))
+                result = record_assessments(args.case_directory, packet["assessments"])
+            else:
+                result = render_report(args.case_directory, Path(args.synthesis_md).read_text(encoding="utf-8"))
+        elif args.command == "status":
             result = inspect_case_status(args.case_directory)
+        elif args.command == "recover-artifacts":
+            from .artifact_store import recover_artifacts
+            result = recover_artifacts(args.case_directory)
         elif args.command == "stage-incoming":
             from .privacy import stage_incoming_drop
             result = stage_incoming_drop(args.source_directory, args.case_directory)
@@ -102,7 +126,10 @@ def main(argv: list[str] | None = None) -> int:
             result = record_contract_policy(args.case_directory, packet["policy"],
                 semantic_extraction=packet["semantic_extraction"], human_review=packet.get("human_review"))
         elif args.command == "privacy-validate":
-            result = validate_codex_privacy_review(args.case_directory, args.review_json)
+            from againward.entrypoints import get_case_domain
+            result = validate_codex_privacy_review(args.case_directory, args.review_json,
+                preservation_policy=get_case_domain(args.case_directory).privacy_preservation,
+                supplemental=args.supplemental)
         elif args.command == "retention-configure":
             policy = json.loads(Path(args.policy_json).read_text(encoding="utf-8"))
             result = configure_retention(args.case_directory, policy)
@@ -127,9 +154,12 @@ def main(argv: list[str] | None = None) -> int:
             "record-answers",
             "complete-resume",
             "close-budget",
+            "continue-clarification",
         }:
             source = json.loads(Path(args.payload_json).read_text(encoding="utf-8"))
-            if args.command == "publish-candidates":
+            if args.command == "continue-clarification":
+                result = continue_clarification(args.case_directory, **source)
+            elif args.command == "publish-candidates":
                 candidates = source.get("candidates", []) if isinstance(source, dict) else source
                 branch = source.get("new_material_branch") if isinstance(source, dict) else None
                 result = publish_client_requests(
@@ -141,6 +171,10 @@ def main(argv: list[str] | None = None) -> int:
                 answers = source.get("answers", []) if isinstance(source, dict) else source
                 result = record_canonical_answers(args.case_directory, answers)
             elif args.command == "complete-resume":
+                from againward.entrypoints import get_case_domain
+                if get_case_domain(args.case_directory).name == "rental":
+                    from againward.domains.rental.review_policy import validate_current_review
+                    validate_current_review(args.case_directory)
                 result = complete_resume(
                     args.case_directory,
                     recalculation_refs=source.get("recalculation_refs", []),
@@ -159,6 +193,10 @@ def main(argv: list[str] | None = None) -> int:
                     terminal_limitations=limitations,
                 )["client_lifecycle"]
         elif args.command == "finalizable":
+            from againward.entrypoints import get_case_domain
+            if get_case_domain(args.case_directory).name == "rental":
+                from againward.domains.rental.review_policy import validate_current_review
+                validate_current_review(args.case_directory)
             result = mark_finalizable(
                 args.case_directory, conclusion_ref=args.conclusion_ref
             )["client_lifecycle"]
@@ -174,7 +212,9 @@ def main(argv: list[str] | None = None) -> int:
             target = archive_answered_question_cycle(args.case_directory)
             result = {"archived_cycle": str(target)}
         else:
-            payload = evaluate_delivery_gate(args.case_directory)
+            from againward.core.delivery import evaluate_delivery_gate as domain_delivery_gate
+            from againward.entrypoints import get_case_domain
+            payload = domain_delivery_gate(args.case_directory, policy=get_case_domain(args.case_directory).delivery_policy())
             result = {
                 "status": payload["status"],
                 "blocking_reasons": payload["blocking_reasons"],

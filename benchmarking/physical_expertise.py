@@ -54,6 +54,7 @@ ORACLE_MAX_REVIEW_CANDIDATES = 3
 ORACLE_MAX_FALLBACK_REVIEW_CANDIDATES = 8
 ENGINE_PATHS = (
     "energy_mvp",
+    "againward",
     "analyze.py",
     "investigate.py",
     "manage_investigation.py",

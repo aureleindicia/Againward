@@ -2040,7 +2040,9 @@ vérité sont `privacy/privacy_manifest.json`, `investigation_state.json.client_
 `questions.json`. États : `AWAITING_PRIVACY_REVIEW`, `PRIVACY_CLEARED`, `PRIVACY_BLOCKED`, `ANALYZING`,
 `WAITING_FOR_REQUIRED_INFORMATION`, `RESUMING`, `FINALIZABLE`, `DELIVERABLE`, puis `PURGED`. Un BLOCKING impose
 STOP : pas de promotion, économie/action finale, rapport ou livraison. Après réponse : recalcul
-Python, alternatives, avant/après et review. Deux cycles, trois demandes/cycle, zéro par défaut.
+Python, alternatives, avant/après et review. Deux cycles par défaut, trois demandes/cycle,
+zéro par défaut. Une continuation explicite et liée aux progrès peut ouvrir un cycle additionnel,
+sans remettre les compteurs à zéro : voir `docs/INVESTIGATION_CONTINUATION.md`.
 
 Distinguer `CLIENT_DECLARATION`, `EXISTING_DOCUMENT`, `FIELD_OBSERVATION`, `PREREGISTERED_TEST`,
 `INSTRUMENT_MEASUREMENT`. Une déclaration opérateur n'est pas une ancre terrain. Préserver :

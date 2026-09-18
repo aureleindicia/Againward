@@ -254,6 +254,12 @@ class ClientIntakePipelineTests(unittest.TestCase):
             follow_up["client_question"] = "La fermeture était-elle exceptionnelle ce jour-là ?"
             with self.assertRaises(ValueError):
                 publish_question_batch(case, [follow_up])
+            from energy_mvp.client_lifecycle import complete_resume, RESUME_DIMENSIONS
+            complete_resume(case, recalculation_refs=["recalculation.json"],
+                adversarial_review_ref="review.json", before_after=[{
+                    "hypothesis_id":"legacy-question", "before":"unknown", "after":"reassessed",
+                    "decision_dimensions":{key:"reassessed" for key in RESUME_DIMENSIONS},
+                }])
             second = publish_question_batch(case, [follow_up], exceptional_second_batch_reason="La première réponse ouvre une branche décisionnelle nouvelle.")
             self.assertEqual(second["requests"][0]["request_id"], "REQ-2")
             self.assertTrue((case / "investigation/question_batch_history/batch_001.json").is_file())
