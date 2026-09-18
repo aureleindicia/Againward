@@ -6,16 +6,18 @@ specific gap; it never silently becomes a zero-price contractual obligation.
 from __future__ import annotations
 
 from calendar import monthrange
-from collections import defaultdict
+from collections import defaultdict, deque
 from dataclasses import asdict
 from datetime import date, timedelta
 from decimal import Decimal, ROUND_CEILING, ROUND_HALF_UP
 
 from .models import RentalCase, RentalPeriod, RateTerm, decimal_value, iso_date
+from .arithmetic import deterministic_decimal
 
 CENT = Decimal("0.01")
 
 
+@deterministic_decimal
 def money(value: Decimal) -> str:
     return format(value.quantize(CENT, rounding=ROUND_HALF_UP), ".2f")
 
@@ -40,6 +42,7 @@ def _month_anchor(start: date, months: int) -> date:
     return date(year, month, min(start.day, monthrange(year, month)[1]))
 
 
+@deterministic_decimal
 def billable_units(start: date, end: date, term: RateTerm) -> tuple[Decimal | None, list[str]]:
     if term.billing_unit == "FIXED":
         return Decimal(1), []
@@ -83,20 +86,28 @@ def resolve_timeline(case: RentalCase, period: RentalPeriod, term: RateTerm, *, 
     start, end = iso_date(period.start), iso_date(period.end)
     refs = list(period.evidence_refs)
     limitations, contradictions = [], []
+    if not case.evidence_status(period.evidence_refs, roles={"RENTAL_AGREEMENT", "PURCHASE_ORDER", "AMENDMENT", "EMAIL_EVIDENCE"}):
+        limitations.append("rental_period_not_supported_by_accepted_commercial_evidence")
     stops, extensions = [], []
     if term.billing_unit in {"FIXED", "PERCENT"}:
         return {"start": start, "end": end, "evidence_refs": refs,
-                "limitations": [], "contradictions": [], "shortened": False}
+                "limitations": limitations, "contradictions": [], "shortened": False}
     for event in (events if events is not None else case.events):
         if event.period_id != period.period_id:
             continue
         if event.event_type == "EXTENDED":
-            if event.verification == "DOCUMENTED" and case.evidence_status(event.evidence_refs) and event.extended_end:
+            refs.extend(event.evidence_refs)
+            if event.verification == "DOCUMENTED" and case.evidence_status(event.evidence_refs, roles={
+                    "RENTAL_AGREEMENT", "AMENDMENT", "PURCHASE_ORDER", "EMAIL_EVIDENCE"}) and event.extended_end:
                 extensions.append(event)
             else:
                 contradictions.append("extension_not_supported_or_boundary_missing:" + event.event_id)
         if event.event_type == term.stop_event:
-            if event.verification != "DOCUMENTED" or not case.evidence_status(event.evidence_refs):
+            refs.extend(event.evidence_refs)
+            stop_roles = {"RETURNED": {"RETURN_NOTE", "EMAIL_EVIDENCE"},
+                          "COLLECTED": {"RETURN_NOTE", "EMAIL_EVIDENCE"},
+                          "OFF_HIRE_REQUESTED": {"OFF_HIRE_NOTICE", "EMAIL_EVIDENCE"}}.get(event.event_type, set())
+            if event.verification != "DOCUMENTED" or not case.evidence_status(event.evidence_refs, roles=stop_roles):
                 contradictions.append("stop_event_not_documented:" + event.event_id)
             elif event.quantity is None or decimal_value(event.quantity) != decimal_value(period.quantity):
                 contradictions.append("partial_or_unknown_return_quantity:" + event.event_id)
@@ -129,6 +140,7 @@ def resolve_timeline(case: RentalCase, period: RentalPeriod, term: RateTerm, *, 
             "shortened": end < iso_date(period.end)}
 
 
+@deterministic_decimal
 def build_expected_ledger(case: RentalCase) -> dict:
     periods = {p.period_id: p for p in case.periods}
     terms_by_scope = defaultdict(list)
@@ -141,13 +153,18 @@ def build_expected_ledger(case: RentalCase) -> dict:
     pending_percentages = []
     for scope, candidates in sorted(terms_by_scope.items()):
         period = periods[scope[0]]
-        duration = (iso_date(period.end) - iso_date(period.start)).days
         accepted = [t for t in candidates if case.evidence_status(t.evidence_refs, roles={
             "RENTAL_AGREEMENT", "RATE_CARD", "QUOTE", "PURCHASE_ORDER", "AMENDMENT", "EMAIL_EVIDENCE"})]
         superseded = {t.supersedes_term_id for t in accepted if t.supersedes_term_id}
-        eligible = [t for t in accepted if t.term_id not in superseded
-                    and (t.tier_min_days is None or duration >= t.tier_min_days)
-                    and (t.tier_max_days is None or duration <= t.tier_max_days)]
+        eligible = []
+        for t in accepted:
+            if t.term_id in superseded:
+                continue
+            timeline = resolve_timeline(case, period, t, events=events_by_period[period.period_id])
+            duration = (timeline["end"] - timeline["start"]).days
+            if ((t.tier_min_days is None or duration >= t.tier_min_days)
+                    and (t.tier_max_days is None or duration <= t.tier_max_days)):
+                eligible.append(t)
         entry = {"expected_charge_id": "/".join(scope), "period_id": scope[0], "charge_key": scope[1],
                  "amount": None, "status": "UNKNOWN_CONTRACTUAL_BASIS", "limitations": [],
                  "evidence_refs": refs_payload(r for t in candidates for r in t.evidence_refs),
@@ -186,29 +203,28 @@ def build_expected_ledger(case: RentalCase) -> dict:
         amount = units * decimal_value(quantity) * decimal_value(term.rate) * (1 - decimal_value(term.discount_fraction))
         entry.update(amount=money(amount), status="CONTRACT_SUPPORTED", quantity=quantity,
                      units=str(units), formula="round_half_up(units * quantity * rate * (1 - discount_fraction), 0.01)")
-    # Percentages can depend on one other explicit expected charge; bounded DAG resolution.
-    while pending_percentages:
-        remaining = []
-        progressed = False
-        for scope, term in pending_percentages:
+    # Resolve keyed dependencies once, with a bounded depth for evidence expansion.
+    dependents = defaultdict(list)
+    unresolved = dict(pending_percentages)
+    for scope, term in pending_percentages:
+        dependents[(scope[0], term.percentage_of)].append(scope)
+    ready = deque((scope, 0) for scope, entry in entries.items() if entry["amount"] is not None)
+    while ready:
+        base_scope, depth = ready.popleft()
+        base = entries[base_scope]
+        for scope in dependents[base_scope]:
+            term = unresolved.pop(scope)
             entry = entries[scope]
-            base = entries.get((scope[0], term.percentage_of))
-            if base is None or base["amount"] is None:
-                remaining.append((scope, term))
-                continue
-            if base.get("currency") != term.currency:
-                entry["limitations"].append("percentage_base_currency_mismatch")
-                progressed = True
+            if base.get("currency") != term.currency or depth >= 32:
+                entry["limitations"].append("percentage_base_currency_mismatch" if depth < 32 else "percentage_dependency_depth_exceeds_32")
                 continue
             amount = decimal_value(base["amount"]) * decimal_value(term.rate) / 100 * (1 - decimal_value(term.discount_fraction))
             entry.update(amount=money(amount), status="CONTRACT_SUPPORTED", base_charge_id=base["expected_charge_id"],
                          base_amount=base["amount"], formula="round_half_up(base_amount * rate / 100 * (1 - discount_fraction), 0.01)")
-            entry["evidence_refs"] += [r for r in base["evidence_refs"] if r not in entry["evidence_refs"]]
-            progressed = True
-        if not progressed:
-            for scope, _ in remaining:
-                entries[scope]["limitations"].append("missing_or_cyclic_percentage_base")
-            break
-        pending_percentages = remaining
+            references = {(r["document_id"], r["location"], r.get("field")): r for r in [*entry["evidence_refs"], *base["evidence_refs"]]}
+            entry["evidence_refs"] = list(references.values())
+            ready.append((scope, depth + 1))
+    for scope in unresolved:
+        entries[scope]["limitations"].append("missing_or_cyclic_percentage_base")
     return {"schema_version": "againward-expected-charge-ledger-v1", "amount_basis": "NET_EXCLUDING_TAX",
             "rounding": "ROUND_HALF_UP_PER_EXPECTED_CHARGE_TO_0.01", "entries": list(entries.values()), "decision": None}

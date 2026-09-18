@@ -10,6 +10,7 @@ from decimal import Decimal
 from againward.evidence.hashing import stable_hash
 from .models import RentalCase, EvidenceRef
 from .pricing import money
+from .arithmetic import deterministic_decimal
 
 DECISIONS = {"CONFIRME", "A_CONSERVER_AVEC_RESERVES", "INSUFFISAMMENT_ETAYE", "REJETE", "ABSTAIN"}
 LEVELS = {"L1": 1, "L2": 2, "L3": 3}
@@ -18,6 +19,7 @@ _ASSESSMENT_FIELDS = {"finding_id", "status", "evidence_level", "best_reason_fal
     "identity_scope_reviewed", "claim_or_abstention", "evidence_query_ids", "evidence_handles"}
 
 
+@deterministic_decimal
 def review_findings(case: RentalCase, reconciliation: dict, assessments: list[dict]) -> dict:
     """Calculate approved evidence-grade amounts once per disjoint charge group.
 
@@ -91,7 +93,7 @@ def review_findings(case: RentalCase, reconciliation: dict, assessments: list[di
                 raise ValueError("L3 recovery-grade policy is not satisfied; retain with reservations or abstain.")
             if candidate["family"] in {"POST_RETURN_BILLING", "POST_OFF_HIRE_BILLING"}:
                 roles = {case.documents_by_id[r["document_id"]].role for r in candidate["evidence_refs"]}
-                required = {"RETURN_NOTE", "DELIVERY_NOTE", "EMAIL_EVIDENCE"} if candidate["family"] == "POST_RETURN_BILLING" else {"OFF_HIRE_NOTICE", "EMAIL_EVIDENCE"}
+                required = {"RETURN_NOTE", "EMAIL_EVIDENCE"} if candidate["family"] == "POST_RETURN_BILLING" else {"OFF_HIRE_NOTICE", "EMAIL_EVIDENCE"}
                 if not roles & required:
                     raise ValueError("Post-hire claim requires specific operational evidence.")
             recovery = candidate["difference"]

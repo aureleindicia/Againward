@@ -355,12 +355,17 @@ class RentalCase:
                 old = terms.get(term.supersedes_term_id)
                 if old is None or old.term_id == term.term_id or (old.period_id, old.charge_key) != (term.period_id, term.charge_key):
                     raise ValueError("Amendment must supersede a known term for the same charge scope.")
+        completed = set()
+        for term in self.terms:
             visited, current = set(), term
-            while current.supersedes_term_id is not None:
+            while current.term_id not in completed:
                 if current.term_id in visited:
                     raise ValueError("Cyclic contractual amendments.")
                 visited.add(current.term_id)
+                if current.supersedes_term_id is None:
+                    break
                 current = terms[current.supersedes_term_id]
+            completed.update(visited)
         for credit in self.credits:
             if credit.charge_id not in charges or credit.currency != charges[credit.charge_id].currency:
                 raise ValueError("Credit must refer to a known invoice line in the same currency.")

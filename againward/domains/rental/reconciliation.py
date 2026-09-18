@@ -7,6 +7,7 @@ from decimal import Decimal
 from againward.evidence.hashing import stable_hash
 from .models import RentalCase, decimal_value
 from .pricing import build_expected_ledger, money, refs_payload
+from .arithmetic import deterministic_decimal
 
 FINDING_FAMILIES = frozenset({"DUPLICATE_BILLING", "WRONG_RATE", "WRONG_RATE_TIER",
     "POST_OFF_HIRE_BILLING", "POST_RETURN_BILLING", "INCORRECT_QUANTITY", "INCORRECT_DURATION",
@@ -28,6 +29,7 @@ ALTERNATIVES = {
 }
 
 
+@deterministic_decimal
 def build_actual_ledger(case: RentalCase) -> dict:
     credits_by_charge = defaultdict(list)
     for credit in case.credits:
@@ -69,7 +71,7 @@ def _families(actual, expected, difference):
         if actual[0]["charge_type"] != "RENTAL":
             families.append("UNAUTHORIZED_FEE")
     elif difference <= 0:
-        return []
+        return ["PROMISED_CREDIT_NOT_APPLIED"] if any(decimal_value(row["unapplied_promised_credit"]) > 0 for row in actual) else []
     else:
         families = []
         if expected.get("shortened") and any(r.get("end") and r["end"] > expected["end"] for r in actual):
@@ -101,6 +103,7 @@ def _families(actual, expected, difference):
     return list(dict.fromkeys(families))
 
 
+@deterministic_decimal
 def reconcile(case: RentalCase) -> dict:
     expected = build_expected_ledger(case)
     actual = build_actual_ledger(case)

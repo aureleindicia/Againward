@@ -9,6 +9,7 @@ import csv
 from copy import deepcopy
 from dataclasses import asdict, fields
 import json
+from datetime import date, datetime
 from pathlib import Path
 
 from againward.core.privacy import assert_source_approved_for_analysis, case_root_for_path
@@ -16,6 +17,7 @@ from againward.core.workflow import fingerprint
 from againward.evidence.dataset import EvidenceDataset
 from againward.evidence.hashing import stable_hash
 from .models import RentalCase, SCHEMA, _RECORD_TYPES, _ID_FIELDS, decimal_value
+from .arithmetic import deterministic_decimal
 
 EXTRACTION_SCHEMA = "againward-rental-extraction-v1"
 
@@ -105,6 +107,10 @@ def _expand_extraction(payload, root: Path, *, output_directory=None):
                     if str(raw).lower() not in {"true", "false"}:
                         raise ValueError("Mapped boolean must explicitly be true or false.")
                     values[field] = str(raw).lower() == "true"
+                elif field in {"start", "end", "date", "extended_end"} and isinstance(raw, (date, datetime)):
+                    if isinstance(raw, datetime) and (raw.hour or raw.minute or raw.second or raw.microsecond or raw.tzinfo):
+                        raise ValueError("Rental calendar dates cannot silently discard a spreadsheet time or timezone.")
+                    values[field] = raw.date().isoformat() if isinstance(raw, datetime) else raw.isoformat()
                 else:
                     # Spreadsheet numeric cells are normalized to their displayed decimal
                     # value without any float arithmetic; the original bytes stay hash-bound.
@@ -145,6 +151,7 @@ def load_rental_case(source: str | Path, *, output_directory=None):
                   "no_silent_corrections": True, "decision": None}
 
 
+@deterministic_decimal
 def build_evidence_dataset(case: RentalCase) -> EvidenceDataset:
     rows, row_refs = [], {}
     numeric = {"net_amount": "amount_minor"}
