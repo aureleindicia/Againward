@@ -29,4 +29,3 @@ def validate_retained_learning_projection(path):
             or any(row[k] not in VALUE_BASES for k in ('energy_basis','economic_basis'))):
         raise ValueError('Valeur précise, texte libre ou finalité hors whitelist.')
     return row
-

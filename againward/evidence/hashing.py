@@ -13,4 +13,3 @@ def stable_hash(value: Any) -> str:
         default=str,
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
-

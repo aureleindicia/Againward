@@ -139,4 +139,3 @@ class EnergyEvidenceDataset(EvidenceDataset):
             "dataset_sha256": dataset_sha256,
             **body,
         })
-

@@ -18,4 +18,3 @@ TEXT_PATTERNS = (
         r"\s*(?:[:=#-]|est|nommé|appele|appelé)?\s*([A-Za-z0-9_.-]+)"
     ),
 )
-

@@ -82,5 +82,3 @@ def rank_micro_questions(
             }
         )
     return sorted(ranked, key=lambda item: (-item["utility"], item["question_id"]))
-
-

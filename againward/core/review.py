@@ -121,5 +121,3 @@ def validate_adversarial_review(
     if reviewed_ids != required_ids:
         missing = sorted(required_ids - reviewed_ids)
         raise ValueError(f"Review adversariale manquante pour: {', '.join(missing)}.")
-
-

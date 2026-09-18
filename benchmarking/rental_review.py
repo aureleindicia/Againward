@@ -57,4 +57,3 @@ def synthetic_review(root, *, query_id="q1"):
          "checks": {name: {"status": "passed", "evidence": "Synthetic test fixture exercises the review contract: " + name}
                     for name in get_domain("rental").review_checks}} for h in hypotheses]})
     return reviewed
-
