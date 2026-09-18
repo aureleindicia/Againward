@@ -36,6 +36,11 @@ class RentalDomainPack:
             raise ValueError("Rental has no legacy or shadow numerical engine; use preferred mode.")
         if options.get("default_tariff") is not None:
             raise ValueError("Energy tariffs do not apply to Rental.")
+        compatible_defaults = {"energy_mode": "auto", "timestamp_position": "auto",
+                               "maximum_auxiliary_fields": 128, "maximum_auxiliary_value_characters": 4096}
+        if any(key not in compatible_defaults or value != compatible_defaults[key]
+               for key, value in options.get("load_options", {}).items()):
+            raise ValueError("Energy loading options do not apply to a Rental canonical extraction.")
         if intake.get("profile", self.profile.name) != self.profile.name:
             raise ValueError("Rental intake profile differs from explicitly selected profile.")
         case, inventory = load_rental_case(source)

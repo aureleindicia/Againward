@@ -94,3 +94,11 @@ def test_document_path_escape_and_symlink_are_refused(tmp_path):
     packet["documents"][0]["path"] = "../elsewhere.txt"
     source.write_text(json.dumps(packet))
     with pytest.raises(ValueError, match="relative"): load_rental_case(source)
+
+
+def test_rental_cli_routes_explicitly_and_rejects_energy_options(tmp_path):
+    from againward.cli import main
+    source, _ = write_packet(tmp_path / "source")
+    args = [str(source), "--domain", "rental", "--profile", "construction", "--output-dir", str(tmp_path / "case")]
+    assert main(args) == 0
+    assert main([str(source), "--domain", "rental", "--energy-column", "Amount", "--output-dir", str(tmp_path / "invalid")]) == 2

@@ -15,7 +15,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--domain", default="energy", help="Domaine explicite (energy par défaut historique)")
     parser.add_argument("--profile", help="Profil Rental optionnel : generic ou construction")
-    parser.add_argument("source", help="CSV ou XLSX du client")
+    parser.add_argument("source", help="Energy: CSV/XLSX ; Rental: extraction canonique JSON")
     parser.add_argument("--output-dir", required=True, help="Dossier de travail isolé")
     parser.add_argument("--intake", help="Questionnaire intake.json complété")
     parser.add_argument("--price-per-kwh", type=float)
