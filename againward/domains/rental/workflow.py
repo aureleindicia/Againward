@@ -75,7 +75,7 @@ def record_assessments(case_directory, assessments):
 
 def _remaining_budget(session):
     remaining = asdict(session.budget)
-    remaining["maximum_calls"] -= len(session.calls)
+    remaining["maximum_calls"] -= len(session.successful_query_ids)
     remaining["maximum_returned_rows"] -= session.returned_rows_used
     remaining["maximum_context_bytes"] -= session.context_bytes_used
     remaining["maximum_pair_comparisons"] -= session.pair_comparisons_used

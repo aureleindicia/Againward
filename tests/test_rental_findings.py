@@ -9,16 +9,7 @@ from tests.rental_fixtures import rental_packet
 from tests.test_rental_pricing import add_return
 
 
-def assessment(candidate, *, level="L2", status="A_CONSERVER_AVEC_RESERVES"):
-    return {"finding_id": candidate["finding_id"], "status": status, "evidence_level": level,
-        "best_reason_false": "A later accepted change could explain this difference.",
-        "alternative_tests": [{"test_id": "T1", "description": "Inspect accepted source schedule and all supplied amendments.",
-                               "result": "REFUTED", "evidence_refs": candidate["evidence_refs"]}],
-        "limitations": ["Synthetic review validates software contracts, not legal entitlement."], "unresolved_questions": [],
-        "confidence": {"level": "HIGH", "justification": "Source amounts and normalized charge scope compared explicitly."},
-        "commercial_scope_reviewed": True, "operational_scope_reviewed": True, "identity_scope_reviewed": True,
-        "claim_or_abstention": "Contract-supported arithmetic discrepancy, subject to review.",
-        "evidence_query_ids": ["q1"], "evidence_handles": ["evh-example"]}
+from benchmarking.rental_review import assessment
 
 
 def test_l2_numeric_gap_does_not_create_recovery_grade_amount():
