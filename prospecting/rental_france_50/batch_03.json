@@ -1,0 +1,351 @@
+[
+  {
+    "company": "Mathis",
+    "group_key": "mathis",
+    "website": "https://www.mathis.eu/fr",
+    "location": "Muttersholtz (67)",
+    "sector": "Structures bois et bâtiments complexes",
+    "size": "200–249 salariés (2023)",
+    "contact_email": "siege@mathis.eu",
+    "target_role": "DAF / achats travaux",
+    "facts": [
+      "Fabrication et montage de structures bois, dont le Grand Palais Éphémère et le Centre aquatique olympique.",
+      "Intervention sur la réhabilitation-extension du site administratif Miollis à Paris."
+    ],
+    "equipment": "Nacelles, grues et manutention de grands éléments",
+    "pain": "Phases de levage et montage : vérifier durées, reprises et frais de transport.",
+    "limitations": [
+      "Références historiques, pas des chantiers en cours; aucune location externe prouvée.",
+      "Distinguer équipements d'usine possédés et moyens de montage sur site."
+    ],
+    "ratings": [
+      4,
+      4,
+      4,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.mathis.eu/fr",
+        "Métiers et références"
+      ],
+      [
+        "https://www.ekopolis.fr/acteurs/mathis",
+        "Référence Miollis indépendante"
+      ],
+      [
+        "https://www.muttersholtz.fr/acteurs/mathis/",
+        "Email du siège publié par la commune"
+      ],
+      [
+        "https://annuaire-entreprises.data.gouv.fr/entreprise/915521017",
+        "Activité et effectif 2023"
+      ]
+    ],
+    "contact_source_index": 2,
+    "contact_status": "GENERIC",
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Les opérations et moyens décrits rendent plausibles des locations complémentaires. Part louée, acheteur et dépense annuelle non établis publiquement.",
+    "opening": "Partir de ces références opérationnelles, puis proposer par écrit un petit échantillon : Phases de levage et montage : vérifier durées, reprises et frais de transport.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "KERN Bretagne (anciennement SRB Construction)",
+    "group_key": "kern",
+    "website": "https://www.kern.bzh/",
+    "location": "Hennebont (56)",
+    "sector": "Gros œuvre et construction multirégionale",
+    "size": "101 salariés unité légale en 2025; groupe plus d'une centaine, périmètre variable",
+    "contact_email": "contact@kern.bzh",
+    "target_role": "DAF groupe / achats matériel",
+    "facts": [
+      "SRB Construction prend le nom KERN Bretagne en 2026; marque groupe KERN.",
+      "Le groupe intervient du Grand Ouest à l'Île-de-France avec plusieurs entités de construction.",
+      "Attributions publiques documentées en juillet 2024 pour l'unité 511106528."
+    ],
+    "equipment": "Manutention, accès et installations temporaires",
+    "pain": "Réconcilier les contrats et imputations par entité/chantier dans un périmètre groupe.",
+    "limitations": [
+      "Aucune location externe démontrée; contrôles groupe inconnus.",
+      "Utiliser le nouveau contact KERN; ne pas confondre avec SRB Construction 810584516 à Saint-Jean-de-Védas."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      4,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.kern.bzh/",
+        "Nouvelle marque et email actuel"
+      ],
+      [
+        "https://www.kern.bzh/lentreprise/",
+        "Périmètre, taille et métiers"
+      ],
+      [
+        "https://www.societe.com/societe/kern-bretagne-511106528.html",
+        "État actif et nouvelle dénomination"
+      ],
+      [
+        "https://entreprises.lefigaro.fr/srb-construction-56/entreprise-511106528",
+        "Effectif 2025"
+      ],
+      [
+        "https://www.boamp.fr/telechargements/FILES/PDF/2024/07/24-79118.pdf",
+        "Attribution publique 2024"
+      ]
+    ],
+    "contact_source_index": 0,
+    "contact_status": "GENERIC",
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Les opérations et moyens décrits rendent plausibles des locations complémentaires. Part louée, acheteur et dépense annuelle non établis publiquement.",
+    "opening": "Partir de ces références opérationnelles, puis proposer par écrit un petit échantillon : Réconcilier les contrats et imputations par entité/chantier dans un périmètre groupe.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Komorniczak Léon et Cie",
+    "group_key": "komor",
+    "website": "https://www.komorniczak-batiment.fr/",
+    "location": "Gensac-la-Pallue, bassin de Cognac (16)",
+    "sector": "Bâtiments industriels, chais et génie civil",
+    "size": "80 collaborateurs annoncés; unité légale 20–49 (2023), écart non résolu",
+    "contact_email": null,
+    "target_role": "RAF / direction générale",
+    "facts": [
+      "L'entreprise réalise des chais, distilleries, usines d'embouteillage et ouvrages en béton.",
+      "Périmètre annoncé de 100 km autour de Cognac.",
+      "Le site décrit des travaux en site occupé et de la coactivité."
+    ],
+    "equipment": "Manutention, accès et équipements temporaires de génie civil",
+    "pain": "Vérifier les locations par phase sur une construction ou extension industrielle.",
+    "limitations": [
+      "Écart important entre effectif annoncé et registre : ne pas présenter 80 comme effectif certifié.",
+      "Site comportant des textes de maquette; références clients à approfondir avant priorité A.",
+      "Location externe inférée seulement."
+    ],
+    "ratings": [
+      3,
+      3,
+      4,
+      4,
+      3,
+      2,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.komorniczak-batiment.fr/savoir-faire-activites/",
+        "Spécialités industrielles"
+      ],
+      [
+        "https://www.komorniczak-batiment.fr/entreprise/",
+        "Effectif annoncé et rayon"
+      ],
+      [
+        "https://www.komorniczak-batiment.fr/contact/",
+        "Formulaire"
+      ],
+      [
+        "https://rubypayeur.com/societe/komorniczak-leon-et-cie-907220461",
+        "État actif et effectif 2023"
+      ]
+    ],
+    "contact_source_index": 2,
+    "contact_status": "CONTACT_FORM_ONLY",
+    "contact_form": "https://www.komorniczak-batiment.fr/contact/",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Les opérations et moyens décrits rendent plausibles des locations complémentaires. Part louée, acheteur et dépense annuelle non établis publiquement.",
+    "opening": "Partir de ces références opérationnelles, puis proposer par écrit un petit échantillon : Vérifier les locations par phase sur une construction ou extension industrielle.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "BRIFER – La Ferroviaire de la Brie",
+    "group_key": "brifer",
+    "website": "https://brifer.fr/",
+    "location": "La Houssaye-en-Brie (77)",
+    "sector": "Travaux ferroviaires et génie civil",
+    "size": "80 annoncés; 50–99 salariés (2023)",
+    "contact_email": "contact@brifer.fr",
+    "target_role": "RAF / responsable matériel et opérations",
+    "facts": [
+      "Équipes nationales pour création, maintenance et entretien des voies ferrées.",
+      "Un département génie civil réalise des installations lourdes.",
+      "Entreprise familiale annonçant 80 collaborateurs."
+    ],
+    "equipment": "Éclairage, groupes électrogènes, levage et engins spécialisés",
+    "pain": "Rapprocher les périodes courtes de mobilisation/démobilisation sur opérations ferroviaires.",
+    "limitations": [
+      "Matériel spécialisé potentiellement possédé; aucune location externe attestée.",
+      "La fenêtre de travaux ne suffit pas à déterminer la durée contractuelle facturable."
+    ],
+    "ratings": [
+      4,
+      4,
+      4,
+      5,
+      3,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://brifer.fr/entreprise-ferroviaire/",
+        "Métiers, effectif, couverture nationale et email"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/brifer-la-ferroviaire-de-la-brie-410276182",
+        "État actif, identité et effectif 2023"
+      ]
+    ],
+    "contact_source_index": 0,
+    "contact_status": "GENERIC",
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Les opérations et moyens décrits rendent plausibles des locations complémentaires. Part louée, acheteur et dépense annuelle non établis publiquement.",
+    "opening": "Partir de ces références opérationnelles, puis proposer par écrit un petit échantillon : Rapprocher les périodes courtes de mobilisation/démobilisation sur opérations ferroviaires.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "CCE – Constructions de la Côte d'Émeraude",
+    "group_key": "cce-scop",
+    "website": "https://www.cce-constructions.com/",
+    "location": "Pleudihen-sur-Rance (22)",
+    "sector": "Gros œuvre, terrassement, VRD et déconstruction",
+    "size": "200 salariés annoncés au périmètre CCE; registre unité 100–199",
+    "contact_email": "info@cce-constructions.fr",
+    "target_role": "DAF / responsable matériel de la SCOP",
+    "facts": [
+      "SCOP de gros œuvre sur l'axe Rennes–Saint-Malo.",
+      "Département CCE TP issu de Lepère, pour terrassement, VRD et déconstruction.",
+      "Activités bois et armatures via CEB et ACE, regroupées en un prospect."
+    ],
+    "equipment": "Terrassement, compactage, manutention et bases-vie",
+    "pain": "Vérifier l'affectation par métier et les fins de location entre opérations GO et TP.",
+    "limitations": [
+      "Parc propre et achats par filiale possibles; autonomie non présumée.",
+      "Aucune preuve de location externe; ne pas dupliquer CEB, ACE ou Lepère."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      5,
+      3,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.cce-constructions.com/",
+        "SCOP et métiers"
+      ],
+      [
+        "https://www.cce-constructions.com/lepere-entreprise-travaux-public-filiale-constructions-cote-emeraude/",
+        "Département TP et intégration Lepère"
+      ],
+      [
+        "https://www.cce-constructions.com/formulaire-de-contact-site-constructions-de-la-cote-emeraude-pleudihen-sur-rance/",
+        "Email"
+      ],
+      [
+        "https://fr.linkedin.com/company/constructions-de-la-cote-d%27emeraude",
+        "Effectif annoncé et périmètre"
+      ],
+      [
+        "https://www.societe.com/societe/constructions-de-la-cote-d-emeraude-308648492.html",
+        "État actif et identité"
+      ]
+    ],
+    "contact_source_index": 2,
+    "contact_status": "GENERIC",
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Les opérations et moyens décrits rendent plausibles des locations complémentaires. Part louée, acheteur et dépense annuelle non établis publiquement.",
+    "opening": "Partir de ces références opérationnelles, puis proposer par écrit un petit échantillon : Vérifier l'affectation par métier et les fins de location entre opérations GO et TP.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "EGC Carimalo",
+    "group_key": "carimalo",
+    "website": "https://www.carimalo-construction.fr/",
+    "location": "Loudéac (22)",
+    "sector": "Gros œuvre et génie civil industriel",
+    "size": "80 groupe annoncés; 50–99 unité légale (2023)",
+    "contact_email": "contact@carimalo.fr",
+    "target_role": "RAF / direction administrative groupe",
+    "facts": [
+      "Groupe familial de 80 salariés avec activités rénovation, génie civil et aménagements extérieurs.",
+      "Construction de bâtiments industriels, logistiques et tertiaires avec équipes propres."
+    ],
+    "equipment": "Manutention, accès, compactage et installations temporaires",
+    "pain": "Comparer durées et frais annexes des matériels loués pour un bâtiment industriel.",
+    "limitations": [
+      "Location externe inférée; moyens matériels propres également évoqués.",
+      "Cibler la construction professionnelle, pas les petits travaux d'habitat."
+    ],
+    "ratings": [
+      3,
+      3,
+      4,
+      5,
+      3,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.carimalo.fr/entreprise-generale-batiment-bretagne-3.html",
+        "Effectif, organisation et email"
+      ],
+      [
+        "https://www.carimalo-construction.fr/construction-gros-oeuvre-genie-civil-bretagne-3.html",
+        "Exécution industrielle et logistique"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/egc-carimalo-777449109",
+        "État actif et effectif 2023"
+      ]
+    ],
+    "contact_source_index": 0,
+    "contact_status": "GENERIC",
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Les opérations et moyens décrits rendent plausibles des locations complémentaires. Part louée, acheteur et dépense annuelle non établis publiquement.",
+    "opening": "Partir de ces références opérationnelles, puis proposer par écrit un petit échantillon : Comparer durées et frais annexes des matériels loués pour un bâtiment industriel.",
+    "confidence": "MEDIUM"
+  }
+]

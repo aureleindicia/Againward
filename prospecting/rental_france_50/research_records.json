@@ -1,0 +1,471 @@
+{
+  "status": "IN_PROGRESS_NOT_FINAL",
+  "research_date": "2026-09-19",
+  "prospects": [
+    {
+      "company": "Dubrulle-Faignot TP",
+      "group_key": "dub-invest",
+      "website": "https://www.dubrulle-faignot-tp.fr/",
+      "location": "Sainte-Marie-Cappel (59)",
+      "sector": "Réseaux, VRD et terrassement",
+      "size": "50–99 salariés (2022, unité légale)",
+      "revenue": null,
+      "contact_email": "contact@groupedubrulle.com",
+      "contact_status": "GENERIC",
+      "target_role": "Direction administrative/finance, avec responsable matériel",
+      "contact_name": null,
+      "contact_title": null,
+      "rental_evidence": "EXPLICIT_SUPPLIER_DEPLOYMENT",
+      "facts": [
+        "Construction de réseaux pour fluides; entreprise active selon le registre.",
+        "Kiloutou documente un chantier Enedis à Dunkerque réalisé avec Dubrulle et ses matériels en 2023.",
+        "L'entreprise recrute pour les travaux VRD et la pose d'eau potable dans une publication professionnelle récente."
+      ],
+      "equipment": "Pelles, compactage et alimentation temporaire documentés dans l'opération Kiloutou.",
+      "rental_hypothesis": "Un déploiement par un loueur est documenté; le payeur contractuel et la récurrence des locations restent à établir.",
+      "pain": "Hypothèse : rapprocher les dates de livraison/reprise et les contrats lors des mobilisations de matériel sur réseaux.",
+      "opening": "Partir du chantier de réseaux réalisé avec du matériel Kiloutou, puis proposer une vérification limitée aux locations effectivement facturées à Dubrulle.",
+      "limitations": [
+        "Le partenariat de 2023 ne prouve ni volume actuel ni facturation directe à Dubrulle.",
+        "Site officiel non récupérable par le navigateur; contact public via publication de l'entreprise.",
+        "Effectif ancien; parc propre également mentionné publiquement."
+      ],
+      "ratings": [
+        4,
+        4,
+        4,
+        5,
+        4,
+        3,
+        5,
+        4
+      ],
+      "confidence": "HIGH",
+      "sources": [
+        [
+          "https://www.pappers.fr/entreprise/dubrulle-faignot-tp-381007566",
+          "Statut, effectif, activité et identité"
+        ],
+        [
+          "https://www.kiloutou.com/group/fr/kiloutou-accompagne-enedis-pour-son-1er-chantier-bas-carbone-des-hauts-de-france-a-dunkerque/",
+          "Déploiement de matériel avec Dubrulle sur chantier Enedis; 05/07/2023"
+        ],
+        [
+          "https://fr.linkedin.com/posts/dubrulle-faignot-tp_recrutement-travauxpublics-vrd-activity-7396213135096893440-mf_w",
+          "Activités et adresse générique publiées par l'entreprise"
+        ],
+        [
+          "https://annuaire-entreprises.data.gouv.fr/etablissement/38100756600015",
+          "Établissement en activité; identité"
+        ]
+      ],
+      "contact_source_index": 2
+    },
+    {
+      "company": "Entreprise Chazelle",
+      "group_key": "chazelle",
+      "website": "https://groupe-chazelle.fr/",
+      "location": "Saint-Étienne (42)",
+      "sector": "Gros œuvre et entreprise générale",
+      "size": "150 salariés annoncés sur le site; registre 100–199 (2023)",
+      "revenue": null,
+      "contact_email": "chazelle@chazelle.fr",
+      "contact_status": "GENERIC",
+      "target_role": "RAF/DAF de l'activité construction",
+      "contact_name": null,
+      "contact_title": null,
+      "rental_evidence": "INFERRED",
+      "facts": [
+        "Activité de gros œuvre avec une équipe annoncée de 150 salariés.",
+        "Le groupe communique sur le chantier SCABB Hôtel à Saint-Chamond, démarré en 2026.",
+        "Ateliers propres de coffrage, mécanique et préfabrication."
+      ],
+      "equipment": "Besoins de manutention et moyens temporaires plausibles sur gros œuvre; ateliers propres documentés.",
+      "rental_hypothesis": "Locations d'appoint de levage, accès et installations de chantier possibles malgré l'équipement propre; dépense inconnue.",
+      "pain": "Hypothèse : reconstituer les périodes et frais annexes de matériel temporaire entre plusieurs opérations.",
+      "opening": "Évoquer le chantier SCABB Hôtel et proposer un contrôle documentaire ciblé du matériel loué en complément du parc.",
+      "limitations": [
+        "Aucune location externe explicitement démontrée.",
+        "Parc et ateliers propres : ne pas proposer l'audit de l'ensemble des moyens matériels.",
+        "Promoteur également; viser l'entreprise exécutante, pas la commercialisation immobilière."
+      ],
+      "ratings": [
+        3,
+        4,
+        4,
+        5,
+        4,
+        3,
+        4,
+        4
+      ],
+      "confidence": "HIGH",
+      "sources": [
+        [
+          "https://groupe-chazelle.fr/gros-oeuvre/",
+          "Métier et effectif annoncé"
+        ],
+        [
+          "https://groupe-chazelle.fr/contact/contact-chazelle/",
+          "Adresse, email générique"
+        ],
+        [
+          "https://groupe-chazelle.fr/moyens/",
+          "Ateliers et moyens propres"
+        ],
+        [
+          "https://fr.linkedin.com/company/entreprise-chazelle",
+          "SCABB Hôtel, démarrage début 2026"
+        ],
+        [
+          "https://www.pappers.fr/entreprise/entreprise-chazelle-664500477",
+          "Identité et effectif 2023"
+        ]
+      ],
+      "contact_source_index": 1
+    },
+    {
+      "company": "Avenir Déconstruction",
+      "group_key": "avenir-deconstruction",
+      "website": "https://www.avenirdeconstruction.com/",
+      "location": "Artigues-près-Bordeaux (33); agences nationales",
+      "sector": "Déconstruction et désamiantage",
+      "size": "Environ 240 personnes en production annoncées, dont 60 désamianteurs; date non précisée",
+      "revenue": null,
+      "contact_email": "ad33@av-dc.com",
+      "contact_status": "GENERIC",
+      "target_role": "DAF/achats matériel au siège",
+      "contact_name": null,
+      "contact_title": null,
+      "rental_evidence": "INFERRED",
+      "facts": [
+        "L'entreprise se présente comme indépendante et spécialisée en déconstruction.",
+        "Réseau d'agences incluant Bordeaux, Paris, Marseille, Metz et Toulouse.",
+        "Recrutement d'un chef d'équipe au Havre publié en septembre 2026."
+      ],
+      "equipment": "Déconstruction/désamiantage impliquent engins et dispositifs temporaires; propriété ou location non précisée.",
+      "rental_hypothesis": "Les chantiers géographiquement éloignés rendent plausible la location locale de compléments, bases-vie et énergie provisoire.",
+      "pain": "Hypothèse : consolider les contrats et restitutions par agence et chantier avant rapprochement des factures et avoirs.",
+      "opening": "Prendre comme contexte la couverture de plusieurs régions et proposer un premier contrôle sur une agence et un loueur.",
+      "limitations": [
+        "Effectif déclaré non daté, différent d'un effectif total certifié.",
+        "Locations et dépenses externes non publiées.",
+        "Les adresses d'agences sont génériques, pas des contacts finance nominatifs."
+      ],
+      "ratings": [
+        4,
+        5,
+        5,
+        4,
+        4,
+        3,
+        4,
+        4
+      ],
+      "confidence": "HIGH",
+      "sources": [
+        [
+          "https://www.avenirdeconstruction.com/qui-sommes-nous-.html",
+          "Indépendance déclarée, spécialisation et effectif de production"
+        ],
+        [
+          "https://www.avenirdeconstruction.com/contact.html",
+          "Implantations et adresse siège"
+        ],
+        [
+          "https://recrutement.avenirdeconstruction.com/offer/10797-NTY4NjktU0dsamtN",
+          "Recrutement chef d'équipe Le Havre, septembre 2026"
+        ],
+        [
+          "https://www.pappers.fr/entreprise/avenir-deconstruction-413824319",
+          "Identité et activité"
+        ]
+      ],
+      "contact_source_index": 1
+    },
+    {
+      "company": "Launet Construction",
+      "group_key": "launet",
+      "website": "https://launet.fr/",
+      "location": "Beauvais (60)",
+      "sector": "Construction métallique, clos-couvert et montage",
+      "size": "50–99 salariés LAUNET (2022); périmètre groupe plus large non chiffré",
+      "revenue": null,
+      "contact_email": "contact@launet.fr",
+      "contact_status": "GENERIC",
+      "target_role": "RAF/achats du groupe, en lien avec responsable des monteurs Beuvain",
+      "contact_name": null,
+      "contact_title": null,
+      "rental_evidence": "EXPLICIT",
+      "facts": [
+        "Launet réalise charpentes, clos-couvert et surélévation dans les Hauts-de-France, en Île-de-France et Normandie.",
+        "Une offre publiée par Launet pour Beuvain Montage confie à l'adjoint des monteurs le pilotage des locations de matériel et d'engins.",
+        "L'offre prévoit des déplacements fréquents et la préparation des besoins chantier."
+      ],
+      "equipment": "Engins de montage/élévation; location explicitement intégrée à la fonction chantier.",
+      "rental_hypothesis": "Locations récurrentes plausibles dans le montage; vérifier quelle entité reçoit les factures avant tout audit.",
+      "pain": "Hypothèse : relier planning des équipes, locations, fins d'utilisation et reprises facturées.",
+      "opening": "S'appuyer sur l'organisation de la location décrite pour Beuvain Montage et proposer une vérification de quelques dossiers complets.",
+      "limitations": [
+        "Annonce portée par Launet mais poste chez Beuvain Montage : entité payeuse à confirmer.",
+        "Email RH publié non retenu : mauvaise fonction pour cette offre.",
+        "Effectif historique de LAUNET seul; aucun budget de location public."
+      ],
+      "ratings": [
+        5,
+        4,
+        4,
+        5,
+        4,
+        3,
+        5,
+        4
+      ],
+      "confidence": "HIGH",
+      "sources": [
+        [
+          "https://launet.fr/groupe-launet/entreprise-generale-du-batiment/",
+          "Activité et périmètre géographique"
+        ],
+        [
+          "https://launet.fr/contact/",
+          "Email officiel"
+        ],
+        [
+          "https://fr.linkedin.com/jobs/view/adjoint-responsable-des-monteurs-h-f-at-launet-construction-4457087678",
+          "Offre publique consultée, missions location et périmètre Beuvain Montage"
+        ],
+        [
+          "https://www.pappers.fr/entreprise/launet-527320238",
+          "Société active, effectif et adresse"
+        ]
+      ],
+      "contact_source_index": 1
+    },
+    {
+      "company": "Waltefaugle",
+      "group_key": "waltefaugle",
+      "website": "https://www.waltefaugle.com/",
+      "location": "Dampierre-sur-Salon (70)",
+      "sector": "Construction métallique et montage",
+      "size": "100–199 salariés de WALTEFAUGLE SAS (2023); groupe non chiffré ici",
+      "revenue": null,
+      "contact_email": "societe@waltefaugle.com",
+      "contact_status": "GENERIC",
+      "target_role": "DAF/achats groupe, avec direction montage",
+      "contact_name": null,
+      "contact_title": null,
+      "rental_evidence": "INFERRED",
+      "facts": [
+        "Le site annonce 500 bâtiments construits par an, sans année de référence.",
+        "Fabrication et pose de bâtiments industriels, agricoles et tertiaires.",
+        "Implantations siège, Est et Île-de-France; activité de réhabilitation complexe."
+      ],
+      "equipment": "Montage de charpentes : besoins plausibles de nacelles, télescopiques et levage temporaire.",
+      "rental_hypothesis": "Fréquence de montage et dispersion favorables à des locations d'appoint; part du parc propre inconnue.",
+      "pain": "Hypothèse : rapprocher les durées et transports des matériels d'élévation sur une succession de montages.",
+      "opening": "Utiliser la diversité des bâtiments et les équipes de pose pour proposer un contrôle borné aux factures de matériel de montage.",
+      "limitations": [
+        "Volume annuel autodéclaré et non daté.",
+        "Objet social inclut location d'engins : ne prouve pas l'achat de location.",
+        "Aucune dépense externe confirmée; effectif unité légale différent du groupe."
+      ],
+      "ratings": [
+        3,
+        4,
+        5,
+        4,
+        4,
+        3,
+        4,
+        4
+      ],
+      "confidence": "HIGH",
+      "sources": [
+        [
+          "https://www.waltefaugle.com/",
+          "Production annuelle annoncée, fabrication/pose, secteurs"
+        ],
+        [
+          "https://www.waltefaugle.com/entreprise/contact",
+          "Implantations et email"
+        ],
+        [
+          "https://www.pappers.fr/entreprise/waltefaugle-425750023",
+          "Activité, statut actif et effectif 2023"
+        ]
+      ],
+      "contact_source_index": 1
+    },
+    {
+      "company": "Groupe Livio",
+      "group_key": "livio",
+      "website": "https://www.groupe-livio.fr/",
+      "location": "Saint-Étienne-lès-Remiremont (88)",
+      "sector": "Construction, génie civil, réhabilitation et dépollution",
+      "size": "350 collaborateurs en 2025, groupe",
+      "revenue": "73 M€ de CA cumulé 2025 annoncé; pas un CA consolidé",
+      "contact_email": "livio@groupe-livio.com",
+      "contact_status": "GENERIC",
+      "target_role": "DAF groupe / achats mutualisés",
+      "contact_name": null,
+      "contact_title": null,
+      "rental_evidence": "INFERRED",
+      "facts": [
+        "Le groupe annonce 14 entreprises et 350 collaborateurs en 2025.",
+        "Peduzzi réalise bâtiment, génie civil et entretien d'ouvrages; autres métiers de dépollution et réparation dans le groupe.",
+        "Le groupe possède aussi des compétences internes d'échafaudage/manutention."
+      ],
+      "equipment": "Accès, levage et installations temporaires plausibles pour interventions multi métiers; ressources internes existantes.",
+      "rental_hypothesis": "Les locations externes complémentaires peuvent être réparties entre sociétés; les locations intragroupe doivent être exclues du périmètre initial.",
+      "pain": "Hypothèse : identifier l'entité acheteuse, rapprocher tarifs et justificatifs entre dossiers de chantier.",
+      "opening": "Partir des 14 entreprises et proposer un échantillon d'une seule entité exécutante avant tout élargissement.",
+      "limitations": [
+        "Capacité d'approvisionnement interne : contre-indice à une forte location externe.",
+        "Autonomie des filiales non établie; une seule cible pour tout Livio.",
+        "Pas de titulaire finance public vérifié."
+      ],
+      "ratings": [
+        3,
+        4,
+        5,
+        4,
+        4,
+        3,
+        4,
+        4
+      ],
+      "confidence": "HIGH",
+      "sources": [
+        [
+          "https://www.groupe-livio.fr/notre-vision/",
+          "Chiffres 2025, métiers, email et adresse groupe"
+        ],
+        [
+          "https://www.groupe-livio.fr/filiales/peduzzi/",
+          "Métiers opérationnels de Peduzzi et actualité 2026"
+        ],
+        [
+          "https://www.pappers.fr/entreprise/peduzzi-305850646",
+          "Lien avec groupe Livio, statut et activité de l'exécutant"
+        ]
+      ],
+      "contact_source_index": 0
+    },
+    {
+      "company": "Le Bâtiment Associé",
+      "group_key": "le-batiment-associe",
+      "website": "https://www.lebatimentassocie.fr/",
+      "location": "Muizon (51)",
+      "sector": "Gros œuvre, patrimoine et construction bois",
+      "size": "220 collaborateurs annoncés sur le site; année non précisée",
+      "revenue": null,
+      "contact_email": null,
+      "contact_form": "https://www.lebatimentassocie.fr/",
+      "contact_status": "CONTACT_FORM_ONLY",
+      "target_role": "DAF/RAF, avec direction travaux",
+      "contact_name": null,
+      "contact_title": null,
+      "rental_evidence": "INFERRED",
+      "facts": [
+        "Le site annonce plus de 400 chantiers annuels entre Champagne-Ardenne et Île-de-France.",
+        "Métiers : gros œuvre, restauration de pierre, charpente bois et conception-réalisation.",
+        "Références présentées : restauration d'église aux Mesneux et ravalement pour Champagne Mumm."
+      ],
+      "equipment": "Accès en hauteur, manutention de bois/pierre et installations de chantier plausibles.",
+      "rental_hypothesis": "Rotation de chantiers et diversité technique rendent crédibles des besoins temporaires; aucun contrat de location observé.",
+      "pain": "Hypothèse : raccorder factures, bons de reprise et affectations chantier lorsque les interventions s'enchaînent.",
+      "opening": "Utiliser la diversité gros œuvre/patrimoine/bois et le volume de chantiers déclaré pour cadrer un contrôle d'échantillon.",
+      "limitations": [
+        "Chiffres commerciaux non datés et non audités.",
+        "Formulaire général seulement vérifié; routage finance à obtenir.",
+        "Part propre/louée et capacité de contrôle interne inconnues."
+      ],
+      "ratings": [
+        4,
+        4,
+        5,
+        5,
+        4,
+        2,
+        5,
+        4
+      ],
+      "confidence": "HIGH",
+      "sources": [
+        [
+          "https://www.lebatimentassocie.fr/",
+          "Effectif, chantiers, métiers, références, siège et formulaire"
+        ],
+        [
+          "https://www.pappers.fr/entreprise/le-batiment-associe-316464171",
+          "Identité juridique et activité"
+        ],
+        [
+          "https://www.preventionbtp.fr/actualites/management/le-batiment-associe-perpetue-la-tradition-de-l-innovation_Arm9ftL4bBKkE478v9x9PD",
+          "Portrait indépendant OPPBTP du 03/10/2021; confirme diversité et organisation, pas location actuelle"
+        ]
+      ],
+      "contact_source_index": 0
+    },
+    {
+      "company": "Renaudat Centre Constructions",
+      "group_key": "renaudat",
+      "website": "https://www.renaudat.com/",
+      "location": "Châteauroux (36); agence Lyon",
+      "sector": "Structures métalliques complexes et ouvrages d'art",
+      "size": "20–49 salariés (2023, unité légale)",
+      "revenue": null,
+      "contact_email": "rcc36@renaudat.com",
+      "contact_status": "GENERIC",
+      "target_role": "Direction / responsable administratif, avec montage",
+      "contact_name": null,
+      "contact_title": null,
+      "rental_evidence": "INFERRED",
+      "facts": [
+        "Réalise charpentes complexes, ponts et passerelles depuis Châteauroux et Lyon.",
+        "Référence technique : 16 voûtes de protection sur les centrales de Chooz, Gravelines, Dampierre et Chinon.",
+        "Le site décrit le déploiement de moyens matériels et humains pour le montage des ossatures."
+      ],
+      "equipment": "Levage et accès en hauteur plausibles pour des ossatures au-dessus de bâtiments de 20 m.",
+      "rental_hypothesis": "Entreprise de taille modérée mais montages techniquement lourds : locations spécialisées potentiellement significatives par projet.",
+      "pain": "Hypothèse : contrôler durées, mobilisations et frais de levage sur quelques opérations complexes.",
+      "opening": "Évoquer les montages de structures complexes et demander si les équipements loués font l'objet d'un rapprochement complet après chantier.",
+      "limitations": [
+        "Référence nucléaire historique non datée sur la page; ne pas la présenter comme chantier en cours.",
+        "Effectif réduit : valeur économique à qualifier.",
+        "Achats et locations non explicitement documentés; contact lyonnais nommé non retenu faute de rôle finance."
+      ],
+      "ratings": [
+        4,
+        3,
+        4,
+        5,
+        4,
+        3,
+        4,
+        4
+      ],
+      "confidence": "HIGH",
+      "sources": [
+        [
+          "https://www.renaudat.com/",
+          "Activité, moyens de montage, implantations"
+        ],
+        [
+          "https://www.renaudat.com/archives-realisations/dus-centrale-nucleaire/",
+          "Référence des 16 voûtes et hauteur"
+        ],
+        [
+          "https://www.renaudat.com/contact/",
+          "Email et implantations"
+        ],
+        [
+          "https://annuaire-entreprises.data.gouv.fr/entreprise/381206820",
+          "Effectif 2023 et identité"
+        ]
+      ],
+      "contact_source_index": 2
+    }
+  ]
+}

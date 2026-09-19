@@ -1,0 +1,185 @@
+[
+  {
+    "company": "Climent TP",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Entité radiée en janvier 2026 après absorption par Eurovia; achat autonome non établi.",
+    "sources": [
+      "https://www.pappers.fr/entreprise/climent-travaux-publics-439328485"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "Cazal",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Filiale NGE consolidée; autonomie achats non établie.",
+    "sources": [
+      "https://www.nge.fr/app/uploads/2023/05/NGE-CompteConsol.2022_ANG_V3-PLANCHES.pdf"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "Gagne",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Appartenance Briand et opposition au démarchage affichée dans annuaire.",
+    "sources": [
+      "https://www.briand.fr/savoir-faire/gagne/",
+      "https://www.pagesjaunes.fr/pros/00448735"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "Fontanel",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Opposition au démarchage affichée; exclure de la préparation d'envoi.",
+    "sources": [
+      "https://www.pagesjaunes.fr/pros/02328355"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "SMB CM",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Appartenance SOPREMA; autonomie achats non établie.",
+    "sources": [
+      "https://normandie.ccibusiness.fr/smb-cm"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "Métal Armor",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Fabrication en atelier; preuve insuffisante de dépenses temporaires sur chantiers.",
+    "sources": [
+      "https://metal-armor.com/"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "Groupe Noël",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Pose spécialisée confiée à partenaires; payeur des locations non identifiable.",
+    "sources": [
+      "https://www.groupe-noel.fr/montage-et-pose"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "Brisard Noguès Feytiat",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Procédure collective affichée; écarté du lancement commercial.",
+    "sources": [
+      "https://www.pappers.fr/entreprise/brisard-nogues-feytiat-400407193"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "Ener-Co",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Écart de périmètre non résolu entre très petit effectif légal et capacité annoncée; économie du dossier incertaine.",
+    "sources": [
+      "https://www.pappers.fr/entreprise/ener-co-809073992",
+      "https://ener-co.fr/"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "Romeu Construction",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Procédure collective en cours documentée en juin 2026.",
+    "sources": [
+      "https://www.pappers.fr/entreprise/romeu-construction-500340278",
+      "https://justice.pappers.fr/decision/23cc5c88b0df20f42d047da42ac7938ba2dfb5de"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "Curot Construction",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Spie Batignolles Curot; autonomie d'achat non établie.",
+    "sources": [
+      "https://www.pappers.fr/entreprise/spie-batignolles-curot-449355189"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "Floriot",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Le site met en avant la possession de l'ensemble de ses grues et matériels; faible argument de location externe.",
+    "sources": [
+      "https://floriot.fr/lentreprise"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "SOTRAG",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Effectif 6–9 en 2022; volume économique non suffisamment documenté.",
+    "sources": [
+      "https://www.pappers.fr/entreprise/sotrag-524193398"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "Moulin TP (Chambœuf)",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Effectif 6–9 en 2023; taille et locations non suffisamment documentées.",
+    "sources": [
+      "https://annuaire-entreprises.data.gouv.fr/entreprise/390902500"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "Denis Pichon",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Effectif 6–9 en 2022; volume économique non étayé.",
+    "sources": [
+      "https://www.pappers.fr/entreprise/denis-pichon-503060147"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "Berthold",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Appartenance Baudin Chateauneuf; autonomie pertinente non établie.",
+    "sources": [
+      "https://recrutement.baudinchateauneuf.com/front-jobs-detail.html?id_job=1964&id_origin=0"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "Buesa TP",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Rachat Roger Martin 2025, grand groupe et moyens internes; ancienne description indépendant obsolète.",
+    "sources": [
+      "https://www.rogermartin.fr/implantation/buesa-tp-beziers/"
+    ],
+    "research_date": "2026-09-19"
+  },
+  {
+    "company": "OBM Construction",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Opposition explicite à la prospection non sollicitée sur la page contact.",
+    "sources": [
+      "https://www.obmgroupe.net/contact/"
+    ],
+    "research_date": "2026-09-19"
+  }
+]

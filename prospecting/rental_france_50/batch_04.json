@@ -1,0 +1,634 @@
+[
+  {
+    "company": "Boutillet",
+    "group_key": "boutillet",
+    "website": "https://www.boutillet.fr/",
+    "location": "Chauvigny (86), Tours et Limoges",
+    "sector": "Gros œuvre, génie civil et sciage-carottage",
+    "size": "Plus de 137 salariés annoncés, page non datée",
+    "contact_email": "contact@boutillet.fr",
+    "target_role": "RAF / contrôle de gestion",
+    "facts": [
+      "Trois implantations à Chauvigny, Joué-lès-Tours et Limoges.",
+      "Recrutement d'un contrôleur de gestion publié le 7 juillet 2026."
+    ],
+    "equipment": "Manutention, accès et outillage de sciage",
+    "pain": "Rapprocher factures et fins de location par agence et chantier.",
+    "limitations": [
+      "Parc matériel propre avec ateliers; ne cibler que les compléments externes.",
+      "Un recrutement ne démontre aucune faiblesse de contrôle."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.boutillet.fr/",
+        "Effectif, activités et email"
+      ],
+      [
+        "https://www.boutillet.fr/notre-entreprise/",
+        "Parc propre"
+      ],
+      [
+        "https://www.boutillet.fr/actualites/",
+        "Recrutement daté 2026"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/etablissements-boutillet-sas-304600927",
+        "Identité active"
+      ]
+    ],
+    "contact_source_index": 0,
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; part externe, payeur et montant non établis.",
+    "opening": "Trois implantations à Chauvigny, Joué-lès-Tours et Limoges. Angle proposé : Rapprocher factures et fins de location par agence et chantier.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "BTPO – Bâtiments et Travaux Publics de l'Orléanais",
+    "group_key": "btpo-mistral",
+    "website": "https://www.btpo.fr/",
+    "location": "Orléans (45)",
+    "sector": "Gros œuvre, bâtiments industriels et génie civil",
+    "size": "100–199 salariés (2022); 130 dans cas fournisseur publié 2024",
+    "contact_email": "btpo-ste@btpo.fr",
+    "target_role": "RAF / comptabilité fournisseurs",
+    "facts": [
+      "Entreprise de gros œuvre et génie civil basée dans la zone des Montées à Orléans.",
+      "Le prestataire Parthena décrit une externalisation de la paie pour 130 salariés."
+    ],
+    "equipment": "Manutention, petits engins et installations de chantier",
+    "pain": "Vérifier un dossier de location complet sur une opération de génie civil.",
+    "limitations": [
+      "Email recoupé dans publications municipales et BOAMP, sans confirmation de délivrabilité.",
+      "Externalisation de paie distincte des contrôles achats; site propre peu indexé."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      3,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.pappers.fr/entreprise/btpo-batiment-travaux-publics-orleanais-086581204",
+        "Identité active, effectif et métiers"
+      ],
+      [
+        "https://www.boamp.fr/telechargements/FILES/PDF/2024/01/24-10976.pdf",
+        "Adresse professionnelle publiée"
+      ],
+      [
+        "https://www.parthena.com/wp-content/uploads/2024/08/PAIE-EXTERNALISEE-SUR-MESURE-Fiche-Service-accompagne.pdf",
+        "Organisation et taille du client"
+      ],
+      [
+        "https://mairiecoulmiers.fr/wp-content/uploads/2024/03/MEUNG-SUR-LOIRE-guide-2024-_VF.pdf",
+        "Activités et email"
+      ]
+    ],
+    "contact_source_index": 1,
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; part externe, payeur et montant non établis.",
+    "opening": "Entreprise de gros œuvre et génie civil basée dans la zone des Montées à Orléans. Angle proposé : Vérifier un dossier de location complet sur une opération de génie civil.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Construction Savoyarde",
+    "group_key": "construction-savoyarde",
+    "website": "https://www.constructionsavoyarde.eu/",
+    "location": "La Plagne Tarentaise (73)",
+    "sector": "Gros œuvre et génie civil en montagne",
+    "size": "50–99 salariés (2022)",
+    "contact_email": "accueil@constructionsavoyarde.fr",
+    "target_role": "RAF / responsable matériel",
+    "facts": [
+      "Extension du collège de Frontenex présentée pour 2024–2026 en site occupé.",
+      "Références à Villaroger–Les Arcs et à l'Aiguille Percée à Tignes.",
+      "Le site décrit 20 équipes de gros œuvre et trois équipes de sciage."
+    ],
+    "equipment": "Levage, accès, sciage et moyens temporaires en altitude",
+    "pain": "Vérifier les mobilisations, arrêts et reprises de location entre phases de chantier.",
+    "limitations": [
+      "Transport et matériel propres possibles; objet social inclut aussi négoce/location.",
+      "La durée utile sur chantier ne détermine pas seule la période contractuelle facturable."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.constructionsavoyarde.eu/",
+        "Projets et dates"
+      ],
+      [
+        "https://www.constructionsavoyarde.eu/qui-sommes-nous/",
+        "Équipes et activités"
+      ],
+      [
+        "https://www.constructionsavoyarde.eu/recrutement/",
+        "Email accueil"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/construction-savoyarde-387924269",
+        "Identité active et effectif"
+      ]
+    ],
+    "contact_source_index": 2,
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; part externe, payeur et montant non établis.",
+    "opening": "Extension du collège de Frontenex présentée pour 2024–2026 en site occupé. Angle proposé : Vérifier les mobilisations, arrêts et reprises de location entre phases de chantier.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Groupe Remove / REMOVE",
+    "group_key": "remove",
+    "website": "https://groupe-remove.com/",
+    "location": "Croissy-Beaubourg (77)",
+    "sector": "Déconstruction, curage et désamiantage",
+    "size": "138 opérateurs et plusieurs équipes d'encadrement affichés, date non précisée",
+    "contact_email": "contact@groupe-remove.com",
+    "target_role": "Responsable comptable",
+    "facts": [
+      "Interventions en Île-de-France et sur le territoire français.",
+      "Ekopolis cite le curage en milieu plomb à Notre-Dame et des opérations à La Défense.",
+      "Le groupe identifie une responsable comptable et un gestionnaire du parc matériel."
+    ],
+    "equipment": "Engins de démolition, aspiration, accès et équipements de confinement",
+    "pain": "Rapprocher périodes de location et transferts de matériel entre opérations de curage.",
+    "limitations": [
+      "Parc géré en interne; part louée inconnue.",
+      "Références historiques; effectif annoncé non assimilable à une moyenne comptable."
+    ],
+    "ratings": [
+      4,
+      4,
+      5,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://groupe-remove.com/contactez-nous-groupe-remove/",
+        "Email"
+      ],
+      [
+        "https://groupe-remove.com/nos-equipes/",
+        "Effectifs et Carine Chapelain responsable comptable"
+      ],
+      [
+        "https://www.ekopolis.fr/acteurs/remove",
+        "Références indépendantes"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/remove-812432862",
+        "Société opératrice active, absence de procédure collective affichée"
+      ]
+    ],
+    "contact_source_index": 0,
+    "contact_status": "GENERIC",
+    "contact_name": "Carine Chapelain",
+    "contact_title": "Responsable comptable",
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; part externe, payeur et montant non établis.",
+    "opening": "Interventions en Île-de-France et sur le territoire français. Angle proposé : Rapprocher périodes de location et transferts de matériel entre opérations de curage.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "CAPOCCI",
+    "group_key": "capocci",
+    "website": "https://capocci.fr/",
+    "location": "Vitry-sur-Seine (94)",
+    "sector": "Terrassement, démolition, fondations spéciales",
+    "size": "Plus de 140 collaborateurs; offre France Travail septembre 2026",
+    "contact_email": "contact@capocci.fr",
+    "target_role": "RAF / responsable matériel et achats",
+    "facts": [
+      "Références aux lignes 16 et 18 du Grand Paris Express et à l'hôpital Marie-Lannelongue.",
+      "Offre de coordinateur démolition de septembre 2026 : budgets, facturation et choix des fournisseurs."
+    ],
+    "equipment": "Pelles, compresseurs, soutènement et moyens temporaires",
+    "pain": "Examiner les locations complémentaires aux engins propres sur une opération urbaine.",
+    "limitations": [
+      "Parc propre important et outils internes CAPCONNECT; ne pas présumer des contrôles insuffisants.",
+      "Locations externes non démontrées."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://capocci.fr/",
+        "Métiers et email"
+      ],
+      [
+        "https://capocci.fr/entreprise-terrassement/",
+        "Machines et références"
+      ],
+      [
+        "https://candidat.francetravail.fr/offres/recherche/detail/213WZKH",
+        "Échelle, rôle achats et activité récente"
+      ],
+      [
+        "https://api-avis-situation-sirene.insee.fr/identification/pdf/42503916100046",
+        "Identité active, avis décembre 2025"
+      ]
+    ],
+    "contact_source_index": 0,
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; part externe, payeur et montant non établis.",
+    "opening": "Références aux lignes 16 et 18 du Grand Paris Express et à l'hôpital Marie-Lannelongue. Angle proposé : Examiner les locations complémentaires aux engins propres sur une opération urbaine.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "CANCÉ",
+    "group_key": "cance",
+    "website": "https://cance.fr/",
+    "location": "Nay (64), agences nationales",
+    "sector": "Construction métallique et façades aluminium",
+    "size": "250–499 salariés unité légale; consultation registre 2026",
+    "contact_email": "thomas.wattez@cance.com",
+    "target_role": "Direction métier / achats travaux",
+    "facts": [
+      "Le constructeur annonce 1 700 bâtiments édifiés ou rénovés par an, chiffre non daté.",
+      "Recrutement de monteurs et implantation d'agences de l'Île-de-France au Sud-Ouest."
+    ],
+    "equipment": "Nacelles, levage et manutention de charpentes",
+    "pain": "Contrôler durées et transports des moyens d'accès et levage d'une agence.",
+    "limitations": [
+      "Une partie du montage peut être réalisée par des partenaires : identifier le payeur des locations.",
+      "Contact public du métier aluminium; faire orienter vers achats/finance si nécessaire."
+    ],
+    "ratings": [
+      4,
+      4,
+      5,
+      4,
+      4,
+      4,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.snfa.fr/annuaire/membre/cance",
+        "Email et fonction Thomas Wattez, Directeur métier activité Aluminium"
+      ],
+      [
+        "https://cance.fr/",
+        "Couverture et volume annoncé"
+      ],
+      [
+        "https://cance.fr/recrute-monteurs/",
+        "Montage effectué par des équipes"
+      ],
+      [
+        "https://www.societe.com/societe/etablissements-cance-097280234.html",
+        "Identité active et taille"
+      ]
+    ],
+    "contact_source_index": 0,
+    "contact_status": "CONFIRMED",
+    "contact_name": "Thomas Wattez",
+    "contact_title": "Directeur métier – Activité Aluminium",
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; part externe, payeur et montant non établis.",
+    "opening": "Le constructeur annonce 1 700 bâtiments édifiés ou rénovés par an, chiffre non daté. Angle proposé : Contrôler durées et transports des moyens d'accès et levage d'une agence.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "COSSU SAS",
+    "group_key": "cossu",
+    "website": "https://www.linkedin.com/company/cossu-sas",
+    "location": "Sillery (51)",
+    "sector": "Gros œuvre, béton armé et bâtiments vinicoles",
+    "size": "Près de 50 annoncés; 20–49 salariés (2023)",
+    "contact_email": "entreprise@cossu.fr",
+    "target_role": "Direction générale / RAF",
+    "facts": [
+      "Entreprise familiale de gros œuvre, développée de l'agricole vers le tertiaire, l'industriel et le vignoble.",
+      "Publication 2025 sur un bâtiment viti-vinicole : pose des prédalles du rez-de-chaussée."
+    ],
+    "equipment": "Levage, manutention et coffrage complémentaire",
+    "pain": "Vérifier les moyens temporaires utilisés pendant les phases de structure.",
+    "limitations": [
+      "Email publié par un annuaire, non recoupé sur site officiel; vérifier avant envoi.",
+      "Dépense de location inconnue; volume potentiel plus limité que les ETI."
+    ],
+    "ratings": [
+      3,
+      3,
+      4,
+      4,
+      3,
+      2,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.linkedin.com/company/cossu-sas",
+        "Activités et effectif annoncé"
+      ],
+      [
+        "https://fr.linkedin.com/posts/cossu-sas_chantier-construction-batimentdactivit%C3%A9-activity-7327676926184071168-8AMM",
+        "Référence viti-vinicole"
+      ],
+      [
+        "https://annuaire-entreprises.data.gouv.fr/entreprise/312260573",
+        "Identité active, effectif 2023"
+      ],
+      [
+        "https://levraiartisan.fr/artisan/cossu/",
+        "Email professionnel publié"
+      ]
+    ],
+    "contact_source_index": 3,
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; part externe, payeur et montant non établis.",
+    "opening": "Entreprise familiale de gros œuvre, développée de l'agricole vers le tertiaire, l'industriel et le vignoble. Angle proposé : Vérifier les moyens temporaires utilisés pendant les phases de structure.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "CHAPRON SAS",
+    "group_key": "chapron-sas",
+    "website": "https://www.chapron-tp.fr/",
+    "location": "Sainte-Gemmes-le-Robert (53) et Aigné (72)",
+    "sector": "Voirie, réseaux, terrassement et désamiantage",
+    "size": "50 annoncés; 20–49 unité légale (2022)",
+    "contact_email": "contact@chapron-tp.fr",
+    "target_role": "Direction / responsable administratif",
+    "facts": [
+      "Deux implantations desservant Mayenne, Sarthe et Orne.",
+      "Réseaux humides, voirie urbaine et retrait d'amiante figurent parmi les métiers."
+    ],
+    "equipment": "Compactage, pompage, petits engins et installations temporaires",
+    "pain": "Vérifier les locations complémentaires sur un chantier de réseaux.",
+    "limitations": [
+      "Activité accessoire de location de bennes à des tiers; parc propre, part achetée à qualifier.",
+      "N'inclure que les factures reçues de loueurs externes."
+    ],
+    "ratings": [
+      2,
+      3,
+      4,
+      5,
+      3,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.chapron-tp.fr/",
+        "Taille, implantations et bennes"
+      ],
+      [
+        "https://www.chapron-tp.fr/travaux-publics.html",
+        "Métiers opérationnels"
+      ],
+      [
+        "https://www.chapron-tp.fr/contact.html",
+        "Email"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/chapron-sas-305273450",
+        "Identité active et effectif"
+      ]
+    ],
+    "contact_source_index": 2,
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; part externe, payeur et montant non établis.",
+    "opening": "Deux implantations desservant Mayenne, Sarthe et Orne. Angle proposé : Vérifier les locations complémentaires sur un chantier de réseaux.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Cruard Charpente et Construction Bois",
+    "group_key": "lefevre-developpement",
+    "website": "https://cruard-charpente.com/",
+    "location": "Simplé (53)",
+    "sector": "Charpente bois, restauration et montage",
+    "size": "148 salariés moyens internes dans comptes au 31 juillet 2024",
+    "contact_email": "flefevre@cruard-charpente.com",
+    "target_role": "Direction générale / RAF",
+    "facts": [
+      "Montages en Normandie, Bretagne, Pays de la Loire, Centre et région parisienne.",
+      "Références citées dans un recrutement : Achères, île de Nantes et siège Cooperl à Lamballe."
+    ],
+    "equipment": "Grues, nacelles et manutention",
+    "pain": "Rapprocher phases de montage, commandes de location et bons de reprise.",
+    "limitations": [
+      "Ateliers possédés; location de moyens sur chantier inférée.",
+      "Email nominatif publié par Fibois en mars 2026; volume achats à qualifier."
+    ],
+    "ratings": [
+      4,
+      4,
+      5,
+      5,
+      4,
+      4,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.fibois-paysdelaloire.fr/app/uploads/2026/03/composition-ca-160326.pdf",
+        "Florian Lefevre et email professionnel"
+      ],
+      [
+        "https://fr.linkedin.com/posts/cruardcharpente_on-recrute-une-charpentiere-pour-rejoindre-activity-7340619286840832002-2o3t",
+        "Montage, sites et déplacements"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/cruard-charpente-et-construction-bois-388245896",
+        "Identité active et direction"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/cruard-charpente-et-construction-bois-388245896/comptes/CRUARD%20CHARPENTE%20ET%20CONSTRUCTION%20BOIS%20-%20Comptes%20sociaux%202024%2029-01-2025.pdf",
+        "Effectif moyen 2024"
+      ]
+    ],
+    "contact_source_index": 0,
+    "contact_status": "CONFIRMED",
+    "contact_name": "Florian Lefevre",
+    "contact_title": "Dirigeant",
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; part externe, payeur et montant non établis.",
+    "opening": "Montages en Normandie, Bretagne, Pays de la Loire, Centre et région parisienne. Angle proposé : Rapprocher phases de montage, commandes de location et bons de reprise.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Cuiller Frères",
+    "group_key": "cuiller",
+    "website": "https://www.cuiller.fr/",
+    "location": "Petit-Couronne (76)",
+    "sector": "Construction bois et charpente",
+    "size": "100–199 salariés (2023)",
+    "contact_email": "contact@cuiller.fr",
+    "target_role": "RAF / direction travaux bois",
+    "facts": [
+      "Les équipes présentent le levage de fermes de 22 mètres à la Ferme du Chesnay.",
+      "Intervention bois pour l'extension de l'IFA Campus Marcel Sauvage."
+    ],
+    "equipment": "Levage, nacelles et manutention de caissons",
+    "pain": "Vérifier les locations sur les journées de levage et les périodes de montage.",
+    "limitations": [
+      "Date précise du chantier à confirmer; aucune location attestée.",
+      "Le code NAF menuiserie ne résume pas l'activité de charpente documentée."
+    ],
+    "ratings": [
+      4,
+      4,
+      4,
+      5,
+      3,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.cuiller.fr/mentions-legales/",
+        "Identité et email"
+      ],
+      [
+        "https://www.linkedin.com/company/cuiller-freres/",
+        "Projets et levage décrits par l'entreprise"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/entreprise-cuiller-freres-710500562",
+        "Identité active et effectif"
+      ]
+    ],
+    "contact_source_index": 0,
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; part externe, payeur et montant non établis.",
+    "opening": "Les équipes présentent le levage de fermes de 22 mètres à la Ferme du Chesnay. Angle proposé : Vérifier les locations sur les journées de levage et les périodes de montage.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Charpente Houot",
+    "group_key": "sylvaprod-houot",
+    "website": "https://www.houot.pro/",
+    "location": "Sainte-Marguerite (88)",
+    "sector": "Fabrication et montage de charpentes bois",
+    "size": "20–49 salariés (2023)",
+    "contact_email": "contact@houot.pro",
+    "target_role": "Direction / RAF",
+    "facts": [
+      "Les poseurs se déplacent à la semaine sur des projets de complexité variable.",
+      "Le recrutement inclut déchargement des éléments, montage, conduite d'engins et travail en hauteur."
+    ],
+    "equipment": "Manutention, nacelles et levage",
+    "pain": "Vérifier transport, durée et reprise des matériels de montage itinérant.",
+    "limitations": [
+      "Petite PME : valeur économique à valider avant audit large.",
+      "Fabrication propre; moyens externes inférés, pas de contrat de location publié."
+    ],
+    "ratings": [
+      4,
+      3,
+      4,
+      4,
+      3,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.houot.pro/nos-offres-demploi/",
+        "Missions des poseurs et email"
+      ],
+      [
+        "https://annuaire-entreprises.data.gouv.fr/entreprise/351123641",
+        "Identité active et effectif"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/charpente-houot-351123641",
+        "Rattachement Sylvaprod"
+      ]
+    ],
+    "contact_source_index": 0,
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; part externe, payeur et montant non établis.",
+    "opening": "Les poseurs se déplacent à la semaine sur des projets de complexité variable. Angle proposé : Vérifier transport, durée et reprise des matériels de montage itinérant.",
+    "confidence": "MEDIUM"
+  }
+]

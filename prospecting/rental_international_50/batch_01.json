@@ -1,0 +1,568 @@
+[
+  {
+    "company": "Stepnell Limited",
+    "group_key": "stepnell",
+    "website": "https://www.stepnell.co.uk/",
+    "location": "Rugby, Angleterre",
+    "sector": "Construction régionale et rénovation",
+    "size": "ETI régionale; effectif global non confirmé; CA £150m exercice mars 2026",
+    "contact_email": "info@stepnell.co.uk",
+    "target_role": "Plant & Fleet Manager avec Finance Director",
+    "facts": [
+      "La nomination d'un responsable matériel en 2024 vise explicitement à limiter les locations externes inutiles.",
+      "Organisation en trois régions; équipe de Bristol passée de 5 à plus de 25 personnes en mai 2025."
+    ],
+    "equipment": "Engins de chantier et matériel d'appoint",
+    "rental_evidence": "EXPLICIT",
+    "rental_hypothesis": "Locations externes reconnues, mais stratégie de substitution par le parc propre; cibler uniquement les achats résiduels.",
+    "pain": "Vérifier périodes, reprises et avoirs sur quelques locations externes de la région en croissance.",
+    "opening": "Évoquer l'expansion de Bristol et le contrôle des locations complémentaires.",
+    "limitations": [
+      "Parc propre et responsable dédié : contrôles déjà structurés.",
+      "Noel Pluck nommé en 2024, fonction actuelle à reconfirmer; passer par l'adresse générale."
+    ],
+    "ratings": [
+      4,
+      4,
+      5,
+      4,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.stepnell.co.uk/contact/",
+        "Régions, siège et email"
+      ],
+      [
+        "https://www.stepnell.co.uk/people/plant-fleet-manager-appointment/",
+        "Location externe et organisation matériel, 23/05/2024"
+      ],
+      [
+        "https://www.stepnell.co.uk/services/construction/stepnell-marks-two-years-in-bristol/",
+        "Croissance de Bristol, mai 2025"
+      ],
+      [
+        "https://www.stepnell.co.uk/corporate/stepnell-delivers-strong-profit-and-growth/",
+        "CA £150m exercice clos mars 2026"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/00402934",
+        "Ltd active"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "English",
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "confidence": "MEDIUM",
+    "contact_source_index": 0
+  },
+  {
+    "company": "Speller Metcalfe Malvern Limited",
+    "group_key": "speller-metcalfe",
+    "website": "https://spellermetcalfe.com/",
+    "location": "Malvern, Angleterre",
+    "sector": "Construction et réhabilitation régionale",
+    "size": "Plus de 200 salariés annoncés, page emploi non datée",
+    "contact_email": "info@spellermetcalfe.com",
+    "target_role": "Finance Director / responsable achats",
+    "facts": [
+      "Implantations à Malvern et Wolverhampton; entreprise familiale régionale.",
+      "Rénovation des infrastructures d'une unité IRM à Queen Elizabeth Hospital Birmingham, livrée en 2025."
+    ],
+    "equipment": "Levage, accès et moyens temporaires sur site hospitalier occupé",
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Les opérations techniques en site occupé peuvent impliquer des locations courtes; payeur et volume à établir.",
+    "pain": "Contrôler les locations durant les phases successives de réhabilitation.",
+    "opening": "Partir de la référence hospitalière 2025 et proposer un lot comparable, non sensible.",
+    "limitations": [
+      "La notion anglaise plant dans cette référence désigne aussi les équipements techniques permanents; ce n'est pas une preuve de location.",
+      "Sous-traitants susceptibles de payer une partie du matériel."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      3,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://spellermetcalfe.com/contact/vacancies/",
+        "Effectif et statut familial"
+      ],
+      [
+        "https://spellermetcalfe.com/portal/",
+        "Email générique public"
+      ],
+      [
+        "https://spellermetcalfe.com/project/mri-suite-infrastructure-upgrade-queen-elizabeth-hospital-birmingham/",
+        "Référence hospitalière livrée 2025"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/03127386",
+        "Unité juridique active, dénomination exacte"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "English",
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "confidence": "MEDIUM",
+    "contact_source_index": 1
+  },
+  {
+    "company": "E.W. Beard Limited",
+    "group_key": "ew-beard",
+    "website": "https://www.beardconstruction.co.uk/",
+    "location": "Swindon, Angleterre",
+    "sector": "Construction, restauration et réhabilitation",
+    "size": "340 salariés annoncés par Open Doors, non daté",
+    "contact_email": "Purchase.Ledger@beardconstruction.co.uk",
+    "target_role": "Responsable comptabilité fournisseurs / Finance Director",
+    "facts": [
+      "Cinq bureaux : Swindon, Bristol, Guildford, Oxford et Southampton.",
+      "Le site annonce 35 projets issus de frameworks en 2025.",
+      "Une équipe Purchase Ledger est publiquement identifiée."
+    ],
+    "equipment": "Accès, manutention et installations temporaires",
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Le nombre de projets rend plausible un ensemble de dossiers locatifs; répartition entre Beard et sous-traitants inconnue.",
+    "pain": "Rapprocher factures, bons de commande et avoirs sur un échantillon multi-phase.",
+    "opening": "Évoquer les 35 projets 2025 et proposer un contrôle complémentaire du rapprochement fournisseur.",
+    "limitations": [
+      "Adresse Purchase Ledger publiée pour les litiges fournisseurs : pertinente fonctionnellement mais ne constitue pas une invitation commerciale.",
+      "Équipes achats/finance et procédures déjà organisées; ne pas supposer un contrôle manuel insuffisant."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      4,
+      4,
+      5,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://opendoors.construction/contractors/beard-construction/",
+        "Effectif et cinq implantations"
+      ],
+      [
+        "https://www.beardconstruction.co.uk/what-we-do/frameworks",
+        "35 projets 2025"
+      ],
+      [
+        "https://www.beardconstruction.co.uk/supply-chain",
+        "Email comptabilité et contrôles existants"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/01126135",
+        "Ltd active"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "English",
+    "contact_status": "ROLE_ADDRESS",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "confidence": "MEDIUM",
+    "contact_source_index": 2
+  },
+  {
+    "company": "E.G. Carter & Company Limited",
+    "group_key": "eg-carter",
+    "website": "https://www.egcarter.co.uk/",
+    "location": "Gloucester, Angleterre",
+    "sector": "Construction, rénovation et maintenance de bâtiments",
+    "size": "Environ 195 salariés groupe en 2025 selon comptes repris par 192.com",
+    "contact_email": "joshuacarter@egcarter.co.uk",
+    "target_role": "Direction administrative",
+    "facts": [
+      "Entreprise familiale intervenant dans les Midlands et le Sud-Ouest.",
+      "Construction du centre d'ingénierie Safran à Gloucester, inauguré en avril 2025 après 18 mois de travaux."
+    ],
+    "equipment": "Manutention, accès et installations de chantier",
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Les opérations industrielles et le portefeuille régional peuvent nécessiter des locations; volume non public.",
+    "pain": "Comparer les locations facturées aux différentes phases d'une opération longue.",
+    "opening": "Utiliser la référence Safran pour proposer une revue bornée des moyens temporaires.",
+    "limitations": [
+      "Effectif du holding, non équivalent à l'unité opérationnelle.",
+      "Location non prouvée; certains moyens peuvent relever des sous-traitants."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      4,
+      5,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://egcarter.co.uk/contact-us",
+        "Joshua Carter, administration et email nominatif"
+      ],
+      [
+        "https://www.egcarter.co.uk/",
+        "Activités et propriété familiale"
+      ],
+      [
+        "https://www.punchline-biz.com/articles/aanews/safran-opens-new-9m-centre-in-gloucester",
+        "Référence indépendante, 25/04/2025"
+      ],
+      [
+        "https://www.192.com/atoz/financial/business/04827636/",
+        "Effectif groupe comptes 2025"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/00790763",
+        "Ltd active"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "English",
+    "contact_status": "CONFIRMED",
+    "contact_name": "Joshua Carter",
+    "contact_title": "Business Administration, Compliance & Corporate Social Responsibility",
+    "revenue": null,
+    "confidence": "MEDIUM",
+    "contact_source_index": 0
+  },
+  {
+    "company": "Clegg Construction Limited",
+    "group_key": "clegg-group",
+    "website": "https://www.cleggconstruction.co.uk/",
+    "location": "Nottingham, Angleterre",
+    "sector": "Bâtiment, éducation et réhabilitation",
+    "size": "Groupe régional, CA annoncé £120m/an non daté; effectif non confirmé",
+    "contact_email": "info@clegggroup.co.uk",
+    "target_role": "Finance Director / direction commerciale des contrats",
+    "facts": [
+      "Le groupe comprend Clegg Construction et Clegg Food Projects; un seul prospect retenu.",
+      "Le site présente un centre de technologies vertes de 2 300 m² à Peterborough College.",
+      "Les actualités 2026 décrivent un programme d'appartements à Sheffield et Stocking Farm."
+    ],
+    "equipment": "Accès, manutention et moyens temporaires de bâtiment",
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Des opérations régionales simultanées rendent plausible le recours à des équipements loués; qui supporte les coûts reste à déterminer.",
+    "pain": "Contrôler les périodes de location et les frais annexes sur une opération récente.",
+    "opening": "Partir de Peterborough College et proposer une revue d'un fournisseur de matériel.",
+    "limitations": [
+      "CA groupe non daté; ne pas l'utiliser comme mesure de dépense locative.",
+      "Matériel potentiellement commandé par les sous-traitants; aucune location nominative trouvée."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      4,
+      3,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://cleggconstruction.co.uk/about-us",
+        "Taille groupe et structure"
+      ],
+      [
+        "https://www.cleggconstruction.co.uk/contact-us",
+        "Email"
+      ],
+      [
+        "https://www.cleggconstruction.co.uk/",
+        "Référence Peterborough"
+      ],
+      [
+        "https://cleggconstruction.co.uk/news",
+        "Activité 2026"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/00667598",
+        "Ltd active"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "English",
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "confidence": "MEDIUM",
+    "contact_source_index": 1
+  },
+  {
+    "company": "G.F. Tomlinson Building Limited",
+    "group_key": "gf-tomlinson",
+    "website": "https://gftomlinson.co.uk/",
+    "location": "Little Eaton / Derby, Angleterre",
+    "sector": "Construction et rénovation régionale",
+    "size": "Plusieurs centaines de salariés selon site groupe, non daté",
+    "contact_email": "office@gftomlinson.co.uk",
+    "target_role": "Finance Director / responsable achats matériel",
+    "facts": [
+      "Constructeur régional privé implanté dans les Midlands.",
+      "L'Université de Nottingham documente son intervention sur le Central Building en mai 2024."
+    ],
+    "equipment": "Levage, accès et installations de chantier",
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "La construction d'équipements collectifs et plusieurs équipes de chantier peuvent générer des locations régulières.",
+    "pain": "Vérifier livraisons, off-hire et reprises au niveau d'une opération universitaire.",
+    "opening": "Partir du Central Building et proposer une revue de factures de moyens temporaires.",
+    "limitations": [
+      "Effectif groupe imprécis; location externe non démontrée.",
+      "Ne pas confondre avec J Tomlinson, autre entreprise."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      4,
+      4,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://gftomlinson.co.uk/about-us/",
+        "Effectifs et portefeuille"
+      ],
+      [
+        "https://gftomlinson.co.uk/contact-us/",
+        "Email groupe"
+      ],
+      [
+        "https://www.nottingham.ac.uk/cmc/documents/residents-letter-issue-3-may24.pdf",
+        "Référence maître d'ouvrage datée"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/02332956",
+        "Ltd active"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "English",
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "confidence": "MEDIUM",
+    "contact_source_index": 1
+  },
+  {
+    "company": "McPhillips (Wellington) Limited",
+    "group_key": "mcphillips",
+    "website": "https://www.mcphillips.co.uk/",
+    "location": "Telford, Angleterre",
+    "sector": "Génie civil, réseaux et construction",
+    "size": "Plus de 280 employés annoncés, date non précisée",
+    "contact_email": "mcphillips@mcphillips.co.uk",
+    "target_role": "Finance Director / responsable matériel",
+    "facts": [
+      "Exécution avec salariés propres dans les Midlands, le Nord-Ouest et le pays de Galles.",
+      "Le siège possède un atelier de maintenance matériel.",
+      "Les recrutements 2025 citent des chantiers à Lichfield et Kenilworth."
+    ],
+    "equipment": "Terrassement, réseaux, compactage et matériel temporaire",
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Les chantiers éloignés peuvent nécessiter des compléments loués au parc propre; aucune dépense attestée.",
+    "pain": "Rapprocher les locations d'appoint des dates de mobilisation chantier.",
+    "opening": "Cibler les locations complémentaires entre chantiers de réseaux ou génie civil.",
+    "limitations": [
+      "Parc propre et atelier réduisent l'hypothèse de dépenses externes.",
+      "La main-d'œuvre propre renforce le profil exécutant mais ne prouve pas des locations."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      3,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.mcphillips.co.uk/about-mcphillips/",
+        "Effectif, exécution et atelier"
+      ],
+      [
+        "https://www.mcphillips.co.uk/contact/",
+        "Email"
+      ],
+      [
+        "https://www.mcphillips.co.uk/mcphillips-continues-to-invest-in-home-grown-workforce/",
+        "Sites Lichfield et Kenilworth, octobre 2025"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/00832117",
+        "Ltd active"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "English",
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "confidence": "MEDIUM",
+    "contact_source_index": 1
+  },
+  {
+    "company": "Breheny Civil Engineering Limited",
+    "group_key": "breheny",
+    "website": "https://breheny.co.uk/",
+    "location": "Ipswich, Angleterre",
+    "sector": "Routes, ouvrages d'art, réseaux et travaux fluviaux",
+    "size": "Environ 400 salariés annoncés; parc de plus de 3 000 éléments",
+    "contact_email": "enquiry@breheny.co.uk",
+    "target_role": "Finance Director / Plant Manager",
+    "facts": [
+      "Entreprise familiale organisée autour de cinq implantations régionales.",
+      "Modèle d'exécution propre avec environ 400 salariés et un parc important.",
+      "Métiers couvrant notamment routes, ouvrages d'art et travaux fluviaux."
+    ],
+    "equipment": "Pompage, levage et équipements spécialisés en complément du parc",
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations d'appoint possibles sur une zone étendue; le parc détenu pénalise fortement l'hypothèse de volume.",
+    "pain": "Limiter la revue aux fournisseurs externes et distinguer transferts internes et véritables locations.",
+    "opening": "Proposer seulement un contrôle de locations spécialisées hors parc interne.",
+    "limitations": [
+      "Parc propre très important, première objection commerciale.",
+      "Email publié dans la brochure 2024; siège du site déplacé à Wherstead, adresse du registre plus ancienne."
+    ],
+    "ratings": [
+      2,
+      4,
+      5,
+      4,
+      3,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.linkedin.com/company/breheny-civil-engineering/",
+        "Effectif, métiers et parc propre"
+      ],
+      [
+        "https://breheny.co.uk/contact-us/",
+        "Implantations actuelles"
+      ],
+      [
+        "https://breheny.co.uk/wp-content/uploads/2025/02/Breheny-Company-Profile-2024.pdf",
+        "Email public brochure"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/00753976",
+        "Ltd active"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "English",
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "confidence": "MEDIUM",
+    "contact_source_index": 2
+  },
+  {
+    "company": "Jackson Civil Engineering Limited",
+    "group_key": "one-group-construction",
+    "website": "https://www.jackson-civils.co.uk/",
+    "location": "Ipswich, Angleterre",
+    "sector": "Génie civil, infrastructures et protection contre les crues",
+    "size": "Entreprise régionale multi-agences; 201–500 selon page employeur, périmètre à confirmer",
+    "contact_email": "enquiries@jackson-civils.co.uk",
+    "target_role": "Finance Director / responsable achats plant",
+    "facts": [
+      "Les conditions d'achat publiées en février 2026 prévoient expressément la location d'engins à des fournisseurs.",
+      "Elles exigent sur les factures les références de commande, matériels et périodes.",
+      "Réseau de bureaux régionaux et activité routes, ponts, crues et énergie."
+    ],
+    "equipment": "Engins et accessoires visés par les conditions d'achat de location",
+    "rental_evidence": "EXPLICIT_PROCUREMENT_TERMS",
+    "rental_hypothesis": "Le modèle contractuel prouve un processus d'achat de location, sans établir le montant ni le nombre de transactions.",
+    "pain": "Comparer l'application des clauses tarifaires et les périodes aux pièces de commande/off-hire.",
+    "opening": "Proposer une vérification d'application de leurs propres conditions d'achat sur un petit lot.",
+    "limitations": [
+      "Contrôles formels existants : ne pas présenter l'offre comme leur remplacement.",
+      "Groupe One Group Construction comprenant des activités de matériel; distinguer tiers et intragroupe.",
+      "Dénomination échangée en février 2025 : l'unité actuelle est 06145639."
+    ],
+    "ratings": [
+      5,
+      4,
+      5,
+      3,
+      4,
+      3,
+      5,
+      5
+    ],
+    "sources": [
+      [
+        "https://www.jackson-civils.co.uk/wp-content/uploads/2026/02/Jackson_Plant_Ts-Cs.pdf",
+        "Conditions d'achat location, clauses prix et facturation"
+      ],
+      [
+        "https://www.jackson-civils.co.uk/contact/",
+        "Email et agences"
+      ],
+      [
+        "https://uk.linkedin.com/company/jackson-civil-engineering",
+        "Métiers et réseau"
+      ],
+      [
+        "https://uk.indeed.com/cmp/Jackson-Civil-Engineering",
+        "Fourchette effectif, indicative"
+      ],
+      [
+        "https://www.jackson-civils.co.uk/history/",
+        "Histoire et rattachement groupe"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/06145639",
+        "Ltd active et changement de nom"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "English",
+    "contact_status": "GENERIC",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "confidence": "MEDIUM",
+    "contact_source_index": 1
+  }
+]

@@ -1,0 +1,648 @@
+[
+  {
+    "company": "SOCOTRAP",
+    "group_key": "socotrap",
+    "website": "https://www.socotrap.com/",
+    "location": "Ramonville-Saint-Agne (31)",
+    "sector": "Gros œuvre, génie civil et entreprise générale",
+    "size": "150 collaborateurs annoncés, date non précisée",
+    "contact_email": "societe@socotrap.fr",
+    "contact_status": "GENERIC",
+    "target_role": "DAF / responsable comptabilité fournisseurs",
+    "facts": [
+      "L'entreprise annonce 150 collaborateurs et réalise elle-même du gros œuvre.",
+      "Son portefeuille couvre santé, enseignement, industrie et génie civil."
+    ],
+    "equipment": "Levage, manutention et installations temporaires de chantier",
+    "rental_hypothesis": "Plusieurs types d'opérations peuvent nécessiter des locations complémentaires au matériel propre.",
+    "pain": "Rapprocher les contrats et périodes facturées entre opérations de gros œuvre.",
+    "opening": "Proposer une vérification sur un seul chantier de génie civil ou bâtiment.",
+    "limitations": [
+      "Locations externes non démontrées; effectif et CA du site non datés.",
+      "Contact publié par le centre d'aide de l'entreprise en 2023; à revalider avant campagne."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      3,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.socotrap.com/socotrap-qui-sommes-nous",
+        "Effectif, métiers et gouvernance"
+      ],
+      [
+        "https://intercom.help/socotrap/fr/articles/2965290-comment-nous-contacter",
+        "Email et siège, 06/06/2023"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/socotrap-societe-construction-et-travaux-publics-540800885",
+        "Identité active et dépôt des comptes 2025 en juillet 2026"
+      ]
+    ],
+    "contact_source_index": 1,
+    "revenue": null,
+    "contact_name": null,
+    "contact_title": null,
+    "rental_evidence": "INFERRED",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "SECTP",
+    "group_key": "sectp",
+    "website": "https://sectp.com/",
+    "location": "Aix-en-Provence (13)",
+    "sector": "Gros œuvre béton armé",
+    "size": "200 collaborateurs annoncés, site non daté",
+    "contact_email": "infos@sectp.com",
+    "contact_status": "GENERIC",
+    "target_role": "RAF / responsable matériel",
+    "facts": [
+      "Gros œuvre en béton armé avec intervention dans six départements du Sud-Est.",
+      "Le site annonce environ 200 collaborateurs."
+    ],
+    "equipment": "Manutention, accès en hauteur, coffrage et équipements de base-vie",
+    "rental_hypothesis": "Le maillage et la taille des équipes rendent plausibles des locations temporaires, sans volume public établi.",
+    "pain": "Contrôler les dates de fin et les frais annexes sur les locations affectées aux opérations régionales.",
+    "opening": "Partir du périmètre de six départements et demander un lot documentaire d'une opération.",
+    "limitations": [
+      "Aucun fournisseur de location ou montant de dépense identifié.",
+      "Le coffrage et les grues peuvent être détenus en propre."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      3,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://sectp.com/qui-sommes-nous-2/",
+        "Effectif, exécution et implantation"
+      ],
+      [
+        "https://sectp.com/contact/",
+        "Adresse et email"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/sectp-444518567",
+        "Identité juridique"
+      ]
+    ],
+    "contact_source_index": 1,
+    "revenue": null,
+    "contact_name": null,
+    "contact_title": null,
+    "rental_evidence": "INFERRED",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "LIZEE",
+    "group_key": "lizee",
+    "website": "https://www.lizee.com/",
+    "location": "Saint-Laurent-du-Var (06)",
+    "sector": "Gros œuvre et réhabilitation",
+    "size": "Site : 120 à 200 selon périmètre; unité légale : 20–49 (2022)",
+    "contact_email": "compta@lizee.com",
+    "contact_status": "ROLE_ADDRESS",
+    "target_role": "Responsable comptabilité / RAF",
+    "facts": [
+      "L'entreprise réalise du gros œuvre neuf et de la réhabilitation.",
+      "Le site présente ses moyens de manutention et des interventions en hauteur."
+    ],
+    "equipment": "Nacelles, manutention et matériel temporaire; moyens propres également publiés",
+    "rental_hypothesis": "Des besoins d'appoint sont plausibles sur les travaux de réhabilitation; l'ampleur du parc loué reste inconnue.",
+    "pain": "Vérifier tarifs, périodes et avoirs au niveau comptable pour un dossier de chantier.",
+    "opening": "S'appuyer sur la coexistence neuf/réhabilitation et proposer un rapprochement comptable limité.",
+    "limitations": [
+      "Effectifs du site et du registre portent sur des périmètres/dates différents.",
+      "Aucune preuve de location externe; matériel propre documenté."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      4,
+      3,
+      5,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.lizee.com/entreprise/",
+        "Activités, chiffres groupe non homogènes"
+      ],
+      [
+        "https://www.lizee.com/contact/",
+        "Adresse comptabilité publiée"
+      ],
+      [
+        "https://www.lizee.com/engagements/securite/",
+        "Moyens et contraintes de chantier"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/lizee-377818638",
+        "Unité légale active et effectif 2022"
+      ]
+    ],
+    "contact_source_index": 1,
+    "revenue": null,
+    "contact_name": null,
+    "contact_title": null,
+    "rental_evidence": "INFERRED",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "GCMI",
+    "group_key": "gcmi",
+    "website": "https://gcmi.fr/",
+    "location": "Saint-Romain-de-Colbosc (76)",
+    "sector": "Génie civil et maintenance industrielle",
+    "size": "100 annoncés sur le site; 125 sur fiche CCI, dates non précisées",
+    "contact_email": "contact@gcmi.fr",
+    "contact_status": "GENERIC",
+    "target_role": "RAF / direction des opérations industrielles",
+    "facts": [
+      "Interventions en génie civil, terrassement et VRD pour l'industrie, notamment pétrochimique.",
+      "L'entreprise dispose de pelles, camions-grues et aspiratrices propres.",
+      "Sa fiche CCI décrit une forte exposition aux sites industriels SEVESO."
+    ],
+    "equipment": "Pompage, alimentation et accès temporaires possibles, en complément du parc propre",
+    "rental_hypothesis": "La maintenance industrielle peut créer des besoins ponctuels spécialisés; location non prouvée.",
+    "pain": "Rapprocher les durées de mobilisation et les locations associées à un arrêt industriel.",
+    "opening": "Proposer un contrôle d'un lot de moyens temporaires sur une intervention industrielle.",
+    "limitations": [
+      "Parc propre important : ne pas assimiler activité intensive et dépenses locatives.",
+      "Périmètres d'effectif différents; aucun montant locatif public.",
+      "Ne demander que des documents partageables, sans données sensibles des installations."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      3,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://gcmi.fr/lentreprise/",
+        "Métiers et effectif annoncé"
+      ],
+      [
+        "https://gcmi.fr/",
+        "Parc propre"
+      ],
+      [
+        "https://gcmi.fr/contact/",
+        "Email et siège"
+      ],
+      [
+        "https://ccibusiness.fr/genie-civil-maintenance-industrielle",
+        "Effectif et spécialisation industrielle"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/gcmi-genie-civil-maintenance-industrielle-439358565",
+        "Identité juridique"
+      ]
+    ],
+    "contact_source_index": 2,
+    "revenue": null,
+    "contact_name": null,
+    "contact_title": null,
+    "rental_evidence": "INFERRED",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "MITHIEUX TP",
+    "group_key": "mithieux",
+    "website": "https://www.mithieux-tp.fr/",
+    "location": "Annecy / Seynod (74)",
+    "sector": "Terrassement, réseaux, génie civil et déconstruction",
+    "size": "Plus de 220 annoncés; registre 200–249 (2023)",
+    "contact_email": "info@mithieux-tp.com",
+    "contact_status": "GENERIC",
+    "target_role": "DAF / responsable matériel",
+    "facts": [
+      "L'entreprise annonce plus de 220 collaborateurs et des interventions nationales.",
+      "Elle réalise notamment du génie civil industriel, agricole et environnemental.",
+      "Parc propre et capacité d'intervention en DROM-COM présentés sur le site."
+    ],
+    "equipment": "Pompes, énergie temporaire, compactage et engins complémentaires possibles",
+    "rental_hypothesis": "Les mobilisations éloignées peuvent justifier des locations locales, à confirmer compte tenu du parc propre.",
+    "pain": "Vérifier transport, reprises et affectation des factures lors des mobilisations éloignées.",
+    "opening": "Évoquer les interventions nationales et cibler un chantier hors implantation habituelle.",
+    "limitations": [
+      "Location externe inférée, non attestée.",
+      "Ne pas dupliquer l'activité Grand Est au titre d'un acheteur supplémentaire."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      4,
+      3,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.mithieux-tp.fr/notre-entreprise",
+        "Effectif et organisation"
+      ],
+      [
+        "https://www.mithieux-tp.fr/en",
+        "Activités, adresse et email"
+      ],
+      [
+        "https://www.canalisateurs.com/node/1626",
+        "Email recoupé par la fédération"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/mithieux-tp-326520780",
+        "État actif et effectif 2023"
+      ]
+    ],
+    "contact_source_index": 1,
+    "revenue": null,
+    "contact_name": null,
+    "contact_title": null,
+    "rental_evidence": "INFERRED",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "EGD Désamiantage",
+    "group_key": "pgms",
+    "website": "https://www.egd-desamiantage.com/",
+    "location": "Vouillé (86), agences IDF et Rhône-Alpes",
+    "sector": "Désamiantage et déconstruction",
+    "size": "50–99 salariés (2023, EGD)",
+    "contact_email": "contact@egd-desamiantage.com",
+    "contact_status": "GENERIC",
+    "target_role": "RAF du groupe PGMS / responsable achats",
+    "facts": [
+      "Trois implantations régionales sont présentées : Ouest Atlantique, Île-de-France et Rhône-Alpes.",
+      "Le portefeuille comprend le collège Henri-IV à Poitiers et quatre tours à Corbeil-Essonnes (2024).",
+      "PGMS centralise des ressources administratives du groupe."
+    ],
+    "equipment": "Accès, levage, alimentation et installations temporaires de chantier",
+    "rental_hypothesis": "Les chantiers successifs et éloignés rendent plausible la location d'appoint; les équipements spécialisés peuvent être possédés.",
+    "pain": "Contrôler les retours et avoirs de matériel temporaire entre agences.",
+    "opening": "Partir du portefeuille Poitiers/Corbeil et proposer un échantillon dans une seule agence.",
+    "limitations": [
+      "Pas de preuve de dépense locative; distinguer matériel spécialisé propre et location externe.",
+      "Ne pas ajouter TMD/PGMS comme prospects indépendants."
+    ],
+    "ratings": [
+      4,
+      4,
+      5,
+      4,
+      3,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.egd-desamiantage.com/",
+        "Agences et références 2024"
+      ],
+      [
+        "https://www.egd-desamiantage.com/nous-contacter/",
+        "Email et siège"
+      ],
+      [
+        "https://www.egd-desamiantage.com/pgms-societe-desamiantage/",
+        "Organisation groupe"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/egd-519459309",
+        "Activité et effectif 2023"
+      ]
+    ],
+    "contact_source_index": 1,
+    "revenue": null,
+    "contact_name": null,
+    "contact_title": null,
+    "rental_evidence": "INFERRED",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "EuropAmiante",
+    "group_key": "rg-group-europamiante",
+    "website": "https://europamiante.fr/",
+    "location": "Mareuil-lès-Meaux (77), bureau à Vichy",
+    "sector": "Désamiantage industriel et de bâtiments",
+    "size": "Plus de 70 annoncés; 50–99 (2023, unité légale)",
+    "contact_email": null,
+    "contact_status": "CONTACT_FORM_ONLY",
+    "target_role": "Direction administrative / Carine Rouvier, PDG",
+    "facts": [
+      "Interventions en milieux industriels, bâtiments occupés et secteur naval.",
+      "L'entreprise annonce plus de 70 collaborateurs et dispose d'un bureau à Vichy en complément du siège.",
+      "Organisation administrative et transports propres publiés."
+    ],
+    "equipment": "Accès en hauteur, manutention, énergie et installations temporaires",
+    "rental_hypothesis": "La diversité des sites peut nécessiter du matériel temporaire complémentaire; usage locatif à établir.",
+    "pain": "Reconstituer les périodes de moyens d'accès et frais de transport pour un chantier.",
+    "opening": "Évoquer les contraintes de mobilisation sur sites occupés et proposer une vérification écrite d'un dossier.",
+    "limitations": [
+      "Aucun email pertinent public confirmé; utiliser uniquement le formulaire.",
+      "Parc/transport propres et administration existante : ne pas supposer de carence.",
+      "Sites sensibles : limiter tout éventuel échantillon aux documents autorisés."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      3,
+      2,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://europamiante.fr/notre-societe/",
+        "Métiers, effectif et PDG"
+      ],
+      [
+        "https://europamiante.fr/nous-contacter/",
+        "Formulaire et implantations"
+      ],
+      [
+        "https://annuaire-entreprises.data.gouv.fr/entreprise/510872435",
+        "État et effectif"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/europamiante-510872435",
+        "Rattachement RG Group"
+      ]
+    ],
+    "contact_source_index": 1,
+    "revenue": null,
+    "contact_name": null,
+    "contact_title": null,
+    "rental_evidence": "INFERRED",
+    "confidence": "MEDIUM",
+    "contact_form": "https://europamiante.fr/nous-contacter/"
+  },
+  {
+    "company": "Est Ouvrages",
+    "group_key": "est-ouvrages",
+    "website": "https://estouvrages.com/",
+    "location": "Atton (54), agences Nord-Est et Centre",
+    "sector": "Ouvrages d'art, génie civil industriel et hydraulique",
+    "size": "350 collaborateurs groupe, page chiffres clés 2025",
+    "contact_email": "d.genter@estouvrages.com",
+    "contact_status": "CONFIRMED",
+    "target_role": "Direction d'agence puis RAF groupe",
+    "facts": [
+      "Le groupe annonce 350 collaborateurs et 60 recrutements en 2025.",
+      "Les agences couvrent ouvrages d'art, travaux industriels et travaux spéciaux.",
+      "Le site présente du génie civil pour ArcelorMittal à Bruyères-sur-Oise."
+    ],
+    "equipment": "Levage, pompage, accès et moyens temporaires de travaux spéciaux",
+    "rental_hypothesis": "La diversité des métiers et des agences rend plausibles des locations spécialisées ponctuelles; montant inconnu.",
+    "pain": "Vérifier tarifs, durées et frais de mobilisation sur un dossier de travaux spéciaux.",
+    "opening": "Proposer à l'agence BFC un échantillon local, avec relais finance si utile.",
+    "limitations": [
+      "Email nominatif publié par STRRES, poste à reconfirmer avant envoi.",
+      "L'agence n'est pas nécessairement autonome pour les achats.",
+      "Aucun volume locatif documenté; Demouy inclus dans le même groupe."
+    ],
+    "ratings": [
+      4,
+      4,
+      5,
+      4,
+      3,
+      4,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://estouvrages.com/chiffres-cles/",
+        "Effectifs et recrutements 2025"
+      ],
+      [
+        "https://estouvrages.com/nos-agences/",
+        "Réseau et métiers"
+      ],
+      [
+        "https://estouvrages.com/",
+        "Référence industrielle"
+      ],
+      [
+        "https://www.strres.org/agences/agence-bourgogne-franche-comte/",
+        "Damien Genter, chef d'agence; email public"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/est-ouvrages-439744996",
+        "Identité active"
+      ],
+      [
+        "https://estouvrages.com/nos-filiales/",
+        "Structure groupe et Demouy"
+      ]
+    ],
+    "contact_source_index": 3,
+    "revenue": null,
+    "contact_name": "Damien Genter",
+    "contact_title": "Chef d'agence Bourgogne-Franche-Comté (annuaire STRRES)",
+    "rental_evidence": "INFERRED",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "MAS BTP",
+    "group_key": "mas-btp",
+    "website": "https://mas-btp.com/",
+    "location": "Pau (64), Bordeaux et Toulouse",
+    "sector": "Entreprise générale et gros œuvre",
+    "size": "250–499 salariés (2023)",
+    "contact_email": "mas@mas-btp.com",
+    "contact_status": "GENERIC",
+    "target_role": "DAF / responsable achats ou matériel",
+    "facts": [
+      "Entreprise de construction disposant d'implantations à Pau, Bordeaux et Toulouse.",
+      "Le site présente la direction travaux de Bordeaux et ses opérations de bâtiment."
+    ],
+    "equipment": "Manutention, accès et installations de chantier temporaires",
+    "rental_hypothesis": "La taille et les trois implantations suggèrent plusieurs dossiers de chantier susceptibles d'inclure des locations.",
+    "pain": "Contrôler l'affectation par chantier et les prolongations lors des transferts de matériel.",
+    "opening": "Proposer un contrôle d'une opération dans l'une des trois implantations.",
+    "limitations": [
+      "Locations externes et autonomie des agences non démontrées.",
+      "Ne pas confondre avec les homonymes MAS BTP de Paris ou Gonesse."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      4,
+      3,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://mas-btp.com/",
+        "Métiers, implantations et direction travaux"
+      ],
+      [
+        "https://mas-btp.com/contact/",
+        "Email du siège"
+      ],
+      [
+        "https://annuaire-entreprises.data.gouv.fr/entreprise/096280250",
+        "Identité active et effectif 2023"
+      ]
+    ],
+    "contact_source_index": 1,
+    "revenue": null,
+    "contact_name": null,
+    "contact_title": null,
+    "rental_evidence": "INFERRED",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Entreprise Gallego",
+    "group_key": "cege-gallego",
+    "website": "https://gallego.fr/",
+    "location": "Séméac (65)",
+    "sector": "Gros œuvre, génie civil et réhabilitation",
+    "size": "100–199 salariés (2023)",
+    "contact_email": "secretariat@gallego.fr",
+    "contact_status": "ROLE_ADDRESS",
+    "target_role": "Responsable administratif/finance CEGE",
+    "facts": [
+      "L'entreprise réalise des travaux neufs et de réhabilitation, y compris en site occupé.",
+      "Le groupe CEGE rassemble Gallego, Gallego Aquitaine et CEGE Immobilière.",
+      "Le portefeuille de métiers comprend des ouvrages hydrauliques."
+    ],
+    "equipment": "Accès, levage, pompage et matériel temporaire",
+    "rental_hypothesis": "Les interventions occupées et hydrauliques peuvent nécessiter des équipements complémentaires loués.",
+    "pain": "Rapprocher les périodes et frais accessoires avec les contraintes de phasage.",
+    "opening": "Évoquer les interventions en site occupé et proposer une revue des pièces d'un chantier.",
+    "limitations": [
+      "Usage locatif inféré; ne pas cibler la promotion immobilière.",
+      "Éviter de compter Gallego Aquitaine comme autre acheteur sans preuve d'autonomie."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      3,
+      4,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://gallego.fr/gallego/",
+        "Modes d'intervention"
+      ],
+      [
+        "https://gallego.fr/nos-metiers/",
+        "Métiers dont hydraulique"
+      ],
+      [
+        "https://gallego.fr/groupe-cege/",
+        "Périmètre groupe"
+      ],
+      [
+        "https://gallego.fr/nous-contacter/",
+        "Secrétariat professionnel"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/entreprise-gallego-572780310",
+        "Activité et effectif 2023"
+      ]
+    ],
+    "contact_source_index": 3,
+    "revenue": null,
+    "contact_name": null,
+    "contact_title": null,
+    "rental_evidence": "INFERRED",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Jousselin Construction",
+    "group_key": "hm-financiere-jousselin",
+    "website": "https://jousselin-construction.com/",
+    "location": "Ombrée-d'Anjou / Pouancé (49)",
+    "sector": "Gros œuvre, bâtiments tertiaires et industriels",
+    "size": "65 collaborateurs annoncés; 50–99 (2023)",
+    "contact_email": "contact@jousselin-construction.com",
+    "contact_status": "GENERIC",
+    "target_role": "RAF / direction générale",
+    "facts": [
+      "L'entreprise annonce 65 collaborateurs et intervient dans quatre départements de l'Ouest.",
+      "Références 2023 : groupe scolaire Gérard-Philipe à Angers et bâtiment d'enseignement à Centrale Nantes.",
+      "Équipes de travaux propres et activité de génie civil présentées."
+    ],
+    "equipment": "Levage, manutention et installations temporaires",
+    "rental_hypothesis": "Des chantiers de bâtiments collectifs et d'enseignement peuvent nécessiter des locations complémentaires; aucune facture publique.",
+    "pain": "Vérifier fins de location et transports entre phases de gros œuvre.",
+    "opening": "S'appuyer sur les références d'enseignement et demander un petit échantillon d'un chantier comparable.",
+    "limitations": [
+      "Références datées de 2023; ne pas les présenter comme chantiers encore actifs.",
+      "Aucun volume locatif connu; taille modeste, valeur du dossier à confirmer."
+    ],
+    "ratings": [
+      3,
+      3,
+      4,
+      5,
+      3,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://jousselin-construction.com/",
+        "Effectif"
+      ],
+      [
+        "https://jousselin-construction.com/entreprise.html",
+        "Métiers et quatre départements"
+      ],
+      [
+        "https://jousselin-construction.com/3-tertiaire.html",
+        "Références datées 2023"
+      ],
+      [
+        "https://jousselin-construction.com/nous-contacter.html",
+        "Email"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/jousselin-construction-495131799",
+        "Identité active et effectif 2023"
+      ]
+    ],
+    "contact_source_index": 3,
+    "revenue": null,
+    "contact_name": null,
+    "contact_title": null,
+    "rental_evidence": "INFERRED",
+    "confidence": "MEDIUM"
+  }
+]
