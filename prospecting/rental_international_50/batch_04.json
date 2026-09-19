@@ -1,0 +1,383 @@
+[
+  {
+    "company": "Ashe Construction Limited",
+    "group_key": "ashe",
+    "website": "https://www.ashegroup.co.uk/",
+    "location": "Hitchin, Hertfordshire",
+    "size": "51–200 salariés, tranche du profil LinkedIn",
+    "contact_email": "hitchin@ashegroup.co.uk",
+    "facts": [
+      "L’entreprise publie l’avancement de la charpente du centre de recyclage de Wolverton, Milton Keynes.",
+      "Une action sécurité de janvier 2025 a concerné vingt chantiers dans sept comtés, salariés et sous-traitants inclus."
+    ],
+    "pain": "Vérifier dates et affectation des locations entre chantiers simultanés.",
+    "limitations": [
+      "Matériels propres mentionnés dans le plan carbone; compléments externes inférés.",
+      "Les 600 participants de l’action sécurité ne sont pas 600 salariés."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.ashegroup.co.uk/careers/",
+        "Email général du siège"
+      ],
+      [
+        "https://www.linkedin.com/company/ashe-construction-ltd",
+        "Taille et projet Wolverton"
+      ],
+      [
+        "https://bdcmagazine.com/2025/01/ashe-stands-down-for-safety-initiative/",
+        "Vingt chantiers en janvier 2025"
+      ],
+      [
+        "https://www.ashegroup.co.uk/wp-content/uploads/2024/07/SHEQ-932-Rev-A-Carbon-Reduction-Plan-1.pdf",
+        "Matériel possédé"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/02373535",
+        "Ltd active"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "sector": "Construction et réhabilitation",
+    "target_role": "Finance Director / Procurement Manager",
+    "equipment": "Accès en hauteur, manutention et installations provisoires",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations plausibles en raison des moyens temporaires et du phasage des opérations; dépenses et payeur à qualifier.",
+    "opening": "L’entreprise publie l’avancement de la charpente du centre de recyclage de Wolverton, Milton Keynes. Hypothèse d’approche : Vérifier dates et affectation des locations entre chantiers simultanés.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "S.D.C. Builders Limited",
+    "group_key": "sdc",
+    "website": "https://www.sdc.co.uk/",
+    "location": "Bedford; Oxford et Cambridge",
+    "size": "Plus de 350 collaborateurs groupe annoncés",
+    "contact_email": "contact@sdc.co.uk",
+    "facts": [
+      "Trois bureaux à Bedford, Cambridge et Oxford.",
+      "Le site annonce en juin 2026 la livraison de laboratoires et bureaux de six étages à Cambridge North."
+    ],
+    "pain": "Rapprocher locations, prolongations et retours entre phases des bâtiments de laboratoires.",
+    "limitations": [
+      "Entreprise structurée, détenue par les salariés; ne pas supposer de faibles contrôles.",
+      "Responsabilité des locations entre entrepreneur principal et sous-traitants à qualifier."
+    ],
+    "ratings": [
+      3,
+      5,
+      5,
+      4,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.sdc.co.uk/contact/",
+        "Email et bureaux"
+      ],
+      [
+        "https://www.sdc.co.uk/careers/",
+        "Taille et propriété salariée"
+      ],
+      [
+        "https://www.sdc.co.uk/",
+        "Projet livré en juin 2026"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/01251716",
+        "Ltd active"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "sector": "Construction et réhabilitation",
+    "target_role": "Finance Director / Procurement Manager",
+    "equipment": "Accès en hauteur, manutention et installations provisoires",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations plausibles en raison des moyens temporaires et du phasage des opérations; dépenses et payeur à qualifier.",
+    "opening": "Trois bureaux à Bedford, Cambridge et Oxford. Hypothèse d’approche : Rapprocher locations, prolongations et retours entre phases des bâtiments de laboratoires.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Barnes Construction – The Barnes Group Limited",
+    "group_key": "barnes-ipswich",
+    "website": "https://barnesconstruction.co.uk/",
+    "location": "Ipswich, Suffolk",
+    "size": "Plus de 120 personnes annoncées pour la division construction",
+    "contact_email": "owl@barnesconstruction.co.uk",
+    "facts": [
+      "Portefeuille comprenant extension du dépôt Jack Sealey et urgences de l’hôpital d’Ipswich.",
+      "Équipes couvrant achats, conduite de chantier et économie de construction."
+    ],
+    "pain": "Vérifier les durées et frais annexes sur chantiers industriels et hospitaliers phasés.",
+    "limitations": [
+      "Opérateur The Barnes Group Limited 01359667; la société homonyme 02541343 est non-trading.",
+      "Le groupe comprend Bower Fuller: une seule cible.",
+      "Locations externes non attestées publiquement."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://barnesconstruction.co.uk/contact/",
+        "Email"
+      ],
+      [
+        "https://barnesconstruction.co.uk/projects/",
+        "Références"
+      ],
+      [
+        "https://barnesconstruction.co.uk/work-with-us/",
+        "Effectif et fonctions"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/01359667",
+        "Opérateur actif"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/02541343",
+        "Homonyme non-trading"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "sector": "Construction et réhabilitation",
+    "target_role": "Finance Director / Procurement Manager",
+    "equipment": "Accès en hauteur, manutention et installations provisoires",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations plausibles en raison des moyens temporaires et du phasage des opérations; dépenses et payeur à qualifier.",
+    "opening": "Portefeuille comprenant extension du dépôt Jack Sealey et urgences de l’hôpital d’Ipswich. Hypothèse d’approche : Vérifier les durées et frais annexes sur chantiers industriels et hospitaliers phasés.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Quinn (London) Limited",
+    "group_key": "quinn-london",
+    "website": "https://www.quinnlondon.co.uk/",
+    "location": "Mill Hill et Soho, Londres",
+    "size": "Plus de 170 salariés annoncés",
+    "contact_email": "info@quinnlondon.co.uk",
+    "facts": [
+      "Le site publie en septembre 2026 des nouvelles du chantier Homerton University Hospital et de la livraison de 14 Bolton Street.",
+      "Activités de patrimoine, rénovation, façades et bâtiments publics à Londres."
+    ],
+    "pain": "Contrôler les périodes des équipements d’accès et les frais de reprise en milieu urbain contraint.",
+    "limitations": [
+      "Email générique prouvé par document public 2023; page actuelle masque les adresses dans le rendu web. Reconfirmer avant campagne.",
+      "Matériel éventuellement payé par les sous-traitants."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://consultations.wearecamden.org/communications-strategy-improvement/tybalds-regeneration-programme/supporting_documents/20230124_CMP_Rev%20B_Tybalds%20EstateFinalConsultationDraft%20V3.pdf",
+        "Email professionnel de l’entreprise"
+      ],
+      [
+        "https://www.quinnlondon.co.uk/",
+        "Effectif et actualités septembre 2026"
+      ],
+      [
+        "https://www.quinnlondon.co.uk/our-projects/",
+        "Métiers et références"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/04005400",
+        "Ltd active"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "sector": "Construction et réhabilitation",
+    "target_role": "Finance Director / Procurement Manager",
+    "equipment": "Accès en hauteur, manutention et installations provisoires",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations plausibles en raison des moyens temporaires et du phasage des opérations; dépenses et payeur à qualifier.",
+    "opening": "Le site publie en septembre 2026 des nouvelles du chantier Homerton University Hospital et de la livraison de 14 Bolton Street. Hypothèse d’approche : Contrôler les périodes des équipements d’accès et les frais de reprise en milieu urbain contraint.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Logan Construction (South East) Ltd",
+    "group_key": "logan-se",
+    "website": "https://www.loganconstruction.co.uk/",
+    "location": "Eltham, Londres et Kent",
+    "size": "70 salariés annoncés sur la page d’accueil",
+    "contact_email": "mail@loganconstruction.co.uk",
+    "facts": [
+      "Entreprise centrée sur travaux complexes de santé et d’éducation, depuis deux bureaux Londres/Kent.",
+      "Référence historique d’extension des urgences de St Thomas et participation ProCure 23."
+    ],
+    "pain": "Rapprocher durées, arrêts et frais de transport des équipements sur sites hospitaliers phasés.",
+    "limitations": [
+      "Référence St Thomas historique, pas un chantier actuel.",
+      "Les titulaires finance/achats ne sont pas confirmés nominativement."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.loganconstruction.co.uk/",
+        "Email, taille, bureaux et métiers"
+      ],
+      [
+        "https://www.loganconstruction.co.uk/history/",
+        "Référence St Thomas"
+      ],
+      [
+        "https://www.loganconstruction.co.uk/about-us/frameworks/",
+        "ProCure 23"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/03167858",
+        "Ltd active"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "sector": "Construction et réhabilitation",
+    "target_role": "Finance Director / Procurement Manager",
+    "equipment": "Accès en hauteur, manutention et installations provisoires",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations plausibles en raison des moyens temporaires et du phasage des opérations; dépenses et payeur à qualifier.",
+    "opening": "Entreprise centrée sur travaux complexes de santé et d’éducation, depuis deux bureaux Londres/Kent. Hypothèse d’approche : Rapprocher durées, arrêts et frais de transport des équipements sur sites hospitaliers phasés.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Jeakins Weir Limited",
+    "group_key": "jeakins-weir",
+    "website": "https://jeakinsweir.co.uk/",
+    "location": "Corby, Midlands",
+    "size": "51–200 salariés, tranche LinkedIn; effectif comptable récent non retenu",
+    "contact_email": "info@jeakinsweir.co.uk",
+    "facts": [
+      "Le portefeuille inclut le développement phasé de LOROS Hospice et trois extensions de Spring Common SEND Academy.",
+      "Activités construction et maintenance réparties dans les Midlands."
+    ],
+    "pain": "Vérifier les fins de location à chaque phase de travaux sur établissements occupés.",
+    "limitations": [
+      "Références non datées; pas de volume annuel de location établi.",
+      "Privilégier les travaux de construction plutôt que les petites réparations."
+    ],
+    "ratings": [
+      3,
+      3,
+      4,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://jeakinsweir.co.uk/about",
+        "Email et identité"
+      ],
+      [
+        "https://jeakinsweir.co.uk/projects",
+        "Références phasées"
+      ],
+      [
+        "https://uk.linkedin.com/company/jeakins-weir-ltd-",
+        "Ordre de taille et périmètre"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/01095682",
+        "Ltd active"
+      ]
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "sector": "Construction et réhabilitation",
+    "target_role": "Finance Director / Procurement Manager",
+    "equipment": "Accès en hauteur, manutention et installations provisoires",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations plausibles en raison des moyens temporaires et du phasage des opérations; dépenses et payeur à qualifier.",
+    "opening": "Le portefeuille inclut le développement phasé de LOROS Hospice et trois extensions de Spring Common SEND Academy. Hypothèse d’approche : Vérifier les fins de location à chaque phase de travaux sur établissements occupés.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  }
+]

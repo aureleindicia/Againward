@@ -181,5 +181,65 @@
       "https://www.obmgroupe.net/contact/"
     ],
     "research_date": "2026-09-19"
+  },
+  {
+    "company": "Carrion Travaux Publics",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Opposition explicite à l’utilisation des données pour la prospection sur la fiche publique.",
+    "sources": [
+      "https://www.pappers.fr/entreprise/carrion-travaux-publics-399601947"
+    ],
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Gillion Construct",
+    "country": "Belgium",
+    "decision": "REJECTED",
+    "reason": "Pertes répétées et capitaux propres négatifs publiés pour 2024: fragilité financière, sans conclure à une insolvabilité.",
+    "sources": [
+      "https://www.companyweb.be/fr/0400481821/gillion-construct"
+    ],
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Etandex",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Plus de 1 000 salariés, achats et logistique structurés; pas de preuve de location externe suffisante pour justifier une exception à cette taille.",
+    "sources": [
+      "https://emploi.etandex.fr/jobs/8207379-responsable-logistique-chantiers-h-f"
+    ],
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "SN Poulingue",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Filiale à 100 % d’OBM Construction, groupe déjà écarté pour opposition à la prospection; aucune autonomie achats établie.",
+    "sources": [
+      "https://www.poulingue.fr/"
+    ],
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Ferracin Frères",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Activité et taille plausibles mais références concrètes insuffisamment accessibles; exclu faute de personnalisation étayée.",
+    "sources": [
+      "https://www.ferracin.fr/contact.php"
+    ],
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Cassin TP",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "120 machines propres annoncées; manque de signal spécifique de location externe et effectifs de périmètres divergents.",
+    "sources": [
+      "https://www.cassintp.fr/"
+    ],
+    "research_date": "2026-09-20"
   }
 ]

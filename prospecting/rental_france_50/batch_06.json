@@ -1,0 +1,425 @@
+[
+  {
+    "company": "Giraud Midi-Pyrénées",
+    "group_key": "giraud-alizeo",
+    "website": "https://www.giraudbtp.com/",
+    "location": "Ramonville-Saint-Agne (31) et Castelnau-le-Lez (34)",
+    "sector": "Gros œuvre et ouvrages béton techniques",
+    "size": "100–199 salariés en 2023",
+    "contact_email": "toulouse@giraudbtp.com",
+    "target_role": "DAF / achats matériel",
+    "facts": [
+      "Deux agences, Toulouse et Montpellier, répertoriées par EGF.",
+      "Référence Campus Orange à Toulouse: quatre bâtiments de bureaux."
+    ],
+    "equipment": "Manutention, accès et bases-vie",
+    "pain": "Rapprocher périodes de location et retours entre bâtiments et agences.",
+    "limitations": [
+      "Références parfois anciennes; ne pas annoncer un chantier actuel sans date.",
+      "Location et volume externe inférés."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      4,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.egfbtp.com/annuaire-des-adherents/",
+        "Email agence"
+      ],
+      [
+        "https://giraudbtp.com/nos-realisations/toulouse",
+        "Campus Orange"
+      ],
+      [
+        "https://annuaire-entreprises.data.gouv.fr/entreprise/giraud-midi-pyrenees-419657416",
+        "Active, taille et identité"
+      ]
+    ],
+    "country": "France",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles; dépenses et acheteur contractuel non établis.",
+    "opening": "Deux agences, Toulouse et Montpellier, répertoriées par EGF. Hypothèse d’approche : Rapprocher périodes de location et retours entre bâtiments et agences.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Giesper – Travaux Publics",
+    "group_key": "giesper",
+    "website": "https://www.giesper.fr/",
+    "location": "Balma (31); Grand Sud",
+    "sector": "Réseaux humides et secs, génie civil",
+    "size": "100–199 salariés unité en 2022; groupe environ 250–300 annoncé",
+    "contact_email": "contact@giesper.fr",
+    "target_role": "DAF / comptabilité fournisseurs avec achats",
+    "facts": [
+      "Références de renouvellement EU/EP en accès contraint à Montauban et de bassin de rétention.",
+      "Le groupe publie un recrutement comptabilité fournisseurs mentionnant vérification des factures et les outils Sage, Onaya et ADOC."
+    ],
+    "equipment": "Terrassement, pompage, compactage et énergie temporaire",
+    "pain": "Tester un rapprochement location–retour complémentaire aux contrôles fournisseurs existants.",
+    "limitations": [
+      "Ne pas déduire du recrutement un défaut de contrôle.",
+      "Groupe diversifié: cibler Travaux Publics, pas hôtellerie ou promotion.",
+      "Parc propre et part louée non quantifiés."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.giesper.fr/le-groupe/",
+        "Email et groupe"
+      ],
+      [
+        "https://www.giesper.fr/realisations/",
+        "Montauban et bassin"
+      ],
+      [
+        "https://fr.linkedin.com/company/giesper",
+        "Recrutement et taille groupe"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/giesper-travaux-publics-580800811",
+        "Unité active et taille"
+      ]
+    ],
+    "country": "France",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles; dépenses et acheteur contractuel non établis.",
+    "opening": "Références de renouvellement EU/EP en accès contraint à Montauban et de bassin de rétention. Hypothèse d’approche : Tester un rapprochement location–retour complémentaire aux contrôles fournisseurs existants.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "SCAM TP",
+    "group_key": "scam-tp",
+    "website": "https://www.scam-tp.com/",
+    "location": "Garidech (31); quatre agences",
+    "sector": "Réseaux d’eau, thermie, génie civil et forage",
+    "size": "Plus de 250 salariés annoncés",
+    "contact_email": null,
+    "target_role": "DAF / responsable achats ou matériel",
+    "facts": [
+      "Le site présente un réseau de chaleur à Limoux et une réalisation Terega à Saint-Constant.",
+      "Implantations à Garidech, Cournonsec, Pont-du-Château et Échiré publiées par l’entreprise."
+    ],
+    "equipment": "Pelles, compacteurs, pompes et énergie provisoire",
+    "pain": "Contrôler l’affectation des matériels loués et les fins de location par tronçon de réseau.",
+    "limitations": [
+      "Moyens matériels propres annoncés; location complémentaire non démontrée.",
+      "L’adresse DPO du site est exclue car hors fonction commerciale."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      5,
+      4,
+      2,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://scam-tp.com/contact",
+        "Formulaire"
+      ],
+      [
+        "https://www.scam-tp.com/",
+        "Projets"
+      ],
+      [
+        "https://scam-tp.com/rse",
+        "Effectif annoncé"
+      ],
+      [
+        "https://www.linkedin.com/company/scamtp",
+        "Agences et indépendance déclarée"
+      ],
+      [
+        "https://scam-tp.com/mentions-legales",
+        "Identité 383988219"
+      ],
+      [
+        "https://woxup.fr/p/383988219-societe-de-canalisations-atlantique-mediterranee-travaux-publics-scam-tp",
+        "Activité actuelle recoupée"
+      ]
+    ],
+    "country": "France",
+    "contact_status": "CONTACT_FORM_ONLY",
+    "contact_source_index": 0,
+    "contact_form": "https://scam-tp.com/contact",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles; dépenses et acheteur contractuel non établis.",
+    "opening": "Le site présente un réseau de chaleur à Limoux et une réalisation Terega à Saint-Constant. Hypothèse d’approche : Contrôler l’affectation des matériels loués et les fins de location par tronçon de réseau.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Groupe LB / LB Belliard",
+    "group_key": "groupe-lb",
+    "website": "https://groupe-lb.fr/",
+    "location": "Granville (50), Gorron (53) et Grand Ouest",
+    "sector": "Gros œuvre, génie civil et construction bois",
+    "size": "Environ 269 personnes sur la page Moyens, non datée; LB Belliard 50–99",
+    "contact_email": "contact@groupe-lb.fr",
+    "target_role": "Direction financière / achats groupe",
+    "facts": [
+      "Sept agences présentées dans le Grand Ouest.",
+      "LB Belliard présente le montage d’une charpente lamellé-collé d’un bâtiment omnisport de 2 300 m² à Thouaré-sur-Loire."
+    ],
+    "equipment": "Accès en hauteur et levage exceptionnel complémentaires",
+    "pain": "Qualifier les seules locations externes de montage avant tout contrôle de factures.",
+    "limitations": [
+      "Parc propre très important: grues, bases-vie et télescopiques; probabilité de location abaissée.",
+      "Services achats, finance et juridique internes; ne pas supposer une gestion rudimentaire.",
+      "LB Belliard est la nouvelle entité active depuis 2023, distincte de l’ancienne société reprise."
+    ],
+    "ratings": [
+      2,
+      3,
+      4,
+      4,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://groupe-lb.fr/contact/",
+        "Email groupe et agences"
+      ],
+      [
+        "https://groupe-lb.fr/moyens/",
+        "Parc propre, effectif et services internes"
+      ],
+      [
+        "https://fr.linkedin.com/posts/sas-lbbelliard-communication_un-chantier-en-pleine-effervescence-activity-7294664067514847232-w24I",
+        "Montage à Thouaré"
+      ],
+      [
+        "https://www.societe.com/societe/lb-belliard-951719046.html",
+        "Nouvelle entité active et taille"
+      ]
+    ],
+    "country": "France",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles; dépenses et acheteur contractuel non établis.",
+    "opening": "Sept agences présentées dans le Grand Ouest. Hypothèse d’approche : Qualifier les seules locations externes de montage avant tout contrôle de factures.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "J.C. Bonnefoy / Groupe Bonnefoy",
+    "group_key": "bonnefoy",
+    "website": "https://www.groupe-bonnefoy.fr/",
+    "location": "Saône (25); axe Belfort–Lyon",
+    "sector": "Travaux publics et travaux routiers",
+    "size": "100–199 salariés unité; près de 300 dans le groupe annoncés",
+    "contact_email": "contact@groupe-bonnefoy.fr",
+    "target_role": "DAF groupe / direction TP",
+    "facts": [
+      "Le groupe réunit TP JC Bonnefoy, BBCI et B2T sur l’axe Belfort–Lyon.",
+      "Sa chaîne opérationnelle intègre production de matériaux, transport et réalisation des chantiers."
+    ],
+    "equipment": "Pompage, compactage et équipements provisoires complémentaires",
+    "pain": "Séparer matériel interne, prestations transport et locations de tiers avant rapprochement.",
+    "limitations": [
+      "Modèle très intégré et flotte propre: part louée incertaine et priorité réduite.",
+      "Une seule cible pour le groupe, aucune hypothèse de dépenses à partir de l’effectif."
+    ],
+    "ratings": [
+      2,
+      4,
+      4,
+      4,
+      4,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.groupe-bonnefoy.fr/contact/",
+        "Email et modèle intégré"
+      ],
+      [
+        "https://www.groupe-bonnefoy.fr/",
+        "Périmètre et taille groupe"
+      ],
+      [
+        "https://www.societe.com/societe/j-c-bonnefoy-301422622.html",
+        "Active et taille unité"
+      ]
+    ],
+    "country": "France",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles; dépenses et acheteur contractuel non établis.",
+    "opening": "Le groupe réunit TP JC Bonnefoy, BBCI et B2T sur l’axe Belfort–Lyon. Hypothèse d’approche : Séparer matériel interne, prestations transport et locations de tiers avant rapprochement.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Constructions Métalliques Daussy",
+    "group_key": "daussy",
+    "website": "https://www.daussy.fr/",
+    "location": "Sin-le-Noble (59); Grand Nord et Île-de-France",
+    "sector": "Fabrication et montage de charpentes métalliques",
+    "size": "20–49 salariés en 2022",
+    "contact_email": null,
+    "target_role": "RAF / direction de travaux",
+    "facts": [
+      "Montage réalisé par les équipes internes dans le Grand Nord et en Île-de-France.",
+      "Le site présente des aménagements NextPharma en juillet 2024 et un atelier de plus de 12 000 m²."
+    ],
+    "equipment": "Nacelles et moyens d’accès complémentaires",
+    "pain": "Qualifier la location de nacelles, puis vérifier durées et frais de transport.",
+    "limitations": [
+      "Grues mobiles de 30–35 t propres: ne pas présumer une dépense de location de grues.",
+      "Taille modeste; intérêt économique à établir sur un échantillon."
+    ],
+    "ratings": [
+      2,
+      3,
+      4,
+      4,
+      4,
+      2,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.daussy.fr/fr-FR/Home/Contact",
+        "Formulaire"
+      ],
+      [
+        "https://www.daussy.fr/fr-FR/",
+        "Montage, parc et NextPharma"
+      ],
+      [
+        "https://www.daussy.fr/fr-FR/Recrutement",
+        "Recrutements 2025–2026"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/constructions-metalliques-daussy-389036393",
+        "Active, taille et holding"
+      ]
+    ],
+    "country": "France",
+    "contact_status": "CONTACT_FORM_ONLY",
+    "contact_source_index": 0,
+    "contact_form": "https://www.daussy.fr/fr-FR/Home/Contact",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles; dépenses et acheteur contractuel non établis.",
+    "opening": "Montage réalisé par les équipes internes dans le Grand Nord et en Île-de-France. Hypothèse d’approche : Qualifier la location de nacelles, puis vérifier durées et frais de transport.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Entreprise Michel Duhalde SARL",
+    "group_key": "duhalde-ustaritz",
+    "website": "https://duhaldebtp.fr/",
+    "location": "Ustaritz (64); Pays basque et sud des Landes",
+    "sector": "Gros œuvre, génie civil et assainissement",
+    "size": "50–99 salariés en 2022, unité 348658493",
+    "contact_email": null,
+    "target_role": "RAF groupe / direction travaux",
+    "facts": [
+      "Construction de stations d’épuration avec bureau d’études béton à Ustaritz.",
+      "Références présentées: école ESTIA à Bidart et résidence de 33 logements aux Terrasses de Marracq, Bayonne."
+    ],
+    "equipment": "Manutention, accès, pompage et installations temporaires",
+    "pain": "Vérifier durées et retours sur chantiers alternant génie civil et bâtiment.",
+    "limitations": [
+      "Matériels et équipes dédiés possédés: compléments externes non démontrés.",
+      "Ne pas confondre la SARL opérationnelle avec la holding Duhalde TP ou les homonymes.",
+      "Références non datées."
+    ],
+    "ratings": [
+      3,
+      3,
+      4,
+      5,
+      4,
+      2,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://duhaldebtp.fr/contact",
+        "Formulaire avec choix de l’entité"
+      ],
+      [
+        "https://duhaldebtp.fr/nos-services/station-d-epuration",
+        "Génie civil des STEP"
+      ],
+      [
+        "https://duhaldebtp.fr/nos-realisations",
+        "ESTIA et Marracq"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/entreprise-michel-duhalde-sarl-ste-dexpl-348658493",
+        "Entité active et taille"
+      ]
+    ],
+    "country": "France",
+    "contact_status": "CONTACT_FORM_ONLY",
+    "contact_source_index": 0,
+    "contact_form": "https://duhaldebtp.fr/contact",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles; dépenses et acheteur contractuel non établis.",
+    "opening": "Construction de stations d’épuration avec bureau d’études béton à Ustaritz. Hypothèse d’approche : Vérifier durées et retours sur chantiers alternant génie civil et bâtiment.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  }
+]

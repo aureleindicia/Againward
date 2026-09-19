@@ -1,0 +1,516 @@
+[
+  {
+    "company": "Baxall Construction Limited",
+    "group_key": "baxall",
+    "website": "https://www.baxallconstruction.co.uk/",
+    "location": "Paddock Wood, Kent",
+    "size": "PME régionale; annuaire métier 10–100 salariés, non daté",
+    "contact_email": "info@baxallconstruction.co.uk",
+    "target_role": "Finance Director / Procurement",
+    "facts": [
+      "Portefeuille Londres et Sud-Est; parking Royal Victoria Place et Francis Barber PRU présentés comme projets en cours.",
+      "Le site distingue les fonctions achats, finance et administration."
+    ],
+    "equipment": "Accès, manutention et installations temporaires",
+    "pain": "Rapprocher matériel, chantier et dates de fin sur deux opérations simultanées.",
+    "limitations": [
+      "Effectif précis non recoupé; maturité achats déjà visible.",
+      "Location externe inférée; aucun montant de dépense ou écart de facturation démontré."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      3,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.baxallconstruction.co.uk/contact/",
+        "Email"
+      ],
+      [
+        "https://www.baxallconstruction.co.uk/projects/",
+        "Projets"
+      ],
+      [
+        "https://www.baxallconstruction.co.uk/careers/baxall-open-day/",
+        "Fonctions internes"
+      ],
+      [
+        "https://www.constructionenquirer.com/directory/baxall-construction-ltd/",
+        "Ordre de taille"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/01079105",
+        "Société Ltd active"
+      ]
+    ],
+    "sector": "Construction et réhabilitation",
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_name": null,
+    "contact_title": null,
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Le phasage et les moyens de chantier rendent des locations plausibles; payeur et part externe à qualifier.",
+    "opening": "Portefeuille Londres et Sud-Est; parking Royal Victoria Place et Francis Barber PRU présentés comme projets en cours. Angle : Rapprocher matériel, chantier et dates de fin sur deux opérations simultanées.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Neilcott Construction Limited",
+    "group_key": "neilcott",
+    "website": "https://neilcott.co.uk/",
+    "location": "Orpington, Kent; Londres et Sud-Est",
+    "size": "Entreprise régionale de taille intermédiaire; effectif actuel non certifié",
+    "contact_email": "info@neilcott.co.uk",
+    "target_role": "Finance Director / Group Commercial Director",
+    "facts": [
+      "Entreprise détenue par ses salariés depuis 2021.",
+      "Ouverture d'une base à Hemel Hempstead en 2023, en complément d'Orpington et Winchester.",
+      "Références de santé et d'éducation, dont Frimley Park Hospital."
+    ],
+    "equipment": "Accès, manutention et installations de chantier",
+    "pain": "Comparer commandes et périodes facturées entre agences.",
+    "limitations": [
+      "CA historique £139m en 2023 selon presse; achats structurés possibles, pas une petite PME.",
+      "Location externe inférée; aucun montant de dépense ou écart de facturation démontré."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      3,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://neilcott.co.uk/contact-us/",
+        "Email"
+      ],
+      [
+        "https://neilcott.co.uk/",
+        "Référence hospitalière et propriété salariale"
+      ],
+      [
+        "https://constructionwave.co.uk/2024/06/17/neilcott-opens-new-office-and-pays-250k-to-staff/",
+        "Trois bases"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/01151561",
+        "Ltd active"
+      ]
+    ],
+    "sector": "Construction et réhabilitation",
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_name": null,
+    "contact_title": null,
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Le phasage et les moyens de chantier rendent des locations plausibles; payeur et part externe à qualifier.",
+    "opening": "Entreprise détenue par ses salariés depuis 2021. Angle : Comparer commandes et périodes facturées entre agences.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Conamar Building Services Limited",
+    "group_key": "conamar",
+    "website": "https://www.conamar.co.uk/",
+    "location": "Letchworth Garden City, Hertfordshire",
+    "size": "Catégorie de comptes medium company, exercice juin 2025; effectif non publié ici",
+    "contact_email": "enquiries@conamar.co.uk",
+    "target_role": "Finance Director / Commercial Manager",
+    "facts": [
+      "Réhabilitation Centre:MK sur 56 semaines, en majorité la nuit dans un centre ouvert le jour.",
+      "Réfection d'arches Wood Lane attribuée par TfL, document public 2025."
+    ],
+    "equipment": "Nacelles, accès, éclairage et manutention",
+    "pain": "Vérifier périodes et éventuels suppléments sur une réhabilitation par phases.",
+    "limitations": [
+      "La durée du projet n'est pas la durée de location; vérifier si les sous-traitants paient le matériel.",
+      "Location externe inférée; aucun montant de dépense ou écart de facturation démontré."
+    ],
+    "ratings": [
+      4,
+      4,
+      5,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.conamar.co.uk/contact/",
+        "Email"
+      ],
+      [
+        "https://www.conamar.co.uk/project/centremk/",
+        "Durée et phasage"
+      ],
+      [
+        "https://content.tfl.gov.uk/contracts-awarded-tfl.pdf",
+        "Marché Wood Lane"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/02898417",
+        "Ltd active"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/02898417/filing-history",
+        "Taille comptable"
+      ]
+    ],
+    "sector": "Construction et réhabilitation",
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_name": null,
+    "contact_title": null,
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Le phasage et les moyens de chantier rendent des locations plausibles; payeur et part externe à qualifier.",
+    "opening": "Réhabilitation Centre:MK sur 56 semaines, en majorité la nuit dans un centre ouvert le jour. Angle : Vérifier périodes et éventuels suppléments sur une réhabilitation par phases.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Coulson Building Group",
+    "group_key": "coulson",
+    "website": "https://coulson.co.uk/",
+    "location": "Swavesey, Cambridge",
+    "size": "51–200 salariés, tranche LinkedIn non datée",
+    "contact_email": "enquiries@coulson.co.uk",
+    "target_role": "Group Finance / achats",
+    "facts": [
+      "Entreprise générale avec départements internes M&E, maintenance et menuiserie.",
+      "Démarrage annoncé fin août 2026 du centre de recyclage de March pour Cambridgeshire County Council."
+    ],
+    "equipment": "Petits engins, accès, alimentation et bases-vie",
+    "pain": "Examiner locations temporaires et affectation à un chantier de génie civil.",
+    "limitations": [
+      "Un seul prospect pour le groupe; unité contractante à confirmer.",
+      "Location externe inférée; aucun montant de dépense ou écart de facturation démontré."
+    ],
+    "ratings": [
+      4,
+      4,
+      4,
+      5,
+      3,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://coulson.co.uk/contact/",
+        "Email et adresse"
+      ],
+      [
+        "https://www.linkedin.com/company/coulson-group-limited",
+        "Taille et chantier 2026"
+      ],
+      [
+        "https://coulson.co.uk/about-us/",
+        "Métiers exécutés"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/00171837",
+        "Holding Ltd active"
+      ],
+      [
+        "https://coulson.co.uk/terms-of-use/",
+        "Périmètre groupe"
+      ]
+    ],
+    "sector": "Construction et réhabilitation",
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_name": null,
+    "contact_title": null,
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Le phasage et les moyens de chantier rendent des locations plausibles; payeur et part externe à qualifier.",
+    "opening": "Entreprise générale avec départements internes M&E, maintenance et menuiserie. Angle : Examiner locations temporaires et affectation à un chantier de génie civil.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Borras Construction Ltd",
+    "group_key": "borras",
+    "website": "https://borrasconstruction.co.uk/",
+    "location": "St Albans, Hertfordshire",
+    "size": "PME selon avis de marché février 2026; effectif précis non retenu",
+    "contact_email": "info@borrasconstruction.co.uk",
+    "target_role": "Finance Director / Procurement Manager",
+    "facts": [
+      "Division Special Works et chantiers importants à Londres et dans le Sud-Est.",
+      "Référence au centre de distribution DSV dans le portefeuille commercial."
+    ],
+    "equipment": "Manutention, accès et installations temporaires",
+    "pain": "Comparer frais de livraison/reprise et périodes sur un chantier logistique.",
+    "limitations": [
+      "Organisation achats à qualifier; ne pas assimiler marché remporté et locations prouvées.",
+      "Location externe inférée; aucun montant de dépense ou écart de facturation démontré."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      4,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://borrasconstruction.co.uk/contact-us/",
+        "Email"
+      ],
+      [
+        "https://borrasconstruction.co.uk/about-us/company-history/",
+        "Organisation"
+      ],
+      [
+        "https://borrasconstruction.co.uk/projects/commercial/",
+        "DSV"
+      ],
+      [
+        "https://www.find-tender.service.gov.uk/Notice/016762-2026/PDF",
+        "PME, marché 2026"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/01520021",
+        "Ltd active"
+      ]
+    ],
+    "sector": "Construction et réhabilitation",
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_name": null,
+    "contact_title": null,
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Le phasage et les moyens de chantier rendent des locations plausibles; payeur et part externe à qualifier.",
+    "opening": "Division Special Works et chantiers importants à Londres et dans le Sud-Est. Angle : Comparer frais de livraison/reprise et périodes sur un chantier logistique.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Coniston Limited",
+    "group_key": "coniston",
+    "website": "https://www.conistonltd.co.uk/",
+    "location": "Londres et Dartford",
+    "size": "Entreprise régionale; CA déclaré £40m non daté sur LinkedIn, effectif précis non retenu",
+    "contact_email": "enquiries@conistonltd.co.uk",
+    "target_role": "Finance Director",
+    "facts": [
+      "Restauration et réhabilitation de bâtiments sensibles, dont Painted Hall à Greenwich et Somerset House.",
+      "Équipe finance identifiée : John Martin, Finance Director."
+    ],
+    "equipment": "Accès, levage, alimentation et protection temporaires",
+    "pain": "Vérifier prolongations et reprises sur une opération patrimoniale par phases.",
+    "limitations": [
+      "Le parc peut appartenir aux sous-traitants; qualifications de locations à faire avant audit.",
+      "Location externe inférée; aucun montant de dépense ou écart de facturation démontré."
+    ],
+    "ratings": [
+      4,
+      4,
+      4,
+      5,
+      3,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.conistonltd.co.uk/contact/",
+        "Email"
+      ],
+      [
+        "https://www.conistonltd.co.uk/",
+        "Références"
+      ],
+      [
+        "https://www.conistonltd.co.uk/our-people/",
+        "John Martin"
+      ],
+      [
+        "https://uk.linkedin.com/company/coniston-limited",
+        "Ordre de taille"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/01688008",
+        "Ltd active"
+      ]
+    ],
+    "sector": "Construction et réhabilitation",
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_name": "John Martin",
+    "contact_title": "Finance Director",
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Le phasage et les moyens de chantier rendent des locations plausibles; payeur et part externe à qualifier.",
+    "opening": "Restauration et réhabilitation de bâtiments sensibles, dont Painted Hall à Greenwich et Somerset House. Angle : Vérifier prolongations et reprises sur une opération patrimoniale par phases.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Hobson and Porter Limited",
+    "group_key": "hobson-porter",
+    "website": "https://www.hobsonporter.com/",
+    "location": "Hull, Yorkshire",
+    "size": "138 salariés, comptes 2024 repris par Companies in the UK",
+    "contact_email": "hull@hobsonporter.com",
+    "target_role": "Finance Director / achats travaux",
+    "facts": [
+      "Construction en Yorkshire et Lincolnshire, portefeuille industriel et distribution.",
+      "Références DPD Ozone Business Park et plusieurs casernes pour Humberside Fire and Rescue."
+    ],
+    "equipment": "Manutention, compactage, accès et bases-vie",
+    "pain": "Vérifier l'imputation et la clôture des locations sur des sites distincts.",
+    "limitations": [
+      "Références du site parfois anciennes; ne pas les présenter comme chantiers actuels.",
+      "Location externe inférée; aucun montant de dépense ou écart de facturation démontré."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.hobsonporter.com/contact/",
+        "Email"
+      ],
+      [
+        "https://www.hobsonporter.com/projects/",
+        "Références"
+      ],
+      [
+        "https://www.companiesintheuk.co.uk/ltd/hobson-and-porter",
+        "Effectif daté"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/01448193",
+        "Ltd active"
+      ]
+    ],
+    "sector": "Construction et réhabilitation",
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_name": null,
+    "contact_title": null,
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Le phasage et les moyens de chantier rendent des locations plausibles; payeur et part externe à qualifier.",
+    "opening": "Construction en Yorkshire et Lincolnshire, portefeuille industriel et distribution. Angle : Vérifier l'imputation et la clôture des locations sur des sites distincts.",
+    "confidence": "MEDIUM"
+  },
+  {
+    "company": "Triton Construction Limited",
+    "group_key": "triton-construction-uk",
+    "website": "https://www.tritonconstruction.co.uk/",
+    "location": "Liversedge et Warrington",
+    "size": "Environ 70 selon annuaire non daté; équipe régionale détaillée en janvier 2026",
+    "contact_email": "info@tritonconstruction.co.uk",
+    "target_role": "Accounts Manager / Buyer",
+    "facts": [
+      "Deux bureaux couvrent Yorkshire/Nord-Est et Nord-Ouest.",
+      "Contrats 2025 : neuf unités industrielles à Manchester et résidence de 63 logements de soins à Shrewsbury.",
+      "Organigramme janvier 2026 identifie Cindy Copcutt, Accounts Manager."
+    ],
+    "equipment": "Manutention, accès, petits engins et bases-vie",
+    "pain": "Rapprocher commandes, factures et off-hire par bureau et opération.",
+    "limitations": [
+      "L'organigramme peut évoluer; certaines directions ont changé depuis janvier 2026.",
+      "Location externe inférée; aucun montant de dépense ou écart de facturation démontré."
+    ],
+    "ratings": [
+      4,
+      4,
+      5,
+      5,
+      3,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.tritonconstruction.co.uk/contact-us/",
+        "Email"
+      ],
+      [
+        "https://www.tritonconstruction.co.uk/news/",
+        "Marchés 2025"
+      ],
+      [
+        "https://www.tritonconstruction.co.uk/wp-content/uploads/2026/01/triton-construction-org-chart-2026.pdf",
+        "Cindy Copcutt et organisation"
+      ],
+      [
+        "https://www.bizseek.co.uk/triton-construction-01274-874772",
+        "Effectif indicatif"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/05352888",
+        "Ltd active"
+      ]
+    ],
+    "sector": "Construction et réhabilitation",
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_name": "Cindy Copcutt",
+    "contact_title": "Accounts Manager (organigramme janvier 2026)",
+    "contact_form": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Le phasage et les moyens de chantier rendent des locations plausibles; payeur et part externe à qualifier.",
+    "opening": "Deux bureaux couvrent Yorkshire/Nord-Est et Nord-Ouest. Angle : Rapprocher commandes, factures et off-hire par bureau et opération.",
+    "confidence": "MEDIUM"
+  }
+]

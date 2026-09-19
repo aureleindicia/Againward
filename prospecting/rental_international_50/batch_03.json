@@ -1,0 +1,606 @@
+[
+  {
+    "company": "Houyoux Constructions SA",
+    "group_key": "houyoux",
+    "website": "https://www.houyoux.be/",
+    "location": "Marloie, Marche-en-Famenne",
+    "sector": "Construction générale et halls industriels",
+    "size": "200 collaborateurs annoncés; 157,6 ETP 2025 au registre",
+    "contact_email": "info@houyoux.be",
+    "target_role": "DAF / achats chantier",
+    "facts": [
+      "Construction de halls industriels et commerciaux avec préfabrication interne.",
+      "9 000 m² d’ateliers annoncés à Marloie."
+    ],
+    "equipment": "Manutention, accès et installations provisoires",
+    "pain": "Vérifier périodes et frais de livraison des matériels complémentaires au parc propre.",
+    "limitations": [
+      "Ateliers internes: location externe non démontrée.",
+      "Cibler l’exécution, pas la seule promotion immobilière."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      4,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.houyoux.be/fr/contact",
+        "Email"
+      ],
+      [
+        "https://www.houyoux.be/fr/qui-sommes-nous",
+        "Effectif, ateliers, exécution"
+      ],
+      [
+        "https://www.companyweb.be/fr/0404358950/entreprises-andre-houyoux",
+        "SA active et ETP 2025"
+      ]
+    ],
+    "country": "Belgium",
+    "jurisdiction": "Belgium",
+    "language": "fr",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; fournisseur, payeur et montant à qualifier.",
+    "opening": "Construction de halls industriels et commerciaux avec préfabrication interne. Hypothèse d’approche : Vérifier périodes et frais de livraison des matériels complémentaires au parc propre.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Entreprise Jérouville SA",
+    "group_key": "jerouville",
+    "website": "https://jerouville.com/",
+    "location": "Libramont",
+    "sector": "Travaux ferroviaires, voirie et réseaux",
+    "size": "161,7 ETP 2025, agrégateur de comptes",
+    "contact_email": "entreprise.jerouville@jerouville.be",
+    "target_role": "Responsable matériel avec comptabilité",
+    "facts": [
+      "Interventions sur voies ferrées, voiries, conduites et câbles souterrains.",
+      "Le site de contact identifie un responsable matériel et une comptable."
+    ],
+    "equipment": "Terrassement, compactage, pompage et énergie temporaire",
+    "pain": "Relier dates de mobilisation et arrêt de location aux chantiers linéaires.",
+    "limitations": [
+      "Parc propre: seules les locations complémentaires sont visées.",
+      "Rôles nominatifs publiés sur l’ancien site, à reconfirmer."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      5,
+      4,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://jerouville.com/",
+        "Activités et email"
+      ],
+      [
+        "https://jerouville.jimdoweb.com/contact/",
+        "Responsable matériel et comptable"
+      ],
+      [
+        "https://amlcompany.com/fr-be/entreprises/0413825754-entreprise-jerouville",
+        "SA, statut normal, ETP 2025"
+      ]
+    ],
+    "country": "Belgium",
+    "jurisdiction": "Belgium",
+    "language": "fr",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; fournisseur, payeur et montant à qualifier.",
+    "opening": "Interventions sur voies ferrées, voiries, conduites et câbles souterrains. Hypothèse d’approche : Relier dates de mobilisation et arrêt de location aux chantiers linéaires.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Groupe Jean Nonet",
+    "group_key": "nonet",
+    "website": "https://www.groupe-jean-nonet.be/",
+    "location": "Jemeppe-sur-Sambre",
+    "sector": "Travaux publics, terrassement et réseaux",
+    "size": "175 collaborateurs annoncés sur le site opérationnel",
+    "contact_email": "info@nonet.be",
+    "target_role": "DAF groupe / responsable matériel",
+    "facts": [
+      "Travaux de réseaux et terrassements; référence historique du Grognon à Namur.",
+      "Le site présente une équipe et un parc matériel dédiés."
+    ],
+    "equipment": "Pelles, compacteurs et pompes complémentaires",
+    "pain": "Distinguer mouvements internes du parc et locations facturées par des tiers.",
+    "limitations": [
+      "Important parc propre: volume externe non démontré.",
+      "Référence Grognon historique, pas un chantier actuel.",
+      "BE0781545628 est la holding; acheteur contractuel à qualifier."
+    ],
+    "ratings": [
+      2,
+      4,
+      4,
+      5,
+      4,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.groupe-jean-nonet.be/contact-groupe-jean-nonet",
+        "Email groupe"
+      ],
+      [
+        "https://www.nonet-entreprise-construction.be/equipes-materiel-certifications",
+        "Effectif et parc"
+      ],
+      [
+        "https://www.nonet-entreprise-construction.be/presse-nonet",
+        "Références et réseaux"
+      ],
+      [
+        "https://www.pappers.be/fr/company/groupe-jean-nonet-0781545628",
+        "Holding active"
+      ]
+    ],
+    "country": "Belgium",
+    "jurisdiction": "Belgium",
+    "language": "fr",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; fournisseur, payeur et montant à qualifier.",
+    "opening": "Travaux de réseaux et terrassements; référence historique du Grognon à Namur. Hypothèse d’approche : Distinguer mouvements internes du parc et locations facturées par des tiers.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Tradeco Belgium SA",
+    "group_key": "tradeco",
+    "website": "https://www.tradeco.be/",
+    "location": "Mouscron; Wallonie et Bruxelles",
+    "sector": "Construction générale, charpentes bois et métalliques",
+    "size": "300 personnes annoncées groupe, distinct de la SA",
+    "contact_email": "info@tradeco.be",
+    "target_role": "DAF groupe / achats",
+    "facts": [
+      "Le groupe regroupe des activités de construction bois et acier.",
+      "Postes de montage bois et bardage couvrant Hainaut et Bruxelles."
+    ],
+    "equipment": "Nacelles, chariots télescopiques et levage",
+    "pain": "Rapprocher locations d’accès et manutention avec dates de montage par entité.",
+    "limitations": [
+      "Fabrication propre et sous-traitance possibles; payeur inconnu.",
+      "Une seule cible pour Tradeco, Thersa et les autres sociétés du groupe."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      5,
+      4,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.tradeco.be/contact",
+        "Email"
+      ],
+      [
+        "https://www.tradeco.be/a-propos/",
+        "Groupe et effectif"
+      ],
+      [
+        "https://www.tradeco.be/jobs/",
+        "Montage et zone"
+      ],
+      [
+        "https://www.companyweb.be/fr/0453218345/tradeco-belgium",
+        "SA active"
+      ]
+    ],
+    "country": "Belgium",
+    "jurisdiction": "Belgium",
+    "language": "fr",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; fournisseur, payeur et montant à qualifier.",
+    "opening": "Le groupe regroupe des activités de construction bois et acier. Hypothèse d’approche : Rapprocher locations d’accès et manutention avec dates de montage par entité.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Entreprises Gilles Moury SA / Groupe Moury Construct",
+    "group_key": "moury",
+    "website": "https://www.gmoury.be/",
+    "location": "Ans, Liège; Belgique et Luxembourg",
+    "sector": "Construction, restauration et bâtiments industriels",
+    "size": "Près de 350 collaborateurs groupe, page non datée",
+    "contact_email": "administratif@gmoury.be",
+    "target_role": "Direction financière / administration fournisseurs",
+    "facts": [
+      "UKot à l’Université de Liège et RESA–Institut Montéfiore figurent parmi les projets en cours du site.",
+      "Le groupe intègre construction, menuiserie et techniques du bâtiment."
+    ],
+    "equipment": "Accès, manutention et bases-vie",
+    "pain": "Contrôler affectation, durées et avoirs sur un échantillon multi-chantiers.",
+    "limitations": [
+      "Groupe coté et structuré: contrôles financiers probablement déjà développés.",
+      "Une seule entrée pour GM, Bemat, Mosabois, Mourylux et D-FI.",
+      "Date de mise à jour des projets non précisée."
+    ],
+    "ratings": [
+      3,
+      5,
+      5,
+      3,
+      4,
+      4,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.gmoury.be/contact/",
+        "Adresse administrative"
+      ],
+      [
+        "https://www.gmoury.be/",
+        "Projets présentés comme en cours"
+      ],
+      [
+        "https://www.moury-construct.be/groupe-moury-construct/qui-sommes-nous/",
+        "Métiers et effectif groupe"
+      ]
+    ],
+    "country": "Belgium",
+    "jurisdiction": "Belgium",
+    "language": "fr",
+    "contact_status": "ROLE_ADDRESS",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; fournisseur, payeur et montant à qualifier.",
+    "opening": "UKot à l’Université de Liège et RESA–Institut Montéfiore figurent parmi les projets en cours du site. Hypothèse d’approche : Contrôler affectation, durées et avoirs sur un échantillon multi-chantiers.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Picard Construct SA",
+    "group_key": "picard-construct",
+    "website": "https://www.picardconstruct.be/",
+    "location": "Tenneville",
+    "sector": "Construction générale et halls industriels",
+    "size": "Plus de 100 personnes annoncées; registre 50–99 sans millésime explicite",
+    "contact_email": null,
+    "target_role": "Responsable administrative et financière",
+    "facts": [
+      "Extension à Baillonville: 50 lits et 12 appartements de résidence services.",
+      "L’équipe identifie une RAF, un acheteur et un service logistique."
+    ],
+    "equipment": "Accès, manutention et installations provisoires",
+    "pain": "Rapprocher locations et restitutions entre phases d’une opération.",
+    "limitations": [
+      "Location inférée, aucune facture publique.",
+      "Périmètres des effectifs différents; CA non retenu.",
+      "Formulaire public ne signifie pas autorisation générale de démarchage."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      4,
+      2,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.picardconstruct.be/fr/contact",
+        "Formulaire"
+      ],
+      [
+        "https://www.picardconstruct.be/fr/equipe",
+        "Laura Gaspar, responsable admin & financière"
+      ],
+      [
+        "https://picardconstruct.be/fr",
+        "Baillonville et taille"
+      ],
+      [
+        "https://www.pappers.be/fr/company/picard-construct-0465.839.530",
+        "SA active et effectif"
+      ]
+    ],
+    "country": "Belgium",
+    "jurisdiction": "Belgium",
+    "language": "fr",
+    "contact_status": "CONTACT_FORM_ONLY",
+    "contact_source_index": 0,
+    "contact_form": "https://www.picardconstruct.be/fr/contact",
+    "contact_name": "Laura Gaspar",
+    "contact_title": "Responsable admin & financière",
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; fournisseur, payeur et montant à qualifier.",
+    "opening": "Extension à Baillonville: 50 lits et 12 appartements de résidence services. Hypothèse d’approche : Rapprocher locations et restitutions entre phases d’une opération.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Entreprises Favier SA",
+    "group_key": "favier",
+    "website": "https://www.favier.be/",
+    "location": "Pecq",
+    "sector": "Construction générale et infrastructures publiques",
+    "size": "55 ETP 2025, agrégateur de comptes",
+    "contact_email": null,
+    "target_role": "RAF / administration groupe",
+    "facts": [
+      "Références: piscine naturelle du Belvédère à Dour et Béguinage à Ellezelles.",
+      "Construction articulée avec couverture et techniques spéciales du groupe."
+    ],
+    "equipment": "Terrassement, accès et pompage",
+    "pain": "Vérifier durées et frais accessoires entre phases de travaux.",
+    "limitations": [
+      "Références non datées, sans preuve de location externe.",
+      "SA belge active distincte de l’ancienne immatriculation française inactive."
+    ],
+    "ratings": [
+      3,
+      3,
+      4,
+      5,
+      4,
+      2,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.favier.be/entreprise-construction-generale-favier-contacts",
+        "Formulaire constaté le 19/09; accès intermittent le 20/09"
+      ],
+      [
+        "https://www.favier.be/construction-batiments-infrastructures-marches-publics",
+        "Références"
+      ],
+      [
+        "https://www.companyweb.be/fr/0406282223/entreprises-favier",
+        "SA active et ETP 2025"
+      ]
+    ],
+    "country": "Belgium",
+    "jurisdiction": "Belgium",
+    "language": "fr",
+    "contact_status": "CONTACT_FORM_ONLY",
+    "contact_source_index": 0,
+    "contact_form": "https://www.favier.be/entreprise-construction-generale-favier-contacts",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; fournisseur, payeur et montant à qualifier.",
+    "opening": "Références: piscine naturelle du Belvédère à Dour et Béguinage à Ellezelles. Hypothèse d’approche : Vérifier durées et frais accessoires entre phases de travaux.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Entreprises Mignone SA",
+    "group_key": "mignone-nexvolta",
+    "website": "https://mignone.be/",
+    "location": "Manage, Hainaut",
+    "sector": "Construction et installations électriques industrielles",
+    "size": "Plus de 100 collaborateurs annoncés",
+    "contact_email": "info@mignone-sa.be",
+    "target_role": "Direction administrative et financière / opérations",
+    "facts": [
+      "Deux métiers: construction et électricité, dont moyenne tension et réseaux industriels.",
+      "Le site affiche 150 références dans 74 communes; installation de la brasserie Saint-Feuillien en 2024."
+    ],
+    "equipment": "Nacelles, accès et énergie provisoire",
+    "pain": "Vérifier périodes et affectation des locations entre équipes bâtiment et électricité.",
+    "limitations": [
+      "Ne pas assimiler les 150 références à 150 chantiers simultanés: formulations différentes selon les pages.",
+      "Part sous-traitée et location externe non établies."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://mignone.be/",
+        "Email, activités et références"
+      ],
+      [
+        "https://mignone.be/electricite",
+        "Saint-Feuillien 2024"
+      ],
+      [
+        "https://www.mignone.be/en/a-propos",
+        "Effectif et équipe"
+      ],
+      [
+        "https://www.pappers.be/fr/company/entreprises-mignone-0432.209.729",
+        "SA active, NexVolta Holding"
+      ]
+    ],
+    "country": "Belgium",
+    "jurisdiction": "Belgium",
+    "language": "fr",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; fournisseur, payeur et montant à qualifier.",
+    "opening": "Deux métiers: construction et électricité, dont moyenne tension et réseaux industriels. Hypothèse d’approche : Vérifier périodes et affectation des locations entre équipes bâtiment et électricité.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Etablissements Jacobs SA",
+    "group_key": "jacobs-awans",
+    "website": "https://www.sa-jacobs.be/",
+    "location": "Awans, région de Liège",
+    "sector": "Éclairage public, réseaux et génie civil",
+    "size": "112 personnes, fiche Verif associée aux comptes 2024",
+    "contact_email": "info@sa-jacobs.be",
+    "target_role": "RAF / responsable matériel",
+    "facts": [
+      "Éclairage du tram de Liège: 12 km et plus de 1 000 points lumineux annoncés.",
+      "Activités d’éclairage des tunnels, réseaux MT/BT et fibre optique."
+    ],
+    "equipment": "Nacelles, terrassement et équipements de réseaux",
+    "pain": "Vérifier fins de location et transferts sur interventions distribuées.",
+    "limitations": [
+      "Véhicules spécialisés propres: externalisation non démontrée.",
+      "Distinct du groupe d’ingénierie international Jacobs.",
+      "Compteurs dynamiques mal rendus; effectif pris dans une source distincte."
+    ],
+    "ratings": [
+      2,
+      4,
+      5,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.buildyourhome.be/fr/artisan/etablissements-jacobs-sa/BE0404421704",
+        "Email générique et identité par Embuild"
+      ],
+      [
+        "https://www.sa-jacobs.be/",
+        "Tram et métiers"
+      ],
+      [
+        "https://www.verif.com/societe/Etablissements-Jacobs-68d9c196129923033844c4e3/",
+        "SA et effectif"
+      ]
+    ],
+    "country": "Belgium",
+    "jurisdiction": "Belgium",
+    "language": "fr",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; fournisseur, payeur et montant à qualifier.",
+    "opening": "Éclairage du tram de Liège: 12 km et plus de 1 000 points lumineux annoncés. Hypothèse d’approche : Vérifier fins de location et transferts sur interventions distribuées.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "BATITEC SA – Bâtiment et Technique",
+    "group_key": "batitec-oupeye",
+    "website": "https://www.batitec.be/",
+    "location": "Hermalle-sous-Argenteau, Oupeye",
+    "sector": "Construction, génie civil et voirie",
+    "size": "98,2 ETP au dernier dépôt du 18/04/2026",
+    "contact_email": "info@batitec.be",
+    "target_role": "RAF / achats et logistique chantier",
+    "facts": [
+      "Halls industriels, génie civil, voirie et atelier métallique.",
+      "Recrutement de monteurs en charpente métallique et bardage."
+    ],
+    "equipment": "Nacelles, chariots télescopiques et levage",
+    "pain": "Rapprocher locations de montage, transport et dates de restitution.",
+    "limitations": [
+      "Atelier interne; locations potentiellement payées par les sous-traitants.",
+      "SA BE0436403493, distincte de l’homonyme d’Asse."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      4,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.batitec.be/contact",
+        "Email secrétariat"
+      ],
+      [
+        "https://www.batitec.be/",
+        "Métiers"
+      ],
+      [
+        "https://www.batitec.be/offre-d-emploi",
+        "Montage et bardage"
+      ],
+      [
+        "https://www.companyweb.be/fr/0436403493/batiment-et-technique",
+        "SA active et ETP"
+      ]
+    ],
+    "country": "Belgium",
+    "jurisdiction": "Belgium",
+    "language": "fr",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; fournisseur, payeur et montant à qualifier.",
+    "opening": "Halls industriels, génie civil, voirie et atelier métallique. Hypothèse d’approche : Rapprocher locations de montage, transport et dates de restitution.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  }
+]

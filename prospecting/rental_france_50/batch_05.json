@@ -1,0 +1,420 @@
+[
+  {
+    "company": "SNADEC Environnement",
+    "group_key": "snadec-premium",
+    "website": "https://snadec.fr/",
+    "location": "Cagnes-sur-Mer (06); Saint-Priest, Neuilly-sur-Seine, Grémonville",
+    "sector": "Désamiantage, dépollution et démolition technique",
+    "size": "250–499 salariés en 2023, unité SIREN 311595912",
+    "contact_email": null,
+    "target_role": "DAF groupe / achats matériel",
+    "facts": [
+      "Quatre implantations présentées sur la page contact.",
+      "Interventions annoncées en milieux industriels sensibles: ATEX, nucléaire, ferroviaire et naval."
+    ],
+    "equipment": "Confinement, aspiration, accès et énergie temporaire",
+    "pain": "Vérifier périodes et frais accessoires des équipements mobilisés sur sites sensibles.",
+    "limitations": [
+      "Le site groupe couvre aussi assainissement et hygiène; cibler l’entité Environnement.",
+      "Possession des équipements et locations externes non établies."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      4,
+      4,
+      2,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://snadec.fr/nous-contacter/",
+        "Formulaire et implantations"
+      ],
+      [
+        "https://snadec.fr/domaines-dintervention/",
+        "Types de sites"
+      ],
+      [
+        "https://snadec.fr/services/",
+        "Décontamination et démolition"
+      ],
+      [
+        "https://annuaire-entreprises.data.gouv.fr/entreprise/snadec-environnement-societe-nationale-de-decontamination-snadec-environnement-311595912",
+        "Entité active et effectif"
+      ]
+    ],
+    "country": "France",
+    "contact_status": "CONTACT_FORM_ONLY",
+    "contact_source_index": 0,
+    "contact_form": "https://snadec.fr/nous-contacter/",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Location complémentaire plausible d’après les opérations; volume, payeur et montant non établis.",
+    "opening": "Quatre implantations présentées sur la page contact. Hypothèse d’approche : Vérifier périodes et frais accessoires des équipements mobilisés sur sites sensibles.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "DI Environnement",
+    "group_key": "di-environnement",
+    "website": "https://di-environnement.fr/",
+    "location": "Argenteuil (95); campus de Montélimar et agences nationales",
+    "sector": "Désamiantage, décontamination et dépollution",
+    "size": "250–499 salariés, unité 421347006, données 2022; groupe plus large",
+    "contact_email": "bonjour@die.fr",
+    "target_role": "DAF / achats et matériel",
+    "facts": [
+      "La brochure de septembre 2025 présente un campus à Montélimar et un réseau d’agences incluant Paris, Lyon, Bordeaux et Dunkerque.",
+      "Spécialiste du retrait d’amiante, de la dépollution et du décapage technique."
+    ],
+    "equipment": "Confinement, aspiration, nacelles et énergie temporaire",
+    "pain": "Contrôler affectation des locations par agence et justificatifs de fin d’utilisation.",
+    "limitations": [
+      "Parc spécialisé propre possible; proportion louée inconnue.",
+      "Le périmètre groupe diffère de l’effectif de l’unité légale."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      4,
+      4,
+      3,
+      4,
+      4
+    ],
+    "sources": [
+      [
+        "https://di-environnement.fr/wp-content/uploads/2025/09/FR-Presentation-DI-Environnement-Septembre-2025.pdf",
+        "Email, implantations et métiers"
+      ],
+      [
+        "https://www.syrta.net/membres/di-environnement/",
+        "Métier et activité professionnelle"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/di-environnement-dauphine-isolation-environnement-421347006",
+        "Identité active et effectif"
+      ]
+    ],
+    "country": "France",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Location complémentaire plausible d’après les opérations; volume, payeur et montant non établis.",
+    "opening": "La brochure de septembre 2025 présente un campus à Montélimar et un réseau d’agences incluant Paris, Lyon, Bordeaux et Dunkerque. Hypothèse d’approche : Contrôler affectation des locations par agence et justificatifs de fin d’utilisation.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "COBAT Constructions",
+    "group_key": "cobat",
+    "website": "https://www.cobatconstructions.fr/",
+    "location": "Amblainville (60); Île-de-France et régions voisines",
+    "sector": "Gros œuvre et entreprise générale",
+    "size": "250–499 salariés en 2022",
+    "contact_email": null,
+    "target_role": "DAF / achats matériel",
+    "facts": [
+      "Référence Asnières: 340 logements, crèche et commerces.",
+      "Référence Colombes: 550 logements et hôtel de 145 chambres."
+    ],
+    "equipment": "Manutention, accès et bases-vie",
+    "pain": "Rapprocher durées, transferts et retours des locations sur opérations à plusieurs bâtiments.",
+    "limitations": [
+      "Références non datées, ne pas les présenter comme actuelles.",
+      "Alerte officielle aux domaines frauduleux; aucun email deviné. L’adresse contentieux n’est pas un canal commercial.",
+      "Matériel des sous-traitants et parc propre à distinguer."
+    ],
+    "ratings": [
+      3,
+      5,
+      5,
+      4,
+      4,
+      2,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.cobatconstructions.fr/contact/",
+        "Formulaire officiel et alerte domaines"
+      ],
+      [
+        "https://www.cobatconstructions.fr/realisations/",
+        "Projets et dimensions"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/cobat-constructions-438726051",
+        "Identité active et effectif"
+      ]
+    ],
+    "country": "France",
+    "contact_status": "CONTACT_FORM_ONLY",
+    "contact_source_index": 0,
+    "contact_form": "https://www.cobatconstructions.fr/contact/",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Location complémentaire plausible d’après les opérations; volume, payeur et montant non établis.",
+    "opening": "Référence Asnières: 340 logements, crèche et commerces. Hypothèse d’approche : Rapprocher durées, transferts et retours des locations sur opérations à plusieurs bâtiments.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "SFTP – désamiantage",
+    "group_key": "sftp-alssyon",
+    "website": "https://desamiante.com/",
+    "location": "Villefranche-sur-Saône (69)",
+    "sector": "Désamiantage, déplombage, décontamination",
+    "size": "50–99 salariés en 2022",
+    "contact_email": "sftp@desamiante.com",
+    "target_role": "RAF / responsable matériel",
+    "facts": [
+      "Le site présente des travaux de désamiantage sur un pont routier en exploitation sous autoroute.",
+      "Interventions à Lyon et en Auvergne-Rhône-Alpes, avec curage et démolition technique."
+    ],
+    "equipment": "Confinement, aspiration et accès en hauteur",
+    "pain": "Vérifier arrêts contractuels et frais de retour ou décontamination des matériels loués.",
+    "limitations": [
+      "Mention légale du site associée à un autre numéro: identité opérationnelle 421974221 recoupée via Qualibat.",
+      "Aucune preuve publique du volume de locations."
+    ],
+    "ratings": [
+      3,
+      3,
+      4,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://desamiante.com/mentions-legales/",
+        "Email public"
+      ],
+      [
+        "https://desamiante.com/",
+        "Projet sur ouvrage en exploitation"
+      ],
+      [
+        "https://desamiante.com/qui-sommes-nous-sftp/",
+        "Implantation et métiers"
+      ],
+      [
+        "https://www.qualibat.com/get-pdf?file=ListeDGT.pdf",
+        "Certification et identité 421974221, même email"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/sftp-421974221",
+        "Activité et taille"
+      ]
+    ],
+    "country": "France",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Location complémentaire plausible d’après les opérations; volume, payeur et montant non établis.",
+    "opening": "Le site présente des travaux de désamiantage sur un pont routier en exploitation sous autoroute. Hypothèse d’approche : Vérifier arrêts contractuels et frais de retour ou décontamination des matériels loués.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "FL Construction",
+    "group_key": "fl-holding-invest",
+    "website": "https://www.fl-construction.fr/",
+    "location": "Sainte-Luce-sur-Loire (44)",
+    "sector": "Gros œuvre, génie civil et ouvrages techniques",
+    "size": "Plus de 50 collaborateurs annoncés; ancien effectif légal 10–19 en 2022",
+    "contact_email": "accueil@fl-construction.fr",
+    "target_role": "Responsable administrative / gérant",
+    "facts": [
+      "Le site cite des interventions en site occupé à la laiterie de Saint-Père-en-Retz, chez Suez et dans les écoles de Nantes.",
+      "L’entreprise présente un parc propre et une responsable administrative prénommée Charlotte."
+    ],
+    "equipment": "Matériels d’accès, pompage et énergie provisoire complémentaires",
+    "pain": "Vérifier les périodes facturées sur interventions phasées en site occupé.",
+    "limitations": [
+      "Parc propre important: ne pas présumer la location de pelles.",
+      "Écart temporel entre effectifs; aucune extrapolation de dépenses.",
+      "Prénom seul publié, aucun nom de famille ni email personnel ajouté."
+    ],
+    "ratings": [
+      3,
+      3,
+      4,
+      4,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.fl-construction.fr/contact-devis",
+        "Email générique"
+      ],
+      [
+        "https://www.fl-construction.fr/qui-sommes-nous",
+        "Projets, taille, parc et équipe"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/fl-construction-791045891",
+        "Entité active et ancien effectif"
+      ]
+    ],
+    "country": "France",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Location complémentaire plausible d’après les opérations; volume, payeur et montant non établis.",
+    "opening": "Le site cite des interventions en site occupé à la laiterie de Saint-Père-en-Retz, chez Suez et dans les écoles de Nantes. Hypothèse d’approche : Vérifier les périodes facturées sur interventions phasées en site occupé.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "UEC – Union des Entreprises de Construction",
+    "group_key": "uec-groupe",
+    "website": "https://www.uec.fr/",
+    "location": "Pontault-Combault (77); agence de Bouloire (72)",
+    "sector": "Gros œuvre et réhabilitation lourde",
+    "size": "95 collaborateurs annoncés; registre 50–99",
+    "contact_email": "uec@uec.fr",
+    "target_role": "RAF / achats chantier",
+    "facts": [
+      "Le site annonce 10 à 15 chantiers annuels et deux implantations, construction et Grand Ouest.",
+      "Référence du Village des Médias de Dugny: 519 logements, réalisation 2022–2024."
+    ],
+    "equipment": "Manutention, accès et installations provisoires",
+    "pain": "Rapprocher compléments loués, périodes et retours entre opérations de gros œuvre.",
+    "limitations": [
+      "Plus de vingt engins possédés selon une page du site; compléments externes seulement supposés.",
+      "Pages anciennes et nouvelles divergent sur les volumes annuels: retenir la page d’accueil actuelle."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://www.uec.fr/contact",
+        "Email et implantations"
+      ],
+      [
+        "https://www.uec.fr/",
+        "95 collaborateurs et 10–15 chantiers annoncés"
+      ],
+      [
+        "https://www.uec.fr/nos-realisations",
+        "Dugny 2022–2024"
+      ],
+      [
+        "https://www.uec.fr/nos-engagements",
+        "Parc propre et anciens indicateurs"
+      ],
+      [
+        "https://www.societe.com/societe/union-entreprises-construction-u-e-c-423761998.html",
+        "Active et 50–99 salariés"
+      ]
+    ],
+    "country": "France",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Location complémentaire plausible d’après les opérations; volume, payeur et montant non établis.",
+    "opening": "Le site annonce 10 à 15 chantiers annuels et deux implantations, construction et Grand Ouest. Hypothèse d’approche : Rapprocher compléments loués, périodes et retours entre opérations de gros œuvre.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "SOPRECO – Groupe Quatre+",
+    "group_key": "quatre-plus",
+    "website": "https://sopreco.fr/",
+    "location": "Labège (31) et Canéjan (33)",
+    "sector": "Bâtiment et génie civil industriel",
+    "size": "110 salariés annoncés; registre 100–199 en 2023",
+    "contact_email": "contact@sopreco.fr",
+    "target_role": "DAF / achats groupe",
+    "facts": [
+      "Le gros œuvre représente 50 % de l’activité déclarée.",
+      "Références: extension du siège Pierre Fabre aux Cauquillous et reconversion du centre de tri postal de Bègles en Cité Numérique."
+    ],
+    "equipment": "Accès, manutention et matériels temporaires de réhabilitation",
+    "pain": "Vérifier durées et frais annexes des locations sur extensions et restructurations.",
+    "limitations": [
+      "Actionnariat principalement salarié via Quatre+; une seule entrée groupe.",
+      "Références non datées; recours externe et autonomie achats à qualifier."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      5,
+      4,
+      3,
+      5,
+      4
+    ],
+    "sources": [
+      [
+        "https://sopreco.fr/contact/",
+        "Email et deux agences"
+      ],
+      [
+        "https://sopreco.fr/",
+        "Activités et références"
+      ],
+      [
+        "https://sopreco.fr/le-groupe/",
+        "110 salariés et structure du groupe"
+      ],
+      [
+        "https://annuaire-entreprises.data.gouv.fr/entreprise/sopreco-societe-de-prefabrication-et-de-construction-sopreco-580800423",
+        "Active et tranche d’effectif"
+      ]
+    ],
+    "country": "France",
+    "contact_status": "GENERIC",
+    "contact_source_index": 0,
+    "contact_form": null,
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Location complémentaire plausible d’après les opérations; volume, payeur et montant non établis.",
+    "opening": "Le gros œuvre représente 50 % de l’activité déclarée. Hypothèse d’approche : Vérifier durées et frais annexes des locations sur extensions et restructurations.",
+    "confidence": "MEDIUM",
+    "research_date": "2026-09-20"
+  }
+]
