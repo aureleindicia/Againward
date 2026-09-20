@@ -1,0 +1,73 @@
+{
+  "date": "2026-09-20",
+  "total": {
+    "researched_documented": 134,
+    "rejected": 34,
+    "selected": 100,
+    "by_tier": {
+      "A": 17,
+      "B": 83
+    },
+    "confirmed_direct_professional_email": 4,
+    "role_email": 6,
+    "generic_email": 78,
+    "role_or_generic_email": 84,
+    "contact_form_only": 12,
+    "inferred_patterns": 0,
+    "by_country": {
+      "France": 50,
+      "United Kingdom": 35,
+      "Belgium": 15
+    },
+    "by_confidence": {
+      "MEDIUM": 98,
+      "HIGH": 2
+    }
+  },
+  "datasets": {
+    "rental_france_50": {
+      "researched_documented": 76,
+      "rejected": 26,
+      "selected": 50,
+      "by_tier": {
+        "A": 6,
+        "B": 44
+      },
+      "confirmed_direct_professional_email": 3,
+      "role_email": 2,
+      "generic_email": 38,
+      "role_or_generic_email": 40,
+      "contact_form_only": 7,
+      "inferred_patterns": 0,
+      "by_country": {
+        "France": 50
+      },
+      "by_confidence": {
+        "MEDIUM": 48,
+        "HIGH": 2
+      }
+    },
+    "rental_international_50": {
+      "researched_documented": 58,
+      "rejected": 8,
+      "selected": 50,
+      "by_tier": {
+        "A": 11,
+        "B": 39
+      },
+      "confirmed_direct_professional_email": 1,
+      "role_email": 4,
+      "generic_email": 40,
+      "role_or_generic_email": 44,
+      "contact_form_only": 5,
+      "inferred_patterns": 0,
+      "by_country": {
+        "United Kingdom": 35,
+        "Belgium": 15
+      },
+      "by_confidence": {
+        "MEDIUM": 50
+      }
+    }
+  }
+}

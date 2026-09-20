@@ -1,0 +1,1385 @@
+{
+  "date": "2026-09-20",
+  "reviewed": 100,
+  "group_duplicates": 0,
+  "records": {
+    "Launet Construction": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Annonce portée par Launet mais poste chez Beuvain Montage : entité payeuse à confirmer. Email RH publié non retenu : mauvaise fonction pour cette offre.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Confiance ramenée à MEDIUM : registre et déclarations de l’entreprise ne corroborent pas indépendamment la dépense locative."
+      ],
+      "size_check": "50–99 salariés LAUNET (2022); périmètre groupe plus large non chiffré — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF/achats du groupe, en lien avec responsable des monteurs Beuvain; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour launet; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Cruard Charpente et Construction Bois": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Ateliers possédés; location de moyens sur chantier inférée. Email nominatif publié par Fibois en mars 2026; volume achats à qualifier.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré."
+      ],
+      "size_check": "148 salariés moyens internes dans comptes au 31 juillet 2024 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Direction générale / RAF; CONFIRMED; titulaire exact publié, à revalider",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour lefevre-developpement; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Dubrulle-Faignot TP": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Le partenariat de 2023 ne prouve ni volume actuel ni facturation directe à Dubrulle. Site officiel non récupérable par le navigateur; contact public via publication de l'entreprise.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "50–99 salariés (2022, unité légale) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Direction administrative/finance, avec responsable matériel; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour dub-invest; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Groupe Remove / REMOVE": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Parc géré en interne; part louée inconnue. Références historiques; effectif annoncé non assimilable à une moyenne comptable.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré."
+      ],
+      "size_check": "138 opérateurs et plusieurs équipes d'encadrement affichés, date non précisée — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Responsable comptable; GENERIC; titulaire exact publié, à revalider",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour remove; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Le Bâtiment Associé": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Chiffres commerciaux non datés et non audités. Formulaire général seulement vérifié; routage finance à obtenir.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré."
+      ],
+      "size_check": "220 collaborateurs annoncés sur le site; année non précisée — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF/RAF, avec direction travaux; CONTACT_FORM_ONLY; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour le-batiment-associe; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Mathis": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Références historiques, pas des chantiers en cours; aucune location externe prouvée. Distinguer équipements d'usine possédés et moyens de montage sur site.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré."
+      ],
+      "size_check": "200–249 salariés (2023) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF / achats travaux; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour mathis; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Boutillet": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Parc matériel propre avec ateliers; ne cibler que les compléments externes. Un recrutement ne démontre aucune faiblesse de contrôle.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Parc et ateliers propres; le recrutement finance ne prouve pas des locations externes."
+      ],
+      "size_check": "Plus de 137 salariés annoncés, page non datée — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / contrôle de gestion; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour boutillet; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "CAPOCCI": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Parc propre important et outils internes CAPCONNECT; ne pas présumer des contrôles insuffisants. Locations externes non démontrées.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Parc important et outil CAPCONNECT; qualifier les seuls achats externes."
+      ],
+      "size_check": "Plus de 140 collaborateurs; offre France Travail septembre 2026 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / responsable matériel et achats; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour capocci; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Construction Savoyarde": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Transport et matériel propres possibles; objet social inclut aussi négoce/location. La durée utile sur chantier ne détermine pas seule la période contractuelle facturable.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Moyens propres possibles; locations externes non corroborées."
+      ],
+      "size_check": "50–99 salariés (2022) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / responsable matériel; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour construction-savoyarde; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Giesper – Travaux Publics": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Ne pas déduire du recrutement un défaut de contrôle. Groupe diversifié: cibler Travaux Publics, pas hôtellerie ou promotion.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Contrôles fournisseurs explicites et parc propre; aucune faiblesse déduite du recrutement."
+      ],
+      "size_check": "100–199 salariés unité en 2022; groupe environ 250–300 annoncé — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF / comptabilité fournisseurs avec achats; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour giesper; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "COBAT Constructions": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Références non datées, ne pas les présenter comme actuelles. Alerte officielle aux domaines frauduleux; aucun email deviné. L’adresse contentieux n’est pas un canal commercial.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Références non datées, formulaire seulement et risque d’homonymie de domaine signalé par l’entreprise."
+      ],
+      "size_check": "250–499 salariés en 2022 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF / achats matériel; CONTACT_FORM_ONLY; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour cobat; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "SCAM TP": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Moyens matériels propres annoncés; location complémentaire non démontrée. L’adresse DPO du site est exclue car hors fonction commerciale.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Moyens propres annoncés et aucune preuve de locations externes."
+      ],
+      "size_check": "Plus de 250 salariés annoncés — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF / responsable achats ou matériel; CONTACT_FORM_ONLY; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour scam-tp; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "CCE – Constructions de la Côte d'Émeraude": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Parc propre et achats par filiale possibles; autonomie non présumée. Aucune preuve de location externe; ne pas dupliquer CEB, ACE ou Lepère.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Intégration de plusieurs métiers et parc propre; volume de location externe inconnu."
+      ],
+      "size_check": "200 salariés annoncés au périmètre CCE; registre unité 100–199 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF / responsable matériel de la SCOP; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour cce-scop; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "KERN Bretagne (anciennement SRB Construction)": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Aucune location externe démontrée; contrôles groupe inconnus. Utiliser le nouveau contact KERN; ne pas confondre avec SRB Construction 810584516 à Saint-Jean-de-Védas.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Réorganisation et changement de marque; entité acheteuse et payeur à qualifier."
+      ],
+      "size_check": "101 salariés unité légale en 2025; groupe plus d'une centaine, périmètre variable — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF groupe / achats matériel; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour kern; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "SOPRECO – Groupe Quatre+": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Actionnariat principalement salarié via Quatre+; une seule entrée groupe. Références non datées; recours externe et autonomie achats à qualifier.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Références historiques et organisation groupe; locations externes non établies."
+      ],
+      "size_check": "110 salariés annoncés; registre 100–199 en 2023 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF / achats groupe; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour quatre-plus; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "UEC – Union des Entreprises de Construction": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Plus de vingt engins possédés selon une page du site; compléments externes seulement supposés. Pages anciennes et nouvelles divergent sur les volumes annuels: retenir la page d’accueil actuelle.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Plus de vingt engins possédés; le volume externe doit être établi."
+      ],
+      "size_check": "95 collaborateurs annoncés; registre 50–99 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / achats chantier; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour uec-groupe; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "CANCÉ": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Une partie du montage peut être réalisée par des partenaires : identifier le payeur des locations. Contact public du métier aluminium; faire orienter vers achats/finance si nécessaire.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré.",
+        "Pertinence de contact ramenée à 2/5 : directeur métier aluminium, pas achats/finance confirmé."
+      ],
+      "size_check": "250–499 salariés unité légale; consultation registre 2026 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Direction métier / achats travaux; CONFIRMED; titulaire exact publié, à revalider",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour cance; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Avenir Déconstruction": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Effectif déclaré non daté, différent d'un effectif total certifié. Locations et dépenses externes non publiées.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré.",
+        "Potentiel économique ramené à 4/5 : aucune dépense locative connue.",
+        "Confiance ramenée à MEDIUM : registre et déclarations de l’entreprise ne corroborent pas indépendamment la dépense locative."
+      ],
+      "size_check": "Environ 240 personnes en production annoncées, dont 60 désamianteurs; date non précisée — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF/achats matériel au siège; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour avenir-deconstruction; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "DI Environnement": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Parc spécialisé propre possible; proportion louée inconnue. Le périmètre groupe diffère de l’effectif de l’unité légale.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "250–499 salariés, unité 421347006, données 2022; groupe plus large — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF / achats et matériel; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour di-environnement; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Entreprise Chazelle": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Aucune location externe explicitement démontrée. Parc et ateliers propres : ne pas proposer l'audit de l'ensemble des moyens matériels.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Confiance ramenée à MEDIUM : registre et déclarations de l’entreprise ne corroborent pas indépendamment la dépense locative."
+      ],
+      "size_check": "150 salariés annoncés sur le site; registre 100–199 (2023) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF/DAF de l'activité construction; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour chazelle; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Est Ouvrages": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Email nominatif publié par STRRES, poste à reconfirmer avant envoi. L'agence n'est pas nécessairement autonome pour les achats.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré."
+      ],
+      "size_check": "350 collaborateurs groupe, page chiffres clés 2025 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Direction d'agence puis RAF groupe; CONFIRMED; titulaire exact publié, à revalider",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour est-ouvrages; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Giraud Midi-Pyrénées": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Références parfois anciennes; ne pas annoncer un chantier actuel sans date. Location et volume externe inférés.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "100–199 salariés en 2023 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF / achats matériel; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour giraud-alizeo; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Groupe Livio": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Capacité d'approvisionnement interne : contre-indice à une forte location externe. Autonomie des filiales non établie; une seule cible pour tout Livio.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Confiance ramenée à MEDIUM : registre et déclarations de l’entreprise ne corroborent pas indépendamment la dépense locative."
+      ],
+      "size_check": "350 collaborateurs en 2025, groupe — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF groupe / achats mutualisés; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour livio; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Waltefaugle": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Volume annuel autodéclaré et non daté. Objet social inclut location d'engins : ne prouve pas l'achat de location.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Confiance ramenée à MEDIUM : registre et déclarations de l’entreprise ne corroborent pas indépendamment la dépense locative."
+      ],
+      "size_check": "100–199 salariés de WALTEFAUGLE SAS (2023); groupe non chiffré ici — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF/achats groupe, avec direction montage; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour waltefaugle; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Cuiller Frères": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Date précise du chantier à confirmer; aucune location attestée. Le code NAF menuiserie ne résume pas l'activité de charpente documentée.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré."
+      ],
+      "size_check": "100–199 salariés (2023) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / direction travaux bois; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour cuiller; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "EGD Désamiantage": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Pas de preuve de dépense locative; distinguer matériel spécialisé propre et location externe. Ne pas ajouter TMD/PGMS comme prospects indépendants.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré."
+      ],
+      "size_check": "50–99 salariés (2023, EGD) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF du groupe PGMS / responsable achats; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour pgms; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "MITHIEUX TP": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Location externe inférée, non attestée. Ne pas dupliquer l'activité Grand Est au titre d'un acheteur supplémentaire.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Plus de 220 annoncés; registre 200–249 (2023) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF / responsable matériel; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour mithieux; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "SFTP – désamiantage": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Mention légale du site associée à un autre numéro: identité opérationnelle 421974221 recoupée via Qualibat. Aucune preuve publique du volume de locations.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "50–99 salariés en 2022 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / responsable matériel; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour sftp-alssyon; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "SNADEC Environnement": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Le site groupe couvre aussi assainissement et hygiène; cibler l’entité Environnement. Possession des équipements et locations externes non établies.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "250–499 salariés en 2023, unité SIREN 311595912 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF groupe / achats matériel; CONTACT_FORM_ONLY; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour snadec-premium; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Entreprise Gallego": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Usage locatif inféré; ne pas cibler la promotion immobilière. Éviter de compter Gallego Aquitaine comme autre acheteur sans preuve d'autonomie.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "100–199 salariés (2023) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Responsable administratif/finance CEGE; ROLE_ADDRESS; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour cege-gallego; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Entreprise Michel Duhalde SARL": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Matériels et équipes dédiés possédés: compléments externes non démontrés. Ne pas confondre la SARL opérationnelle avec la holding Duhalde TP ou les homonymes.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "50–99 salariés en 2022, unité 348658493 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF groupe / direction travaux; CONTACT_FORM_ONLY; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour duhalde-ustaritz; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "BRIFER – La Ferroviaire de la Brie": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Matériel spécialisé potentiellement possédé; aucune location externe attestée. La fenêtre de travaux ne suffit pas à déterminer la durée contractuelle facturable.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré."
+      ],
+      "size_check": "80 annoncés; 50–99 salariés (2023) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / responsable matériel et opérations; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour brifer; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "BTPO – Bâtiments et Travaux Publics de l'Orléanais": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Email recoupé dans publications municipales et BOAMP, sans confirmation de délivrabilité. Externalisation de paie distincte des contrôles achats; site propre peu indexé.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "100–199 salariés (2022); 130 dans cas fournisseur publié 2024 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / comptabilité fournisseurs; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour btpo-mistral; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Entreprise Alain Le Ny": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Références historiques non présentées comme chantiers actuels. Ateliers et moyens propres possibles; la reprise ne prouve pas un défaut de contrôle.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Plus de 80 personnes en 2025 selon le conseil de transmission; 50–99 en 2022 au registre — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / direction travaux; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour alain-le-ny; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "GCMI": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Parc propre important : ne pas assimiler activité intensive et dépenses locatives. Périmètres d'effectif différents; aucun montant locatif public.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "100 annoncés sur le site; 125 sur fiche CCI, dates non précisées — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / direction des opérations industrielles; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour gcmi; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Le Bras Frères": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Europe Echafaudage appartient au même groupe : ne pas assimiler ses équipements à des achats de location externe. Échelle groupe différente de l’effectif de la société; dépense locative non connue.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Environ 300 annoncés groupe; unité 320182447 : 100–199 en 2023 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / direction travaux; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour le-bras; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Renaudat Centre Constructions": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Référence nucléaire historique non datée sur la page; ne pas la présenter comme chantier en cours. Effectif réduit : valeur économique à qualifier.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré.",
+        "Confiance ramenée à MEDIUM : registre et déclarations de l’entreprise ne corroborent pas indépendamment la dépense locative."
+      ],
+      "size_check": "20–49 salariés (2023, unité légale) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Direction / responsable administratif, avec montage; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour renaudat; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "SECTP": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Aucun fournisseur de location ou montant de dépense identifié. Le coffrage et les grues peuvent être détenus en propre.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "200 collaborateurs annoncés, site non daté — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / responsable matériel; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour sectp; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "SOCOTRAP": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Locations externes non démontrées; effectif et CA du site non datés. Contact publié par le centre d'aide de l'entreprise en 2023; à revalider avant campagne.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "150 collaborateurs annoncés, date non précisée — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF / responsable comptabilité fournisseurs; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour socotrap; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "EuropAmiante": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Aucun email pertinent public confirmé; utiliser uniquement le formulaire. Parc/transport propres et administration existante : ne pas supposer de carence.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Plus de 70 annoncés; 50–99 (2023, unité légale) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Direction administrative / Carine Rouvier, PDG; CONTACT_FORM_ONLY; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour rg-group-europamiante; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "FL Construction": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Parc propre important: ne pas présumer la location de pelles. Écart temporel entre effectifs; aucune extrapolation de dépenses.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Plus de 50 collaborateurs annoncés; ancien effectif légal 10–19 en 2022 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Responsable administrative / gérant; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour fl-holding-invest; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Jousselin Construction": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Références datées de 2023; ne pas les présenter comme chantiers encore actifs. Aucun volume locatif connu; taille modeste, valeur du dossier à confirmer.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "65 collaborateurs annoncés; 50–99 (2023) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / direction générale; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour hm-financiere-jousselin; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "LIZEE": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Effectifs du site et du registre portent sur des périmètres/dates différents. Aucune preuve de location externe; matériel propre documenté.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Site : 120 à 200 selon périmètre; unité légale : 20–49 (2022) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Responsable comptabilité / RAF; ROLE_ADDRESS; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour lizee; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "EGC Carimalo": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Location externe inférée; moyens matériels propres également évoqués. Cibler la construction professionnelle, pas les petits travaux d'habitat.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "80 groupe annoncés; 50–99 unité légale (2023) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / direction administrative groupe; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour carimalo; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "MAS BTP": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Locations externes et autonomie des agences non démontrées. Ne pas confondre avec les homonymes MAS BTP de Paris ou Gonesse.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "250–499 salariés (2023) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF / responsable achats ou matériel; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour mas-btp; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Charpente Houot": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Petite PME : valeur économique à valider avant audit large. Fabrication propre; moyens externes inférés, pas de contrat de location publié.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré."
+      ],
+      "size_check": "20–49 salariés (2023) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Direction / RAF; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour sylvaprod-houot; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "J.C. Bonnefoy / Groupe Bonnefoy": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Modèle très intégré et flotte propre: part louée incertaine et priorité réduite. Une seule cible pour le groupe, aucune hypothèse de dépenses à partir de l’effectif.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "100–199 salariés unité; près de 300 dans le groupe annoncés — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF groupe / direction TP; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour bonnefoy; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "COSSU SAS": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Email publié par un annuaire, non recoupé sur site officiel; vérifier avant envoi. Dépense de location inconnue; volume potentiel plus limité que les ETI.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Près de 50 annoncés; 20–49 salariés (2023) — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Direction générale / RAF; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour cossu; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Groupe LB / LB Belliard": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Parc propre très important: grues, bases-vie et télescopiques; probabilité de location abaissée. Services achats, finance et juridique internes; ne pas supposer une gestion rudimentaire.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Environ 269 personnes sur la page Moyens, non datée; LB Belliard 50–99 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Direction financière / achats groupe; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour groupe-lb; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Constructions Métalliques Daussy": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Grues mobiles de 30–35 t propres: ne pas présumer une dépense de location de grues. Taille modeste; intérêt économique à établir sur un échantillon.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "20–49 salariés en 2022 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / direction de travaux; CONTACT_FORM_ONLY; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour daussy; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Jackson Civil Engineering Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Contrôles formels existants : ne pas présenter l'offre comme leur remplacement. Groupe One Group Construction comprenant des activités de matériel; distinguer tiers et intragroupe.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Entreprise régionale multi-agences; 201–500 selon page employeur, périmètre à confirmer — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / responsable achats plant; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour one-group-construction; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Stepnell Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Parc propre et responsable dédié : contrôles déjà structurés. Noel Pluck nommé en 2024, fonction actuelle à reconfirmer; passer par l'adresse générale.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "ETI régionale; effectif global non confirmé; CA £150m exercice mars 2026 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Plant & Fleet Manager avec Finance Director; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour stepnell; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Ashe Construction Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Matériels propres mentionnés dans le plan carbone; compléments externes inférés. Les 600 participants de l’action sécurité ne sont pas 600 salariés.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "51–200 salariés, tranche du profil LinkedIn — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour ashe; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Conamar Building Services Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "La durée du projet n'est pas la durée de location; vérifier si les sous-traitants paient le matériel. Location externe inférée; aucun montant de dépense ou écart de facturation démontré.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré."
+      ],
+      "size_check": "Catégorie de comptes medium company, exercice juin 2025; effectif non publié ici — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Commercial Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour conamar; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Entreprises Mignone SA": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Ne pas assimiler les 150 références à 150 chantiers simultanés: formulations différentes selon les pages. Part sous-traitée et location externe non établies.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Plus de 100 collaborateurs annoncés — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Direction administrative et financière / opérations; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour mignone-nexvolta; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "E.G. Carter & Company Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Effectif du holding, non équivalent à l'unité opérationnelle. Location non prouvée; certains moyens peuvent relever des sous-traitants.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Environ 195 salariés groupe en 2025 selon comptes repris par 192.com — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Direction administrative; CONFIRMED; titulaire exact publié, à revalider",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour eg-carter; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "E.W. Beard Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Adresse Purchase Ledger publiée pour les litiges fournisseurs : pertinente fonctionnellement mais ne constitue pas une invitation commerciale. Équipes achats/finance et procédures déjà organisées; ne pas supposer un contrôle manuel insuffisant.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "340 salariés annoncés par Open Doors, non daté — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Responsable comptabilité fournisseurs / Finance Director; ROLE_ADDRESS; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour ew-beard; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Tradeco Belgium SA": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Fabrication propre et sous-traitance possibles; payeur inconnu. Une seule cible pour Tradeco, Thersa et les autres sociétés du groupe.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "300 personnes annoncées groupe, distinct de la SA — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF groupe / achats; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour tradeco; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Altez NV / Altez Construction Group": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Signal fournisseur sur chantier partagé, pas preuve de facturation à Altez; Dilissen peut être le locataire. Production et engins de montage propres; contact commercial à orienter vers finance.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "135,8 ETP pour Altez NV en 2025; groupe annoncé 251–500 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance / responsable matériel; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour altez; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Barnfield Construction Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Parc géré en interne et promotion intégrée; viser les achats de l’exécutant. Chiffres commerciaux non audités et périmètres d’effectif différents.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Plus de 250 personnes sur le site; périmètre groupe; ancien profil LinkedIn mentionne 120 directs — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director avec Plant & Logistics Manager; GENERIC; titulaire exact publié, à revalider",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour barnfield; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Triton Construction Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "L'organigramme peut évoluer; certaines directions ont changé depuis janvier 2026. Location externe inférée; aucun montant de dépense ou écart de facturation démontré.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré."
+      ],
+      "size_check": "Environ 70 selon annuaire non daté; équipe régionale détaillée en janvier 2026 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Accounts Manager / Buyer; GENERIC; titulaire exact publié, à revalider",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour triton-construction-uk; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Quinn (London) Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Email générique prouvé par document public 2023; page actuelle masque les adresses dans le rendu web. Reconfirmer avant campagne. Matériel éventuellement payé par les sous-traitants.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Email public prouvé en 2023 seulement; à reconfirmer avant de le prioriser."
+      ],
+      "size_check": "Plus de 170 salariés annoncés — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour quinn-london; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "S.D.C. Builders Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Entreprise structurée, détenue par les salariés; ne pas supposer de faibles contrôles. Responsabilité des locations entre entrepreneur principal et sous-traitants à qualifier.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Organisation importante et structurée; matériel potentiellement payé par sous-traitants."
+      ],
+      "size_check": "Plus de 350 collaborateurs groupe annoncés — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour sdc; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Entreprise Jérouville SA": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Parc propre: seules les locations complémentaires sont visées. Rôles nominatifs publiés sur l’ancien site, à reconfirmer.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Parc propre et titulaires matériel/comptabilité issus d’un ancien site."
+      ],
+      "size_check": "161,7 ETP 2025, agrégateur de comptes — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Responsable matériel avec comptabilité; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour jerouville; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Entreprises Gilles Moury SA / Groupe Moury Construct": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Groupe coté et structuré: contrôles financiers probablement déjà développés. Une seule entrée pour GM, Bemat, Mosabois, Mourylux et D-FI.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Groupe coté et structuré, documents achats et autonomie opérationnelle inconnus."
+      ],
+      "size_check": "Près de 350 collaborateurs groupe, page non datée — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Direction financière / administration fournisseurs; ROLE_ADDRESS; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour moury; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Barnes Construction – The Barnes Group Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Opérateur The Barnes Group Limited 01359667; la société homonyme 02541343 est non-trading. Le groupe comprend Bower Fuller: une seule cible.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Unités homonymes et groupe intégré; achats de location non explicitement documentés."
+      ],
+      "size_check": "Plus de 120 personnes annoncées pour la division construction — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour barnes-ipswich; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Hobson and Porter Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Références du site parfois anciennes; ne pas les présenter comme chantiers actuels. Location externe inférée; aucun montant de dépense ou écart de facturation démontré.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Références opérationnelles anciennes et location externe non démontrée."
+      ],
+      "size_check": "138 salariés, comptes 2024 repris par Companies in the UK — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / achats travaux; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour hobson-porter; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Logan Construction (South East) Ltd": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Référence St Thomas historique, pas un chantier actuel. Les titulaires finance/achats ne sont pas confirmés nominativement.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Classement B malgré score A : Référence principale historique; achats locatifs actuels à qualifier."
+      ],
+      "size_check": "70 salariés annoncés sur la page d’accueil — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour logan-se; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Ash Contracting Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Ash Capital Projects et Ash Special Works regroupés dans cette cible; pas de dépense locative publiée. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "51–200, tranche LinkedIn — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Accounts / Finance Manager; ROLE_ADDRESS; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour ash-contracting; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Etablissements Jacobs SA": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Véhicules spécialisés propres: externalisation non démontrée. Distinct du groupe d’ingénierie international Jacobs.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "112 personnes, fiche Verif associée aux comptes 2024 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / responsable matériel; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour jacobs-awans; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Picard Construct SA": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Location inférée, aucune facture publique. Périmètres des effectifs différents; CA non retenu.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Plus de 100 personnes annoncées; registre 50–99 sans millésime explicite — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Responsable administrative et financière; CONTACT_FORM_ONLY; titulaire exact publié, à revalider",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour picard-construct; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "BATITEC SA – Bâtiment et Technique": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Atelier interne; locations potentiellement payées par les sous-traitants. SA BE0436403493, distincte de l’homonyme d’Asse.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "98,2 ETP au dernier dépôt du 18/04/2026 — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / achats et logistique chantier; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour batitec-oupeye; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Borras Construction Ltd": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Organisation achats à qualifier; ne pas assimiler marché remporté et locations prouvées. Location externe inférée; aucun montant de dépense ou écart de facturation démontré.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "PME selon avis de marché février 2026; effectif précis non retenu — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour borras; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Houyoux Constructions SA": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Ateliers internes: location externe non démontrée. Cibler l’exécution, pas la seule promotion immobilière.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "200 collaborateurs annoncés; 157,6 ETP 2025 au registre — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF / achats chantier; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour houyoux; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Alheembouw NV": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Grands projets et contrôles probablement structurés; identifier la société facturée belge ou française avant toute prestation. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "183,8 ETP 2025, Companyweb — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance / achats groupe; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour alheembouw; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Baxall Construction Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Effectif précis non recoupé; maturité achats déjà visible. Location externe inférée; aucun montant de dépense ou écart de facturation démontré.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "PME régionale; annuaire métier 10–100 salariés, non daté — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour baxall; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Coniston Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Le parc peut appartenir aux sous-traitants; qualifications de locations à faire avant audit. Location externe inférée; aucun montant de dépense ou écart de facturation démontré.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré."
+      ],
+      "size_check": "Entreprise régionale; CA déclaré £40m non daté sur LinkedIn, effectif précis non retenu — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director; GENERIC; titulaire exact publié, à revalider",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour coniston; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Coulson Building Group": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Un seul prospect pour le groupe; unité contractante à confirmer. Location externe inférée; aucun montant de dépense ou écart de facturation démontré.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [
+        "Probabilité de location ramenée à 3/5 : activité intensive prouvée, recours externe non corroboré."
+      ],
+      "size_check": "51–200 salariés, tranche LinkedIn non datée — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Group Finance / achats; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour coulson; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Jeakins Weir Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Références non datées; pas de volume annuel de location établi. Privilégier les travaux de construction plutôt que les petites réparations.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "51–200 salariés, tranche LinkedIn; effectif comptable récent non retenu — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour jeakins-weir; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "McPhillips (Wellington) Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Parc propre et atelier réduisent l'hypothèse de dépenses externes. La main-d'œuvre propre renforce le profil exécutant mais ne prouve pas des locations.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Plus de 280 employés annoncés, date non précisée — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / responsable matériel; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour mcphillips; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Neilcott Construction Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "CA historique £139m en 2023 selon presse; achats structurés possibles, pas une petite PME. Location externe inférée; aucun montant de dépense ou écart de facturation démontré.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Entreprise régionale de taille intermédiaire; effectif actuel non certifié — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Group Commercial Director; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour neilcott; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Speller Metcalfe Malvern Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "La notion anglaise plant dans cette référence désigne aussi les équipements techniques permanents; ce n'est pas une preuve de location. Sous-traitants susceptibles de payer une partie du matériel.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Plus de 200 salariés annoncés, page emploi non datée — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / responsable achats; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour speller-metcalfe; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "GMI Construction Group PLC": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Organisation régionale et achats probablement structurés : proposer un contrôle borné; sous-traitants susceptibles de supporter les locations. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "201–500, tranche LinkedIn — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; CONTACT_FORM_ONLY; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour gmi-uk; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Algemene Ondernemingen Robert Wyckaert NV": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Site surtout néerlandais : capacité à travailler en anglais à qualifier par écrit; entités communes de chantier non ajoutées. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "150 personnes annoncées; 150,6 ETP exercice 2025 selon Companyweb — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance / aankoopverantwoordelijke; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour wyckaert; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Bouwbedrijf Furnibo NV": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Furnibo, JEROM et GUST traités comme un seul acheteur; le site français permet une approche francophone. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Environ 150 personnes, profil public de l’entreprise — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Responsable finance / achats; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour furnibo; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Britcon (UK) Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Contrôle fournisseurs déjà structuré; ne pas supposer une faiblesse administrative. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "51–200, tranche LinkedIn — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Central Procurement Team / Finance; ROLE_ADDRESS; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour hunt-britcon; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Crown Highways Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "La présence d’un loueur à un événement associatif ne prouve aucun achat. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "122 salariés, comptes 2025 rapportés par Companies in the UK — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour crown-highways; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "G.F. Tomlinson Building Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Effectif groupe imprécis; location externe non démontrée. Ne pas confondre avec J Tomlinson, autre entreprise.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Plusieurs centaines de salariés selon site groupe, non daté — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / responsable achats matériel; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour gf-tomlinson; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "H.A. Marks Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Pages projets non datées; deux domaines email publiés : reconfirmer la route avant campagne. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "51–200, tranche LinkedIn — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour ha-marks; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "MCS Group Ltd": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Dates des références non précisées; ne pas les présenter comme des chantiers tous simultanés. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "51–200, tranche du profil LinkedIn — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour mcs-warwick; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Mathieu Gijbels NV": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Montants de CA discordants entre agrégateurs : non retenus; ateliers possédés ne prouvent pas la location. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "181,1 ETP pour la NV en 2025; environ 320 personnes annoncées groupe — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance / achats groupe; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour gijbels; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Simpson (York) Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Atelier de menuiserie intégré; moyens loués non individualisés. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "201–500, tranche LinkedIn; non équivalent aux profils visibles — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour simpson-york; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Walter Thompson (Contractors) Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Une seule cible pour FT Construction Group; calendrier prévisionnel ne prouve pas les retours réels. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "201–500, tranche LinkedIn — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour ft-construction; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Clegg Construction Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "CA groupe non daté; ne pas l'utiliser comme mesure de dépense locative. Matériel potentiellement commandé par les sous-traitants; aucune location nominative trouvée.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "Groupe régional, CA annoncé £120m/an non daté; effectif non confirmé — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / direction commerciale des contrats; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour clegg-group; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Entreprises Favier SA": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Références non datées, sans preuve de location externe. SA belge active distincte de l’ancienne immatriculation française inactive.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "55 ETP 2025, agrégateur de comptes — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "RAF / administration groupe; CONTACT_FORM_ONLY; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour favier; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "F. Parkinson Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Plusieurs références du site sont anciennes; le document municipal n’établit pas à lui seul l’achèvement des travaux. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "51–200, tranche LinkedIn — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; CONTACT_FORM_ONLY; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour mowbray-parkinson; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Groupe Jean Nonet": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Important parc propre: volume externe non démontré. Référence Grognon historique, pas un chantier actuel.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "175 collaborateurs annoncés sur le site opérationnel — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "DAF groupe / responsable matériel; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour nonet; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "A. & H. Construction and Developments PLC": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Dates des références web non précisées; adresse ventes à utiliser seulement comme orientation vers finance. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "51–200, tranche LinkedIn — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour ah-construction; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "J McCann & Co Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Flotte spécialisée importante et activité Link Lighting Hire : contre-indice fort; viser uniquement les locations achetées hors groupe. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "201–500, profil LinkedIn — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; GENERIC; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour mccann; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    },
+    "Marshall Construction (West Yorkshire) Limited": {
+      "date": "2026-09-20",
+      "question": "Quelle est la meilleure raison de penser que ce prospect pourrait louer très peu de matériel ou être mal adapté ?",
+      "strongest_counterargument": "Cibler l’exécutant identifié, pas la seule promotion; autonomie achats au sein du groupe non démontrée. Volume de locations externes, entité facturée et erreurs éventuelles non établis.",
+      "decision": "RETAIN_WITH_QUALIFICATION",
+      "changes": [],
+      "size_check": "51–200 pour la société selon LinkedIn; plus de 200 pour le groupe — adéquation qualitative, aucun budget extrapolé.",
+      "contact_check": "Finance Director / Procurement Manager; CONTACT_FORM_ONLY; titulaire exact non confirmé",
+      "personalization_check": "Faits séparés des hypothèses; sources d’activité/projets et contact listées dans la fiche.",
+      "no_problem_asserted": true,
+      "group_check": "Une seule entrée sélectionnée pour marshall-elland; périmètre et autonomie restent ceux décrits dans les limites.",
+      "first_qualification": "Confirmer par écrit que cette entité paie des locations externes récurrentes et conserve contrats, factures et traces de retour."
+    }
+  }
+}

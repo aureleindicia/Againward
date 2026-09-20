@@ -54,3 +54,15 @@ ces fichiers ne constitue une autorisation d'envoi.
 
 `data/opposition.json` est la liste locale des organisations ou personnes à ne plus contacter. Elle
 doit être contrôlée avant toute préparation puis de nouveau juste avant tout contact.
+
+## Rental — France et international, septembre 2026
+
+Le [lot Rental de 100 prospects](RENTAL_100.md) contient 50 entreprises françaises et 50 hors France, avec sources, contacts publics, scores et `EMAIL_CONTEXT`. Il possède son propre schéma JSON, adapté aux factures de location, et ne modifie pas les anciens jeux Energy. Aucun envoi n’est autorisé ou effectué.
+
+Reproduction locale des classements et exports :
+
+```sh
+python prospecting/build_rental_prospects.py
+```
+
+Les lots `batch_*.json` sont les notes de recherche, y compris les candidats rejetés en revue finale. Utiliser uniquement les exports `PROSPECTS_50.json` pour les 100 sélectionnés. Consulter [RENTAL_FINAL_REVIEW.json](RENTAL_FINAL_REVIEW.json) et [REJECTED.json](REJECTED.json) avant une préparation ultérieure.
