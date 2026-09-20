@@ -1,0 +1,68 @@
+[
+  {
+    "company": "Barnfield Construction Limited",
+    "group_key": "barnfield",
+    "website": "https://www.barnfieldconstruction.co.uk/",
+    "location": "Nelson, Lancashire",
+    "size": "Plus de 250 personnes sur le site; périmètre groupe; ancien profil LinkedIn mentionne 120 directs",
+    "contact_email": "reception@barnfieldconstruction.co.uk",
+    "contact_form": null,
+    "contact_status": "GENERIC",
+    "facts": [
+      "En mars 2026, l’entreprise annonce le démarrage d’une usine Applied Nutrition à Knowsley; en mai, celui de Riverside à Barrowford.",
+      "Le groupe présente trente chantiers ou plus à l’échelle nationale et identifie une direction finance ainsi qu’un responsable matériel/logistique."
+    ],
+    "equipment": "Nacelles, manutention, bases-vie et moyens de terrassement",
+    "pain": "Tester sur un chantier industriel la concordance contrats, périodes et retours, en isolant le parc propre.",
+    "sources": [
+      [
+        "https://www.barnfieldconstruction.co.uk/contact/",
+        "Email réception"
+      ],
+      [
+        "https://www.barnfieldconstruction.co.uk/about-barnfield-construction/our-people/",
+        "Andrew Couper Finance Director, effectif et gestion matériel"
+      ],
+      [
+        "https://www.barnfieldconstruction.co.uk/news/",
+        "Démarrages de projets 2026"
+      ],
+      [
+        "https://www.barnfieldconstruction.co.uk/",
+        "Trente chantiers annoncés, sans date de référence"
+      ],
+      [
+        "https://find-and-update.company-information.service.gov.uk/company/02365913",
+        "Société active"
+      ]
+    ],
+    "limitations": [
+      "Parc géré en interne et promotion intégrée; viser les achats de l’exécutant.",
+      "Chiffres commerciaux non audités et périmètres d’effectif différents."
+    ],
+    "ratings": [
+      3,
+      4,
+      5,
+      4,
+      4,
+      3,
+      5,
+      4
+    ],
+    "country": "United Kingdom",
+    "jurisdiction": "England and Wales",
+    "language": "en",
+    "sector": "Construction générale et industrielle",
+    "target_role": "Finance Director avec Plant & Logistics Manager",
+    "contact_name": "Andrew Couper",
+    "contact_title": "Finance Director",
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles pour les mobilisations de chantier; aucun volume externe ni écart facturé établi.",
+    "opening": "En mars 2026, l’entreprise annonce le démarrage d’une usine Applied Nutrition à Knowsley; en mai, celui de Riverside à Barrowford. Hypothèse : Tester sur un chantier industriel la concordance contrats, périodes et retours, en isolant le parc propre.",
+    "confidence": "MEDIUM",
+    "contact_source_index": 0,
+    "research_date": "2026-09-20"
+  }
+]

@@ -241,5 +241,114 @@
       "https://www.cassintp.fr/"
     ],
     "research_date": "2026-09-20"
+  },
+  {
+    "company": "Komorniczak Léon et Cie",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Preuves commerciales insuffisamment robustes : site contenant du texte de remplissage et effectifs contradictoires; remplacé à la revue finale.",
+    "sources": [
+      "https://www.komorniczak-batiment.fr/savoir-faire-activites/",
+      "https://www.komorniczak-batiment.fr/entreprise/",
+      "https://www.komorniczak-batiment.fr/contact/",
+      "https://rubypayeur.com/societe/komorniczak-leon-et-cie-907220461"
+    ],
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "CHAPRON SAS",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Parc propre et location à des tiers; preuve insuffisante de dépenses locatives achetées significatives.",
+    "sources": [
+      "https://www.chapron-tp.fr/",
+      "https://www.chapron-tp.fr/travaux-publics.html",
+      "https://www.chapron-tp.fr/contact.html",
+      "https://www.pappers.fr/entreprise/chapron-sas-305273450"
+    ],
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Breheny Civil Engineering Limited",
+    "country": "United Kingdom",
+    "decision": "REJECTED",
+    "reason": "Parc propre annoncé de 3 000 matériels; location externe significative non documentée, remplacé par un dossier plus pertinent.",
+    "sources": [
+      "https://www.linkedin.com/company/breheny-civil-engineering/",
+      "https://breheny.co.uk/contact-us/",
+      "https://breheny.co.uk/wp-content/uploads/2025/02/Breheny-Company-Profile-2024.pdf",
+      "https://find-and-update.company-information.service.gov.uk/company/00753976"
+    ],
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Harris CM Limited",
+    "country": "United Kingdom",
+    "decision": "REJECTED",
+    "reason": "Liquidation au registre Companies House; exclu des cibles actives.",
+    "sources": [
+      "https://find-and-update.company-information.service.gov.uk/company/06775621"
+    ],
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Seymour Civil Engineering",
+    "country": "United Kingdom",
+    "decision": "REJECTED",
+    "reason": "Filiale à 100 % de Renew Holdings plc; autonomie achats insuffisamment établie pour ce premier lot.",
+    "sources": [
+      "https://www.seymourcec.co.uk/contact/"
+    ],
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Edibo",
+    "country": "Belgium",
+    "decision": "REJECTED",
+    "reason": "Racheté par Willy Naessens Group en 2025; autonomie achats non établie.",
+    "sources": [
+      "https://edibo.be/over-ons/"
+    ],
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Geo Houlton & Sons Limited",
+    "country": "United Kingdom",
+    "decision": "REJECTED",
+    "reason": "Division interne fournissant une gamme étendue de machines et installations; achats locatifs externes insuffisamment étayés.",
+    "sources": [
+      "https://houlton.co.uk/pages/about/about-us"
+    ],
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Lindum Group",
+    "country": "United Kingdom",
+    "decision": "REJECTED",
+    "reason": "Groupe intégré avec location interne, parc et autres métiers; faible priorité sans preuve complémentaire de location externe.",
+    "sources": [
+      "https://lindumgroup.com/media/uploads/2025/08/Annual-Report-2024-hi-res.pdf"
+    ],
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "SOTRAMA",
+    "country": "France",
+    "decision": "REJECTED",
+    "reason": "Parc spécialisé et offre de location à des tiers au cœur des services; acheteur locatif insuffisamment démontré.",
+    "sources": [
+      "https://www.sotrama.fr/"
+    ],
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "T&B Contractors",
+    "country": "United Kingdom",
+    "decision": "REJECTED",
+    "reason": "Proximité historique de contrôle avec Borras déjà retenu; autonomie actuelle des achats non suffisamment démontrée.",
+    "sources": [
+      "https://find-and-update.company-information.service.gov.uk/company/08799004/filing-history"
+    ],
+    "research_date": "2026-09-20"
   }
 ]

@@ -493,7 +493,8 @@
     "contact_title": null,
     "revenue": null,
     "confidence": "MEDIUM",
-    "contact_source_index": 2
+    "contact_source_index": 2,
+    "selection_decision": "REJECTED_FINAL_REVIEW"
   },
   {
     "company": "Jackson Civil Engineering Limited",

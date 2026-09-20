@@ -1,0 +1,122 @@
+[
+  {
+    "company": "Entreprise Alain Le Ny",
+    "group_key": "alain-le-ny",
+    "website": "https://leny-alain.fr/",
+    "location": "Dardilly (69)",
+    "size": "Plus de 80 personnes en 2025 selon le conseil de transmission; 50–99 en 2022 au registre",
+    "contact_email": "sa.leny@leny-alain.fr",
+    "contact_form": null,
+    "contact_status": "GENERIC",
+    "facts": [
+      "L’entreprise intervient sur couverture, charpente, bardage et restauration patrimoniale, dont gare de Lyon-Perrache et Hôtel de Ville de La Rochelle parmi les références.",
+      "En 2025, trois cadres internes ont repris l’entreprise; elle possède un atelier de pliage."
+    ],
+    "equipment": "Nacelles, levage et moyens temporaires d’accès",
+    "pain": "Contrôler les locations de chantier lors des phases de couverture et des reprises de matériel.",
+    "sources": [
+      [
+        "https://leny-alain.fr/mentions-legales/",
+        "Email général, identité"
+      ],
+      [
+        "https://leny-alain.fr/entreprise/",
+        "Reprise par cadres en 2025, métiers, atelier"
+      ],
+      [
+        "https://www.btp-transmission.fr/blog/2025/10/13/btp-transmission-alain-le-ny/",
+        "Effectif, références et transmission 2025"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/entreprise-alain-le-ny-950009944",
+        "Statut actif et effectif 2022"
+      ]
+    ],
+    "limitations": [
+      "Références historiques non présentées comme chantiers actuels.",
+      "Ateliers et moyens propres possibles; la reprise ne prouve pas un défaut de contrôle."
+    ],
+    "ratings": [
+      3,
+      3,
+      4,
+      5,
+      4,
+      3,
+      4,
+      4
+    ],
+    "country": "France",
+    "jurisdiction": "France",
+    "language": "fr",
+    "sector": "Charpente, couverture et restauration",
+    "target_role": "RAF / direction travaux",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": "Environ 20 M€, montant publié par le conseil de transmission en octobre 2025 (exercice non précisé)",
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles pour les mobilisations de chantier; aucun volume externe ni écart facturé établi.",
+    "opening": "L’entreprise intervient sur couverture, charpente, bardage et restauration patrimoniale, dont gare de Lyon-Perrache et Hôtel de Ville de La Rochelle parmi les références. Hypothèse : Contrôler les locations de chantier lors des phases de couverture et des reprises de matériel.",
+    "confidence": "MEDIUM",
+    "contact_source_index": 0,
+    "research_date": "2026-09-20"
+  },
+  {
+    "company": "Le Bras Frères",
+    "group_key": "le-bras",
+    "website": "https://www.le-bras-freres.fr/",
+    "location": "Jarny (54), interventions nationales",
+    "size": "Environ 300 annoncés groupe; unité 320182447 : 100–199 en 2023",
+    "contact_email": "accueil@lebrasfreres.fr",
+    "contact_form": null,
+    "contact_status": "GENERIC",
+    "facts": [
+      "Charpentes bois/métal, couverture, bardage et restauration patrimoniale à l’échelle nationale.",
+      "Le site décrit un atelier charpente de 4 500 m² à Jarny et des opérations de montage réalisées par ses équipes."
+    ],
+    "equipment": "Nacelles, levage et matériel provisoire hors échafaudages internes",
+    "pain": "Qualifier les équipements externes puis contrôler périodes, transport et restitution.",
+    "sources": [
+      [
+        "https://aw.linkedin.com/company/le-bras-freres",
+        "Email publié par l’entreprise et périmètre des chantiers"
+      ],
+      [
+        "https://www.le-bras-freres.fr/",
+        "Métiers, ateliers, taille et Europe Echafaudage"
+      ],
+      [
+        "https://www.pappers.fr/entreprise/le-bras-freres-320182447",
+        "Identité active et effectif unité"
+      ]
+    ],
+    "limitations": [
+      "Europe Echafaudage appartient au même groupe : ne pas assimiler ses équipements à des achats de location externe.",
+      "Échelle groupe différente de l’effectif de la société; dépense locative non connue."
+    ],
+    "ratings": [
+      3,
+      4,
+      4,
+      4,
+      4,
+      3,
+      4,
+      4
+    ],
+    "country": "France",
+    "jurisdiction": "France",
+    "language": "fr",
+    "sector": "Charpente, couverture et restauration",
+    "target_role": "RAF / direction travaux",
+    "contact_name": null,
+    "contact_title": null,
+    "revenue": null,
+    "rental_evidence": "INFERRED",
+    "rental_hypothesis": "Locations complémentaires plausibles pour les mobilisations de chantier; aucun volume externe ni écart facturé établi.",
+    "opening": "Charpentes bois/métal, couverture, bardage et restauration patrimoniale à l’échelle nationale. Hypothèse : Qualifier les équipements externes puis contrôler périodes, transport et restitution.",
+    "confidence": "MEDIUM",
+    "contact_source_index": 0,
+    "research_date": "2026-09-20"
+  }
+]

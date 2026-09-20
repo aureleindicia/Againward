@@ -41,3 +41,11 @@ Objections à traiter : parc entièrement propre (qualifier les seules locations
 ## Contrôle final
 
 Revoir chaque A : quasi-absence de location plausible? taille excessive? montant trop faible? interlocuteur pertinent? personnalisation prouvée? problème supposé présenté comme certain? doublon de groupe? Conserver les contre-indices et inconnues dans la fiche, remplacer les dossiers faibles. Revalider les contacts et la situation avant toute future campagne. Aucun email, formulaire ou autre message ne sera envoyé pendant cette recherche.
+
+## Finalisation du 20 septembre 2026
+
+Les exports JSON utilisent un schéma Rental distinct des anciens jeux Energy afin de conserver contrats, matériel, payeur supposé et routes de contact sans mélanger les profils commerciaux. Le score se calcule localement avec la bibliothèque standard Python; les notes restent des jugements OSINT. Le classement trie d’abord A/B/C, puis score, puis nom; une rétrogradation motivée peut placer un B de score supérieur après un A.
+
+La revue a remplacé Komorniczak, Chapron et Breheny; elle a réduit plusieurs notes de probabilité locative non corroborée, distingué les contacts métier des fonctions achats et rétrogradé les dossiers avec parc propre, organisation très structurée ou contact ancien. Les arbitrages individuels sont conservés dans les exports et dans `RENTAL_FINAL_REVIEW.json`.
+
+Les variantes de preuve distinguent une location explicitement mentionnée, des conditions d’achat prévoyant la location, le déploiement d’un fournisseur sur chantier sans payeur confirmé, et une simple inférence opérationnelle. Aucune de ces catégories ne prouve une erreur de facturation. Une enquête de solvabilité exhaustive et la validation juridique d’une prestation de recouvrement sont hors de cette recherche commerciale.

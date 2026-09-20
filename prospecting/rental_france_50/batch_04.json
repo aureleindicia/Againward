@@ -463,7 +463,8 @@
     "rental_evidence": "INFERRED",
     "rental_hypothesis": "Locations complémentaires plausibles au regard des opérations; part externe, payeur et montant non établis.",
     "opening": "Deux implantations desservant Mayenne, Sarthe et Orne. Angle proposé : Vérifier les locations complémentaires sur un chantier de réseaux.",
-    "confidence": "MEDIUM"
+    "confidence": "MEDIUM",
+    "selection_decision": "REJECTED_FINAL_REVIEW"
   },
   {
     "company": "Cruard Charpente et Construction Bois",

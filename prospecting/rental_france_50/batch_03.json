@@ -178,7 +178,8 @@
     "rental_evidence": "INFERRED",
     "rental_hypothesis": "Les opérations et moyens décrits rendent plausibles des locations complémentaires. Part louée, acheteur et dépense annuelle non établis publiquement.",
     "opening": "Partir de ces références opérationnelles, puis proposer par écrit un petit échantillon : Vérifier les locations par phase sur une construction ou extension industrielle.",
-    "confidence": "MEDIUM"
+    "confidence": "MEDIUM",
+    "selection_decision": "REJECTED_FINAL_REVIEW"
   },
   {
     "company": "BRIFER – La Ferroviaire de la Brie",
