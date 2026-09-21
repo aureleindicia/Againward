@@ -81,6 +81,7 @@ def _archive(path: Path, limits: DocumentLimits) -> ZipFile:
 
 
 def _xlsx(path: Path, sid: str, limits: DocumentLimits) -> tuple[list[SourceUnit], list[str]]:
+    from openpyxl.utils.cell import coordinate_to_tuple, range_boundaries
     units: list[SourceUnit] = []
     limitations = []
     with _archive(path, limits) as book:
@@ -123,12 +124,16 @@ def _xlsx(path: Path, sid: str, limits: DocumentLimits) -> tuple[list[SourceUnit
                         value = raw
                     style = int(cell.get("s", "0"))
                     format_id = cell_styles[style].get("numFmtId") if style < len(cell_styles) else None
+                    row_number, column_number = coordinate_to_tuple(cell.get("r", ""))
+                    merged_cell = any(c1 <= column_number <= c2 and r1 <= row_number <= r2
+                                      for c1, r1, c2, r2 in (range_boundaries(str(v)) for v in merged))
                     metadata = {"sheet": sheet.get("name"), "cell": cell.get("r"),
                                 "raw_xml_value": raw, "cell_type": kind, "style_id": cell.get("s"),
                                 "number_format_id": format_id, "number_format": formats.get(format_id),
                                 "date_epoch": epoch,
                                 "formula": formula.text if formula is not None else None,
                                 "formula_present": formula is not None, "merged_ranges": merged,
+                                "merged_cell": merged_cell,
                                 "hidden_row": row.get("hidden") in {"1", "true"},
                                 "date_interpretation": "RAW_SERIAL_OR_ISO_UNTIL_EXPLICIT_REVIEW"}
                     if formula is not None:

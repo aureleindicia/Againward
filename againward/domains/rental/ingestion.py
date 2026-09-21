@@ -137,7 +137,12 @@ def load_rental_case(source: str | Path, *, output_directory=None):
     transformations = []
     if payload.get("schema_version") == EXTRACTION_SCHEMA:
         payload, transformations = _expand_extraction(payload, source.parent, output_directory=output_directory)
-    case = RentalCase.from_dict(payload)
+    document_lineage = None
+    if payload.get("schema_version") == "againward-rental-document-case-v1":
+        from .document_adapter import load_document_case
+        case, document_lineage = load_document_case(payload, source.parent)
+    else:
+        case = RentalCase.from_dict(payload)
     inventory = []
     for doc in case.documents:
         path = _local_source(source.parent, doc.path)
@@ -147,15 +152,18 @@ def load_rental_case(source: str | Path, *, output_directory=None):
         inventory.append({**asdict(doc), "bytes": path.stat().st_size, "classification_basis": "EXPLICIT_SEMANTIC_EXTRACTION"})
     owner = case_root_for_path(source)
     privacy_path = privacy_manifest_path(owner) if owner is not None else None
-    return case, {"schema_version": "againward-rental-inventory-v1", "documents": inventory,
+    result = {"schema_version": "againward-rental-inventory-v1", "documents": inventory,
                   "privacy_manifest_sha256": fingerprint(privacy_path) if privacy_path and privacy_path.is_file() else None,
                   "extraction": {"path": str(source.resolve()), "sha256": fingerprint(source)},
                   "transformations": transformations, "semantic_extraction_required": True,
                   "no_silent_corrections": True, "decision": None}
+    if document_lineage is not None:
+        result["document_lineage"] = document_lineage
+    return case, result
 
 
 @deterministic_decimal
-def build_evidence_dataset(case: RentalCase) -> EvidenceDataset:
+def build_evidence_dataset(case: RentalCase, *, document_lineage=None) -> EvidenceDataset:
     rows, row_refs = [], {}
     numeric = {"net_amount": "amount_minor"}
     for table in ("parties", "items", "periods", "terms", "events", "actual_charges", "credits"):
@@ -172,13 +180,18 @@ def build_evidence_dataset(case: RentalCase) -> EvidenceDataset:
             rows.append(row)
             row_refs[str(ordinal)] = [{"source_id": ref.document_id, "location": ref.location,
                                        **({"field": ref.field} if ref.field else {})} for ref in record.evidence_refs]
+    if document_lineage is not None:
+        from .document_evidence import append_document_evidence
+        append_document_evidence(case, document_lineage, rows, row_refs)
     keys = sorted({key for row in rows for key in row})
     catalog = [{"key": key, "data_type": "integer" if key in {"source_row", "amount_minor"} else "string",
                 "unit": "currency_minor_unit" if key == "amount_minor" else None} for key in keys]
     sources = [{"source_id": doc.document_id, "sha256": doc.sha256, "path": doc.path, "role": doc.role}
                for doc in case.documents]
-    identity = stable_hash(case.to_dict())
+    identity = stable_hash(case.to_dict()) if document_lineage is None else stable_hash(
+        {"case": case.to_dict(), "document_lineage": document_lineage})
     return EvidenceDataset.from_records(dataset_id="rental-" + identity[:20], records=rows, fields=catalog,
         provenance={"sources": sources, "rows": row_refs},
         metadata={"domain": "rental", "canonical_schema": SCHEMA, "period_convention": "START_INCLUSIVE_END_EXCLUSIVE",
-                  "money_basis": "NET_EXCLUDING_TAX", "money_query_policy": "amount_minor requires same currency; never aggregate mixed currencies"})
+                  "money_basis": "NET_EXCLUDING_TAX", "money_query_policy": "amount_minor requires same currency; never aggregate mixed currencies",
+                  **({"document_lineage_sha256": stable_hash(document_lineage)} if document_lineage is not None else {})})

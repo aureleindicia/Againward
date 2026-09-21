@@ -83,3 +83,67 @@ extraction/review fixtures must be labelled and cannot count as model accuracy.
 No paid provider calls, real-client evidence, human approval or merge is implicit
 in this engineering mission. Offline semantic proposals are an intended provider
 boundary; uncaptured scans stop for review rather than being transcribed by guess.
+
+## First implementation experiments (2026-09-21)
+
+H1/H2 now have executable probes in `tests/test_document_sources.py`.
+Snapshots preserve approved bytes and aliases separately; a supplemental receipt
+binds the union and current privacy manifest. Historical receipts remain immutable.
+Candidate validation re-reads the source, checks exact location/character span,
+raw quote, schema, finite bounded values and extractor versions. Confidence has no
+promotion effect. Fact review binds the exact extraction hashes; formula values
+require a fixed-value source and ambiguous dates retain a review flag.
+
+Initial run: 27 passed and three PDF failures. The fixed 384 MiB address-space
+ceiling aborted the worker on Android before parsing: a small trusted pypdf
+process measured VmSize 10,890,256 KiB versus VmRSS 34,880 KiB. The corrected guard
+limits additional address space after trusted imports, with a CPU limit and
+parent timeout. This is resource containment, not a complete hostile-PDF sandbox.
+Native, scan-only and hybrid routing subsequently passed.
+
+First source/resolution suite: 45 passed in 3.60 s. Broadened check (including
+Energy characterization, Rental privacy/ingestion and artifact recovery):
+70 passed in 6.94 s. Gradual mypy: eight new document modules, no issues.
+These are contract tests, not end-to-end acceptance or model accuracy.
+
+H3 probes: 100 exact source pairs among 200 entity occurrences are retrieved with
+100 comparisons instead of the 19,900 theoretical all-pairs comparisons.
+Ambiguous alternatives lower a unique match to AMBIGUOUS; conflicting IDs remain
+CONTRADICTED. Reused model-local entity labels never merge different documents.
+The fixture proves these declared keys, not real-world blocking recall.
+
+Ruff installation first failed on Android with `Text file busy` in a parallel
+Rust build. The single-job retry also aborted in Rust compilation. The native
+Termux package (`apt-get install ruff`, 0.16.8) succeeded without adding a runtime
+dependency. CI expands to Python 3.11–3.14; remote results remain to be checked.
+
+## Reviewed source-to-Rental integration (2026-09-22)
+
+The optional document package now replays every source extraction, promotes only
+explicitly reviewed facts and derives Rental foreign keys from confirmed links.
+An unassigned material entity or unextracted component blocks financial
+preparation. Missing rates remain unknown. This conservative gate does not yet
+provide partial-case investigation of an unresolved credit or visual component.
+
+Facts and relationships are typed Evidence Plane rows, including exact quotes,
+source spans and extraction/review hashes. Fresh replay checks the entire stored
+lineage; changing provenance alone invalidates review. The human evidence pack
+retains this chain, without granting delivery approval. Legacy case datasets are
+unchanged when no document lineage is present.
+
+Verification: 47 document contract tests in 5.06 s; 15 Rental adapter/legacy
+ingestion/workflow tests in 4.84 s before the final report-chain test was added.
+Full working-tree run: **682 passed, 2 failed in 241.78 s**. Both failures were
+the pre-existing HOLDOUT clean-engine guards refusing intentional uncommitted
+engine changes. Do not weaken these guards: repeat from a clean committed
+validation worktree before treating the full suite as passed.
+
+Old Rental benchmark remains 13/13, TP 3 / FP 0 / FN 0 / TN 10. Current canonical
+performance: 1,000 lines 0.275663 s; 10,000 lines 2.538831 s versus baseline
+0.314389 / 2.452171 s. Single noisy samples, not evidence of a speed improvement.
+Gradual mypy passes eight document modules; targeted Ruff checks pass after
+fixing fixture formatting and an ambiguous variable name.
+
+Still pending: completed real-document semantic benchmark (not merely routing),
+temporal extensions, final privacy binary-format decision, acceptance matrix,
+clean full validation and first-client challenge. The mission is not complete.

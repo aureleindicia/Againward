@@ -160,7 +160,7 @@ def _candidate(raw: Any, source_id: str, units: dict[str, SourceUnit]) -> FactCa
         flags.add("COMPONENT_REVIEW_REQUIRED")
     if unit.metadata.get("formula_present"):
         flags.add("FORMULA_DERIVED")
-    if unit.metadata.get("merged_ranges"):
+    if unit.metadata.get("merged_cell"):
         flags.add("MERGED_CELL_AMBIGUITY")
     if p["value_type"] == "DATE" and re.search(r"\b\d{1,2}/\d{1,2}/\d{4}\b", observed):
         flags.add("DATE_CONVENTION_REQUIRES_REVIEW")

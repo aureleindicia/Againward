@@ -7,8 +7,10 @@ from againward.evidence.hashing import stable_hash
 
 
 def evidence_pack(root, findings):
+    inventory = read_json(root / "artifact_inventory.json")
     return {"schema_version": "againward-rental-evidence-pack-v1", "ground_truth_used": False,
-            "findings": findings, "documents": read_json(root / "artifact_inventory.json")["documents"],
+            "findings": findings, "documents": inventory["documents"],
+            **({"document_lineage": inventory["document_lineage"]} if "document_lineage" in inventory else {}),
             "charge_groups": read_json(root / "prepared_analysis.json")["groups"],
             "dataset_sha256": read_json(root / "evidence_dataset.json")["dataset_sha256"],
             "review_sha256": stable_hash(read_json(root / "review.json")),

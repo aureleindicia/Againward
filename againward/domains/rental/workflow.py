@@ -39,6 +39,8 @@ def current_calculations(case_directory):
         raise ValueError("Privacy evidence batch changed; explicit recalculation and review required.")
     if fresh_inventory["extraction"]["sha256"] != extraction["sha256"]:
         raise ValueError("Rental extraction changed; explicit recalculation required.")
+    if fresh_inventory.get("document_lineage") != inventory.get("document_lineage"):
+        raise ValueError("Document provenance changed; explicit recalculation and review required.")
     if case.to_dict() != read_json(root / "rental_case.json"):
         raise ValueError("Normalized Rental case no longer matches its source extraction.")
     result = reconcile(case)
