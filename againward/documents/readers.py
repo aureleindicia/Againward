@@ -17,7 +17,7 @@ from againward.evidence.hashing import stable_hash
 from .contracts import DocumentError, DocumentLimits, SourceBatch, SourceDocument, load_json
 from .sources import assert_document_action, safe_file, verify_batch
 
-READER_VERSION = "againward-native-reader-v1"
+READER_VERSION = "againward-native-reader-v2"
 _SHEET = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
 _WORD = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 

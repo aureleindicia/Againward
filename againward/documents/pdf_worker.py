@@ -6,7 +6,52 @@ from pathlib import Path
 import resource
 import re
 import sys
-from typing import cast
+from typing import TypedDict, cast
+
+
+class PDFPage(TypedDict):
+    page: int
+    text: str
+    route: str
+    embedded_images: int
+
+
+def image_components(page, reader) -> int:
+    """Inspect nested form resources and inline image operators without rasterizing.
+
+    A page can have native text while its material invoice table lives inside a
+    Form XObject. Looking only at direct Image XObjects loses that evidence.
+    """
+    from pypdf.generic import ContentStream
+
+    visited: set[int] = set()
+
+    def inspect(owner, content, depth):
+        if depth > 32 or len(visited) > 10_000:
+            raise ValueError("PDF component budget exceeded")
+        count = 0
+        if content is not None:
+            operations = ContentStream(content, reader).operations
+            count += sum(operator == b"INLINE IMAGE" for _, operator in operations)
+        resources = owner.get("/Resources", {})
+        if hasattr(resources, "get_object"):
+            resources = resources.get_object()
+        objects = resources.get("/XObject", {})
+        if hasattr(objects, "get_object"):
+            objects = objects.get_object()
+        for reference in objects.values():
+            obj = reference.get_object()
+            key = id(obj)
+            if key in visited:
+                continue
+            visited.add(key)
+            if obj.get("/Subtype") == "/Image":
+                count += 1
+            elif obj.get("/Subtype") == "/Form":
+                count += inspect(obj, obj, depth + 1)
+        return count
+
+    return inspect(page, page.get_contents(), 0)
 
 
 def main() -> None:
@@ -30,7 +75,7 @@ def main() -> None:
         raise ValueError("Encrypted PDF unsupported")
     if len(reader.pages) > maximum_pages:
         raise ValueError("Page budget exceeded")
-    pages = []
+    pages: list[PDFPage] = []
     limitations = []
     root = cast(DictionaryObject, reader.trailer["/Root"])
     if "/AcroForm" in root:
@@ -43,9 +88,7 @@ def main() -> None:
         consumed += len(text)
         if consumed > maximum_text:
             raise ValueError("Text budget exceeded")
-        resources = page.get("/Resources", {})
-        objects = resources.get("/XObject", {}) if resources else {}
-        image_count = sum(obj.get_object().get("/Subtype") == "/Image" for obj in objects.values())
+        image_count = image_components(page, reader)
         # Images alongside native text may contain a signature, clause or table.
         # Native text is available, but completeness requires component review.
         route = "NATIVE" if text.strip() and not image_count else (

@@ -147,3 +147,25 @@ fixing fixture formatting and an ambiguous variable name.
 Still pending: completed real-document semantic benchmark (not merely routing),
 temporal extensions, final privacy binary-format decision, acceptance matrix,
 clean full validation and first-client challenge. The mission is not complete.
+
+## Document corpus and completeness counterexample
+
+The new generator produces actual files for twenty A–T families and keeps truth
+outside the public document folders. Poppler rasterizes meaningful invoice text;
+the scan has no hidden text layer. XLSX ZIP/core timestamps are frozen for byte
+reproducibility. A runner accepts external source-bound proposals and invokes the
+real adapter, while the scorer reads truth only after observations are frozen.
+
+Initial DEV routing-only baseline: TP 0, FP 0, FN 6, TN 14; recall 0, 9/9 required
+abstentions, no denominator for precision. No semantic extractor ran. This is
+deliberately a failing intelligence baseline, not acceptance. Date/link/lifecycle
+scoring and independent semantic runs remain open; see REAL_WORLD_RENTAL_BENCHMARKS.
+
+A PDF completeness probe found direct-XObject inspection missed images nested
+inside Form XObjects or inline content. Both now route to hybrid review. The
+reader contract is bumped to v2; old proposal replay requires explicit
+revalidation, rather than silently trusting the old component classification.
+
+Integration commit fc10275 passed all remote Python 3.11/3.12/3.13/3.14 checks.
+New corpus/adapter/parser selection: 48 passed in 28.62 s before the reader-version
+regression test. The final clean-worktree suite still needs to be recorded.

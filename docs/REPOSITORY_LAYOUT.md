@@ -8,7 +8,13 @@ jamais de dépendance codée en dur.
 
 ```text
 energy-analyzer/
-├── energy_mvp/       outils, contrats, privacy gate et lifecycle
+├── againward/
+│   ├── core/         autorités privacy, lifecycle, requêtes et stockage durable
+│   ├── documents/    sources immuables, propositions, provenance et rapprochements
+│   ├── evidence/     snapshots et requêtes bornées
+│   └── domains/      outils métier Energy et Rental
+├── energy_mvp/       imports de compatibilité historiques (ne pas dupliquer les autorités)
+├── benchmarking/    générateurs/scorers synthétiques, hors moteur d'investigation
 ├── tests/            unités, intégration, adversarial et falsification
 ├── benchmarks/       protocoles et résultats reproductibles
 ├── docs/             architecture, méthodes et migrations
@@ -18,6 +24,11 @@ energy-analyzer/
 ├── workspaces/       guide seulement ; cas ignorés par Git
 └── .codex/skills/    procédure agentique Againward
 ```
+
+Pour la branche documentaire active, commencer par
+`docs/REAL_WORLD_DOCUMENT_ARCHITECTURE.md`, `docs/ENTITY_RESOLUTION.md` et
+`docs/DOCUMENT_INTELLIGENCE_RND.md`. Le dernier distingue preuves obtenues et
+travail encore nécessaire ; l'existence d'un module n'est pas une validation client.
 
 ## Workspace standard réel
 

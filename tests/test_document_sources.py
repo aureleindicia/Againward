@@ -162,6 +162,16 @@ def test_tampered_blob_and_extraction_cache_are_refused(tmp_path):
         promote_facts((e,), review(e), batch, output)
 
 
+def test_reader_version_change_requires_explicit_extraction_revalidation(tmp_path, monkeypatch):
+    from againward.documents import readers
+
+    _, output, batch = source(tmp_path)
+    extraction = validate_proposal(proposal(batch, output), batch, output)
+    monkeypatch.setattr(readers, "READER_VERSION", "synthetic-next-reader")
+    with pytest.raises(DocumentError, match="Reader changed"):
+        replay_extraction(extraction.to_dict(), batch, output)
+
+
 def test_missing_and_ambiguous_values_never_become_known_by_confidence(tmp_path):
     _, output, batch = source(tmp_path, "Returned 03/04/2026")
     p = proposal(batch, output, quote="03/04/2026", value="2026-04-03", kind="DATE")
@@ -337,6 +347,40 @@ def test_privacy_blocks_before_any_raw_document_parsing(tmp_path):
     with pytest.raises(ValueError, match="PRIVACY|CONTRACT"):
         inventory_sources(case / "incoming", case / "processed/documents")
     assert not (case / "processed/documents").exists()
+
+
+@pytest.mark.parametrize("component", ["nested_form", "inline_image"])
+def test_native_pdf_text_cannot_hide_image_components(tmp_path, component):
+    from pypdf import PdfReader, PdfWriter
+    from pypdf.generic import DictionaryObject, NameObject, DecodedStreamObject, ArrayObject, NumberObject
+
+    incoming, output = tmp_path / "input", tmp_path / "documents"
+    incoming.mkdir()
+    seed = tmp_path / "seed.pdf"
+    write_pdf(seed, hybrid=component == "nested_form")
+    writer = PdfWriter()
+    writer.append(PdfReader(seed))
+    page = writer.pages[0]
+    content = page.get_contents().get_data()
+    if component == "nested_form":
+        resources = page["/Resources"]
+        images = resources["/XObject"]
+        form = DecodedStreamObject()
+        form.set_data(b"q 10 0 0 10 0 0 cm /Im1 Do Q")
+        form.update({NameObject("/Type"): NameObject("/XObject"), NameObject("/Subtype"): NameObject("/Form"),
+                     NameObject("/BBox"): ArrayObject([NumberObject(v) for v in (0, 0, 10, 10)]),
+                     NameObject("/Resources"): DictionaryObject({NameObject("/XObject"): images})})
+        resources[NameObject("/XObject")] = DictionaryObject({NameObject("/Nested"): writer._add_object(form)})
+        content = content.replace(b"/Im1 Do", b"/Nested Do")
+    else:
+        content += b"\nq 10 0 0 10 0 0 cm BI /W 1 /H 1 /BPC 8 /CS /RGB ID \xff\xff\xff EI Q\n"
+    stream = DecodedStreamObject()
+    stream.set_data(content)
+    page[NameObject("/Contents")] = writer._add_object(stream)
+    writer.write(incoming / "invoice.pdf")
+    batch = inventory_sources(incoming, output)
+    parsed = read_batch(batch, output)[0]
+    assert parsed.units[0].route == "HYBRID_REVIEW_REQUIRED"
 
 
 def test_wait_blocks_new_inventory_parsing_and_fact_promotion(tmp_path):
