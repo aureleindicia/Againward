@@ -6,27 +6,27 @@
     {
       "rows": 10000,
       "input_bytes": 325691,
-      "elapsed_seconds": 0.131,
-      "rows_per_second": 76152,
-      "max_rss_kib_process": 75300,
+      "elapsed_seconds": 0.188,
+      "rows_per_second": 53139,
+      "max_rss_kib_process": 53732,
       "status": "PASS",
       "approved_for_analysis": true
     },
     {
       "rows": 100000,
       "input_bytes": 3256561,
-      "elapsed_seconds": 0.408,
-      "rows_per_second": 245353,
-      "max_rss_kib_process": 75300,
+      "elapsed_seconds": 0.937,
+      "rows_per_second": 106757,
+      "max_rss_kib_process": 70844,
       "status": "PASS",
       "approved_for_analysis": true
     },
     {
       "rows": 500000,
       "input_bytes": 16282648,
-      "elapsed_seconds": 2.342,
-      "rows_per_second": 213514,
-      "max_rss_kib_process": 242972,
+      "elapsed_seconds": 5.514,
+      "rows_per_second": 90670,
+      "max_rss_kib_process": 241940,
       "status": "PASS",
       "approved_for_analysis": true
     }
