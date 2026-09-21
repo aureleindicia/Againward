@@ -169,3 +169,24 @@ revalidation, rather than silently trusting the old component classification.
 Integration commit fc10275 passed all remote Python 3.11/3.12/3.13/3.14 checks.
 New corpus/adapter/parser selection: 48 passed in 28.62 s before the reader-version
 regression test. The final clean-worktree suite still needs to be recorded.
+
+## Clean milestone validation at 465f392
+
+Detached validation worktree: **693 passed, zero skipped, in 239.29 s**, CPython
+3.14.6 on Termux. The two dirty-tree HOLDOUT refusals are resolved by testing the
+committed tree, not by altering the guards. Ruff and gradual mypy pass. Legacy
+Rental again passes 13/13. Concurrent-load timing sample: 1,000 lines 0.286041 s,
+10,000 lines 2.946299 s; do not compare this contended sample as a clean regression
+measurement against the earlier isolated baseline.
+
+Clean-engine document routing runs: DEV seed 7421 and ADVERSARIAL seed 19341,
+20 folders each, both TP 0 / FP 0 / FN 6 / TN 14, required abstention 9/9 and
+semantic recall 0. No extractor was invoked and HOLDOUT remains unevaluated.
+The generated scan invoice was visually inspected: meaningful readable invoice
+text exists as pixels, with no hidden text layer. This is renderer verification,
+not a visual extraction quality measurement.
+
+Remote CI at 465f392 initially passed all four Python versions with 689 passed
+and four skipped: Poppler was absent. The workflow now installs the synthetic
+scan renderer explicitly so those tests cannot silently disappear from CI.
+Only workflow/docs change after this tested implementation milestone.

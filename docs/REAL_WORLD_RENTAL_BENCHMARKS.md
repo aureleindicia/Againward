@@ -38,6 +38,11 @@ abstention cases. Annotated-field recall **0**. Precision is null because no
 prediction was made. Only 9/20 exact financial outcomes match, all by abstention.
 This proves a useful honest baseline and routing coverage, not intelligence.
 
+The same baseline was rerun on clean implementation 465f392 for DEV seed 7421
+and ADVERSARIAL seed 19341, with the same counts on each 20-case split. Full local
+regression: 693 passed, zero skipped. CI explicitly installs Poppler after the
+first remote run revealed four otherwise skipped corpus tests.
+
 The independent adapter fixture additionally replays supplied annotations into
 an exact EUR 150 discrepancy and preserves its source chain. It is a software
 contract test, **not** a model-quality result on the generated corpus.
