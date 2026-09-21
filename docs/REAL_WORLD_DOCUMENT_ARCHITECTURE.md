@@ -5,7 +5,7 @@ baseline and experiment criteria. The current canonical Rental and Energy paths
 remain supported. New documentary inputs use versioned contracts upstream of
 `RentalCase`; historical cases are not silently migrated.
 
-Planned active ownership:
+Active ownership:
 
 - `againward/documents/`: domain-neutral sources, deterministic source units,
   extraction proposals, location validation, resolution records and promotion.
@@ -30,3 +30,49 @@ locations. Neither formula caches nor model confidence establish authority.
 No parser output alone is a contractual fact. The implementation must retain
 source → candidate → reviewed fact → relationship → canonical record lineage,
 including unresolved contradictions. Delivery approval remains separate.
+
+## Implemented upstream workflow
+
+`python investigate.py documents inventory SOURCE_DIRECTORY DOCUMENT_ROOT`
+checks the existing gate, snapshots immutable approved bytes under `sources/`,
+and writes a receipt under `batches/`. In a real workspace DOCUMENT_ROOT belongs
+under `processed/`; incoming bytes must first complete the existing Codex privacy
+workflow. Receipt identity ignores names/order but retains every alias.
+
+`python investigate.py documents inspect DOCUMENT_ROOT BATCH_RECEIPT` returns
+native units: PDF pages, CSV cells, exact XLSX XML values/styles/formulas/merges,
+DOCX body paragraphs or EML text parts. Unread components and image pages remain
+explicit. Sources are never truncated to satisfy a limit.
+
+Supply a model/analyst proposal using the closed contract in
+`documents/extraction.py::proposal_context`, then use:
+
+```sh
+python investigate.py documents validate DOCUMENT_ROOT BATCH_RECEIPT PROPOSAL
+python investigate.py documents promote DOCUMENT_ROOT BATCH_RECEIPT FACT_REVIEW EXTRACTION...
+```
+
+No command calls a provider, changes question budgets or creates delivery approval.
+Every proposal carries source/batch identity, reader/extractor/model/prompt version,
+status and source-local candidates. A native quote must match exact half-open
+character offsets. A visual transcription is only a proposal and requires supplied
+human source inspection. Formula caches cannot be promoted as measured values.
+
+Semantic correctness remains a reviewed judgment. A valid quote can still be
+misclassified, and a syntactically valid normalization can still misunderstand a
+clause. Source-supported numeric literals cannot be rewritten by a model note.
+Conflicting values on one source-local field are refused during promotion.
+
+Stored extraction artifacts are versioned, content-hashed and replayed against
+current immutable source bytes. Changing a source, reader, extraction or privacy
+batch invalidates replay; it does not silently rewrite old results. A supplemental
+batch preserves previous approved blobs and receipt while creating a new identity.
+
+## Current limits
+
+The source layer is upstream infrastructure, not yet a complete Rental pipeline.
+The real-client privacy gate still refuses binary files it cannot post-check.
+Native parsing does not authorize them. Poor scans, signatures and handwritten
+text need source review. PDF annotations/forms and non-body DOCX components are
+flagged, not silently treated as fully extracted. The PDF process guard accounts
+for Android virtual reservations and is not a universal document sandbox.
