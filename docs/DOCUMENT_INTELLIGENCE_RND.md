@@ -217,3 +217,34 @@ Legacy canonical v1 serialization omits absent `effective_from`, so unchanged
 cases keep their previous normalized shape. This is not proof that the generated
 document benchmark's partial-return/rate-amendment families have been extracted
 and scored; those semantic runs remain outstanding.
+
+## H8: unallocated and partially allocated credit notes (2026-09-23)
+
+Before: Rental v1 required every credit to name a known invoice line. A source
+credit note referencing only an invoice, or an issued credit allocated in part,
+could not enter reconciliation without assigning the whole amount to a line.
+The baseline synthetic invoice was EUR 850 against an expected EUR 700; a fully
+allocated issued EUR 150 credit correctly brought the net to EUR 700.
+
+Now credit state is explicit: unallocated, candidate, partially allocated or
+confirmed. With no confirmed line, an accepted issued EUR 150 credit remains
+in the unallocated register; the EUR 850 line is unchanged and the affected
+group has no supported numeric difference. For a source-supported EUR 80 partial
+allocation from that EUR 150 note, the line nets to EUR 770 while the remaining
+EUR 70 blocks a supported difference. An exact confirmed full allocation still
+nets to EUR 700 with zero discrepancy. A documented invoice ID bounds the
+uncertainty to groups containing that invoice; absent invoice ID, it conservatively
+affects same-currency groups. No cross-currency application occurs. Promised
+credits never reduce issued net. New source-to-ledger tests use quoted synthetic
+credit notes; their annotations are scripted and do not count as model accuracy.
+
+The model refuses over-allocation, missing line links for asserted allocations,
+currency mismatch and invoice-ID contradiction. Legacy fully allocated credit
+serialization and Evidence Plane rows retain their prior shape. The decision
+to suppress an affected numeric gap is conservative: without the credit note's
+line allocation, EUR 150 may or may not offset the candidate invoice line.
+Independent semantic extraction of these notes remains unevaluated.
+The contractual benchmark now has 15/15 passing explicit cases (TP 3, FP 0,
+FN 0, TN 12 on supported positive discrepancy). Its new credit assertions also
+require exact applied and unallocated amounts and a null group difference.
+Targeted reconciliation, document-adapter and benchmark tests: 34 passed.

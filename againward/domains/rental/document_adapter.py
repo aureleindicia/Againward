@@ -16,7 +16,7 @@ from againward.documents.resolution import (
     review_relationships,
 )
 from againward.evidence.hashing import stable_hash
-from .models import DOCUMENT_ROLES, RentalCase
+from .models import DOCUMENT_ROLES, RentalCase, decimal_value
 
 DOCUMENT_CASE_SCHEMA = "againward-rental-document-case-v1"
 RENTAL_MATCH = MatchPolicy(
@@ -109,7 +109,6 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
     credit_links = {r.left: r.right for r in credit_resolution.relationships if r.state == RelationshipState.CONFIRMED}
     material = [e for e in entities if e.kind in {"INVOICE_LINE", "RETURN", "RATE_AMENDMENT"}
                 and e.entity_id not in links]
-    material += [e for e in entities if e.kind == "CREDIT" and e.entity_id not in credit_links]
     if material:
         raise DocumentError("ENTITY_AMBIGUOUS", "Unassigned material occurrences: " + ",".join(e.entity_id for e in material))
     case: dict[str, Any] = {"schema_version": "againward-rental-case-v1", "documents": documents,
@@ -181,7 +180,27 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
     for e in entities:
         if e.kind == "CREDIT":
             credit = _required(e, ("credit_id", "currency", "net_amount", "status"))
-            case["credits"].append({**credit, "charge_id": charges[credit_links[e.entity_id]], "evidence_refs": _refs(e)})
+            linked = credit_links.get(e.entity_id)
+            allocated = e.values.get("allocated_amount")
+            if linked is None:
+                if allocated is not None:
+                    raise DocumentError("ENTITY_AMBIGUOUS", "Allocated credit has no confirmed invoice-line link")
+                possible = any(r.left == e.entity_id and r.state in {RelationshipState.CANDIDATE,
+                                                                      RelationshipState.AMBIGUOUS}
+                               for r in credit_resolution.relationships)
+                state = "CANDIDATE_ALLOCATION" if possible else "UNALLOCATED_CREDIT"
+                case["credits"].append({**credit, **_optional(e, ("invoice_id",)),
+                                        "charge_id": None, "allocation_state": state,
+                                        "evidence_refs": _refs(e)})
+            else:
+                amount = decimal_value(credit["net_amount"])
+                if allocated is not None and decimal_value(allocated) > amount:
+                    raise DocumentError("EXTRACTION_INCOMPLETE", "Allocated credit exceeds source credit amount")
+                partial = allocated is not None and decimal_value(allocated) < amount
+                case["credits"].append({**credit, **_optional(e, ("invoice_id",)), "charge_id": charges[linked],
+                                        "allocation_state": "PARTIALLY_ALLOCATED_CREDIT" if partial else "CONFIRMED_ALLOCATION",
+                                        **({"allocated_amount": allocated} if partial else {}),
+                                        "evidence_refs": _refs(e)})
     canonical = RentalCase.from_dict(case)
     lineage = {"schema_version": "againward-rental-document-lineage-v1", "batch_id": batch.batch_id,
                "canonical_case_sha256": stable_hash(canonical.to_dict()),

@@ -30,7 +30,7 @@ Net amount EUR 850.00 excluding tax.
 """
 
 
-def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None):
+def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=None):
     """Manual semantic annotations of prose, reviewed solely as test fixtures."""
     incoming, root = tmp_path / "input", tmp_path / "documents"
     incoming.mkdir(parents=True)
@@ -38,6 +38,8 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None):
     (incoming / "invoice.txt").write_text(invoice_text)
     if amendment_text is not None:
         (incoming / "amendment.txt").write_text(amendment_text)
+    if credit_text is not None:
+        (incoming / "credit.txt").write_text(credit_text)
     batch = inventory_sources(incoming, root)
     parsed = {p.source_id: p for p in read_batch(batch, root)}
     shared = {
@@ -90,6 +92,22 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None):
             "effective_from": ("2026-09-04", "2026-09-04", "DATE"),
             "terms_unchanged": (True, "other original terms remain unchanged", "BOOLEAN"),
         }
+    if credit_text is not None:
+        annotations["credit.txt"] = {
+            "entity_kind": ("CREDIT", "credit note", "TEXT"),
+            "document_role": ("CREDIT_NOTE", "credit note", "TEXT"),
+            "document_status": ("ACCEPTED", "accepted", "TEXT"),
+            "supplier_id": ("VENDOR", "VENDOR", "TEXT"),
+            "invoice_id": ("INV-83", "INV-83", "TEXT"),
+            "credit_id": ("CR-9", "CR-9", "TEXT"),
+            "currency": ("EUR", "EUR", "CURRENCY"),
+            "net_amount": ("150.00", "150.00", "DECIMAL"),
+            "status": ("ISSUED", "issued", "TEXT"),
+        }
+        if "80.00 allocated" in credit_text:
+            annotations["credit.txt"]["allocated_amount"] = ("80.00", "80.00", "DECIMAL")
+        if "line L1" in credit_text:
+            annotations["credit.txt"]["invoice_line_id"] = ("L1", "L1", "TEXT")
     extractions = []
     decisions = []
     for doc in batch.documents:
@@ -234,3 +252,51 @@ def test_amendment_cannot_inherit_terms_without_reviewed_unchanged_clause(tmp_pa
     next(d for d in package["fact_review"]["decisions"] if d["candidate_id"] == candidate_id)["decision"] = "DEFER"
     with pytest.raises(DocumentError, match="EXTRACTION_INCOMPLETE"):
         load_document_case(package, source.parent)
+
+
+def test_source_backed_credit_without_line_id_remains_candidate_not_arbitrary_offset(tmp_path):
+    credit = ("Synthetic accepted credit note CR-9 issued by VENDOR for invoice INV-83. "
+              "Net EUR 150.00 excluding tax. Allocation to invoice line pending.")
+    source, package = packet(tmp_path, credit_text=credit)
+    case, lineage = load_document_case(package, source.parent)
+    assert case.credits[0].charge_id is None
+    assert case.credits[0].allocation_state == "CANDIDATE_ALLOCATION"
+    assert lineage["credit_resolution"]["relationships"][0]["state"] == "CANDIDATE"
+    result = reconcile(case)
+    assert result["actual_ledger"]["entries"][0]["net_amount"] == "850.00"
+    assert result["groups"][0]["difference"] is None
+    assert result["actual_ledger"]["unallocated_credits"][0]["net_amount"] == "150.00"
+
+
+def test_source_credit_allocation_must_have_confirmed_line_relationship(tmp_path):
+    credit = ("Synthetic accepted credit note CR-9 issued by VENDOR for invoice INV-83. "
+              "Net EUR 150.00 excluding tax. EUR 80.00 allocated to invoice line pending.")
+    source, package = packet(tmp_path, credit_text=credit)
+    with pytest.raises(DocumentError, match="ENTITY_AMBIGUOUS"):
+        load_document_case(package, source.parent)
+
+
+def test_source_confirmed_credit_offsets_only_documented_invoice_line(tmp_path):
+    credit = ("Synthetic accepted credit note CR-9 issued by VENDOR for invoice INV-83 line L1. "
+              "Net EUR 150.00 excluding tax.")
+    source, package = packet(tmp_path, credit_text=credit)
+    case, lineage = load_document_case(package, source.parent)
+    assert case.credits[0].charge_id == "INV-83/L1"
+    assert lineage["credit_resolution"]["relationships"][0]["state"] == "CONFIRMED"
+    result = reconcile(case)
+    assert result["actual_ledger"]["entries"][0]["issued_credit"] == "150.00"
+    assert result["groups"][0]["difference"] == "0.00"
+    assert "unallocated_credits" not in result["actual_ledger"]
+
+
+def test_source_partial_credit_never_assigns_remainder_automatically(tmp_path):
+    credit = ("Synthetic accepted credit note CR-9 issued by VENDOR for invoice INV-83 line L1. "
+              "Net EUR 150.00 excluding tax; EUR 80.00 allocated to line L1; remainder pending.")
+    source, package = packet(tmp_path, credit_text=credit)
+    case, _ = load_document_case(package, source.parent)
+    assert case.credits[0].allocation_state == "PARTIALLY_ALLOCATED_CREDIT"
+    assert case.credits[0].allocated_amount == "80.00"
+    result = reconcile(case)
+    assert result["actual_ledger"]["entries"][0]["net_amount"] == "770.00"
+    assert result["actual_ledger"]["unallocated_credits"][0]["net_amount"] == "70.00"
+    assert result["groups"][0]["difference"] is None

@@ -13,7 +13,7 @@ Evidence shorthand (all paths relative to the repository):
 - **R**: `againward/domains/rental/{document_adapter,document_evidence,ingestion,workflow,review_policy,reporting}.py`, `tests/test_rental_document_adapter.py`.
 - **B**: `benchmarking/document_*.py`, `tests/test_document_benchmark.py`, `docs/REAL_WORLD_RENTAL_BENCHMARKS.md`.
 - **K**: existing `againward/core/` and `againward/evidence/`; legacy lifecycle, privacy, durable-store and Energy characterization tests.
-- **L**: existing Rental pricing/reconciliation tests and `run_rental_benchmark.py` (13/13 retained).
+- **L**: Rental pricing/reconciliation tests and `run_rental_benchmark.py` (historical 13/13 retained; 15-case extension).
 - **D**: `docs/DOCUMENT_INTELLIGENCE_RND.md` records baseline, failures and timings.
 
 ## Requirement-by-requirement map
@@ -38,7 +38,7 @@ Evidence shorthand (all paths relative to the repository):
 | 15 | PARTIAL | E exact-anchor authority or supplied HUMAN review | JSON reviewer role is not authentication. |
 | 16 | OPEN | Conflicting facts/links refuse promotion | No contractual scenario/precedence ledger yet. |
 | 17 | TESTED | X hash-bound ACCEPT/REJECT/DEFER/DISPUTED | No confidence-based self-promotion. |
-| 18 | PARTIAL | L + `temporal.py`: daily partial returns and dated accepted rates | Added quantities, weekly partials and unallocated credits pending. |
+| 18 | PARTIAL | L + `temporal.py`: daily partial returns, dated rates and conservative unallocated/partial credits | Added quantities and weekly partials pending; semantic corpus run absent. |
 | 19 | PARTIAL | D H4: 50 unit-days, EUR 3,750; dated-rate/return combination EUR 3,540 | Generated-corpus semantic score pending. |
 | 20 | OPEN | K DomainPack preserved | Energy-specific options still cross shared boundary. |
 | 21 | PARTIAL | S/X/E typed dataclasses and closed external schemas | Rental adapter/core retain dict boundaries. |
@@ -124,11 +124,11 @@ Evidence shorthand (all paths relative to the repository):
 |---|---|---|
 | BLOCKS_FIRST_CLIENT | Real PDF/image intake lacks an approved binary privacy post-check | Refused; parser support is not privacy clearance. |
 | BLOCKS_FIRST_CLIENT | No independent semantic evaluation across the actual-document corpus | No model quality claim; routing baseline recall is zero. |
-| BLOCKS_FIRST_CLIENT | Weekly partial quantities, broad amendments and unallocated credits are incomplete | Explicit daily source-backed patterns calculate; other cases abstain. |
+| BLOCKS_FIRST_CLIENT | Weekly partial quantities and broad amendments remain incomplete | Explicit daily source-backed patterns calculate; other cases abstain. Unallocated credits are retained but prevent a supported discrepancy on affected invoice/currency groups. |
 | NEEDS_HUMAN_REVIEW | Ambiguous links, visual transcription, contractual authority | Supplied review required; no fabricated approval. |
 | NEEDS_FUTURE_R&D | Poor scans, handwriting, broad clause exceptions, vendor layout generalization | Not validated. |
 | ACCEPTABLE_LIMIT | No tax advice, FX, legal priority, negotiation or guaranteed recovery | Explicitly outside current product authority. |
 
-Next priorities: complete independent DEV semantic runs and scoring; quantity/rate
-timelines and unallocated-credit handling with adversarial arithmetic; resolve the
+Next priorities: complete independent DEV semantic runs and scoring; extend
+quantity/rate timelines beyond daily returns; resolve the
 binary privacy intake boundary; finish kernel experiments and final validation.

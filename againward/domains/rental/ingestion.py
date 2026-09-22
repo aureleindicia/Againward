@@ -171,6 +171,11 @@ def build_evidence_dataset(case: RentalCase, *, document_lineage=None) -> Eviden
             ordinal = len(rows) + 1
             body = asdict(record)
             body.pop("evidence_refs")
+            if table == "credits":
+                if body["allocation_state"] == "CONFIRMED_ALLOCATION":
+                    body.pop("allocation_state")
+                if body["allocated_amount"] is None:
+                    body.pop("allocated_amount")
             row = {"source_row": ordinal, "record_type": table, "record_id": getattr(record, _ID_FIELDS[table])}
             for key, value in body.items():
                 if value is not None:

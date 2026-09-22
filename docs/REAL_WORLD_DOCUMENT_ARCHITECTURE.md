@@ -79,8 +79,14 @@ mapping and injects its matching policies; the source layer knows no off-hire or
 credit-allocation vocabulary. See `tests/test_rental_document_adapter.py` for a
 complete synthetic example; its scripted review is not a real human approval.
 
-Every source must be classified. Material invoice/return/credit occurrences
+Every source must be classified. Material invoice/return/rate-amendment occurrences
 require a confirmed relationship; a shared model-local label is insufficient.
+An issued credit without a confirmed invoice-line link is retained as unallocated
+or a candidate allocation. It never offsets a line by guesswork. The affected
+invoice (if source-backed) or same-currency groups retain an explicit limitation
+and no supported discrepancy until allocation is resolved. A documented partial
+allocation offsets only that amount; the remainder stays unallocated. Promised
+credits are not treated as issued. Every state retains source references.
 Rate amendments also require a confirmed link to one rental and a reviewed
 effective date. Only an explicit reviewed unchanged-terms clause allows the
 adapter to carry older billing conventions into a new dated rate term.
