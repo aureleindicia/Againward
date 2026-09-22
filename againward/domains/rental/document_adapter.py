@@ -21,12 +21,13 @@ from .models import DOCUMENT_ROLES, RentalCase
 DOCUMENT_CASE_SCHEMA = "againward-rental-document-case-v1"
 RENTAL_MATCH = MatchPolicy(
     "SAME_RENTAL",
-    (("INVOICE_LINE", "RENTAL_SCOPE"), ("RETURN", "RENTAL_SCOPE")),
+    (("INVOICE_LINE", "RENTAL_SCOPE"), ("RETURN", "RENTAL_SCOPE"),
+     ("RATE_AMENDMENT", "RENTAL_SCOPE")),
     blocking_keys=("agreement_id", "asset_id", "serial_number"),
     anchor_keys=(("agreement_id", "asset_id"), ("agreement_id", "serial_number")),
     contradiction_keys=("supplier_id", "agreement_id", "asset_id", "serial_number"),
     required_scope_keys=("supplier_id",),
-    exclusive_left_kinds=("INVOICE_LINE", "RETURN"),
+    exclusive_left_kinds=("INVOICE_LINE", "RETURN", "RATE_AMENDMENT"),
     prefix_blocking_keys=("agreement_id",),
 )
 CREDIT_MATCH = MatchPolicy(
@@ -80,7 +81,8 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
         raise DocumentError("EXTRACTION_INCOMPLETE",
                             "Unextracted/missing components must be resolved before financial preparation")
     entities = entities_from_facts(facts)
-    if any(e.kind not in {"RENTAL_SCOPE", "INVOICE_LINE", "RETURN", "CREDIT", "IRRELEVANT"} for e in entities):
+    if any(e.kind not in {"RENTAL_SCOPE", "INVOICE_LINE", "RETURN", "RATE_AMENDMENT",
+                          "CREDIT", "IRRELEVANT"} for e in entities):
         raise DocumentError("EXTRACTION_INCOMPLETE", "Unsupported material entity kind")
     by_source: dict[str, list[Entity]] = {}
     for e in entities:
@@ -105,7 +107,8 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
         credit_resolution = review_relationships(credit_resolution, p["credit_relationship_review"])
     links = {r.left: r.right for r in resolution.relationships if r.state == RelationshipState.CONFIRMED}
     credit_links = {r.left: r.right for r in credit_resolution.relationships if r.state == RelationshipState.CONFIRMED}
-    material = [e for e in entities if e.kind in {"INVOICE_LINE", "RETURN"} and e.entity_id not in links]
+    material = [e for e in entities if e.kind in {"INVOICE_LINE", "RETURN", "RATE_AMENDMENT"}
+                and e.entity_id not in links]
     material += [e for e in entities if e.kind == "CREDIT" and e.entity_id not in credit_links]
     if material:
         raise DocumentError("ENTITY_AMBIGUOUS", "Unassigned material occurrences: " + ",".join(e.entity_id for e in material))
@@ -141,6 +144,29 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
             case["terms"].append({"term_id": "term-" + e.entity_id.removeprefix("entity-"),
                                   "period_id": pid, **term, "evidence_refs": _refs(e)})
     case["parties"] = sorted(parties.values(), key=lambda party: party["party_id"])
+    amendments = sorted((e for e in entities if e.kind == "RATE_AMENDMENT"),
+                        key=lambda e: (str(e.values.get("effective_from")), e.entity_id))
+    for e in amendments:
+        change = _required(e, ("charge_key", "charge_type", "currency", "rate", "effective_from",
+                               "terms_unchanged"))
+        if change["terms_unchanged"] is not True:
+            raise DocumentError("EXTRACTION_INCOMPLETE", "Amendment must explicitly preserve prior conventions")
+        pid = period_ids[links[e.entity_id]]
+        earlier = [t for t in case["terms"] if t["period_id"] == pid and t["charge_key"] == change["charge_key"]
+                   and ("effective_from" not in t or str(t["effective_from"]) < str(change["effective_from"]))]
+        if not earlier:
+            raise DocumentError("ENTITY_AMBIGUOUS", "Dated amendment has no unique earlier accepted term")
+        previous = max(earlier, key=lambda t: str(t.get("effective_from", "")))
+        if sum(t.get("effective_from", "") == previous.get("effective_from", "") for t in earlier) != 1:
+            raise DocumentError("ENTITY_AMBIGUOUS", "Dated amendment has conflicting earlier terms")
+        if (previous["charge_type"], previous["currency"]) != (change["charge_type"], change["currency"]):
+            raise DocumentError("ENTITY_AMBIGUOUS", "Amendment changes charge type/currency without complete new terms")
+        inherited = {**previous, "term_id": "term-" + e.entity_id.removeprefix("entity-"),
+                     "rate": change["rate"], "effective_from": change["effective_from"],
+                     "supersedes_term_id": previous["term_id"]}
+        inherited["evidence_refs"] = [*previous["evidence_refs"],
+                                      *(ref for ref in _refs(e) if ref not in previous["evidence_refs"])]
+        case["terms"].append(inherited)
     charges = {}
     for e in entities:
         if e.kind == "INVOICE_LINE":

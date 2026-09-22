@@ -190,3 +190,30 @@ Remote CI at 465f392 initially passed all four Python versions with 689 passed
 and four skipped: Poppler was absent. The workflow now installs the synthetic
 scan renderer explicitly so those tests cannot silently disappear from CI.
 Only workflow/docs change after this tested implementation milestone.
+
+## H4: documented unit-day segments and dated rates (2026-09-23)
+
+Baseline `tests/test_rental_pricing.py` refused a partial return because the old
+timeline only accepted full-quantity stop events. A dated amendment had no
+effective-date field and its accepted version replaced the rate for the whole
+period. New `temporal.py` activates only for a documented partial return under
+an explicit RETURNED stop rule with daily billing, or for an accepted dated
+amendment. It splits the interval at return and rate boundaries and rounds once
+for the whole charge. The ordinary single-term path remains in use otherwise.
+
+Independent arithmetic probe: four units start 1 September; two return on day
+10 and two on day 17. Expected 4×9 + 2×7 = **50 unit-days**, at EUR 75 =
+**EUR 3,750**. A rate change on day 8 to EUR 60 yields 4×7×75 + 4×2×60 +
+2×8×60 = **EUR 3,540**. Before this change both patterns abstained or applied
+the amended rate retroactively. Source spans for the accepted agreement,
+amendment and signed return remain in each segment's references.
+
+Unsupported weekly partial returns still abstain. A declared or over-quantity
+return, missing stop-day convention, nonzero minimum, incompatible amendment,
+forked effective dates or extension with segments yields an unknown amount.
+The dated amendment adapter inherits prior conventions only when an accepted,
+reviewed `terms_unchanged` clause explicitly supports that inheritance.
+Legacy canonical v1 serialization omits absent `effective_from`, so unchanged
+cases keep their previous normalized shape. This is not proof that the generated
+document benchmark's partial-return/rate-amendment families have been extracted
+and scored; those semantic runs remain outstanding.

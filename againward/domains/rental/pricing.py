@@ -155,6 +155,18 @@ def build_expected_ledger(case: RentalCase) -> dict:
         period = periods[scope[0]]
         accepted = [t for t in candidates if case.evidence_status(t.evidence_refs, roles={
             "RENTAL_AGREEMENT", "RATE_CARD", "QUOTE", "PURCHASE_ORDER", "AMENDMENT", "EMAIL_EVIDENCE"})]
+        dated = any(t.effective_from is not None for t in accepted)
+        partial_daily_return = any(
+            event.event_type == "RETURNED" and event.quantity is not None
+            and decimal_value(event.quantity) < decimal_value(period.quantity)
+            for event in events_by_period[period.period_id]
+        ) and any(t.billing_unit == "DAY" for t in accepted)
+        if dated or partial_daily_return:
+            from .temporal import price_daily_segments
+            segment = price_daily_segments(case, period, accepted, events_by_period[period.period_id])
+            entries[scope] = {"expected_charge_id": "/".join(scope), "period_id": scope[0], "charge_key": scope[1],
+                              "decision": None, **segment}
+            continue
         superseded = {t.supersedes_term_id for t in accepted if t.supersedes_term_id}
         eligible = []
         for t in accepted:

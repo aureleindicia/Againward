@@ -81,6 +81,9 @@ complete synthetic example; its scripted review is not a real human approval.
 
 Every source must be classified. Material invoice/return/credit occurrences
 require a confirmed relationship; a shared model-local label is insufficient.
+Rate amendments also require a confirmed link to one rental and a reviewed
+effective date. Only an explicit reviewed unchanged-terms clause allows the
+adapter to carry older billing conventions into a new dated rate term.
 The adapter derives canonical IDs from source-bound entity occurrences and does
 not copy missing rates from invoices. Any unextracted component blocks financial
 preparation for now, even when some other fields are readable.
@@ -92,6 +95,10 @@ support and relationship decisions. The Evidence Plane adds `document_fact` and
 Fresh calculation/review replays the source package and compares the complete
 lineage, not just monetary totals. The human evidence pack includes that chain.
 Legacy v1 canonical inputs retain their existing dataset representation.
+Documented partial physical returns and dated accepted rates now use exact
+daily quantity/rate segments when all required conventions are known. See
+`againward/domains/rental/temporal.py` and the H4 experiment log. Weekly partial
+returns and uncertain extensions remain unknown, with explicit limitations.
 
 ## Current limits
 

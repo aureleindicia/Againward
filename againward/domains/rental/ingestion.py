@@ -107,7 +107,7 @@ def _expand_extraction(payload, root: Path, *, output_directory=None):
                     if str(raw).lower() not in {"true", "false"}:
                         raise ValueError("Mapped boolean must explicitly be true or false.")
                     values[field] = str(raw).lower() == "true"
-                elif field in {"start", "end", "date", "extended_end"} and isinstance(raw, (date, datetime)):
+                elif field in {"start", "end", "date", "extended_end", "effective_from"} and isinstance(raw, (date, datetime)):
                     if isinstance(raw, datetime) and (raw.hour or raw.minute or raw.second or raw.microsecond or raw.tzinfo):
                         raise ValueError("Rental calendar dates cannot silently discard a spreadsheet time or timezone.")
                     values[field] = raw.date().isoformat() if isinstance(raw, datetime) else raw.isoformat()

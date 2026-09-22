@@ -164,6 +164,7 @@ class RateTerm:
     tier_min_days: int | None = None
     tier_max_days: int | None = None
     supersedes_term_id: str | None = None
+    effective_from: str | None = None
 
     def __post_init__(self):
         for key in ("term_id", "period_id", "charge_key"):
@@ -191,6 +192,10 @@ class RateTerm:
             raise ValueError("Unknown partial-period pricing convention.")
         if self.stop_event not in {None, "CONTRACT_END", "RETURNED", "COLLECTED", "OFF_HIRE_REQUESTED"}:
             raise ValueError("Unsupported contract stop trigger.")
+        if self.effective_from is not None:
+            iso_date(self.effective_from)
+            if self.supersedes_term_id is None:
+                raise ValueError("Dated amendment must identify the term it supersedes.")
 
 
 @dataclass(frozen=True)
@@ -373,7 +378,11 @@ class RentalCase:
     def to_dict(self):
         # JSON round-trip turns tuples into arrays and permits only canonical values.
         import json
-        return json.loads(json.dumps({"schema_version": SCHEMA, **asdict(self)}))
+        payload = {"schema_version": SCHEMA, **asdict(self)}
+        for term in payload["terms"]:
+            if term["effective_from"] is None:
+                del term["effective_from"]
+        return json.loads(json.dumps(payload))
 
     @cached_property
     def documents_by_id(self):

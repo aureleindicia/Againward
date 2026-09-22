@@ -30,12 +30,14 @@ Net amount EUR 850.00 excluding tax.
 """
 
 
-def packet(tmp_path, *, invoice_text=INVOICE):
+def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None):
     """Manual semantic annotations of prose, reviewed solely as test fixtures."""
     incoming, root = tmp_path / "input", tmp_path / "documents"
     incoming.mkdir(parents=True)
     (incoming / "agreement.txt").write_text(CONTRACT)
     (incoming / "invoice.txt").write_text(invoice_text)
+    if amendment_text is not None:
+        (incoming / "amendment.txt").write_text(amendment_text)
     batch = inventory_sources(incoming, root)
     parsed = {p.source_id: p for p in read_batch(batch, root)}
     shared = {
@@ -73,6 +75,21 @@ def packet(tmp_path, *, invoice_text=INVOICE):
             "net_amount": ("850.00", "850.00", "DECIMAL"),
         },
     }
+    if amendment_text is not None:
+        annotations["amendment.txt"] = {
+            "entity_kind": ("RATE_AMENDMENT", "rate amendment", "TEXT"),
+            "document_role": ("AMENDMENT", "amendment", "TEXT"),
+            "document_status": ("ACCEPTED", "accepted", "TEXT"),
+            "supplier_id": ("VENDOR", "VENDOR", "TEXT"),
+            "agreement_id": ("A-781", "A-781", "TEXT"),
+            "asset_id": ("LIFT-92", "LIFT-92", "TEXT"),
+            "charge_key": ("hire", "rental", "TEXT"),
+            "charge_type": ("RENTAL", "rental", "TEXT"),
+            "currency": ("EUR", "EUR", "CURRENCY"),
+            "rate": ("40.00", "40.00", "DECIMAL"),
+            "effective_from": ("2026-09-04", "2026-09-04", "DATE"),
+            "terms_unchanged": (True, "other original terms remain unchanged", "BOOLEAN"),
+        }
     extractions = []
     decisions = []
     for doc in batch.documents:
@@ -100,7 +117,7 @@ def packet(tmp_path, *, invoice_text=INVOICE):
                           "resolved_flags": list(c.ambiguity_flags)} for c in e.candidates)
     package = {"schema_version": DOCUMENT_CASE_SCHEMA, "batch": batch.to_dict(), "extractions": extractions,
                "fact_review": {"schema_version": "againward-fact-review-v1",
-                               "extraction_hashes": [e["extraction_sha256"] for e in extractions],
+                               "extraction_hashes": sorted(e["extraction_sha256"] for e in extractions),
                                "reviewer_role": "ANALYST", "reviewed_at": "2026-09-22T09:00:00Z",
                                "limitations_acknowledged": True, "decisions": decisions},
                "rental_relationship_review": None, "credit_relationship_review": None}
@@ -189,3 +206,31 @@ def test_lineage_cannot_attach_to_different_canonical_case(tmp_path):
     lineage["canonical_case_sha256"] = "0" * 64
     with pytest.raises(ValueError, match="does not support"):
         build_evidence_dataset(case, document_lineage=lineage)
+
+
+def test_reviewed_dated_amendment_from_separate_document_reprices_only_later_days(tmp_path):
+    amendment = ("Synthetic accepted rate amendment: VENDOR agreement A-781 asset LIFT-92. "
+                 "From 2026-09-04, rental EUR 40.00 per asset per day; "
+                 "other original terms remain unchanged.")
+    source, package = packet(tmp_path, amendment_text=amendment)
+    case, lineage = load_document_case(package, source.parent)
+    result = reconcile(case)
+    expected = result["expected_ledger"]["entries"][0]
+    assert expected["amount"] == "620.00"
+    assert [segment["rate"] for segment in expected["segments"]] == ["50.00", "40.00"]
+    assert result["groups"][0]["difference"] == "230.00"
+    assert {r["document_id"] for r in expected["evidence_refs"]} == {
+        d.document_id for d in case.documents if d.role in {"RENTAL_AGREEMENT", "AMENDMENT"}}
+    assert lineage["rental_resolution"]["relationships"]
+
+
+def test_amendment_cannot_inherit_terms_without_reviewed_unchanged_clause(tmp_path):
+    amendment = ("Synthetic accepted rate amendment: VENDOR agreement A-781 asset LIFT-92. "
+                 "From 2026-09-04, rental EUR 40.00 per asset per day; "
+                 "other original terms remain unchanged.")
+    source, package = packet(tmp_path, amendment_text=amendment)
+    candidate_id = next(c["candidate_id"] for e in package["extractions"] for c in e["candidates"]
+                        if c["semantic_type"] == "terms_unchanged")
+    next(d for d in package["fact_review"]["decisions"] if d["candidate_id"] == candidate_id)["decision"] = "DEFER"
+    with pytest.raises(DocumentError, match="EXTRACTION_INCOMPLETE"):
+        load_document_case(package, source.parent)

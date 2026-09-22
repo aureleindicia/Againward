@@ -76,8 +76,14 @@ def _families(actual, expected, difference):
         families = []
         if expected.get("shortened") and any(r.get("end") and r["end"] > expected["end"] for r in actual):
             families.append("POST_OFF_HIRE_BILLING" if expected.get("stop_event") == "OFF_HIRE_REQUESTED" else "POST_RETURN_BILLING")
-        if any(r.get("unit_rate") is not None and decimal_value(r["unit_rate"]) > decimal_value(expected["rate"]) for r in actual):
+        if expected.get("rate") is not None and any(
+                r.get("unit_rate") is not None and decimal_value(r["unit_rate"]) > decimal_value(expected["rate"])
+                for r in actual):
             families.append("WRONG_RATE")
+        if expected.get("segments") and len({s["rate"] for s in expected["segments"]}) > 1:
+            families.append("WRONG_RATE")
+        if expected.get("segments") and len({s["quantity"] for s in expected["segments"]}) > 1:
+            families.append("INCORRECT_QUANTITY")
         if expected.get("quantity") is not None and any(r.get("quantity") is not None and decimal_value(r["quantity"]) > decimal_value(expected["quantity"]) for r in actual):
             families.append("INCORRECT_QUANTITY")
         if expected.get("units") is not None and any(r.get("billed_units") is not None and decimal_value(r["billed_units"]) > Decimal(expected["units"]) for r in actual):
