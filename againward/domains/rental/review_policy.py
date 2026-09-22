@@ -31,7 +31,8 @@ def validate_current_review(case_directory):
         raise ValueError("Rental findings are stale or altered.")
     if findings["unreviewed_candidate_ids"]:
         raise ValueError("Every Rental candidate needs an explicit decision, including rejection or abstention.")
-    dataset = build_evidence_dataset(case)
+    inventory = read_json(root / "artifact_inventory.json")
+    dataset = build_evidence_dataset(case, document_lineage=inventory.get("document_lineage"))
     if dataset.to_dict() != read_json(root / "evidence_dataset.json"):
         raise ValueError("Evidence snapshot differs from current Rental sources.")
     session = EvidenceQuerySession.from_dict(read_json(root / "evidence_query_session.json"))

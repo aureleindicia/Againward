@@ -12,6 +12,7 @@ from .arithmetic import deterministic_decimal
 FINDING_FAMILIES = frozenset({"DUPLICATE_BILLING", "WRONG_RATE", "WRONG_RATE_TIER",
     "POST_OFF_HIRE_BILLING", "POST_RETURN_BILLING", "INCORRECT_QUANTITY", "INCORRECT_DURATION",
     "UNAUTHORIZED_FEE", "MISSING_DISCOUNT", "MISSING_CREDIT", "PROMISED_CREDIT_NOT_APPLIED",
+    "UNALLOCATED_CREDIT",
     "TRANSPORT_CHARGE_MISMATCH", "DELIVERY_CHARGE_MISMATCH", "COLLECTION_CHARGE_MISMATCH",
     "DAMAGE_WAIVER_MISMATCH", "FUEL_CHARGE_MISMATCH", "UNKNOWN_CONTRACTUAL_BASIS"})
 
@@ -25,6 +26,7 @@ ALTERNATIVES = {
     "INCORRECT_DURATION": "Minimum periods, weekend charging, extensions or inclusive dates may explain duration.",
     "MISSING_DISCOUNT": "The discount may be conditional or already reflected in the net amount.",
     "PROMISED_CREDIT_NOT_APPLIED": "A credit may be issued outside the supplied export or allocated to another invoice.",
+    "UNALLOCATED_CREDIT": "An issued credit may offset one of these charges, but its invoice-line allocation is unconfirmed.",
     "UNKNOWN_CONTRACTUAL_BASIS": "Missing accepted contractual evidence may explain the charge.",
 }
 
@@ -32,20 +34,33 @@ ALTERNATIVES = {
 @deterministic_decimal
 def build_actual_ledger(case: RentalCase) -> dict:
     credits_by_charge = defaultdict(list)
+    unallocated = []
     for credit in case.credits:
-        credits_by_charge[credit.charge_id].append(credit)
+        total = decimal_value(credit.net_amount)
+        allocated = (decimal_value(credit.allocated_amount) if credit.allocated_amount is not None
+                     else total if credit.charge_id is not None else Decimal(0))
+        if credit.charge_id is not None:
+            credits_by_charge[credit.charge_id].append((credit, allocated))
+        remainder = total - allocated
+        if remainder > 0:
+            unallocated.append({"credit_id": credit.credit_id, "invoice_id": credit.invoice_id,
+                                "currency": credit.currency,
+                                "net_amount": money(remainder), "status": credit.status,
+                                "allocation_state": credit.allocation_state,
+                                "accepted_credit_note": case.evidence_status(credit.evidence_refs, roles={"CREDIT_NOTE"}),
+                                "evidence_refs": refs_payload(credit.evidence_refs)})
     entries = []
     for charge in case.actual_charges:
         issued = Decimal(0)
         promised = Decimal(0)
         limitations = []
         refs = list(charge.evidence_refs)
-        for credit in credits_by_charge[charge.charge_id]:
+        for credit, allocated in credits_by_charge[charge.charge_id]:
             refs.extend(credit.evidence_refs)
             if credit.status == "PROMISED":
-                promised += decimal_value(credit.net_amount)
+                promised += allocated
             elif case.evidence_status(credit.evidence_refs, roles={"CREDIT_NOTE"}):
-                issued += decimal_value(credit.net_amount)
+                issued += allocated
             else:
                 limitations.append("credit_not_supported_by_accepted_credit_note:" + credit.credit_id)
         gross = decimal_value(charge.net_amount)
@@ -61,8 +76,11 @@ def build_actual_ledger(case: RentalCase) -> dict:
             "quantity": charge.quantity, "unit_rate": charge.unit_rate, "billed_units": charge.billed_units,
             "start": charge.start, "end": charge.end,
             "evidence_refs": refs_payload(refs), "limitations": limitations})
-    return {"schema_version": "againward-actual-charge-ledger-v1", "amount_basis": "NET_EXCLUDING_TAX",
-            "entries": entries, "decision": None}
+    ledger = {"schema_version": "againward-actual-charge-ledger-v1", "amount_basis": "NET_EXCLUDING_TAX",
+              "entries": entries, "decision": None}
+    if unallocated:
+        ledger["unallocated_credits"] = unallocated
+    return ledger
 
 
 def _families(actual, expected, difference):
@@ -76,8 +94,14 @@ def _families(actual, expected, difference):
         families = []
         if expected.get("shortened") and any(r.get("end") and r["end"] > expected["end"] for r in actual):
             families.append("POST_OFF_HIRE_BILLING" if expected.get("stop_event") == "OFF_HIRE_REQUESTED" else "POST_RETURN_BILLING")
-        if any(r.get("unit_rate") is not None and decimal_value(r["unit_rate"]) > decimal_value(expected["rate"]) for r in actual):
+        if expected.get("rate") is not None and any(
+                r.get("unit_rate") is not None and decimal_value(r["unit_rate"]) > decimal_value(expected["rate"])
+                for r in actual):
             families.append("WRONG_RATE")
+        if expected.get("segments") and len({s["rate"] for s in expected["segments"]}) > 1:
+            families.append("WRONG_RATE")
+        if expected.get("segments") and len({s["quantity"] for s in expected["segments"]}) > 1:
+            families.append("INCORRECT_QUANTITY")
         if expected.get("quantity") is not None and any(r.get("quantity") is not None and decimal_value(r["quantity"]) > decimal_value(expected["quantity"]) for r in actual):
             families.append("INCORRECT_QUANTITY")
         if expected.get("units") is not None and any(r.get("billed_units") is not None and decimal_value(r["billed_units"]) > Decimal(expected["units"]) for r in actual):
@@ -112,11 +136,25 @@ def reconcile(case: RentalCase) -> dict:
     grouped = defaultdict(list)
     for row in actual["entries"]:
         grouped[(row["period_id"], row["charge_key"], row["currency"])].append(row)
+    uncertain_global = defaultdict(list)
+    uncertain_invoice = defaultdict(list)
+    for credit in actual.get("unallocated_credits", []):
+        if credit["status"] != "ISSUED" or not credit["accepted_credit_note"]:
+            continue
+        if credit["invoice_id"] is None:
+            uncertain_global[credit["currency"]].append(credit)
+        else:
+            uncertain_invoice[(credit["currency"], credit["invoice_id"])].append(credit)
     groups, candidates = [], []
     totals = defaultdict(lambda: {"actual": Decimal(0), "supported_positive_discrepancy": Decimal(0)})
     for (period_id, charge_key, currency), lines in sorted(grouped.items()):
         exp = expected_by_scope.get((period_id, charge_key))
         limitations = [gap for line in lines for gap in line["limitations"]]
+        uncertain_credits = list(uncertain_global[currency])
+        for invoice_id in sorted({line["invoice_id"] for line in lines}):
+            uncertain_credits.extend(uncertain_invoice[(currency, invoice_id)])
+        limitations.extend("unallocated_credit_requires_allocation:" + credit["credit_id"]
+                           for credit in uncertain_credits)
         if exp:
             limitations.extend(exp["limitations"])
             limitations.extend(exp.get("contradictions", []))
@@ -132,6 +170,8 @@ def reconcile(case: RentalCase) -> dict:
         scope = {"period_id": period_id, "charge_key": charge_key, "currency": currency}
         group_id = "RG-" + stable_hash(scope)[:20]
         refs = [ref for line in lines for ref in line["evidence_refs"]]
+        for credit in uncertain_credits:
+            refs.extend(ref for ref in credit["evidence_refs"] if ref not in refs)
         if exp:
             refs += [ref for ref in exp["evidence_refs"] if ref not in refs]
         group = {"group_id": group_id, **scope, "charge_ids": [r["charge_id"] for r in lines],
@@ -144,7 +184,8 @@ def reconcile(case: RentalCase) -> dict:
         totals[currency]["actual"] += actual_amount
         if difference is not None:
             totals[currency]["supported_positive_discrepancy"] += max(Decimal(0), difference)
-        families = _families(lines, exp if expected_amount is not None else None, difference)
+        families = (["UNALLOCATED_CREDIT"] if uncertain_credits else
+                    _families(lines, exp if expected_amount is not None else None, difference))
         if "WRONG_RATE" in families and exp and any(terms_by_id[tid].tier_min_days is not None or terms_by_id[tid].tier_max_days is not None for tid in exp["term_ids"]):
             families.append("WRONG_RATE_TIER")
         for family in families:

@@ -9,15 +9,15 @@
       "unique_semantic_branches": 10,
       "selected_count": 3,
       "rejected_count": 7,
-      "median_elapsed_ms": 6.995,
-      "max_peak_traced_bytes": 32542
+      "median_elapsed_ms": 5.604,
+      "max_peak_traced_bytes": 31790
     },
     {
       "candidate_count": 100,
       "unique_semantic_branches": 37,
       "selected_count": 3,
       "rejected_count": 97,
-      "median_elapsed_ms": 65.238,
+      "median_elapsed_ms": 51.541,
       "max_peak_traced_bytes": 254702
     },
     {
@@ -25,7 +25,7 @@
       "unique_semantic_branches": 37,
       "selected_count": 3,
       "rejected_count": 997,
-      "median_elapsed_ms": 601.298,
+      "median_elapsed_ms": 477.17,
       "max_peak_traced_bytes": 2545045
     }
   ],

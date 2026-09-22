@@ -54,3 +54,12 @@ Tests complémentaires : arithmétique décimale indépendante du contexte, mois
 calendaires, prorata/minimum/week-ends, retour partiel, faux document opérationnel,
 tarif sans autorité contractuelle, quantité, FX refusé, crédits, cycles de dépendance,
 provenance/altération, XLSX, privacy, limites L3 et invalidation de la revue humaine.
+
+Extension documentaire 2026-09-23 : les cas A08 et A09 ajoutent respectivement
+un avoir émis non affecté et un avoir partiellement affecté. Le score exige
+également le détail comptable, pas seulement un total positif nul : A08 applique
+0,00 EUR et garde 150,00 EUR non affectés ; A09 applique 80,00 EUR et garde
+70,00 EUR non affectés. Dans les deux cas, l'écart du groupe reste inconnu.
+La suite étendue passe **15/15** (TP=3, FP=0, FN=0, TN=12 sur le même indicateur
+restreint). Les 13 anciens cas restent présents. Ceci mesure des fixtures
+contractuelles explicites, pas la lecture autonome des nouveaux documents.

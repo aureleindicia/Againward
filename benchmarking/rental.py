@@ -1,5 +1,6 @@
 """Reproducible Rental contract tests; truth is consumed only by the scorer."""
 from copy import deepcopy
+from decimal import Decimal
 from pathlib import Path
 import time
 
@@ -85,6 +86,12 @@ def run_benchmark(output):
         observed[name] = {"supported_discrepancy": result["totals_by_currency"]["EUR"]["supported_positive_discrepancy"],
             "families": sorted({c["family"] for c in result["candidates"]}),
             "candidate_count": len(result["candidates"]), "automatic_recovery_claims": sum(c["recoverable_amount"] is not None for c in result["candidates"])}
+        if packet["credits"]:
+            actual = result["actual_ledger"]
+            observed[name]["credit_accounting"] = {
+                "issued_credit": format(sum((Decimal(row["issued_credit"]) for row in actual["entries"]), Decimal(0)), ".2f"),
+                "unallocated_credit": format(sum((Decimal(row["net_amount"]) for row in actual.get("unallocated_credits", [])), Decimal(0)), ".2f"),
+                "group_difference": result["groups"][0]["difference"]}
         if name == "R06_ambiguous_return":
             observed[name]["resume"] = exercise_resume(root, packet, output / "sources" / name)
         else:
@@ -101,6 +108,7 @@ def run_benchmark(output):
         tn += not positive and not expected["positive_supported_case"]
         result["passed"] = (result["supported_discrepancy"] == expected["supported_discrepancy"]
             and set(expected["required_families"]) <= set(result["families"])
+            and ("credit_accounting" not in expected or result.get("credit_accounting") == expected["credit_accounting"])
             and result["automatic_recovery_claims"] == 0)
     resume = observed["R06_ambiguous_return"]["resume"]
     observed["R06_ambiguous_return"]["passed"] &= (resume["after_answer_supported_discrepancy"] == "300.00"

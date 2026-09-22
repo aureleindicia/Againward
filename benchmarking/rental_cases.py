@@ -46,10 +46,12 @@ def cases():
     base["actual_charges"][0].update(net_amount="700.00", unit_rate="700")
     packets, truth = {}, {}
 
-    def add(name, packet, amount, families=(), *, positive=False):
+    def add(name, packet, amount, families=(), *, positive=False, credit_accounting=None):
         packets[name] = packet
         truth[name] = {"supported_discrepancy": amount, "required_families": list(families),
                        "positive_supported_case": positive}
+        if credit_accounting is not None:
+            truth[name]["credit_accounting"] = credit_accounting
 
     add("R01_correct", deepcopy(base), "0.00")
     add("R02_wrong_rate", rental_packet(), "150.00", ["WRONG_RATE"], positive=True)
@@ -85,7 +87,8 @@ def cases():
     packet["documents"].append({"document_id": "CREDIT", "role": "CREDIT_NOTE", "status": "ACCEPTED", "path": "credit.txt", "sha256": "c" * 64})
     packet["credits"].append({"credit_id": "C1", "charge_id": "I1/L1", "currency": "EUR", "net_amount": "150.00",
         "status": "ISSUED", "evidence_refs": [{"document_id": "CREDIT", "location": "credit:C1"}]})
-    add("A04_correct_credit", packet, "0.00")
+    add("A04_correct_credit", packet, "0.00", credit_accounting={
+        "issued_credit": "150.00", "unallocated_credit": "0.00", "group_difference": "0.00"})
     packet = rental_packet()
     packet["documents"].append({"document_id": "AMEND", "role": "AMENDMENT", "status": "ACCEPTED", "path": "amend.txt", "sha256": "d" * 64})
     packet["terms"].append({**packet["terms"][0], "term_id": "RATE2", "rate": "850", "supersedes_term_id": "RATE",
@@ -97,6 +100,19 @@ def cases():
     packet["periods"][0]["quantity"] = "2"; packet["terms"][0]["quantity"] = "2"
     packet["actual_charges"].append({**packet["actual_charges"][0], "invoice_line_id": "L2"})
     add("A07_authorized_split_quantity", packet, "0.00")
+    packet = rental_packet()
+    packet["documents"].append({"document_id": "CREDIT", "role": "CREDIT_NOTE", "status": "ACCEPTED",
+                                "path": "credit.txt", "sha256": "c" * 64})
+    packet["credits"].append({"credit_id": "C1", "charge_id": None, "invoice_id": "I1",
+                              "allocation_state": "UNALLOCATED_CREDIT", "currency": "EUR", "net_amount": "150.00",
+                              "status": "ISSUED", "evidence_refs": [{"document_id": "CREDIT", "location": "credit:C1"}]})
+    add("A08_unallocated_issued_credit", packet, "0.00", ["UNALLOCATED_CREDIT"], credit_accounting={
+        "issued_credit": "0.00", "unallocated_credit": "150.00", "group_difference": None})
+    packet = deepcopy(packet)
+    packet["credits"][0].update(charge_id="I1/L1", allocation_state="PARTIALLY_ALLOCATED_CREDIT",
+                                 allocated_amount="80.00")
+    add("A09_partially_allocated_credit", packet, "0.00", ["UNALLOCATED_CREDIT"], credit_accounting={
+        "issued_credit": "80.00", "unallocated_credit": "70.00", "group_difference": None})
     return packets, truth
 
 

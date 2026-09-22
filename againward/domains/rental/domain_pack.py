@@ -45,7 +45,7 @@ class RentalDomainPack:
             raise ValueError("Rental intake profile differs from explicitly selected profile.")
         case, inventory = load_rental_case(source)
         result = reconcile(case)
-        dataset = build_evidence_dataset(case)
+        dataset = build_evidence_dataset(case, document_lineage=inventory.get("document_lineage"))
         gaps = sorted({gap for group in result["groups"] for gap in group["limitations"]})
         assessment = {"missing_critical": gaps, "automatic_questions": False,
                       "limits": ["Semantic document extraction requires analyst review.",

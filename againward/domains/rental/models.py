@@ -164,6 +164,7 @@ class RateTerm:
     tier_min_days: int | None = None
     tier_max_days: int | None = None
     supersedes_term_id: str | None = None
+    effective_from: str | None = None
 
     def __post_init__(self):
         for key in ("term_id", "period_id", "charge_key"):
@@ -191,6 +192,10 @@ class RateTerm:
             raise ValueError("Unknown partial-period pricing convention.")
         if self.stop_event not in {None, "CONTRACT_END", "RETURNED", "COLLECTED", "OFF_HIRE_REQUESTED"}:
             raise ValueError("Unsupported contract stop trigger.")
+        if self.effective_from is not None:
+            iso_date(self.effective_from)
+            if self.supersedes_term_id is None:
+                raise ValueError("Dated amendment must identify the term it supersedes.")
 
 
 @dataclass(frozen=True)
@@ -260,11 +265,14 @@ class ActualCharge:
 @dataclass(frozen=True)
 class Credit:
     credit_id: str
-    charge_id: str
+    charge_id: str | None
     currency: str
     net_amount: str
     evidence_refs: tuple[EvidenceRef, ...]
     status: str = "ISSUED"
+    allocation_state: str = "CONFIRMED_ALLOCATION"
+    allocated_amount: str | None = None
+    invoice_id: str | None = None
 
     def __post_init__(self):
         _identifier(self.credit_id, "credit_id")
@@ -272,6 +280,26 @@ class Credit:
         value = decimal_value(self.net_amount, name="credit amount")
         if value.as_tuple().exponent < -2 or self.status not in {"ISSUED", "PROMISED"}:
             raise ValueError("Invalid credit amount or status.")
+        if self.allocation_state not in {"UNALLOCATED_CREDIT", "CANDIDATE_ALLOCATION",
+                                         "PARTIALLY_ALLOCATED_CREDIT", "CONFIRMED_ALLOCATION"}:
+            raise ValueError("Unknown credit allocation state.")
+        if self.invoice_id is not None:
+            _identifier(self.invoice_id, "invoice_id")
+        if self.allocation_state in {"UNALLOCATED_CREDIT", "CANDIDATE_ALLOCATION"}:
+            if self.charge_id is not None or self.allocated_amount is not None:
+                raise ValueError("Unconfirmed credit cannot carry an invoice-line allocation.")
+        else:
+            if self.charge_id is None:
+                raise ValueError("Confirmed/partial credit requires a known invoice line.")
+            _identifier(self.charge_id, "charge_id")
+            if self.allocation_state == "PARTIALLY_ALLOCATED_CREDIT":
+                if self.allocated_amount is None:
+                    raise ValueError("Partial credit requires a documented allocated amount.")
+                allocated = decimal_value(self.allocated_amount, name="allocated credit amount")
+                if allocated.as_tuple().exponent < -2 or not Decimal(0) < allocated < value:
+                    raise ValueError("Partial allocation must be positive, in minor units, and below total credit.")
+            elif self.allocated_amount is not None:
+                raise ValueError("Full credit allocation must not specify a second amount.")
         _evidence(self.evidence_refs)
 
 
@@ -367,13 +395,26 @@ class RentalCase:
                 current = terms[current.supersedes_term_id]
             completed.update(visited)
         for credit in self.credits:
-            if credit.charge_id not in charges or credit.currency != charges[credit.charge_id].currency:
+            if credit.charge_id is not None and (credit.charge_id not in charges or credit.currency != charges[credit.charge_id].currency):
                 raise ValueError("Credit must refer to a known invoice line in the same currency.")
+            if credit.charge_id is not None and credit.invoice_id is not None and credit.invoice_id != charges[credit.charge_id].invoice_id:
+                raise ValueError("Credit invoice ID contradicts its allocated invoice line.")
 
     def to_dict(self):
         # JSON round-trip turns tuples into arrays and permits only canonical values.
         import json
-        return json.loads(json.dumps({"schema_version": SCHEMA, **asdict(self)}))
+        payload = {"schema_version": SCHEMA, **asdict(self)}
+        for term in payload["terms"]:
+            if term["effective_from"] is None:
+                del term["effective_from"]
+        for credit in payload["credits"]:
+            if credit["allocation_state"] == "CONFIRMED_ALLOCATION":
+                del credit["allocation_state"]
+            if credit["allocated_amount"] is None:
+                del credit["allocated_amount"]
+            if credit["invoice_id"] is None:
+                del credit["invoice_id"]
+        return json.loads(json.dumps(payload))
 
     @cached_property
     def documents_by_id(self):
