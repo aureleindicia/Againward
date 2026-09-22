@@ -19,6 +19,15 @@ from againward.evidence.hashing import stable_hash
 from .models import DOCUMENT_ROLES, RentalCase, decimal_value
 
 DOCUMENT_CASE_SCHEMA = "againward-rental-document-case-v1"
+_ANALYTICAL_FIELDS = frozenset({
+    "entity_kind", "document_role", "document_status", "agreement_id", "supplier_id", "client_id",
+    "item_id", "description", "asset_id", "serial_number", "category", "site_id", "cost_center_id",
+    "start", "end", "quantity", "rate", "charge_key", "charge_type", "currency", "billing_unit",
+    "weekends_billable", "minimum_days", "partial_period_policy", "stop_event", "stop_day_billable",
+    "discount_fraction", "percentage_of", "tier_min_days", "tier_max_days", "effective_from",
+    "terms_unchanged", "invoice_id", "invoice_line_id", "net_amount", "unit_rate", "billed_units",
+    "event_type", "date", "verification", "extended_end", "credit_id", "status", "allocated_amount",
+})
 RENTAL_MATCH = MatchPolicy(
     "SAME_RENTAL",
     (("INVOICE_LINE", "RENTAL_SCOPE"), ("RETURN", "RENTAL_SCOPE"),
@@ -77,6 +86,8 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
             or {e.source_id for e in extractions} != {d.source_id for d in batch.documents}):
         raise DocumentError("EXTRACTION_INCOMPLETE", "Every source requires one explicit extraction/classification")
     facts = promote_facts(extractions, p["fact_review"], batch, root)
+    if any(f.candidate.semantic_type not in _ANALYTICAL_FIELDS for f in facts):
+        raise DocumentError("UNSUPPORTED_PROMOTION", "Non-analytical fields must not enter Rental evidence")
     if any(e.limitations for e in extractions):
         raise DocumentError("EXTRACTION_INCOMPLETE",
                             "Unextracted/missing components must be resolved before financial preparation")

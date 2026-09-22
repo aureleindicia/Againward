@@ -8,10 +8,21 @@ from againward.compat.privacy_v1 import HEADER_PARTS, TEXT_PATTERNS
 
 
 @dataclass(frozen=True)
+class PrivacyRiskPolicy:
+    policy_id: str
+    pass_categories: frozenset[str] = frozenset()
+    visual_human_review: bool = False
+
+
+STRICT_RISK = PrivacyRiskPolicy("energy-strict-v1")
+
+
+@dataclass(frozen=True)
 class PreservationPolicy:
     policy_id: str
     header_parts: frozenset[str]
     text_patterns: tuple[Pattern, ...]
+    risk: PrivacyRiskPolicy = STRICT_RISK
 
 
 LEGACY_PRESERVATION = PreservationPolicy("legacy-energy-v1", frozenset(HEADER_PARTS), TEXT_PATTERNS)

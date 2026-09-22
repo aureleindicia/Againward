@@ -30,7 +30,7 @@ Net amount EUR 850.00 excluding tax.
 """
 
 
-def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=None):
+def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=None, contact_email=None):
     """Manual semantic annotations of prose, reviewed solely as test fixtures."""
     incoming, root = tmp_path / "input", tmp_path / "documents"
     incoming.mkdir(parents=True)
@@ -77,6 +77,8 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=N
             "net_amount": ("850.00", "850.00", "DECIMAL"),
         },
     }
+    if contact_email is not None:
+        annotations["invoice.txt"]["contact_email"] = (contact_email, contact_email, "TEXT")
     if amendment_text is not None:
         annotations["amendment.txt"] = {
             "entity_kind": ("RATE_AMENDMENT", "rate amendment", "TEXT"),
@@ -300,3 +302,11 @@ def test_source_partial_credit_never_assigns_remainder_automatically(tmp_path):
     assert result["actual_ledger"]["entries"][0]["net_amount"] == "770.00"
     assert result["actual_ledger"]["unallocated_credits"][0]["net_amount"] == "70.00"
     assert result["groups"][0]["difference"] is None
+
+
+def test_professional_contact_fact_is_not_promoted_to_rental_evidence(tmp_path):
+    contact = "jean.dupont@supplier.example"
+    source, package = packet(tmp_path, invoice_text=INVOICE + "Contact: " + contact + ".\n",
+                             contact_email=contact)
+    with pytest.raises(DocumentError, match="UNSUPPORTED_PROMOTION"):
+        load_document_case(package, source.parent)

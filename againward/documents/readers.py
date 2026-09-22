@@ -159,7 +159,7 @@ def _docx(path: Path, sid: str, limits: DocumentLimits) -> tuple[list[SourceUnit
         return units, limitations
 
 
-def _pdf(path: Path, sid: str, limits: DocumentLimits) -> tuple[list[SourceUnit], list[str], str]:
+def _pdf_payload(path: Path, limits: DocumentLimits) -> dict[str, Any]:
     # Parser memory/CPU isolation matters on Termux. No shell, network, OCR or
     # document-controlled command is invoked. The worker is our private parser.
     command = [sys.executable, "-m", "againward.documents.pdf_worker", str(path.resolve()),
@@ -170,7 +170,11 @@ def _pdf(path: Path, sid: str, limits: DocumentLimits) -> tuple[list[SourceUnit]
         raise DocumentError("RESOURCE_LIMIT", "PDF parser timed out") from exc
     if result.returncode:
         raise DocumentError("SOURCE_UNREADABLE", "PDF parser refused, failed or exceeded resources")
-    payload = load_json(result.stdout, maximum=limits.maximum_output_bytes)
+    return load_json(result.stdout, maximum=limits.maximum_output_bytes)
+
+
+def _pdf(path: Path, sid: str, limits: DocumentLimits) -> tuple[list[SourceUnit], list[str], str]:
+    payload = _pdf_payload(path, limits)
     units = [SourceUnit(sid, f"page:{p['page']}", p["text"], p["route"],
                         {"page": p["page"], "page_count": len(payload["pages"]),
                          "embedded_images": p["embedded_images"]}) for p in payload["pages"]]
