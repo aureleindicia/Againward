@@ -278,7 +278,7 @@ def promote_facts(extractions: tuple[DocumentExtraction, ...], review: Any,
     Formula values cannot be promoted; request an evidenced fixed-value export.
     """
     p = closed(review, {"schema_version", "extraction_hashes", "reviewer_role", "reviewed_at",
-                        "decisions", "limitations_acknowledged"})
+                        "decisions", "limitations_acknowledged"}, optional={"visual_attestations"})
     if (p["schema_version"] != "againward-fact-review-v1" or not isinstance(p["reviewer_role"], str)
             or p["reviewer_role"] not in {"ANALYST", "HUMAN"}):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Invalid fact review")
@@ -297,6 +297,11 @@ def promote_facts(extractions: tuple[DocumentExtraction, ...], review: Any,
             candidates[c.candidate_id] = (c, e)
     if not isinstance(p["decisions"], list) or len(p["decisions"]) != len(candidates):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Explicit decision required for every candidate")
+    if p["reviewer_role"] == "ANALYST":
+        from .visual_fact_review import verify_visual_attestations
+        verify_visual_attestations(batch, validated, p, root)
+    elif p.get("visual_attestations"):
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Legacy human review cannot attach mixed-role attestations")
     facts = []
     seen = set()
     for decision in p["decisions"]:
@@ -320,8 +325,8 @@ def promote_facts(extractions: tuple[DocumentExtraction, ...], review: Any,
             raise DocumentError("UNSUPPORTED_PROMOTION", "Formula needs an evidenced fixed-value source")
         if set(c.ambiguity_flags) - resolved:
             raise DocumentError("UNSUPPORTED_PROMOTION", "Unresolved ambiguity")
-        if "VISUAL_TRANSCRIPTION_UNVERIFIED" in resolved and p["reviewer_role"] != "HUMAN":
-            raise DocumentError("UNSUPPORTED_PROMOTION", "Visual transcription requires human source inspection")
+        # An ANALYST review can include visual facts only if a separate
+        # source/pixel/candidate-bound HUMAN attestation was verified above.
         facts.append(CanonicalFact("fact-" + stable_hash({"candidate": c.to_dict(),
                                                         "extraction": extraction.to_dict()["extraction_sha256"]}),
                                    c, extraction.to_dict()["extraction_sha256"], stable_hash(p), reason))

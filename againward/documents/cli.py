@@ -52,6 +52,12 @@ def main(argv: list[str] | None = None) -> int:
     template.add_argument("root", type=Path)
     template.add_argument("batch", type=Path)
     template.add_argument("extractions", nargs="+", type=Path)
+    visual_facts = commands.add_parser("visual-fact-attest", help="Interactive human check of accepted visual facts only")
+    visual_facts.add_argument("root", type=Path)
+    visual_facts.add_argument("batch", type=Path)
+    visual_facts.add_argument("review", type=Path)
+    visual_facts.add_argument("extractions", nargs="+", type=Path)
+    visual_facts.add_argument("--actor-id", required=True)
     package = commands.add_parser("package-rental", help="Assemble reviewed document inputs; stop on unresolved links")
     package.add_argument("root", type=Path)
     package.add_argument("batch", type=Path)
@@ -119,6 +125,22 @@ def main(argv: list[str] | None = None) -> int:
                 result = {"status": "UNREVIEWED_TEMPLATE", "candidate_count": len(body["decisions"]),
                           "review_template": str(json_path), "worksheet": str(sheet_path),
                           "approved_facts": 0}
+            elif args.command == "visual-fact-attest":
+                from .visual_fact_review import attest_visual_facts
+                assert_document_action(args.root, mutation=True)
+                extractions = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                    for path in args.extractions)
+                reviewed = attest_visual_facts(batch, extractions, _load(args.review, args.root), args.root,
+                                               actor_id=args.actor_id, ask=input,
+                                               interactive=sys.stdin.isatty() and sys.stdout.isatty())
+                destination = args.root / "review_templates" / ("attested-" + stable_hash(reviewed) + ".json")
+                with transaction(args.root):
+                    if destination.exists():
+                        raise ValueError("REVIEW_STALE: visual fact attestation already exists")
+                    write_json(destination, reviewed)
+                result = {"status": "VISUAL_FACTS_ATTESTED", "review": str(destination),
+                          "attested_components": len(reviewed["visual_attestations"]),
+                          "approved_for_delivery": False}
             elif args.command == "package-rental":
                 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
                 assert_document_action(args.root, mutation=True)
