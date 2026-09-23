@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import json
 
 import pytest
 
 from againward.documents.codex_provider import assemble_proposal
+from againward.documents.cli import main
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
 from againward.documents.independent_qa import compare_extractions, reread_sources
@@ -44,6 +46,7 @@ def test_independent_qa_agreement_is_non_authoritative(tmp_path):
     second = validate(deepcopy(raw))
     body = compare_extractions(batch, (first,), (second,), root)
     assert body["status"] == "AGREEMENT"
+    assert body["material_status"] == "MATERIAL_AGREEMENT"
     assert body["delivery_approved"] is False
     assert "Same model family" in body["limitations"][0]
     assert body["source_results"][0]["needs_reconciliation"] is False
@@ -56,6 +59,7 @@ def test_independent_qa_finds_omission_and_entity_swap(tmp_path):
     omitted["candidates"].pop()
     missing = compare_extractions(batch, (first,), (validate(omitted),), root)
     assert missing["status"] == "RECONCILIATION_REQUIRED"
+    assert missing["material_status"] == "RECONCILIATION_REQUIRED"
     assert missing["source_results"][0]["primary_only_entity_bundles"] == 1
 
     swapped = deepcopy(raw)
@@ -63,7 +67,12 @@ def test_independent_qa_finds_omission_and_entity_swap(tmp_path):
     swapped["candidates"][3]["entity_id"] = "line-A"
     mismatch = compare_extractions(batch, (first,), (validate(swapped),), root)
     assert mismatch["status"] == "RECONCILIATION_REQUIRED"
+    assert mismatch["material_status"] == "RECONCILIATION_REQUIRED"
     assert mismatch["source_results"][0]["primary_only_entity_bundles"] == 2
+    assert {row["entity_id"] for row in mismatch["source_results"][0]["primary_only_entities"]} == {
+        "line-A", "line-B"}
+    assert any(field["value"] == "100" for row in mismatch["source_results"][0]["challenger_only_entities"]
+               for field in row["fields"])
 
 
 def test_independent_qa_requires_complete_current_source_set(tmp_path):
@@ -99,3 +108,37 @@ def test_challenger_retries_one_invalid_quote_without_weaker_validator(tmp_path,
     assert body["challenger_model_calls"] == 2
     assert "prior response failed" in attempts[1]
     assert len(paths) == 1 and paths[0].is_file()
+
+
+def test_saved_challenger_can_be_recompared_without_model_call(tmp_path, capsys, monkeypatch):
+    root, batch, raw, validate = _case(tmp_path)
+    first = validate(raw)
+    omitted = deepcopy(raw)
+    omitted["candidates"].pop()
+    second = validate(omitted)
+    batch_path = root / "batch.json"
+    first_path = root / "first.json"
+    second_path = root / "second.json"
+    batch_path.write_text(json.dumps(batch.to_dict()))
+    first_path.write_text(json.dumps(first.to_dict()))
+    second_path.write_text(json.dumps(second.to_dict()))
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run",
+                        lambda *_args, **_kwargs: pytest.fail("No model call allowed"))
+    assert main(["compare-independent-qa", str(root), str(batch_path), str(first_path),
+                 "--challenger-extractions", str(second_path)]) == 0
+    receipt = json.loads(capsys.readouterr().out)
+    assert receipt["status"] == "RECONCILIATION_REQUIRED"
+    body = json.loads((root / "independent_qa" / receipt["qa_artifact"].split("/")[-1]).read_text())
+    assert body["source_results"][0]["primary_only_entities"]
+
+
+def test_value_type_disagreement_is_advisory_when_material_value_agrees(tmp_path):
+    root, batch, raw, validate = _case(tmp_path)
+    first = validate(raw)
+    variant = deepcopy(raw)
+    variant["candidates"][0]["value_type"] = "TEXT"
+    second = validate(variant)
+    body = compare_extractions(batch, (first,), (second,), root)
+    assert body["status"] == "RECONCILIATION_REQUIRED"
+    assert body["material_status"] == "MATERIAL_AGREEMENT"
+    assert body["source_results"][0]["material_needs_reconciliation"] is False

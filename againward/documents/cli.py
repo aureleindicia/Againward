@@ -64,6 +64,11 @@ def main(argv: list[str] | None = None) -> int:
     independent.add_argument("primary_extractions", nargs="+", type=Path)
     independent.add_argument("--model", required=True)
     independent.add_argument("--timeout-seconds", type=int, default=180)
+    compare_qa = commands.add_parser("compare-independent-qa", help="Recompare saved primary/challenger extracts; no model call")
+    compare_qa.add_argument("root", type=Path)
+    compare_qa.add_argument("batch", type=Path)
+    compare_qa.add_argument("primary_extractions", nargs="+", type=Path)
+    compare_qa.add_argument("--challenger-extractions", nargs="+", required=True, type=Path)
     package = commands.add_parser("package-rental", help="Assemble reviewed document inputs; stop on unresolved links")
     package.add_argument("root", type=Path)
     package.add_argument("batch", type=Path)
@@ -147,23 +152,32 @@ def main(argv: list[str] | None = None) -> int:
                 result = {"status": "VISUAL_FACTS_ATTESTED", "review": str(destination),
                           "attested_components": len(reviewed["visual_attestations"]),
                           "approved_for_delivery": False}
-            elif args.command == "independent-qa":
-                from .independent_qa import reread_sources
+            elif args.command in {"independent-qa", "compare-independent-qa"}:
+                from .independent_qa import compare_extractions, reread_sources
                 assert_document_action(args.root, mutation=True)
                 primary = tuple(replay_extraction(_load(path, args.root), batch, args.root)
                                 for path in args.primary_extractions)
-                body, challenger_paths = reread_sources(batch, primary, args.root,
-                                                        model=args.model,
-                                                        timeout_seconds=args.timeout_seconds)
+                if args.command == "independent-qa":
+                    body, challenger_paths = reread_sources(batch, primary, args.root,
+                                                            model=args.model,
+                                                            timeout_seconds=args.timeout_seconds)
+                else:
+                    challenger_paths = tuple(args.challenger_extractions)
+                    challenger = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                       for path in challenger_paths)
+                    body = compare_extractions(batch, primary, challenger, args.root)
                 destination = args.root / "independent_qa" / (body["qa_sha256"] + ".json")
                 with transaction(args.root):
                     if destination.exists() and _load(destination, args.root) != body:
                         raise ValueError("SOURCE_CHANGED: prior independent QA artifact altered")
                     write_json(destination, body)
                 result = {"status": body["status"], "qa_artifact": str(destination),
+                          "material_status": body["material_status"],
                           "challenger_extractions": [str(path) for path in challenger_paths],
                           "sources_needing_reconciliation": sum(row["needs_reconciliation"]
                                                                 for row in body["source_results"]),
+                          "material_sources_needing_reconciliation": sum(row["material_needs_reconciliation"]
+                                                                         for row in body["source_results"]),
                           "approved_for_delivery": False}
             elif args.command == "package-rental":
                 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
