@@ -54,7 +54,7 @@ def audit_semantic_preflight(run: Path) -> dict:
                     missing_support = [field for field in ("document_role", "document_status")
                                        if len(fields.get(field, [])) != 1]
                     invalid_support = [field for field, allowed in (("document_role", DOCUMENT_ROLES),
-                                                                    ("document_status", {"ACCEPTED", "PROPOSED", "VOID", "EXTRACTED"}))
+                                                                    ("document_status", {"ACCEPTED", "ISSUED", "PROPOSED", "VOID", "EXTRACTED"}))
                                        if fields.get(field) and fields[field][0] not in allowed]
                     if missing_support or invalid_support:
                         case_counter["incomplete_supporting_entities"] += 1
@@ -71,7 +71,7 @@ def audit_semantic_preflight(run: Path) -> dict:
                     missing.append("asset_id_or_serial_number")
                 bad = []
                 for field, allowed in (("document_role", DOCUMENT_ROLES),
-                                       ("document_status", {"ACCEPTED", "PROPOSED", "VOID", "EXTRACTED"}),
+                                       ("document_status", {"ACCEPTED", "ISSUED", "PROPOSED", "VOID", "EXTRACTED"}),
                                        ("charge_type", CHARGE_TYPES), ("billing_unit", BILLING_UNITS),
                                        ("stop_event", STOP_EVENTS)):
                     values = fields.get(field, [])

@@ -1,6 +1,6 @@
 """Rental interpretation vocabulary supplied to a neutral source-unit provider."""
 
-GUIDANCE_VERSION = "rental-semantic-guidance-v5"
+GUIDANCE_VERSION = "rental-semantic-guidance-v6"
 
 
 def guidance() -> str:
@@ -54,7 +54,12 @@ equipment anchor, currency and a distinct entity_id per line. Do not omit
 charge_key/charge_type merely because "rental" feels obvious; otherwise the
 downstream ledger must STOP. Use canonical enum values, never a free-form
 phrase: billing_unit DAY/WEEK/MONTH/FIXED/PERCENT; document_status
-ACCEPTED/PROPOSED/VOID/EXTRACTED. Explain every normalized enum in
+ACCEPTED/ISSUED/PROPOSED/VOID/EXTRACTED. An explicitly issued invoice or
+issued credit note has document_status ISSUED, not EXTRACTED or ACCEPTED;
+ACCEPTED is for an accepted commercial term or signed/accepted return record.
+ISSUED confirms document provenance, not the customer's acceptance of its
+charges. A quote is PROPOSED unless explicitly accepted. Explain every
+normalized enum in
 normalization_notes with the exact local wording. Do not assert ACCEPTED
 agreement status from a mere quote or proposal. Keep decimal quantities as
 exact strings when the source uses decimals; do not derive billed units.

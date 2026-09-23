@@ -30,6 +30,25 @@ def test_wrong_rate_is_exact_supported_gap_never_automatic_claim():
     assert {r["document_id"] for r in finding["evidence_refs"]} == {"AGREEMENT", "INVOICE"}
 
 
+def test_issued_financial_documents_are_evidence_but_issued_contract_is_not_acceptance():
+    packet = rental_packet()
+    packet["documents"][1]["status"] = "ISSUED"
+    add_credit(packet, amount="50.00")
+    packet["documents"][2]["status"] = "ISSUED"
+    case = RentalCase.from_dict(packet)
+    assert case.evidence_status(case.actual_charges[0].evidence_refs, roles={"INVOICE"})
+    assert case.evidence_status(case.credits[0].evidence_refs, roles={"CREDIT_NOTE"})
+    result = reconcile(case)
+    assert result["actual_ledger"]["entries"][0]["issued_credit"] == "50.00"
+    assert not result["actual_ledger"]["entries"][0]["limitations"]
+    packet["documents"][1]["status"] = "EXTRACTED"
+    assert not RentalCase.from_dict(packet).evidence_status(
+        case.actual_charges[0].evidence_refs, roles={"INVOICE"})
+    packet["documents"][0]["status"] = "ISSUED"
+    assert not RentalCase.from_dict(packet).evidence_status(
+        case.periods[0].evidence_refs, roles={"RENTAL_AGREEMENT"})
+
+
 def test_overlapping_wrong_rate_and_post_return_count_group_once():
     packet = rental_packet()
     add_return(packet)

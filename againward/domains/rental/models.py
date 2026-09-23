@@ -83,7 +83,7 @@ class Document:
 
     def __post_init__(self):
         _identifier(self.document_id, "document_id")
-        if self.role not in DOCUMENT_ROLES or self.status not in {"EXTRACTED", "ACCEPTED", "PROPOSED", "VOID"}:
+        if self.role not in DOCUMENT_ROLES or self.status not in {"EXTRACTED", "ACCEPTED", "ISSUED", "PROPOSED", "VOID"}:
             raise ValueError("Unknown document role/status.")
         if not isinstance(self.path, str) or not self.path.strip():
             raise ValueError("Document source path required.")
@@ -424,4 +424,6 @@ class RentalCase:
         documents = self.documents_by_id
         if roles is not None and not any(documents[r.document_id].role in roles for r in refs):
             return False
-        return all(documents[r.document_id].status == "ACCEPTED" for r in refs)
+        return all(documents[r.document_id].status in (
+            {"ACCEPTED", "ISSUED"} if documents[r.document_id].role in {"INVOICE", "CREDIT_NOTE"}
+            else {"ACCEPTED"}) for r in refs)
