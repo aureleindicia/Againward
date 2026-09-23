@@ -24,7 +24,7 @@ include = ["againward*", "energy_mvp*"]
 [tool.ruff]
 target-version = "py311"
 line-length = 120
-include = ["againward/documents/**/*.py", "againward/core/privacy.py", "againward/core/privacy_rules.py", "againward/core/privacy_inspection.py", "againward/domains/rental/document_*.py", "againward/domains/rental/semantic_guidance.py", "againward/domains/rental/privacy_policy.py", "againward/domains/rental/temporal.py", "benchmarking/rental_privacy.py", "run_rental_privacy_benchmark.py", "tests/test_document_*.py", "tests/test_rental_document_*.py", "tests/test_rental_privacy_documents.py", "tests/test_rental_privacy_benchmark.py", "tests/test_rental_temporal.py"]
+include = ["againward/documents/**/*.py", "againward/core/privacy.py", "againward/core/privacy_rules.py", "againward/core/privacy_inspection.py", "againward/domains/rental/document_*.py", "againward/domains/rental/semantic_guidance.py", "againward/domains/rental/privacy_policy.py", "againward/domains/rental/temporal.py", "benchmarking/rental_privacy.py", "benchmarking/semantic_*.py", "run_rental_privacy_benchmark.py", "run_semantic_benchmark.py", "tests/test_document_*.py", "tests/test_rental_document_*.py", "tests/test_rental_privacy_documents.py", "tests/test_rental_privacy_benchmark.py", "tests/test_rental_temporal.py"]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F"]

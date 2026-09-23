@@ -45,10 +45,22 @@ failures or count the successful third call as independent benchmark accuracy.
 
 ## Required next evaluation
 
-Run a participant-only path on all DEV and ADVERSARIAL public files, with
-source-bound candidate scoring against the private decisive-field annotations
-*after* observations freeze. Record failures, latency, model attempts/usage,
-review burden, critical fact errors and downstream abstentions separately.
+The participant-only runner and separate private scorer are now available:
+
+```sh
+python run_semantic_benchmark.py run scratch/first_client_baseline_doc_dev/public \
+  scratch/semantic-dev-run --split DEV --model gpt-6-sol
+python run_semantic_benchmark.py score scratch/first_client_baseline_doc_dev \
+  scratch/semantic-dev-run
+```
+
+Run all DEV and ADVERSARIAL public files, then score source-bound candidates
+against private decisive-field annotations *after* observations freeze. The
+runner imports no generator/scorer truth and records zero human decisions or
+client-facing financial claims. The scorer measures only annotated fields;
+financial precision/recall remain null until genuine review and ledgers run.
+Record failures, latency, model attempts/usage, review burden, critical fact
+errors and downstream abstentions separately.
 No scripted fact-review decisions count as semantic quality. Freeze code,
 prompt and policy before a truly independent HOLDOUT; because the generating
 repository is accessible to the implementation agent, a separate restricted
