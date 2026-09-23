@@ -1,4 +1,4 @@
-# First supervised Rental client — release plan (2026-09-23)
+# First Rental client — controlled autonomous-service release plan (2026-09-23)
 
 Status: **NOT READY**. This is a preregistered, limited launch scope and test
 plan, not a claim that a real client can be accepted now. Base is clean
@@ -74,9 +74,11 @@ corrected without claiming visual OCR or general semantic coverage.
    ADVERSARIAL, score after observations freeze, inspect errors, repair only
    critical silent claims. Freeze code/prompt/schema and use a separate blind
    HOLDOUT context or explicitly mark independent challenge outstanding.
-3. **Operator path:** build visual/fact/link/finding review steps with source
-   hashes and a clear STOP. A real operator, not a scripted `HUMAN` JSON value,
-   rehearses the eight-document case; measure labor and inspect report quality.
+3. **Internal autonomous path:** Codex performs ordinary fact/link/finding
+   review and report writing, with independent source reread and a clear STOP.
+   A real operator, not a scripted `HUMAN` JSON value, inspects only required
+   original pixels and briefly authorizes the finished delivery; measure actual
+   correction rate, review time and exception burden.
 4. **Actual report chain:** privacy-cleared source → proposals → reviewed facts
    and links → canonical case → exact ledgers → Evidence Plane → adversarial
    review → 4–8-page client-style PDF and evidence pack → hash-bound delivery
@@ -93,9 +95,12 @@ corrected without claiming visual OCR or general semantic coverage.
   review/abstention, not a tempting unsupported number.
 - Correct handling or explicit STOP for scan review, changed hashes, wrong
   quote/span, ambiguous links, credits, conflicting terms and privacy re-clearance.
-- Critical amount/date/equipment/rate/credit errors are caught by independent
-  validation or mandatory human review. Field and finding recall, reviewer
-  burden, latency and cost are measured with denominators; no invented 99% bar.
+- Critical amount/date/equipment/rate/credit errors must be caught by
+  independent validation or internal adversarial review, not by assuming the
+  founder will manually verify every fact. Field and finding recall, coverage,
+  abstention, correction burden, latency and cost need denominators. The
+  [99% report / 95% no-correction targets](AUTONOMOUS_SERVICE_QUALITY.md)
+  are engineering objectives, not verified release performance.
 - A clean-workspace supervised synthetic report and operator rehearsal exist.
   No scripted reviewer fixture counts as an actual human rehearsal.
 
@@ -104,7 +109,7 @@ corrected without claiming visual OCR or general semantic coverage.
 | Gate | Current evidence | GO condition |
 |---|---|---|
 | A — software/evidence | Privacy and ledger unit/fixture tests pass; semantic recall remains zero | Genuine model DEV/ADV and independent HOLDOUT/challenge; full traceable source-to-report rehearsal; final regression/CI and measured cost/labor. |
-| B — real operator | No accountable non-scripted rehearsal recorded | Owner/operator visually inspects scan, reviews semantics and every positive finding, tests secure intake/delivery and approves a synthetic report. |
+| B — real operator | No accountable non-scripted rehearsal recorded | Owner/operator visually inspects required scan facts, briefly reviews the finished synthetic report/exception pack, tests secure intake/delivery and approves exact hashes. The product must not need routine fact-by-fact human correction. |
 | C — business/permission | No client-specific contract, provider processing authority or legal/business confirmation supplied | Owner verifies invoicing status, offer/terms, provider data handling and permissions, retention/transfer, and explicitly authorizes a first real case. |
 
 Do not process actual confidential client files, spend on an API, sign terms,

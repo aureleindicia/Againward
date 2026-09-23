@@ -9,6 +9,7 @@ current product acceptance. Do not mechanically delete or move their evidence.
 - [Current state](CURRENT_STATE.md) — owners, commands, PR stack, blockers.
 - [First-client release audit](FIRST_CLIENT_RELEASE_AUDIT.md) — current Gate A/B/C decision.
 - [First-client readiness plan](FIRST_CLIENT_READINESS_PLAN.md) — narrow pilot scope and stop/go matrix.
+- [Internal autonomy and quality](AUTONOMOUS_SERVICE_QUALITY.md) — authoritative 99%/95% objectives, metrics and asynchronous service journey; targets are unverified.
 - [Operator playbook](FIRST_CLIENT_OPERATOR_PLAYBOOK.md) and
   [operations checklist](FIRST_CLIENT_OPERATIONS_CHECKLIST.md) — actual controlled workflow and owner tasks.
 - [Repository layout](REPOSITORY_LAYOUT.md) — workspace and root-script roles.
