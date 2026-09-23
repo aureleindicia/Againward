@@ -1,5 +1,13 @@
 # AGAINWARD — read first (2026-09-23)
 
+Current first-client decision: **NOT READY — SPECIFIC CRITICAL BLOCKERS**.
+Start with the [release audit](FIRST_CLIENT_RELEASE_AUDIT.md),
+[readiness plan](FIRST_CLIENT_READINESS_PLAN.md) and
+[operator playbook](FIRST_CLIENT_OPERATOR_PLAYBOOK.md) for the active
+`release/first-rental-client-pilot` draft PR #5 stacked on PR #4. The
+independent eight-document source-to-report run, blind HOLDOUT and actual
+operator rehearsal remain open.
+
 AGAINWARD is a local-first, evidence-grounded investigation toolkit for Codex
 and deterministic Python. The current commercial focus is Rental B2B: contracts,
 rates, invoices, returns, credits, correspondence and exports. Energy remains an
@@ -52,7 +60,8 @@ python run_document_benchmark.py --help
 
 `againward` (installed project script) and `python investigate.py` share the
 package CLI. Its `documents` subcommands are `inventory`, `inspect`,
-`validate`, `promote`; they require approved source state and supplied reviews.
+`extract`, `review-template`, `validate`, `promote`, `link-review-template`
+and `package-rental`; they require approved source state and supplied reviews.
 The general `investigate.py` path still defaults to Energy and Rental expects
 canonical extraction JSON; it is **not** a raw multi-PDF automatic extractor.
 `manage_investigation.py`, `query_evidence.py` and `analyze.py` keep Energy-era
@@ -70,11 +79,16 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
   19/19, with 0 false blocks and 0 unsafe passes in 11 ordinary/8 unsafe cases.
   See [benchmark scope](RENTAL_PRIVACY_BENCHMARKS.md); this does not measure
   human/vision accuracy. Branch PR stack: `refactor/domain-kernel` PR #2 →
-  `rnd/real-world-document-intelligence` PR #3 → this branch PR #4, all unmerged
-  at this date. Verify live status before further work.
-- Generated document-intelligence DEV/ADVERSARIAL routing baseline remains
-  0 semantic recall without independent model/analyst proposals. No honest
-  claim of broad unseen-document comprehension or first-client readiness yet.
+  `rnd/real-world-document-intelligence` PR #3 →
+  `rnd/rental-privacy-repo-hardening` PR #4 → first-client draft PR #5, all
+  unmerged at this checkpoint. Verify live status before further work.
+- The routing-only baseline had zero semantic recall. A real Codex CLI model
+  has now submitted DEV/ADVERSARIAL proposals, but the frozen v1 runs lacked
+  complete material entities; a tuned v3 two-PDF technical probe reached a
+  source-linked ledger without human delivery approval. See
+  [semantic evaluation](SEMANTIC_EXTRACTION_EVALUATION.md) and
+  [E2E validation](FIRST_CLIENT_E2E_VALIDATION.md). Neither proves first-client
+  readiness or an independently blind holdout.
 - Before a first real client: accountable visual-review operation and retention
   authority; a real source-to-fact proposal/review pilot with varied vendor
   layouts; calibrated entity/blocking and financial evidence quality;

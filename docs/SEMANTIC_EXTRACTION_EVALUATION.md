@@ -18,9 +18,11 @@ deterministic proposal validator. A missing/ambiguous quote fails. An unexplaine
 normalization is flagged for review, never auto-approved. No model output becomes
 a canonical fact, entity match, privacy decision or client claim by itself.
 
-Current participant declaration: Codex CLI 0.155.1, `gpt-6-sol`, low reasoning
-effort, prompt `againward-source-facts-v1`, extractor
-`codex-cli-source-units-v1`, Rental guidance `rental-semantic-guidance-v1`.
+The frozen DEV/ADVERSARIAL participant used Codex CLI 0.155.1, `gpt-6-sol`,
+low reasoning effort, prompt `againward-source-facts-v1`, extractor
+`codex-cli-source-units-v1`, and Rental guidance
+`rental-semantic-guidance-v1`. The current remediation uses prompt v3 and
+Rental guidance v3; its guidance hash is part of the replayed prompt version.
 `codex login status` reports ChatGPT subscription login on this device;
 there is no API-key fallback in this adapter. [Official OpenAI authentication
 documentation](https://learn.chatgpt.com/docs/auth) distinguishes ChatGPT
@@ -147,3 +149,23 @@ and fact review. One earlier attempt failed on an invalid model identifier;
 the response contract now specifies the accepted grammar and reports a
 candidate index without printing source content. All this must be challenged
 on independent varied documents before launch.
+
+The same two ordinary PDF bytes were also passed through a source-checked
+**technical** review and the real adapter/reconciliation path. Thirty-seven
+v3 model candidates became 37 facts after an agent checked the original PDF
+text and exact candidate values; the invoice linked to the agreement through
+matching reviewed identifiers. The Decimal ledger computed EUR 1,400.00
+expected against EUR 1,550.00 invoiced, i.e. an EUR 150.00 potential
+discrepancy. This is a two-document integration probe, not independent model
+accuracy, human approval, a delivered report or an eight-document rehearsal.
+The source hashes are `03f49eb83589849c372d8309b0e46c884c6d5a859998c870e9c2ffe081df3cea`
+and `b14e53de6177a014a3679d0994dbc44c7cadf70743f55e02be85378c8d9bed6d`.
+The ignored local probe is `scratch/model_pair_technical_probe.py`; its
+explicit expected-value map is *not* a benchmark participant or human review.
+
+The old ADV run's 22 `MODEL_UNAVAILABLE` outcomes remain of unknown cause.
+Current provider invocations now emit only fixed categories for authentication,
+rate limits, transport failures, timeout, missing response and generic
+unavailability, without persisting raw CLI stderr that might contain client
+content. This classification has unit tests, but no claim is made that it
+retrospectively explains the frozen ADV failures.
