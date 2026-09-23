@@ -297,11 +297,11 @@ def promote_facts(extractions: tuple[DocumentExtraction, ...], review: Any,
             candidates[c.candidate_id] = (c, e)
     if not isinstance(p["decisions"], list) or len(p["decisions"]) != len(candidates):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Explicit decision required for every candidate")
-    if p["reviewer_role"] == "ANALYST":
-        from .visual_fact_review import verify_visual_attestations
-        verify_visual_attestations(batch, validated, p, root)
-    elif p.get("visual_attestations"):
-        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Legacy human review cannot attach mixed-role attestations")
+    # A self-declared HUMAN role is never a substitute for source/pixel-bound
+    # inspection. This applies to legacy full-human reviews as well as the
+    # narrower analyst review plus visual-only human attestation.
+    from .visual_fact_review import verify_visual_attestations
+    verify_visual_attestations(batch, validated, p, root)
     facts = []
     seen = set()
     for decision in p["decisions"]:

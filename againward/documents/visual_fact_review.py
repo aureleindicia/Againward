@@ -56,8 +56,8 @@ def attest_visual_facts(batch: SourceBatch, extractions: tuple[Any, ...], review
         raise DocumentError("HUMAN_REVIEW_REQUIRED", "Interactive original-pixel inspection required")
     if not _ACTOR.fullmatch(actor_id):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Bounded local operator ID required")
-    if review.get("reviewer_role") != "ANALYST" or review.get("visual_attestations"):
-        raise DocumentError("REVIEW_STALE", "Expected an unattested analyst review")
+    if review.get("reviewer_role") not in {"ANALYST", "HUMAN"} or review.get("visual_attestations"):
+        raise DocumentError("REVIEW_STALE", "Expected an unattested source-fact review")
     expected_hashes = sorted(extraction.to_dict()["extraction_sha256"] for extraction in extractions)
     if review.get("extraction_hashes") != expected_hashes:
         raise DocumentError("REVIEW_STALE", "Fact review no longer matches source extractions")

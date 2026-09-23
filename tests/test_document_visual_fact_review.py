@@ -45,6 +45,10 @@ def test_mixed_review_requires_exact_human_visual_attestation(tmp_path):
     root, batch, extraction, review = _packet(tmp_path)
     with pytest.raises(DocumentError, match="HUMAN_REVIEW_REQUIRED"):
         promote_facts((extraction,), review, batch, root)
+    legacy_claim = deepcopy(review)
+    legacy_claim["reviewer_role"] = "HUMAN"
+    with pytest.raises(DocumentError, match="HUMAN_REVIEW_REQUIRED"):
+        promote_facts((extraction,), legacy_claim, batch, root)
     with pytest.raises(DocumentError, match="HUMAN_REVIEW_REQUIRED"):
         attest_visual_facts(batch, (extraction,), review, root, actor_id="test_operator",
                             ask=lambda _: "CONFIRM", interactive=False)
