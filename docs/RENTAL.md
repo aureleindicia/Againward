@@ -29,8 +29,12 @@ l'extraction canonique. Python ne prétend pas valider sémantiquement une citat
 par son seul hash. Pour CSV/XLSX, le mapping explicite conserve la ligne, la feuille
 et les colonnes ; les formules XLSX sont refusées en l'absence d'export revu.
 Les dates de calendrier XLSX sont normalisées ; une heure non nulle est refusée.
-Pas d'OCR ni de parseur PDF automatique livré. Le privacy gate existant refuse les
-formats qu'il ne sait pas vérifier : un export texte/tableau contrôlable est requis.
+Un lecteur PDF natif borné existe, mais il ne comprend pas seul les clauses. Le
+gate privacy inspecte le texte natif et demande une revue visuelle réelle pour
+les scans/pages hybrides ; les composants non inspectables restent bloqués.
+L'extraction sémantique modèle produit seulement des propositions sourcées,
+jamais des faits ou créances approuvés. Voir
+[`SEMANTIC_EXTRACTION_EVALUATION.md`](SEMANTIC_EXTRACTION_EVALUATION.md).
 
 Dans un dossier réel, créer le workspace, effectuer la revue privacy puis écrire
 l'extraction sémantique dans `processed/` en référençant `../sanitized/...`. Les

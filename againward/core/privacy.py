@@ -571,7 +571,7 @@ def _assert_pdf_redaction(original_scan: dict[str, Any], residual_scan: dict[str
         raise ValueError("SANITIZATION_FAILED: removed value survives in PDF content or metadata.")
 
 
-def _assess_inspection(spec: dict[str, Any], raw_scan: dict[str, Any]) -> dict[str, Any]:
+def _assess_inspection(spec: dict[str, Any], raw_scan: dict[str, Any], root: Path | None = None) -> dict[str, Any]:
     """Require accountable, hash-bound human review for every visual component."""
     audit = raw_scan["inspection"]
     reviews = spec.get("visual_reviews", [])
@@ -592,10 +592,12 @@ def _assess_inspection(spec: dict[str, Any], raw_scan: dict[str, Any]) -> dict[s
         if len(reviews) != len(required) or {r.get("location") for r in reviews if isinstance(r, dict)} != required:
             raise ValueError("PARTIAL_DOCUMENT_INSPECTION: every visual component needs one review.")
         for review in reviews:
-            if not isinstance(review, dict) or set(review) != {
+            base_keys = {
                 "location", "source_sha256", "inspection_version", "reviewer_role", "reviewed_at_utc",
                 "decision", "detected_categories", "business_evidence_preserved", "prompt_injection_ignored",
-            }:
+            }
+            operator_keys = {"reviewer_id", "policy_version", "preview_sha256", "packet_sha256"}
+            if not isinstance(review, dict) or set(review) not in (base_keys, base_keys | operator_keys):
                 raise ValueError("Invalid closed visual-inspection contract.")
             if (review["source_sha256"] != audit["source_sha256"]
                     or review["inspection_version"] != INSPECTION_VERSION
@@ -604,6 +606,25 @@ def _assess_inspection(spec: dict[str, Any], raw_scan: dict[str, Any]) -> dict[s
                     or review["business_evidence_preserved"] is not True
                     or review["prompt_injection_ignored"] is not True):
                 raise ValueError("MODEL_INSPECTION_FAILED: source-bound human visual approval required.")
+            if operator_keys <= set(review):
+                if root is None or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{1,63}", str(review["reviewer_id"])):
+                    raise ValueError("HUMAN_REVIEW_REQUIRED: local operator identity missing")
+                packet = _read_json(root / "privacy/candidate/visual_packet.json")
+                claimed = packet.pop("packet_sha256", None)
+                encoded = json.dumps(packet, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+                if (claimed != hashlib.sha256(encoded).hexdigest() or claimed != review["packet_sha256"]
+                        or packet.get("policy_version") != current_preservation_policy().risk.policy_id
+                        or review["policy_version"] != packet["policy_version"]):
+                    raise ValueError("REVIEW_STALE: visual packet or policy changed")
+                matching = [item for item in packet.get("components", [])
+                            if item.get("source") == spec.get("source") and item.get("location") == review["location"]
+                            and item.get("source_sha256") == audit["source_sha256"]]
+                if len(matching) != 1 or matching[0].get("preview_sha256") != review["preview_sha256"]:
+                    raise ValueError("REVIEW_STALE: visual component was not in the operator packet")
+                preview = root / str(matching[0].get("preview", ""))
+                if (preview.is_symlink() or not _within(preview, root / "privacy/candidate")
+                        or not preview.is_file() or _sha256(preview) != review["preview_sha256"]):
+                    raise ValueError("REVIEW_STALE: visual preview changed")
             try:
                 timestamp = datetime.fromisoformat(str(review["reviewed_at_utc"]).replace("Z", "+00:00"))
             except ValueError as exc:
@@ -631,6 +652,10 @@ def _assess_inspection(spec: dict[str, Any], raw_scan: dict[str, Any]) -> dict[s
             "inspection": audit, "risk_level": risk_level,
             "detected_categories": sorted(categories),
             "human_visual_reviews": [{"location": r["location"], "reviewer_role": "HUMAN",
+                                      "reviewer_id": r.get("reviewer_id"),
+                                      "policy_version": r.get("policy_version"),
+                                      "preview_sha256": r.get("preview_sha256"),
+                                      "packet_sha256": r.get("packet_sha256"),
                                       "reviewed_at_utc": r["reviewed_at_utc"],
                                       "review_sha256": hashlib.sha256(json.dumps(r, sort_keys=True).encode()).hexdigest()}
                                      for r in reviews]}
@@ -1145,7 +1170,7 @@ def _validate_codex_privacy_review_impl(
             spec = by_source[str(path.relative_to(root))]
             try:
                 blocked_scan = _scan(path)
-                blocked_assessment = _assess_inspection(spec, blocked_scan)
+                blocked_assessment = _assess_inspection(spec, blocked_scan, root)
             except (ValueError, OSError) as exc:
                 # A blocked source may be corrupt or intentionally left unread.
                 # Preserve the failure class, never the source/error text.
@@ -1202,7 +1227,7 @@ def _validate_codex_privacy_review_impl(
             if action not in {"PASS", "SANITIZED", "REMOVE"}:
                 raise ValueError(f"Action privacy invalide pour {file_id}.")
             raw_scan = _scan(original)
-            assessment = _assess_inspection(spec, raw_scan)
+            assessment = _assess_inspection(spec, raw_scan, root)
             all_raw_sensitive.update(raw_scan["sensitive_values"])
             for category, count in raw_scan["categories"].items():
                 _merge_detected_category(manifest, category, count, file_id)

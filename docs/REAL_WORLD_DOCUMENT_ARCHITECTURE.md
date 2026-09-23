@@ -116,8 +116,10 @@ returns and uncertain extensions remain unknown, with explicit limitations.
 
 The reviewed native-document path is connected to Rental, but the mission's full
 real-world capability is not implemented or validated yet.
-The real-client privacy gate still refuses binary files it cannot post-check.
-Native parsing does not authorize them. Poor scans, signatures and handwritten
-text need source review. PDF annotations/forms and non-body DOCX components are
-flagged, not silently treated as fully extracted. The PDF process guard accounts
-for Android virtual reservations and is not a universal document sandbox.
+The real-client privacy gate now inspects bounded native PDFs and requires an
+exact-source human path for scans/hybrid visual pages. Native parsing by itself
+does not authorize them. Poor scans, signatures and handwritten text need
+actual operator review; unresolved PDF annotations/forms and non-body DOCX
+components are flagged, not silently treated as fully extracted. The PDF
+process guard accounts for Android virtual reservations and is not a universal
+document sandbox. See [visual operations](VISUAL_REVIEW_OPERATIONS.md).

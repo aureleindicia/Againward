@@ -11,7 +11,7 @@ from .ingestion import build_evidence_dataset
 
 BOUND_ARTIFACTS = ("rental_findings.json", "rental_assessments.json", "prepared_analysis.json",
                    "evidence_dataset.json", "agent_findings.json", "investigation.json", "review.json",
-                   "report.md", "rental_evidence_pack.json")
+                   "report.md", "rental_evidence_pack.json", "rental_client_report.pdf")
 
 
 def review_hashes(root):

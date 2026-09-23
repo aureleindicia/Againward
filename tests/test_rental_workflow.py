@@ -8,15 +8,11 @@ from againward.core.workflow import prepare_investigation
 from againward.core.client_lifecycle import record_existing_data_exhaustion, mark_finalizable
 from againward.core.delivery import evaluate_delivery_gate
 from againward.entrypoints import get_domain
-from againward.evidence.cli import execute_case_query
 from againward.domains.rental.workflow import record_assessments, recalculate
 from againward.domains.rental.review_policy import RentalDeliveryPolicy, validate_current_review
 from againward.domains.rental.reporting import render_report
 from tests.test_rental_ingestion import write_packet
-from tests.test_rental_findings import assessment
-
-
-from benchmarking.rental_review import query_sources, synthetic_review
+from benchmarking.rental_review import synthetic_review
 
 
 def test_review_report_and_human_approval_bound_to_current_evidence(tmp_path):
@@ -28,6 +24,9 @@ def test_review_report_and_human_approval_bound_to_current_evidence(tmp_path):
     record_existing_data_exhaustion(root, analysis_inventory_ref="artifact_inventory.json", reviewed_sources=["agreement.txt", "invoice.csv"])
     mark_finalizable(root, conclusion_ref="investigation.json")
     report = render_report(root, "Synthetic analyst synthesis: EUR 150 discrepancy; no guaranteed recovery.")
+    assert report["pdf"]["page_count"] == 5
+    assert (root / "rental_client_report.pdf").read_bytes().startswith(b"%PDF-1.4")
+    assert "rental_client_report.pdf" in report["reviewed_artifact_hashes"]
     gate = evaluate_delivery_gate(root, policy=RentalDeliveryPolicy())
     assert not gate["ready_for_delivery"]
     write_json(root / "human_review.json", {"status": "approved", "approved_for_delivery": True,
@@ -35,9 +34,26 @@ def test_review_report_and_human_approval_bound_to_current_evidence(tmp_path):
         "reviewed_artifact_hashes": report["reviewed_artifact_hashes"]})
     gate = evaluate_delivery_gate(root, policy=RentalDeliveryPolicy())
     assert gate["ready_for_delivery"], gate["blocking_reasons"]
+    pdf = root / "rental_client_report.pdf"
+    pdf.write_bytes(pdf.read_bytes() + b"tampered")
+    assert not evaluate_delivery_gate(root, policy=RentalDeliveryPolicy())["ready_for_delivery"]
+    render_report(root, "Synthetic analyst synthesis: EUR 150 discrepancy; no guaranteed recovery.")
+    assert evaluate_delivery_gate(root, policy=RentalDeliveryPolicy())["ready_for_delivery"]
     (root / "report.md").write_text("Altered claim")
     assert not evaluate_delivery_gate(root, policy=RentalDeliveryPolicy())["ready_for_delivery"]
     assert read_json(root / "investigation_state.json")["client_lifecycle"]["state"] == "FINALIZABLE"
+
+
+def test_rental_report_refuses_unvalidated_free_amount(tmp_path):
+    source, _ = write_packet(tmp_path / "source")
+    root = tmp_path / "case"
+    prepare_investigation(source, root, domain=get_domain("rental"))
+    synthetic_review(root)
+    record_existing_data_exhaustion(root, analysis_inventory_ref="artifact_inventory.json",
+                                    reviewed_sources=["agreement.txt", "invoice.csv"])
+    mark_finalizable(root, conclusion_ref="investigation.json")
+    with pytest.raises(ValueError, match="not present in validated"):
+        render_report(root, "Synthetic claim: EUR 9999 is recoverable.")
 
 
 def test_recalculation_archives_and_preserves_remaining_query_budget(tmp_path):
@@ -54,10 +70,12 @@ def test_recalculation_archives_and_preserves_remaining_query_budget(tmp_path):
     new_session = read_json(root / "evidence_query_session.json")
     assert new_session["budget"]["maximum_calls"] == old_session["budget"]["maximum_calls"] - 1
     assert list((root / "evidence_revisions").glob("*/rental_findings.json"))
-    with pytest.raises(ValueError, match="stale"): validate_current_review(root)
+    with pytest.raises(ValueError, match="stale"):
+        validate_current_review(root)
     synthetic_review(root, query_id="q2")
     validate_current_review(root)
-    with pytest.raises(ValueError, match="Unchanged"): recalculate(root, revised)
+    with pytest.raises(ValueError, match="Unchanged"):
+        recalculate(root, revised)
 
 
 def test_stale_or_tampered_calculations_and_source_refuse_review(tmp_path):

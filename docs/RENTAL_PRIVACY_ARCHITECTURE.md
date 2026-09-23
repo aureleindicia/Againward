@@ -46,6 +46,13 @@ started at **38,051 bytes / 2,069 lines**.
 
 ## Visual review contract
 
+For a new supervised case, use the local
+[visual-review operator procedure](VISUAL_REVIEW_OPERATIONS.md) after Codex's
+first privacy review. It renders only visual components into temporary
+`privacy/candidate/`, asks the person at an interactive terminal to inspect
+and attest each page, and binds the packet/preview/actor claim to the manifest.
+It is not identity authentication; the owner must genuinely do the inspection.
+
 Each image or PDF component requiring visual attention needs one closed entry:
 `location`, `source_sha256`, `inspection_version`, `reviewer_role=HUMAN`,
 `reviewed_at_utc`, `decision=PASS`, `detected_categories`,
