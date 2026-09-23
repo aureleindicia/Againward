@@ -8,7 +8,7 @@ import pytest
 from againward.documents.codex_provider import assemble_proposal
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
-from againward.documents.independent_qa import compare_extractions
+from againward.documents.independent_qa import compare_extractions, reread_sources
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
 
@@ -75,3 +75,27 @@ def test_independent_qa_requires_complete_current_source_set(tmp_path):
     source.write_text("tampered")
     with pytest.raises(DocumentError, match="SOURCE_CHANGED"):
         compare_extractions(batch, (first,), (first,), root)
+
+
+def test_challenger_retries_one_invalid_quote_without_weaker_validator(tmp_path, monkeypatch):
+    root, batch, raw, validate = _case(tmp_path)
+    first = validate(raw)
+    parsed = read_document(batch.documents[0], root)
+    attempts = []
+
+    class FakeProvider:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def propose(self, document, _parsed, context):
+            attempts.append(context["semantic_guidance"])
+            if len(attempts) == 1:
+                raise DocumentError("SOURCE_LOCATION_INVALID", "Model quote not unique")
+            return assemble_proposal(raw, document, parsed, batch.batch_id, "synthetic-model")
+
+    monkeypatch.setattr("againward.documents.independent_qa.CodexCliProvider", FakeProvider)
+    body, paths = reread_sources(batch, (first,), root, model="synthetic-model")
+    assert body["status"] == "AGREEMENT"
+    assert body["challenger_model_calls"] == 2
+    assert "prior response failed" in attempts[1]
+    assert len(paths) == 1 and paths[0].is_file()

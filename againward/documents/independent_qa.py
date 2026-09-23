@@ -32,6 +32,14 @@ Output source-local observations only, using the same closed Rental vocabulary.
 Do not guess missing fields, compute money, or invent cross-document links.
 Do not treat a document's existence as proof of contractual acceptance.
 """
+RETRY_INSTRUCTIONS = """
+The prior response failed strict source/schema validation. Reinspect this
+original source. Every native raw_observed_value MUST be an exact substring
+appearing exactly once in its named unit; expand the quote with nearby source
+words when a numeric token repeats. Do not reuse or edit an unsupported quote.
+If the source cannot support a fact with a unique quote, omit that candidate
+and state the limitation. Keep all response-schema field names and types exact.
+"""
 
 
 def _entity_bundles(extraction: DocumentExtraction) -> Counter[str]:
@@ -89,13 +97,28 @@ def reread_sources(batch: SourceBatch, primary: tuple[DocumentExtraction, ...],
     provider = CodexCliProvider(root, model=model, timeout_seconds=timeout_seconds)
     challenger = []
     paths = []
+    attempts = {}
     # No primary facts, review decisions, oracle or financial result enter this call.
     from againward.domains.rental.semantic_guidance import guidance
     for document in batch.documents:
         parsed = read_document(document, root)
-        proposal = provider.propose(document, parsed,
-                                    {"batch": batch, "semantic_guidance": guidance() + QA_INSTRUCTIONS})
-        extraction = validate_proposal(proposal, batch, root)
+        for number in (1, 2):
+            try:
+                instructions = guidance() + QA_INSTRUCTIONS + (RETRY_INSTRUCTIONS if number == 2 else "")
+                proposal = provider.propose(document, parsed,
+                                            {"batch": batch, "semantic_guidance": instructions})
+                extraction = validate_proposal(proposal, batch, root)
+                attempts[document.source_id] = number
+                break
+            except DocumentError as exc:
+                # Retry only model-format/citation errors. Never retry a source,
+                # privacy, resource or provider failure as if it were harmless.
+                if number == 2 or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_SCHEMA_INVALID"}:
+                    raise
         challenger.append(extraction)
         paths.append(persist_extraction(extraction, root))
-    return compare_extractions(batch, primary, tuple(challenger), root), tuple(paths)
+    body = compare_extractions(batch, primary, tuple(challenger), root)
+    body["challenger_attempts_by_source"] = attempts
+    body["challenger_model_calls"] = sum(attempts.values())
+    body["qa_sha256"] = stable_hash({key: value for key, value in body.items() if key != "qa_sha256"})
+    return body, tuple(paths)
