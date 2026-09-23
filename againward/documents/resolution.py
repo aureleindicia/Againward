@@ -76,6 +76,7 @@ class MatchPolicy:
     required_scope_keys: tuple[str, ...]
     exclusive_left_kinds: tuple[str, ...]
     prefix_blocking_keys: tuple[str, ...] = ()
+    scope_optional_left_kinds: tuple[str, ...] = ()
     maximum_pairs: int = 20_000
 
     def __post_init__(self) -> None:
@@ -182,7 +183,8 @@ def resolve_entities(entities: tuple[Entity, ...], policy: MatchPolicy) -> Resol
         contradictions = tuple(sorted(key for key in policy.contradiction_keys
                                       if lv.get(key) is not None and rv.get(key) is not None and lv[key] != rv[key]))
         anchors = any(set(keys) <= set(support) for keys in policy.anchor_keys)
-        scope = set(policy.required_scope_keys) <= set(support)
+        scope = (set(policy.required_scope_keys) <= set(support)
+                 or left.kind in policy.scope_optional_left_kinds)
         state = RelationshipState.CONTRADICTED if contradictions else (
             RelationshipState.CONFIRMED if anchors and scope else RelationshipState.CANDIDATE)
         all_facts = (*left.facts, *right.facts)

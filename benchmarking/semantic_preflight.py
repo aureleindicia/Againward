@@ -16,7 +16,7 @@ REQUIRED = {
                      "agreement_id", "net_amount", "currency", "charge_key", "charge_type"},
     "CREDIT": {"document_role", "document_status", "credit_id", "supplier_id", "net_amount",
                "currency", "status"},
-    "RETURN": {"document_role", "document_status", "agreement_id", "supplier_id", "event_type",
+    "RETURN": {"document_role", "document_status", "agreement_id", "event_type",
                "date", "quantity", "verification"},
     "RATE_AMENDMENT": {"document_role", "document_status", "agreement_id", "supplier_id",
                        "rate", "currency", "charge_key", "charge_type", "effective_from", "terms_unchanged"},

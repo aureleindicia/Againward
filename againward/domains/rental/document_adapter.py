@@ -38,6 +38,9 @@ RENTAL_MATCH = MatchPolicy(
     required_scope_keys=("supplier_id",),
     exclusive_left_kinds=("INVOICE_LINE", "RETURN", "RATE_AMENDMENT"),
     prefix_blocking_keys=("agreement_id",),
+    # A signed return often omits the supplier. Exact agreement+asset/serial
+    # may still identify one scope; invoices/amendments still need supplier.
+    scope_optional_left_kinds=("RETURN",),
 )
 CREDIT_MATCH = MatchPolicy(
     "CREDIT_FOR", (("CREDIT", "INVOICE_LINE"),),
