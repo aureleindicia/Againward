@@ -82,6 +82,12 @@ def main() -> None:
         limitations.append("PDF_FORM_FIELDS_REQUIRE_REVIEW")
     if "/Names" in root:
         limitations.append("PDF_NAMED_COMPONENTS_REQUIRE_REVIEW")
+    if "/OpenAction" in root or "/AA" in root:
+        limitations.append("PDF_ACTIVE_CONTENT_REQUIRE_REVIEW")
+    metadata: dict = reader.metadata or {}
+    metadata_text = "\n".join(str(value) for value in metadata.values() if value is not None)
+    if len(metadata_text) > 16_384:
+        raise ValueError("PDF metadata inspection budget exceeded")
     consumed = 0
     for number, page in enumerate(reader.pages, 1):
         text = page.extract_text()
@@ -101,6 +107,7 @@ def main() -> None:
     if declared and max(declared) > len(pages):
         limitations.append("MISSING_PAGES_DECLARED_IN_SOURCE")
     print(json.dumps({"pages": pages, "limitations": sorted(set(limitations)),
+                      "metadata_text": metadata_text,
                       "pypdf_version": pypdf.__version__}, ensure_ascii=False))
 
 

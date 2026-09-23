@@ -1,5 +1,14 @@
 # Document intelligence R&D — active work
 
+Continuation (2026-09-23): stacked branch `rnd/rental-privacy-repo-hardening`
+and draft PR #4 add native PDF privacy inspection, scan/hybrid human-review
+binding, Rental B2B risk separation, and a 19-case synthetic privacy benchmark
+(11 ordinary accepted, eight unsafe rejected, 0 false blocks, 0 unsafe passes).
+See [Rental privacy architecture](RENTAL_PRIVACY_ARCHITECTURE.md) and
+[benchmark limits](RENTAL_PRIVACY_BENCHMARKS.md). These are policy-routing
+results, not semantic recall. The independent document benchmark remains at
+zero recall without supplied source-grounded proposals.
+
 Mission specification: AGAINWARD Giga Goal, read in full on 2026-09-21.
 SHA-256: aaba6c33d9986878e8841ce3b7e98a47da8a8f3d397e733f3d913f25cb611378.
 This report records experiments and unfinished work; it is not an acceptance claim.
@@ -248,3 +257,20 @@ The contractual benchmark now has 15/15 passing explicit cases (TP 3, FP 0,
 FN 0, TN 12 on supported positive discrepancy). Its new credit assertions also
 require exact applied and unallocated amounts and a null group difference.
 Targeted reconciliation, document-adapter and benchmark tests: 34 passed.
+
+## Rental privacy continuation baseline (2026-09-23)
+
+The authoritative continuation goal is
+`AGAINWARD_GOAL_RENTAL_PRIVACY_REPO_HARDENING.md` (SHA-256
+`47e435639302fa210c1045a3a55b98a29c90edbe2730b0e63003e49effa41c16`).
+Start: clean `rnd/real-world-document-intelligence` HEAD `94d9d2a`, draft PR #3
+still stacked on open PR #2. A new worktree/branch
+`rnd/rental-privacy-repo-hardening` keeps the original main worktree untouched.
+Baseline full suite: 722 passed in 293.79 s; privacy/source subset: 88 passed
+in 14.14 s. Ruff and configured mypy passed. Five generated native/scan/hybrid
+PDF probes all failed at `_scan()` solely because `.pdf` was not inspectable;
+the full gate blocked a clean native contract. Root AGENTS: 38,051 bytes,
+2,069 lines, with historical Energy build steps and obsolete ownership notes.
+The next experiments measure both false blocks and unsafe passes, not just
+successful PDF parsing. Privacy clearance remains distinct from semantic
+document extraction and from business confidentiality.

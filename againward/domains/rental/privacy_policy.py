@@ -1,6 +1,12 @@
 """Rental business identifiers and monetary/date markers protected during cleanup."""
 import re
-from againward.core.privacy_rules import PreservationPolicy
+from againward.core.privacy_rules import PreservationPolicy, PrivacyRiskPolicy
+
+RENTAL_RISK = PrivacyRiskPolicy(
+    "rental-b2b-risk-v1",
+    frozenset({"EMAIL", "PHONE", "PROFESSIONAL_NAME", "PROFESSIONAL_SIGNATURE"}),
+    visual_human_review=True,
+)
 
 RENTAL_PRESERVATION = PreservationPolicy(
     "rental-preservation-v1",
@@ -13,4 +19,5 @@ RENTAL_PRESERVATION = PreservationPolicy(
         re.compile(r"(?i)\b\d+(?:[.,]\d+)?\s*(?:EUR|USD|GBP|CHF|CAD|AUD|NZD|%|days?|weeks?|months?|jours?|semaines?|mois)\b"),
         re.compile(r"(?i)\b(?:agreement|invoice|credit|item|asset|period|event|site|contract|contrat|facture)\s*[:=#-]?\s*([A-Za-z0-9_.-]+)"),
     ),
+    RENTAL_RISK,
 )

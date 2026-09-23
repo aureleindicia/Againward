@@ -20,10 +20,11 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Any, Callable
 
 from .workflow_paths import resolve_case_layout
 from .privacy_rules import current_preservation_policy, with_preservation_policy
+from .privacy_inspection import INSPECTION_VERSION, inspect_document
 
 
 POLICY_VERSION = "indicia-privacy-policy-v1.1"
@@ -37,7 +38,8 @@ PRIVACY_STATES = {
 
 _TABULAR_EXTENSIONS = {".csv", ".xlsx"}
 _TEXT_EXTENSIONS = {".txt", ".md", ".json", ".log", ".yaml", ".yml"}
-_EMAIL = re.compile(r"(?<![\w.+-])[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}(?![\w.-])", re.I)
+_EMAIL = re.compile(r"(?<![\w.+-])[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}(?![\w-])", re.I)
+_PERSONAL_EMAIL_LABEL = re.compile(r"(?i)\b(?:personal|private|personnel|priv[eé])\s+(?:e-?mail|courriel)\b")
 _PHONE = re.compile(r"(?<!\d)(?:\+33|0033|0)[ .()-]?[1-9](?:[ .()-]?\d{2}){4}(?!\d)")
 _SECRET_PATTERNS = (
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
@@ -46,8 +48,14 @@ _SECRET_PATTERNS = (
     re.compile(r"(?i)\b(?:api[_ -]?key|access[_ -]?token|client[_ -]?secret|password|passwd|mot[_ -]?de[_ -]?passe)\b\s*[:=]\s*[^\s,;]{6,}"),
     re.compile(r"(?i)https?://[^\s]+[?&](?:token|api_key|access_token|key)=[^&\s]+"),
 )
-_MEDICAL = re.compile(r"(?i)\b(?:arr[eê]t maladie|diagnostic m[eé]dical|handicap|pathologie|traitement m[eé]dical|dossier m[eé]dical)\b")
-_HR_SENSITIVE = re.compile(r"(?i)\b(?:sanction disciplinaire|avertissement rh|licenciement|entretien disciplinaire|plainte harc[eè]lement|[eé]valuation individuelle)\b")
+_MEDICAL = re.compile(r"(?i)\b(?:arr[eê]t maladie|diagnostic m[eé]dical|medical diagnosis|medical record|handicap|pathologie|traitement m[eé]dical|dossier m[eé]dical)\b")
+_HR_SENSITIVE = re.compile(r"(?i)\b(?:sanction disciplinaire|avertissement rh|licenciement|entretien disciplinaire|plainte harc[eè]lement|[eé]valuation individuelle|disciplinary action|personnel file)\b")
+_IDENTITY_DOCUMENT = re.compile(r"(?i)\b(?:passport(?: number| scan| copy)?|passeport|carte (?:nationale )?d.identit[eé]|identity card|driver.s license copy)\b")
+_RESIDENTIAL_ADDRESS = re.compile(r"(?i)\b(?:home address|residential address|adresse personnelle|adresse du domicile)\b")
+_RESIDENTIAL_ADDRESS_VALUE = re.compile(
+    r"(?i)\b(?:home address|residential address|adresse personnelle|adresse du domicile)\s*[:\-]\s*([^\r\n.;]{4,120})"
+)
+_HARD_PRIVACY_CATEGORIES = frozenset({"MEDICAL_DATA", "HR_SENSITIVE", "IDENTITY_DOCUMENT", "UNRELATED_PERSONAL_RECORD"})
 _PSEUDONYM = re.compile(r"^(?:OPERATOR|TECHNICIAN|EMPLOYEE|PERSON|WORKER|STAFF|ID)_[0-9A-F]{3,32}$", re.I)
 _SAFE_CODE = re.compile(r"^[A-Z][A-Z0-9_]{1,63}$")
 _FILE_ID = re.compile(r"^FILE-[0-9]{3,9}$")
@@ -215,6 +223,13 @@ def inspect_privacy_status(case_directory: str | Path) -> dict[str, Any]:
             "manifest": str(path),
             **requirement,
         }
+    case_meta = requirement["case_root"] / ("workspace.json" if requirement["layout"] == "STANDARD_WORKSPACE" else "case_manifest.json")
+    if manifest.get("status") in {"PASS", "SANITIZED"} and _read_json(case_meta).get("domain") == "rental":
+        from againward.entrypoints import get_case_domain
+        current_risk = get_case_domain(requirement["case_root"]).privacy_preservation.risk.policy_id
+        if manifest.get("risk_policy_version") != current_risk:
+            return {"state": "PRIVACY_MIGRATION_REQUIRED", "approved_for_analysis": False,
+                    "manifest": str(path), **requirement}
     deterministic = manifest.get("deterministic_validation")
     original_deletion = manifest.get("original_deletion")
     approval_contract_valid = (
@@ -446,6 +461,11 @@ def _scan_text_patterns(
     if emails:
         categories["EMAIL"] = categories.get("EMAIL", 0) + len(emails)
         sensitive_values.update(emails)
+        # Consumer mailbox domains can also be legitimate B2B contacts. Only
+        # an explicit personal/private label or the reviewed category upgrades
+        # risk; a provider domain alone is not a semantic determination.
+        if _PERSONAL_EMAIL_LABEL.search(text):
+            categories["PERSONAL_EMAIL"] = categories.get("PERSONAL_EMAIL", 0) + len(emails)
     if phones:
         categories["PHONE"] = categories.get("PHONE", 0) + len(phones)
         sensitive_values.update(phones)
@@ -458,12 +478,18 @@ def _scan_text_patterns(
         categories["MEDICAL_DATA"] = categories.get("MEDICAL_DATA", 0) + len(medical)
     if hr_sensitive:
         categories["HR_SENSITIVE"] = categories.get("HR_SENSITIVE", 0) + len(hr_sensitive)
+    for name, pattern in (("IDENTITY_DOCUMENT", _IDENTITY_DOCUMENT),
+                          ("RESIDENTIAL_ADDRESS", _RESIDENTIAL_ADDRESS)):
+        found = pattern.findall(text)
+        if found:
+            categories[name] = categories.get(name, 0) + len(found)
 
 
 def _scan(path: Path) -> dict[str, Any]:
     tables = _tables(path)
     categories: dict[str, int] = {}
     sensitive_values: set[str] = set()
+    inspection = inspect_document(path)
     if path.suffix.casefold() == ".json":
         payload = json.loads(path.read_text(encoding="utf-8"))
 
@@ -487,6 +513,8 @@ def _scan(path: Path) -> dict[str, Any]:
                     categories[category] = categories.get(category, 0) + 1
                     sensitive_values.add(text)
         inspect_json(payload)
+    elif inspection is not None:
+        _scan_text_patterns(inspection.native_text, categories, sensitive_values)
     elif not tables:
         _scan_text_patterns(_flatten_text(path, tables), categories, sensitive_values)
     for table in tables:
@@ -506,7 +534,106 @@ def _scan(path: Path) -> dict[str, Any]:
             if nonempty:
                 categories[category] = categories.get(category, 0) + len(nonempty)
                 sensitive_values.update(value for value in nonempty if len(value) >= 3)
-    return {"tables": tables, "categories": categories, "sensitive_values": sensitive_values}
+    return {"tables": tables, "categories": categories, "sensitive_values": sensitive_values,
+            "inspection": inspection.audit() if inspection is not None else None,
+            "inspection_text": inspection.native_text if inspection is not None else None}
+
+
+def _assert_pdf_redaction(original_scan: dict[str, Any], residual_scan: dict[str, Any], transforms: list) -> None:
+    """A redacted value cannot survive in page text or PDF metadata without its label."""
+    before, after = original_scan["inspection_text"], residual_scan["inspection_text"]
+    if before is None or after is None:
+        return
+    removed = {item.get("category") for item in transforms if isinstance(item, dict)
+               and item.get("action") == "REMOVED"}
+    forbidden: set[str] = set()
+    if "EMAIL" in removed:
+        forbidden.update(_EMAIL.findall(before))
+    if "PHONE" in removed:
+        forbidden.update(_PHONE.findall(before))
+    if "PERSONAL_EMAIL" in removed:
+        for label in _PERSONAL_EMAIL_LABEL.finditer(before):
+            email = _EMAIL.search(before, label.end(), min(len(before), label.end() + 120))
+            if email is not None:
+                forbidden.add(email.group(0))
+    if "RESIDENTIAL_ADDRESS" in removed:
+        forbidden.update(match.group(1).strip() for match in _RESIDENTIAL_ADDRESS_VALUE.finditer(before))
+    if "AUTHENTICATION_SECRET" in removed:
+        for pattern in _SECRET_PATTERNS:
+            for match in pattern.finditer(before):
+                value = match.group(0)
+                forbidden.add(value)
+                if "=" in value:
+                    forbidden.add(value.rsplit("=", 1)[-1])
+                if ":" in value:
+                    forbidden.add(value.rsplit(":", 1)[-1])
+    if any(len(value) >= 6 and value.casefold() in after.casefold() for value in forbidden):
+        raise ValueError("SANITIZATION_FAILED: removed value survives in PDF content or metadata.")
+
+
+def _assess_inspection(spec: dict[str, Any], raw_scan: dict[str, Any]) -> dict[str, Any]:
+    """Require accountable, hash-bound human review for every visual component."""
+    audit = raw_scan["inspection"]
+    reviews = spec.get("visual_reviews", [])
+    if not isinstance(reviews, list):
+        raise ValueError("Visual privacy reviews must be a list.")
+    reviewed_categories: dict[str, int] = {}
+    if audit is None:
+        if reviews:
+            raise ValueError("Visual review cannot be attached to a nonvisual source.")
+    else:
+        limitations = set(audit["limitations"])
+        accountably_visual = {"PDF_FORM_FIELDS_REQUIRE_REVIEW", "PDF_ANNOTATIONS_REQUIRE_REVIEW"}
+        if limitations - accountably_visual:
+            raise ValueError("UNINSPECTABLE_COMPONENT: source contains unresolved document components.")
+        required = set(audit["visual_components"])
+        if required and not current_preservation_policy().risk.visual_human_review:
+            raise ValueError("UNINSPECTABLE_COMPONENT: this privacy profile has no visual review path.")
+        if len(reviews) != len(required) or {r.get("location") for r in reviews if isinstance(r, dict)} != required:
+            raise ValueError("PARTIAL_DOCUMENT_INSPECTION: every visual component needs one review.")
+        for review in reviews:
+            if not isinstance(review, dict) or set(review) != {
+                "location", "source_sha256", "inspection_version", "reviewer_role", "reviewed_at_utc",
+                "decision", "detected_categories", "business_evidence_preserved", "prompt_injection_ignored",
+            }:
+                raise ValueError("Invalid closed visual-inspection contract.")
+            if (review["source_sha256"] != audit["source_sha256"]
+                    or review["inspection_version"] != INSPECTION_VERSION
+                    or review["reviewer_role"] != "HUMAN"
+                    or review["decision"] != "PASS"
+                    or review["business_evidence_preserved"] is not True
+                    or review["prompt_injection_ignored"] is not True):
+                raise ValueError("MODEL_INSPECTION_FAILED: source-bound human visual approval required.")
+            try:
+                timestamp = datetime.fromisoformat(str(review["reviewed_at_utc"]).replace("Z", "+00:00"))
+            except ValueError as exc:
+                raise ValueError("Visual review timestamp invalid.") from exc
+            if timestamp.tzinfo is None:
+                raise ValueError("Visual review timestamp needs timezone.")
+            categories = review["detected_categories"]
+            if (not isinstance(categories, list) or len(categories) != len(set(categories))
+                    or any(not _SAFE_CODE.fullmatch(str(category)) for category in categories)):
+                raise ValueError("Visual review categories must be unique structured codes.")
+            for category in categories:
+                reviewed_categories[category] = reviewed_categories.get(category, 0) + 1
+        if not audit["native_units"] and not required:
+            raise ValueError("UNINSPECTABLE_COMPONENT: no readable or reviewed component.")
+    for category in _clean_category_counts(spec.get("categories", [])):
+        reviewed_categories[category["category"]] = max(reviewed_categories.get(category["category"], 0), category["count"])
+    for category, count in reviewed_categories.items():
+        raw_scan["categories"][category] = max(raw_scan["categories"].get(category, 0), count)
+    categories = set(raw_scan["categories"])
+    hard = categories & _HARD_PRIVACY_CATEGORIES
+    risk_level = "HIGH" if hard or "AUTHENTICATION_SECRET" in categories else (
+        "MODERATE" if categories - current_preservation_policy().risk.pass_categories else
+        "LOW" if categories else "NONE")
+    return {"inspectability": "INSPECTED" if audit is None or not audit["visual_components"] else "HUMAN_VISUAL_REVIEWED",
+            "inspection": audit, "risk_level": risk_level,
+            "detected_categories": sorted(categories),
+            "human_visual_reviews": [{"location": r["location"], "reviewer_role": "HUMAN",
+                                      "reviewed_at_utc": r["reviewed_at_utc"],
+                                      "review_sha256": hashlib.sha256(json.dumps(r, sort_keys=True).encode()).hexdigest()}
+                                     for r in reviews]}
 
 
 def _same_value(left: Any, right: Any) -> bool:
@@ -524,7 +651,13 @@ def _identity_key(value: str) -> str:
 
 
 def _industrial_text_markers(path: Path) -> Counter[str]:
-    text = _flatten_text(path, [])
+    inspection = inspect_document(path)
+    if inspection is not None:
+        if inspection.visual_components or inspection.limitations:
+            raise ValueError("BUSINESS_EVIDENCE_LOSS: visual/opaque source cannot be safely rewritten.")
+        text = inspection.native_text
+    else:
+        text = _flatten_text(path, [])
     markers: list[str] = []
     for pattern in current_preservation_policy().text_patterns:
         for match in pattern.finditer(text):
@@ -597,7 +730,8 @@ def _compare_preservation(
             "rows_checked": 0,
             "industrial_text_markers_checked": sum(before_markers.values()),
         }
-    before = _tables(original); after = _tables(sanitized)
+    before = _tables(original)
+    after = _tables(sanitized)
     if [table.name for table in before] != [table.name for table in after]:
         raise ValueError("Les feuilles XLSX ou leur ordre ont changé pendant le privacy cleanup.")
     checked = rows_checked = 0
@@ -730,6 +864,7 @@ def _manifest_base(root: Path, review: dict[str, Any], status: str) -> dict[str,
         "validated_at_utc": _now(),
         "policy_version": POLICY_VERSION,
         "business_preservation_policy": current_preservation_policy().policy_id,
+        "risk_policy_version": current_preservation_policy().risk.policy_id,
         "status": status,
         "detected_categories": _clean_category_counts(review.get("detected_categories", [])),
         "transformations": [],
@@ -921,7 +1056,9 @@ def _validate_codex_privacy_review_impl(
     root: Path = requirement["case_root"]
     if inspect_privacy_status(root)["state"] == "PURGED":
         raise ValueError("Dossier PURGED: le privacy gate ne peut pas être rouvert.")
-    incoming = root / "incoming"; candidate_root = root / "privacy" / "candidate"; sanitized_root = root / "sanitized"
+    incoming = root / "incoming"
+    candidate_root = root / "privacy" / "candidate"
+    sanitized_root = root / "sanitized"
     review_input = Path(review_path)
     if review_input.is_symlink():
         raise ValueError("La privacy review ne peut pas être un lien symbolique.")
@@ -978,7 +1115,7 @@ def _validate_codex_privacy_review_impl(
     by_source: dict[str, dict[str, Any]] = {}
     file_ids: set[str] = {item["file_id"] for item in prior_manifest["files"]} if prior_manifest else set()
     for spec in file_specs:
-        if not isinstance(spec, dict) or set(spec) - {"file_id", "source", "action", "sanitized", "categories", "transformations", "industrial_content_absent"}:
+        if not isinstance(spec, dict) or set(spec) - {"file_id", "source", "action", "sanitized", "categories", "transformations", "industrial_content_absent", "visual_reviews", "business_confidentiality"}:
             raise ValueError("Contrat de fichier privacy invalide ou champ libre interdit.")
         source = str(spec.get("source", ""))
         file_id = str(spec.get("file_id", ""))
@@ -986,6 +1123,10 @@ def _validate_codex_privacy_review_impl(
             raise ValueError("file_id privacy absent, invalide ou dupliqué.")
         file_ids.add(file_id)
         _clean_category_counts(spec.get("categories", []))
+        if spec.get("business_confidentiality", "RESTRICTED_CLIENT") not in {
+            "PUBLIC", "BUSINESS_CONFIDENTIAL", "RESTRICTED_CLIENT"
+        }:
+            raise ValueError("Business confidentiality must use a closed category.")
         if source in by_source or not source:
             raise ValueError("Source privacy absente ou dupliquée.")
         by_source[source] = spec
@@ -1002,10 +1143,23 @@ def _validate_codex_privacy_review_impl(
             raise ValueError("BLOCKED exige au moins une action fichier BLOCKED et aucune action inconnue.")
         for path in incoming_files:
             spec = by_source[str(path.relative_to(root))]
+            try:
+                blocked_scan = _scan(path)
+                blocked_assessment = _assess_inspection(spec, blocked_scan)
+            except (ValueError, OSError) as exc:
+                # A blocked source may be corrupt or intentionally left unread.
+                # Preserve the failure class, never the source/error text.
+                blocked_assessment = {"inspectability": "UNINSPECTABLE_OR_UNREVIEWED",
+                                      "inspection": None, "risk_level": "UNKNOWN",
+                                      "detected_categories": [], "inspection_failure": type(exc).__name__}
             manifest["files"].append({
                 "file_id": spec["file_id"], "original_sha256": _sha256(path),
                 "file_type": path.suffix.casefold().lstrip(".") or "unknown",
                 "status": spec["action"], "sanitized_sha256": None,
+                "privacy_assessment": {**blocked_assessment,
+                    "business_confidentiality": spec.get("business_confidentiality", "RESTRICTED_CLIENT"),
+                    "risk_policy_version": current_preservation_policy().risk.policy_id,
+                    "required_action": spec["action"]},
             })
         manifest["deterministic_validation"]["checks"].append("blocked_without_analytical_promotion")
         manifest["deterministic_validation"]["passed"] = True
@@ -1022,7 +1176,7 @@ def _validate_codex_privacy_review_impl(
         return manifest
     if status == "PASS" and any(spec.get("action") != "PASS" for spec in file_specs):
         raise ValueError("PASS exige une action PASS pour chaque fichier.")
-    if status == "PASS" and manifest["detected_categories"]:
+    if status == "PASS" and {item["category"] for item in manifest["detected_categories"]} - current_preservation_policy().risk.pass_categories:
         raise ValueError("PASS est incompatible avec des catégories privacy détectées.")
     if status == "SANITIZED" and not any(spec.get("action") in {"SANITIZED", "REMOVE"} for spec in file_specs):
         raise ValueError("SANITIZED exige au moins une transformation ou suppression.")
@@ -1041,34 +1195,48 @@ def _validate_codex_privacy_review_impl(
     }
     try:
         for index, original in enumerate(incoming_files, 1):
-            source_key = str(original.relative_to(root)); spec = by_source[source_key]
+            source_key = str(original.relative_to(root))
+            spec = by_source[source_key]
             file_id = str(spec["file_id"])
             action = spec.get("action")
             if action not in {"PASS", "SANITIZED", "REMOVE"}:
                 raise ValueError(f"Action privacy invalide pour {file_id}.")
             raw_scan = _scan(original)
+            assessment = _assess_inspection(spec, raw_scan)
             all_raw_sensitive.update(raw_scan["sensitive_values"])
             for category, count in raw_scan["categories"].items():
                 _merge_detected_category(manifest, category, count, file_id)
-            if set(raw_scan["categories"]) & {"MEDICAL_DATA", "HR_SENSITIVE"}:
-                raise ValueError(f"{file_id}: données médicales/RH sensibles; BLOCKED obligatoire.")
+            if set(raw_scan["categories"]) & _HARD_PRIVACY_CATEGORIES:
+                raise ValueError(f"{file_id}: HIGH_RISK_PERSONAL_DATA; BLOCKED obligatoire.")
             entry = {
                 "file_id": file_id, "original_sha256": _sha256(original),
                 "file_type": original.suffix.casefold().lstrip(".") or "unknown",
                 "status": action, "detected_categories": sorted(raw_scan["categories"]),
                 "sanitized_sha256": None, "duplicate_of_file_id": None,
+                "privacy_assessment": {**assessment,
+                    "business_confidentiality": spec.get("business_confidentiality", "RESTRICTED_CLIENT"),
+                    "risk_policy_version": current_preservation_policy().risk.policy_id,
+                    "required_action": action},
             }
+            if raw_scan["inspection"] is not None and entry["original_sha256"] != raw_scan["inspection"]["source_sha256"]:
+                raise ValueError(f"{file_id}: SOURCE_CHANGED during privacy inspection.")
             if action == "REMOVE":
                 if spec.get("industrial_content_absent") is not True:
                     raise ValueError(f"{file_id}: REMOVE exige l'attestation industrial_content_absent=true.")
+                if raw_scan["inspection"] is not None and (
+                    raw_scan["inspection"]["visual_components"] or _industrial_text_markers(original)
+                ):
+                    raise ValueError(f"{file_id}: BUSINESS_EVIDENCE_LOSS; document commercial ne peut être supprimé.")
                 if any(_header_kind(header) == "industrial" for table in raw_scan["tables"] for header in table.headers):
                     raise ValueError(f"{file_id}: suppression interdite d'un fichier contenant des colonnes industrielles.")
                 manifest["files"].append(entry)
                 manifest["transformations"].append({"file_id": file_id, "category": "FILE_REMOVAL", "action": "REMOVED", "count": 1})
                 continue
             if action == "PASS":
-                if raw_scan["categories"]:
-                    raise ValueError(f"{file_id}: PASS refusé; motifs privacy déterministes détectés.")
+                if set(raw_scan["categories"]) - current_preservation_policy().risk.pass_categories:
+                    reason = ("AUTHENTICATION_SECRET" if "AUTHENTICATION_SECRET" in raw_scan["categories"]
+                              else "MINIMIZATION_REQUIRED")
+                    raise ValueError(f"{file_id}: {reason}; PASS refusé.")
                 source_for_promotion = original
                 relative_target = str(Path(source_key).relative_to("incoming"))
             else:
@@ -1081,8 +1249,11 @@ def _validate_codex_privacy_review_impl(
                 if source_for_promotion.is_symlink() or not source_for_promotion.is_file() or not _within(source_for_promotion, candidate_root):
                     raise ValueError(f"{file_id}: candidat sanitized introuvable.")
                 residual = _scan(source_for_promotion)
-                if residual["categories"]:
+                _assess_inspection({"visual_reviews": [], "categories": []}, residual)
+                if set(residual["categories"]) - current_preservation_policy().risk.pass_categories:
                     raise ValueError(f"{file_id}: post-check détecte encore {sorted(residual['categories'])}.")
+                if original.suffix.casefold() == ".pdf":
+                    _assert_pdf_redaction(raw_scan, residual, spec["transformations"])
                 preservation = _compare_preservation(
                     original,
                     source_for_promotion,
@@ -1123,8 +1294,16 @@ def _validate_codex_privacy_review_impl(
             target_paths.add(relative_target)
             target = staging / relative_target
             target.parent.mkdir(parents=True, exist_ok=True)
+            if _sha256(original) != entry["original_sha256"]:
+                raise ValueError(f"{file_id}: SOURCE_CHANGED before privacy promotion.")
             shutil.copy2(source_for_promotion, target)
             entry["sanitized_sha256"] = _sha256(target)
+            if action == "PASS" and entry["sanitized_sha256"] != entry["original_sha256"]:
+                raise ValueError(f"{file_id}: SOURCE_CHANGED during privacy promotion.")
+            if action == "SANITIZED" and residual["inspection"] is not None and (
+                entry["sanitized_sha256"] != residual["inspection"]["source_sha256"]
+            ):
+                raise ValueError(f"{file_id}: sanitized derivative changed during promotion.")
             manifest["files"].append(entry)
         review_serialized = json.dumps(review, ensure_ascii=False).casefold()
         leaked = [value for value in all_raw_sensitive if len(value) >= 4 and value.casefold() in review_serialized]
@@ -1269,6 +1448,8 @@ def validate_codex_privacy_review(
             raise ValueError("Additional evidence requires a previously cleared privacy batch.")
         if prior_manifest.get("business_preservation_policy") != current_preservation_policy().policy_id:
             raise ValueError("Additional evidence must retain the case's business preservation policy.")
+        if prior_manifest.get("risk_policy_version") != current_preservation_policy().risk.policy_id:
+            raise ValueError("Additional evidence must retain the case's privacy-risk policy.")
         approved_hashes = {entry.get("sanitized_sha256") for entry in prior_manifest["files"] if entry.get("sanitized_sha256")}
         actual_hashes = {_sha256(path) for path in _safe_files(root / "sanitized")}
         if actual_hashes != approved_hashes:

@@ -24,7 +24,7 @@ Evidence shorthand (all paths relative to the repository):
 | 1 | TESTED | D: baseline b6369be, 631 tests, old benchmarks | Original unrelated worktree preserved. |
 | 2 | PRESERVED | K, L; clean 465f392: 693 tests pass | Not final mission acceptance. |
 | 3 | PARTIAL | X separates semantic proposals from Python arithmetic | End-to-end agent investigation evaluation pending. |
-| 4 | PARTIAL | S native/CSV/XLSX/DOCX/EML and component routing | Visual extraction and binary privacy path incomplete. |
+| 4 | PARTIAL | S native/CSV/XLSX/DOCX/EML and component routing; Rental PDF privacy post-check and hash-bound visual-human fallback now tested | Visual semantic extraction and real reviewer operation remain incomplete. |
 | 5 | TESTED | S content-addressed SourceDocument | Approved sanitized bytes, not raw personal retention. |
 | 6 | TESTED | S source batches, union/revision/privacy binding | More real-case batch integration coverage needed. |
 | 7 | TESTED | S → X candidate → reviewed CanonicalFact | Semantic authority still reviewer judgment. |
@@ -44,7 +44,7 @@ Evidence shorthand (all paths relative to the repository):
 | 21 | PARTIAL | S/X/E typed dataclasses and closed external schemas | Rental adapter/core retain dict boundaries. |
 | 22 | PRESERVED | K durable transactions/recovery | Shared revision service hardening pending. |
 | 23 | OPEN | Existing trace/revisions retained | Append-only event experiment not completed. |
-| 24 | DEFERRED | D: no size-only privacy refactor | Binary post-check remains a material blocker. |
+| 24 | PARTIAL | Privacy inspection and risk policy extracted for PDF/scan work; public gate remains authoritative | No size-only split; real visual-review operations remain a material limit. |
 | 25 | DEFERRED | K unchanged query protocol | Bounded targeted document retrieval needs evaluation. |
 | 26 | PARTIAL | New document contracts use againward namespace | Existing indicia schemas preserved; migration not done. |
 | 27 | PARTIAL | `investigate.py documents` + package entrypoint | Not all wrappers consolidated. |
@@ -122,7 +122,7 @@ Evidence shorthand (all paths relative to the repository):
 
 | Classification | Limit | Current behavior |
 |---|---|---|
-| BLOCKS_FIRST_CLIENT | Real PDF/image intake lacks an approved binary privacy post-check | Refused; parser support is not privacy clearance. |
+| BLOCKS_FIRST_CLIENT | Real visual reviewer identity/workflow is not authenticated by a JSON role; bounded PDF inspection is not a complete hostile-document sandbox | Native PDF privacy post-check works; scans require source/component-bound human inspection and STOP when unavailable. Synthetic policy benchmark: 19/19, 0 false blocks, 0 unsafe passes; no claim about actual human vision. |
 | BLOCKS_FIRST_CLIENT | No independent semantic evaluation across the actual-document corpus | No model quality claim; routing baseline recall is zero. |
 | BLOCKS_FIRST_CLIENT | Weekly partial quantities and broad amendments remain incomplete | Explicit daily source-backed patterns calculate; other cases abstain. Unallocated credits are retained but prevent a supported discrepancy on affected invoice/currency groups. |
 | NEEDS_HUMAN_REVIEW | Ambiguous links, visual transcription, contractual authority | Supplied review required; no fabricated approval. |
@@ -131,4 +131,4 @@ Evidence shorthand (all paths relative to the repository):
 
 Next priorities: complete independent DEV semantic runs and scoring; extend
 quantity/rate timelines beyond daily returns; resolve the
-binary privacy intake boundary; finish kernel experiments and final validation.
+real visual-review operation; finish kernel experiments and final validation.

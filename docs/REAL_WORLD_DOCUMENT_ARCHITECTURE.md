@@ -1,5 +1,11 @@
 # Real-world document architecture — implementation in progress
 
+Current status: [CURRENT_STATE.md](CURRENT_STATE.md). The Rental-specific
+pre-clearance path is documented in [RENTAL_PRIVACY_ARCHITECTURE.md](RENTAL_PRIVACY_ARCHITECTURE.md):
+native PDFs are inspected under the existing gate; scans/hybrid visual
+components need exact-hash/version-bound human review. This changes intake
+eligibility, **not** semantic extraction accuracy or financial approval.
+
 Read [DOCUMENT_INTELLIGENCE_RND.md](DOCUMENT_INTELLIGENCE_RND.md) for the verified
 baseline and experiment criteria. The current canonical Rental and Energy paths
 remain supported. New documentary inputs use versioned contracts upstream of

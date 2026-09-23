@@ -1,0 +1,61 @@
+# Documentation map
+
+This index separates active authority from retained experiment and migration
+records. Filenames containing “completion” describe their original scope, not
+current product acceptance. Do not mechanically delete or move their evidence.
+
+## Read first
+
+- [Current state](CURRENT_STATE.md) — owners, commands, PR stack, blockers.
+- [Repository layout](REPOSITORY_LAYOUT.md) — workspace and root-script roles.
+- [Real-world acceptance](REAL_WORLD_ACCEPTANCE.md) — explicit partial/open items.
+
+## Active architecture
+
+- [Architecture](ARCHITECTURE.md), [document architecture](REAL_WORLD_DOCUMENT_ARCHITECTURE.md),
+  [entity resolution](ENTITY_RESOLUTION.md), [client workflow](CLIENT_WORKFLOW.md).
+
+## Active Rental
+
+- [Rental](RENTAL.md), [Rental benchmarks](RENTAL_BENCHMARKS.md),
+  [economic decision semantics](ECONOMIC_DECISION_SEMANTICS.md).
+
+## Document intelligence
+
+- [Document R&D / evidence and failures](DOCUMENT_INTELLIGENCE_RND.md),
+  [real-world document benchmark](REAL_WORLD_RENTAL_BENCHMARKS.md).
+  A routed file is not a correctly understood document.
+
+## Privacy
+
+- [Rental policy and PDF/scan path](RENTAL_PRIVACY_ARCHITECTURE.md),
+  [privacy benchmark](RENTAL_PRIVACY_BENCHMARKS.md),
+  [inherited gate](PRIVACY_ARCHITECTURE.md), [threat model](PRIVACY_THREAT_MODEL.md).
+
+## Active benchmarks
+
+- [Rental synthetic cases](RENTAL_BENCHMARKS.md),
+  [Rental privacy decisions](RENTAL_PRIVACY_BENCHMARKS.md),
+  [document routing/semantic baseline](REAL_WORLD_RENTAL_BENCHMARKS.md).
+  Run scripts from the repository root and keep generated outputs in ignored
+  `scratch/`.
+
+## Compatibility / Energy
+
+- [Analysis tools](ANALYSIS_TOOLS.md), [physical diagnostics](PHYSICAL_DIAGNOSTICS.md),
+  [Energy privacy history](PRIVACY_VALIDATION_REPORT.md).
+  `energy_mvp/` and legacy root wrappers remain supported until explicitly
+  migrated; their tests are part of every full regression.
+
+## Historical R&D
+
+- [Domain-kernel acceptance](DOMAIN_KERNEL_ACCEPTANCE.md),
+  [domain-kernel migration](DOMAIN_KERNEL_MIGRATION.md),
+  [architecture experiments](architecture_rnd_20260916/RESEARCH_RECORD.md),
+  [Stage 4 evidence plane](stage4_evidence_plane/ARCHITECTURE_AFTER_STAGE4.md),
+  [critical remediation](critical_remediation_20260907/ROOT_CAUSE_ANALYSIS.md),
+  [prior client mission audit](final_client_mission_20260909/COMPLETION_AUDIT.md),
+  [Mega Goal audit](MEGA_GOAL_AUDIT.md).
+  These are preserved reproducibility/history, not current acceptance gates.
+  The former 2,069-line Energy-first root instructions are recoverable with
+  `git show 94d9d2a:AGENTS.md`.
