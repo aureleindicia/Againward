@@ -606,6 +606,8 @@ def _assess_inspection(spec: dict[str, Any], raw_scan: dict[str, Any], root: Pat
                     or review["business_evidence_preserved"] is not True
                     or review["prompt_injection_ignored"] is not True):
                 raise ValueError("MODEL_INSPECTION_FAILED: source-bound human visual approval required.")
+            if required and not operator_keys <= set(review):
+                raise ValueError("HUMAN_REVIEW_REQUIRED: source-bound operator packet is mandatory")
             if operator_keys <= set(review):
                 if root is None or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{1,63}", str(review["reviewer_id"])):
                     raise ValueError("HUMAN_REVIEW_REQUIRED: local operator identity missing")

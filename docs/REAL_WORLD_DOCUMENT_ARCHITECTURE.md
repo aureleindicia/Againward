@@ -50,15 +50,23 @@ native units: PDF pages, CSV cells, exact XLSX XML values/styles/formulas/merges
 DOCX body paragraphs or EML text parts. Unread components and image pages remain
 explicit. Sources are never truncated to satisfy a limit.
 
-Supply a model/analyst proposal using the closed contract in
+The opt-in `documents extract DOCUMENT_ROOT BATCH_RECEIPT --model gpt-6-sol`
+command invokes the configured Codex CLI on approved source units and stores
+validated **candidates only**. It does not authorize facts or money. Alternatively,
+supply a model/analyst proposal using the closed contract in
 `documents/extraction.py::proposal_context`, then use:
 
 ```sh
 python investigate.py documents validate DOCUMENT_ROOT BATCH_RECEIPT PROPOSAL
+python investigate.py documents review-template DOCUMENT_ROOT BATCH_RECEIPT EXTRACTION...
 python investigate.py documents promote DOCUMENT_ROOT BATCH_RECEIPT FACT_REVIEW EXTRACTION...
 ```
 
-No command calls a provider, changes question budgets or creates delivery approval.
+Only `extract` calls a provider. No document command changes question budgets or
+creates delivery approval. `review-template` writes an unreviewed worksheet with
+every candidate, source location and ambiguity; its JSON has no reviewer/time,
+all decisions DEFER and limitations unacknowledged. A person must inspect and
+complete it before `promote` can accept a fact.
 Every proposal carries source/batch identity, reader/extractor/model/prompt version,
 status and source-local candidates. A native quote must match exact half-open
 character offsets. A visual transcription is only a proposal and requires supplied

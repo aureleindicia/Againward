@@ -46,6 +46,11 @@ preview, packet or policy invalidates this decision. `privacy-validate` removes
 temporary incoming/candidate material on successful clearance according to the
 existing gate. The operator must confirm purge/retention separately.
 
+Legacy JSON entries containing only `reviewer_role=HUMAN` are no longer
+sufficient to clear a visual component. The synthetic privacy benchmark uses
+scripted input through this same packet protocol solely as an invariant test;
+its PASS count is not a substitute for a human rehearsal.
+
 This records an accountable local **claim**, not cryptographic authentication,
 eyeball proof or machine-vision accuracy. The CLI refuses a non-TTY attestation,
 but someone with local filesystem control could still forge JSON; the owner must

@@ -10,6 +10,7 @@ import pytest
 
 from againward.core.privacy import inspect_privacy_status, validate_codex_privacy_review
 from againward.core.privacy_inspection import INSPECTION_VERSION
+from againward.core.visual_review import attest_visual_packet, prepare_visual_packet
 from againward.core.workspace import create_client_workspace
 from againward.domains.rental.privacy_policy import RENTAL_PRESERVATION
 from benchmarking.document_renderers import pdf
@@ -41,9 +42,23 @@ def metadata(path: Path, value: str):
     writer.write(path)
 
 
-def clearance(case: Path, source: str, *, spec=None, status="PASS", categories=()):
+def scripted_visual(case: Path, review: Path, *, categories=()):
+    """Exercise the operator protocol with fixtures; never evidence of a human."""
+    packet = prepare_visual_packet(case, review)
+    responses = []
+    for component in packet["components"]:
+        responses.extend(["INSPECTED " + component["source_sha256"][:12], "PASS",
+                          ",".join(categories), "YES"])
+    answers = iter(responses)
+    attest_visual_packet(case, review, actor_id="TEST_FIXTURE_ONLY",
+                         ask=lambda _: next(answers), interactive=True)
+
+
+def clearance(case: Path, source: str, *, spec=None, status="PASS", categories=(), visual_categories=None):
     spec = spec or _file_spec("incoming/" + source)
     review = _review(case, [spec], status=status, categories=list(categories))
+    if visual_categories is not None:
+        scripted_visual(case, review, categories=visual_categories)
     return validate_codex_privacy_review(case, review, preservation_policy=RENTAL_PRESERVATION)
 
 
@@ -97,8 +112,8 @@ def test_business_scan_needs_exact_human_visual_review_and_then_passes(tmp_path)
     path = case / "incoming/return.pdf"
     pdf(path, ["Signed return agreement AG-12 asset LIFT-5 on 2026-09-05."], scan=True)
     spec = _file_spec("incoming/return.pdf")
-    spec["visual_reviews"] = [visual_review(path, categories=("PROFESSIONAL_SIGNATURE",))]
-    manifest = clearance(case, "return.pdf", spec=spec)
+    manifest = clearance(case, "return.pdf", spec=spec,
+                         visual_categories=("PROFESSIONAL_SIGNATURE",))
     assert manifest["approved_for_analysis"]
     assert manifest["files"][0]["privacy_assessment"]["inspectability"] == "HUMAN_VISUAL_REVIEWED"
     assert "PROFESSIONAL_SIGNATURE" in manifest["files"][0]["detected_categories"]
@@ -127,8 +142,7 @@ def test_hybrid_pdf_requires_visual_component_review(tmp_path):
     path = case / "incoming/hybrid.pdf"
     pdf(path, ["Invoice INV-7. Net EUR 700.00."], hybrid=True)
     spec = _file_spec("incoming/hybrid.pdf")
-    spec["visual_reviews"] = [visual_review(path)]
-    assert clearance(case, "hybrid.pdf", spec=spec)["approved_for_analysis"]
+    assert clearance(case, "hybrid.pdf", spec=spec, visual_categories=())["approved_for_analysis"]
 
 
 def test_sensitive_scan_declared_by_visual_review_cannot_pass(tmp_path):
@@ -136,9 +150,8 @@ def test_sensitive_scan_declared_by_visual_review_cannot_pass(tmp_path):
     path = case / "incoming/medical.pdf"
     pdf(path, ["Medical diagnosis for an employee."], scan=True)
     spec = _file_spec("incoming/medical.pdf")
-    spec["visual_reviews"] = [visual_review(path, categories=("MEDICAL_DATA",))]
     with pytest.raises(ValueError, match="HIGH_RISK_PERSONAL_DATA"):
-        clearance(case, "medical.pdf", spec=spec)
+        clearance(case, "medical.pdf", spec=spec, visual_categories=("MEDICAL_DATA",))
     assert inspect_privacy_status(case)["state"] == "PRIVACY_BLOCKED"
 
 
@@ -264,8 +277,8 @@ def test_supplemental_scan_requires_new_source_bound_review(tmp_path):
     with pytest.raises(ValueError, match="PRIVACY GATE"):
         assert_source_approved_for_analysis(case / "sanitized/contract.pdf")
     spec = _file_spec("incoming/return.pdf", file_id="FILE-100")
-    spec["visual_reviews"] = [visual_review(extra)]
     review = _review(case, [spec], status="PASS")
+    scripted_visual(case, review)
     result = validate_codex_privacy_review(case, review, preservation_policy=RENTAL_PRESERVATION,
                                            supplemental=True)
     assert result["approved_for_analysis"] and len(result["previous_reviews"]) == 1

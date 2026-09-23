@@ -79,3 +79,6 @@ See `docs/PRIVACY_ARCHITECTURE.md` for the inherited gate/lifecycle and
 `docs/REAL_WORLD_ACCEPTANCE.md` for unfinished first-client criteria. The
 synthetic measured privacy run and its limits are in
 `docs/RENTAL_PRIVACY_BENCHMARKS.md`.
+For visual components, the current gate requires the operator packet with a
+source-/preview-/policy-bound attestation. A bare `HUMAN` role string is not an
+authorization; see [visual review operations](VISUAL_REVIEW_OPERATIONS.md).

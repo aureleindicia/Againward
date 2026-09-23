@@ -1,4 +1,4 @@
-"""Local document proposal workflow. No provider call or approval is fabricated."""
+"""Local document workflow; extract is opt-in, and no approval is fabricated."""
 from __future__ import annotations
 
 import argparse
@@ -48,6 +48,10 @@ def main(argv: list[str] | None = None) -> int:
     promote.add_argument("batch", type=Path)
     promote.add_argument("review", type=Path)
     promote.add_argument("extractions", nargs="+", type=Path)
+    template = commands.add_parser("review-template", help="Unreviewed fact worksheet from validated extractions")
+    template.add_argument("root", type=Path)
+    template.add_argument("batch", type=Path)
+    template.add_argument("extractions", nargs="+", type=Path)
     args = parser.parse_args(argv)
     try:
         if args.command == "inventory":
@@ -86,6 +90,23 @@ def main(argv: list[str] | None = None) -> int:
                 path = persist_extraction(extraction, args.root)
                 result = {"status": extraction.status, "extraction_path": str(path),
                           "candidate_count": len(extraction.candidates), "canonical_facts": 0}
+            elif args.command == "review-template":
+                from .review_template import fact_review_template
+                assert_document_action(args.root, mutation=True)
+                extractions = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                    for path in args.extractions)
+                body, worksheet = fact_review_template(batch, extractions)
+                prefix = args.root / "review_templates" / stable_hash(body)
+                json_path = prefix.with_suffix(".json")
+                sheet_path = prefix.with_suffix(".md")
+                if json_path.exists() or sheet_path.exists():
+                    raise ValueError("REVIEW_STALE: worksheet already exists; do not overwrite operator edits")
+                json_path.parent.mkdir(parents=True, exist_ok=True)
+                write_json(json_path, body)
+                sheet_path.write_text(worksheet, encoding="utf-8")
+                result = {"status": "UNREVIEWED_TEMPLATE", "candidate_count": len(body["decisions"]),
+                          "review_template": str(json_path), "worksheet": str(sheet_path),
+                          "approved_facts": 0}
             else:
                 assert_document_action(args.root, mutation=True)
                 extractions = tuple(replay_extraction(_load(path, args.root), batch, args.root)
