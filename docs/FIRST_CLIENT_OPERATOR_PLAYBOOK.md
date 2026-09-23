@@ -60,8 +60,14 @@ python investigate.py documents review-template workspaces/CASE_ID/processed/doc
 `extract` sends approved source-unit content to the configured Codex service;
 it may be unavailable or take substantial time. The independent pass rereads
 the original sources without seeing the primary candidates. It currently
-compares complete source-local entity bundles and flags differences; it does
-not itself resolve them or certify report correctness. Keep extraction paths,
+compares complete source-local entity bundles, shows exact field/value deltas
+and separately reports disagreements in ledger-material fields. An advisory
+difference still needs internal reconciliation before the final report; a
+material agreement is not proof that both model calls are correct. If a run
+stops on a malformed model quote, retain successful challenger extractions;
+the saved two passes can be recomputed without new model calls using
+`documents compare-independent-qa ROOT BATCH PRIMARY... --challenger-extractions CHALLENGER...`.
+The check does not itself certify report correctness. Keep extraction paths,
 source hashes, model/prompt versions and its QA receipt. The template starts
 with zero approved facts. Codex must inspect each original source, challenger
 disagreement and worksheet, verify role, lines, equipment, dates, amount basis,

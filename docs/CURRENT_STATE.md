@@ -3,13 +3,16 @@
 Current first-client decision: **NOT READY — SPECIFIC CRITICAL BLOCKERS**.
 Start with the [release audit](FIRST_CLIENT_RELEASE_AUDIT.md),
 [readiness plan](FIRST_CLIENT_READINESS_PLAN.md) and
+[internal autonomy/quality contract](AUTONOMOUS_SERVICE_QUALITY.md), then the
 [operator playbook](FIRST_CLIENT_OPERATOR_PLAYBOOK.md) for the active
 `release/first-rental-client-pilot` draft PR #5 stacked on PR #4. The
-independent eight-document source-to-report run, blind HOLDOUT and actual
-operator rehearsal remain open.
+eight-document source-to-report run, blind HOLDOUT and actual operator
+rehearsal remain open. The eight-source DEV intake/extraction and separate
+source reread now exist, but they are not an approved report.
 
-AGAINWARD is a local-first, evidence-grounded investigation toolkit for Codex
-and deterministic Python. The current commercial focus is Rental B2B: contracts,
+AGAINWARD is an asynchronous B2B analysis/advisory service whose internal
+production uses Codex and deterministic Python. The current commercial focus
+is Rental B2B: contracts,
 rates, invoices, returns, credits, correspondence and exports. Energy remains an
 actively protected compatibility domain. This is **not** an automatic invoice
 recovery service, a complete OCR system or a certified financial decision.
@@ -29,7 +32,9 @@ Real-client order: contract authority → copy bytes to `incoming/` → Codex's
 first substantive privacy review → bounded Python privacy post-check →
 hash/version-bound `privacy_manifest.json` approving analysis → approved
 `sanitized/` sources → document inventory/readers → source-bound proposals →
-explicit fact/link review → Rental calculations → human review/delivery.
+independent original-source reread → internal fact/link investigation and
+adversarial QA → Rental calculations → finished report → short human final
+review/delivery approval.
 Uninspectable visual components and high-risk data STOP; neither PDF format nor
 ordinary professional contact data alone is a STOP. A visual `HUMAN` JSON role
 is an attestation, not authenticated identity. Business confidentiality is
@@ -60,8 +65,9 @@ python run_document_benchmark.py --help
 
 `againward` (installed project script) and `python investigate.py` share the
 package CLI. Its `documents` subcommands are `inventory`, `inspect`,
-`extract`, `review-template`, `validate`, `promote`, `link-review-template`
-and `package-rental`; they require approved source state and supplied reviews.
+`extract`, `independent-qa`, `compare-independent-qa`, `review-template`,
+`visual-fact-attest`, `validate`, `promote`, `link-review-template` and
+`package-rental`; they require approved source state and supplied reviews.
 The general `investigate.py` path still defaults to Energy and Rental expects
 canonical extraction JSON; it is **not** a raw multi-PDF automatic extractor.
 `manage_investigation.py`, `query_evidence.py` and `analyze.py` keep Energy-era
@@ -83,16 +89,20 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
   `rnd/rental-privacy-repo-hardening` PR #4 → first-client draft PR #5, all
   unmerged at this checkpoint. Verify live status before further work.
 - The routing-only baseline had zero semantic recall. A real Codex CLI model
-  has now submitted DEV/ADVERSARIAL proposals, but the frozen v1 runs lacked
-  complete material entities; a tuned v3 two-PDF technical probe reached a
-  source-linked ledger without human delivery approval. See
+  submitted DEV/ADVERSARIAL proposals; frozen v1 runs lacked complete material
+  entities. The v7 eight-source DEV dossier has 8/8 validated proposals,
+  6/6 structurally complete material entities and a separate source reread:
+  6/8 strict source differences, 0/8 declared ledger-material differences.
+  No report accuracy, human-correction rate or blind performance is measured.
+  A prior two-PDF technical probe reached a source-linked ledger without human
+  delivery approval. See
   [semantic evaluation](SEMANTIC_EXTRACTION_EVALUATION.md) and
   [E2E validation](FIRST_CLIENT_E2E_VALIDATION.md). Neither proves first-client
   readiness or an independently blind holdout.
-- Before a first real client: accountable visual-review operation and retention
-  authority; a real source-to-fact proposal/review pilot with varied vendor
-  layouts; calibrated entity/blocking and financial evidence quality;
-  resolution of unsupported temporal/credit semantics and review burden.
+- Before a first real client: genuine accountable scan/final review; a complete
+  model-driven source-to-report run, independent outcome challenge and measured
+  autonomy/coverage/cost; verified business/privacy/provider authority;
+  calibrated entity, financial and report quality on varied vendor layouts.
   Privacy clearance alone does not satisfy these.
 
 Preserve source and derivative hashes, privacy/reviewer versions, complete

@@ -1,4 +1,50 @@
-# Semantic extraction evaluation — real DEV participant, not a release result
+# Semantic extraction evaluation — real model, incomplete release evidence
+
+## Current checkpoint (2026-09-23)
+
+The current Rental guidance is v7. On the published, agent-authored
+[eight-source DEV dossier](../benchmarking/first_client_dossier.py), a real
+`gpt-6-sol` primary run from ordinary PDF, scanned PDF, EML and XLSX bytes
+returned **8/8 validated source proposals, 162 candidate facts and 6/6
+structurally complete material entities**. This counts field presence and
+enum shape, not approved facts, correct links, financial findings or report
+accuracy. The local primary source batch is
+`batch-919a3f56396ed854a77522d4231e82ad1a601436b5669b43bc5dd300de57919a`
+under ignored `scratch/first_client_e2e_dossier/runtime_v7/documents/`.
+The generator produced identical eight source hashes in two separate local
+runs, but its private expected values are known to the implementation agent;
+this is not a blind HOLDOUT.
+
+The new `documents independent-qa` command made eight separate original-source
+model calls without passing primary candidates to the challenger. Its first
+attempt failed closed on an invalid/nonunique quote; a bounded one-retry
+validator-preserving change then completed eight challenger proposals (all
+eight calls succeeded on the relaunch). An entity-level comparison found
+strict differences on **6/8 sources**, but **0/8 disagreements in the
+declared ledger-material fields**. The six advisory differences are chiefly
+value-type labels, an omitted supporting agreement reference, alternate
+category/item labeling on the return, an invoice date, and an optional invoice
+billing unit. The challenger is the same model family and can share omissions;
+agreement is diagnostic, not an independently adjudicated correctness rate.
+The replayable comparison receipt is ignored local
+`scratch/first_client_e2e_dossier/runtime_v7/documents/independent_qa/2c5f13833f0f2fc770d196a3a8cf9928d81c113c5ff2d1300f339965ce6fbda6.json`.
+No fact, scan, link, finding or report has been approved by a real operator.
+Processing time/cost and human corrections are not yet end-to-end measured.
+
+Historical v1 and v3 results below are retained for before/after context;
+they are not directly comparable as a single frozen blind evaluation.
+
+The prior clean v3 participant benchmark, before v4–v7 Rental guidance,
+processed 20 DEV cases / 51 documents and 20 ADVERSARIAL cases / 51 documents.
+Both returned 60/60 exact matches on the narrow agreement/asset/original-rate
+annotations. DEV had 23/43 structurally complete material entities and seven
+schema-invalid billing PDFs; ADV had 23/44 complete and six schema-invalid
+billing PDFs. The frozen observation SHA-256 values are respectively
+`0b9b3192dd6766bab1348930ac049e75a2f2832a09bf4ffe175ee1b641377ff4`
+and `2020f6906cd30525f5cbb130dd161b6df098f99ea7757b2e8202973159878893`.
+Finding precision/recall are **null**, because neither run made reviewed
+financial findings. The v7 eight-source result is a targeted remediation
+probe, not a substitute for a fresh varied DEV/ADV or blind holdout score.
 
 Baseline at clean `70f187e`: DEV seed 7421 and ADVERSARIAL seed 19341 each had
 zero semantic submissions, TP 0 / FP 0 / FN 6 / TN 14 and annotated-field
@@ -18,11 +64,11 @@ deterministic proposal validator. A missing/ambiguous quote fails. An unexplaine
 normalization is flagged for review, never auto-approved. No model output becomes
 a canonical fact, entity match, privacy decision or client claim by itself.
 
-The frozen DEV/ADVERSARIAL participant used Codex CLI 0.155.1, `gpt-6-sol`,
+The frozen initial DEV/ADVERSARIAL participant used Codex CLI 0.155.1, `gpt-6-sol`,
 low reasoning effort, prompt `againward-source-facts-v1`, extractor
 `codex-cli-source-units-v1`, and Rental guidance
-`rental-semantic-guidance-v1`. The current remediation uses prompt v3 and
-Rental guidance v3; its guidance hash is part of the replayed prompt version.
+`rental-semantic-guidance-v1`. Later remediation uses prompt v3 and
+Rental guidance v7; its guidance hash is part of the replayed prompt version.
 `codex login status` reports ChatGPT subscription login on this device;
 there is no API-key fallback in this adapter. [Official OpenAI authentication
 documentation](https://learn.chatgpt.com/docs/auth) distinguishes ChatGPT

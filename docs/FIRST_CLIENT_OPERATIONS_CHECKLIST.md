@@ -29,10 +29,13 @@ the particular client and retain the signed/source version outside Git.
 - [ ] Set and review the case retention/purge date and authorized retained paths.
   Confirm backup deletion behavior, interrupted-transaction recovery and a
   documented incident/escalation contact before real data arrives.
-- [ ] Name the person who will inspect every scan/hybrid page, review critical
-  model facts and entity links, adversarially review every positive financial
-  claim and approve the exact final PDF/evidence hashes. The local `actor_id`
-  is a claim, not identity authentication.
+- [ ] Name the person who will inspect the scan/hybrid components actually
+  required by privacy and visual-fact policy and briefly review/approve the
+  finished PDF, exception summary and exact evidence hashes. Internal Codex
+  must verify ordinary facts, links, each positive financial claim and report
+  completeness; the founder is not the routine fact-checker or report writer.
+  Escalate genuine unresolved material exceptions. The local `actor_id` is a
+  claim, not identity authentication.
 - [ ] Rehearse the independent synthetic eight-document folder on the intended
   device, including a scan, a credit and an ambiguity; record real human minutes
   and STOP decisions. Scripted tests do not satisfy this item.
@@ -63,4 +66,5 @@ Software can verify hashes, provenance, candidate syntax, arithmetic,
 privacy-policy decisions, review completeness and delivery artifact integrity.
 It cannot verify legal permissions, actual human attention, provider terms,
 secure transfer or recoverability. These require owner evidence before any
-`READY FOR LIMITED HUMAN-SUPERVISED FIRST CLIENT` declaration.
+`READY FOR CONTROLLED FIRST CLIENT` declaration. A passing software suite
+also does not establish the [99%/95% autonomy targets](AUTONOMOUS_SERVICE_QUALITY.md).

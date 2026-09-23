@@ -32,28 +32,53 @@ replays source hashes, prepares the Rental investigation and revalidates the
 EUR 150.00 ledger. This fixture uses manually supplied semantic annotations;
 it is **not** model accuracy or human rehearsal evidence.
 
+## Eight-source model checkpoint — still not source-to-report
+
+A reproducible DEV generator now exists at
+[`benchmarking/first_client_dossier.py`](../benchmarking/first_client_dossier.py).
+It emits an accepted agreement, duplicate rate sheet, two issued invoices, an
+issued allocated credit, one raster signed return, a supplier off-hire email
+and a mirror-only accounting XLSX. Its source files are not canonical JSON.
+The expected EUR 150.00 potential LIFT-5 discrepancy and EUR 0.00 LIFT-50
+non-discrepancy are agent-authored private generator truth, not blind accuracy
+evidence. The public source bytes were regenerated twice with identical
+SHA-256 values. The current v7 source extractor validated 8/8 proposals,
+162 source-backed candidate facts and 6/6 structurally complete material
+entities. It approved **zero** facts. A blind second source reread found
+6/8 exact entity-bundle differences; a narrower ledger-material projection
+found 0/8 disagreements, with the same-model-family caveat. The initial QA
+call failed safely on a bad quote before the bounded retry path was added.
+See [semantic evaluation](SEMANTIC_EXTRACTION_EVALUATION.md) for the receipt.
+
+This is substantial intake/extraction evidence, but still **not** a complete
+privacy-cleared source-to-ledger-to-report demonstration. The private truth is
+known to the agent; the case has no independent outcome adjudication, no real
+visual attestation, no approved report and no measured human-correction rate.
+
 ## Missing integrated proof
 
-The required independent eight-or-more-document folder does not yet exist as
-a stable source-backed sample. In particular, a genuine operator has not
-visually inspected a raster scan, resolved an ambiguity, approved every
-positive claim, or signed the final PDF/evidence hashes. The real Codex model
-has not been challenged through the complete eight-document privacy-first
-workflow. No measured receipt-to-report time, token cost, human labor or
-sample client PDF exists. Source/report mutation, supplemental privacy
-clearance, WAIT/RESUME and clean repeat still need to be demonstrated on that
-same dossier. Those are Gate A/B blockers, not inferred passes from unit tests.
+The generator is committed, but a genuine operator has not visually inspected
+the raster scan or signed the final PDF/evidence hashes. Internal Codex still
+needs to reconcile advisory differences, prepare source-backed fact/link
+decisions, run the Rental ledger and Evidence Plane, write and adversarially
+check the report, and demonstrate minimal founder correction burden. No
+receipt-to-report time, token cost, actual human labor or sample client PDF
+exists. Source/report mutation, supplemental privacy clearance, WAIT/RESUME
+and a clean repeat still need demonstration on this dossier. A separate blind
+outcome challenge is also missing. These are Gate A/B blockers.
 
 ## Required next rehearsal, in order
 
-1. Generate and freeze one coherent eight-document synthetic dossier with
-   accepted rates, two invoices, issued credit, raster return, email and
-   spreadsheet, including a discrepancy and a confusing non-discrepancy.
-2. Run the [operator playbook](FIRST_CLIENT_OPERATOR_PLAYBOOK.md) from a fresh
+1. Freeze the current generated eight-document source hashes and record its
+   known-truth status. Challenge a genuinely new independent dossier before
+   claiming generalization.
+2. Run the [internal analyst playbook](FIRST_CLIENT_OPERATOR_PLAYBOOK.md) from a fresh
    workspace, recording exact source/extraction/review/package/report hashes
    and machine/model/human time separately.
-3. Have the owner or named operator perform the visual, semantic, link,
-   finding and PDF review personally. Preserve STOP on unreviewed components;
+3. Have Codex perform ordinary semantic, link, finding and report review;
+   measure corrections and independent QA catches. Have the owner or named
+   operator inspect only the required scan pixels and briefly approve the
+   finished PDF/exception pack. Preserve STOP on unreviewed visual components;
    no generated `HUMAN` assertion counts as that action.
 4. Challenge mutations, recovery, supplemental intake and a second clean run;
    record whether each invalidates approval or reproduces the result.

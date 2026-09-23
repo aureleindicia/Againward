@@ -46,7 +46,7 @@ and state the limitation. Keep all response-schema field names and types exact.
 # claim that other source details are irrelevant to the final report.
 MATERIAL_FIELDS = {
     "RENTAL_SCOPE": {"entity_kind", "document_role", "document_status", "agreement_id",
-                     "supplier_id", "client_id", "asset_id", "serial_number", "start", "end",
+                     "supplier_id", "client_id", "asset_id", "serial_number", "description", "start", "end",
                      "quantity", "rate", "currency", "charge_key", "charge_type", "billing_unit",
                      "weekends_billable", "minimum_days", "partial_period_policy", "stop_event",
                      "stop_day_billable", "discount_fraction"},
