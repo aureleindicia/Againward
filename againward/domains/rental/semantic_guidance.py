@@ -1,6 +1,6 @@
 """Rental interpretation vocabulary supplied to a neutral source-unit provider."""
 
-GUIDANCE_VERSION = "rental-semantic-guidance-v3"
+GUIDANCE_VERSION = "rental-semantic-guidance-v4"
 
 
 def guidance() -> str:
@@ -11,6 +11,14 @@ separate entity IDs for separate invoice lines, rental scopes or returns; IDs
 are local to this source and never establish a cross-document relationship.
 For each source include source-backed document_role and document_status for
 each material entity. Do not infer ACCEPTED from mere existence of a quote.
+document_role is the document type, NOT entity_kind or a free-form label. Use
+only RENTAL_AGREEMENT, RATE_CARD, QUOTE, PURCHASE_ORDER, AMENDMENT, INVOICE,
+CREDIT_NOTE, DELIVERY_NOTE, RETURN_NOTE, OFF_HIRE_NOTICE, EMAIL_EVIDENCE,
+ASSET_LIST, PAYMENT_EXPORT, TEXT_NOTE, UNKNOWN or IRRELEVANT. Thus a signed
+agreement's RENTAL_SCOPE has document_role RENTAL_AGREEMENT, an invoice line
+has INVOICE, an issued credit has CREDIT_NOTE, and a signed return has
+RETURN_NOTE. The same source must have one consistent role/status across its
+entities. Never use RENTAL_SCOPE, CREDIT or RETURN as document_role.
 
 Allowed analytical semantic_type fields: entity_kind, document_role,
 document_status, agreement_id, supplier_id, client_id, item_id, description,
@@ -42,6 +50,28 @@ ACCEPTED/PROPOSED/VOID/EXTRACTED. Explain every normalized enum in
 normalization_notes with the exact local wording. Do not assert ACCEPTED
 agreement status from a mere quote or proposal. Keep decimal quantities as
 exact strings when the source uses decimals; do not derive billed units.
+IDENTIFIER values (especially invoice_line_id) must be safe IDs without spaces.
+For "Line 1", use invoice_line_id "1" with raw quote "Line 1" and an explicit
+normalization note; never use "Line 1" as an IDENTIFIER value. If no stable
+line ID is printed, leave it absent rather than inventing one.
+For a CREDIT, distinguish net_amount (the total issued credit) from an
+allocation. Use status ISSUED only if issued, or PROMISED if merely promised.
+Include credit_id, supplier_id, currency, net_amount and source-supported
+invoice/line reference when printed. Only emit allocated_amount for an
+explicitly PARTIAL allocation smaller than net_amount; a full allocation is
+represented by the invoice/line link, not a duplicate amount field. Never
+turn a mirrored export row into a second issued credit or invoice charge.
+For a RETURN, include event_type RETURNED, date, quantity and verification
+DOCUMENTED only when this source is a signed/accepted physical-return record.
+An email requesting off-hire is OFF_HIRE_REQUESTED with verification DECLARED;
+its mention of a different return record is not proof of physical return.
+Use asset_id or serial_number only when supported by this source. A return
+note saying one unit remains on hire does not create a new RENTAL_SCOPE;
+only an accepted agreement or accepted amendment defines a rental scope.
+Likewise, a rate card that only corroborates an existing agreement does not
+create a second independent hire, and an accounting export marked mirror-only
+does not create a new invoice. Classify corroborating source content without
+inventing financial occurrences; the operator decides cross-document links.
 An invoice without the contract's daily rate or stop clause is a normal
 separate document, not an extraction limitation. Keep such absent fields
 absent; only report a limitation when this source itself is unreadable,

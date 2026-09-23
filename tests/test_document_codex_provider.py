@@ -10,6 +10,8 @@ from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
+from againward.domains.rental.models import DOCUMENT_ROLES
+from againward.domains.rental.semantic_guidance import guidance
 
 
 def _source(tmp_path: Path, content="Invoice INV-9: net EUR 850.00."):
@@ -103,6 +105,30 @@ def test_invalid_model_identifier_fails_with_candidate_index(tmp_path):
     raw["candidates"][0]["entity_id"] = "line with spaces"
     with pytest.raises(DocumentError, match="Candidate 1 entity_id"):
         assemble_proposal(raw, document, parsed, batch.batch_id, "gpt-6-sol")
+
+
+def test_rental_guidance_names_every_canonical_document_role():
+    instructions = guidance()
+    assert all(role in instructions for role in DOCUMENT_ROLES)
+    assert 'invoice_line_id "1"' in instructions
+
+
+def test_invoice_line_label_requires_explicit_safe_identifier(tmp_path):
+    root, batch, document, parsed = _source(tmp_path, "Line 1 - net EUR 850.00.")
+    raw = _raw(parsed.units[0].location, "850.00")
+    line = dict(raw["candidates"][0], semantic_type="invoice_line_id",
+                value_type="IDENTIFIER", value="Line 1", raw_observed_value="Line 1",
+                normalization_notes="")
+    raw["candidates"] = [line]
+    with pytest.raises(DocumentError, match="EXTRACTION_SCHEMA_INVALID"):
+        validate_proposal(assemble_proposal(raw, document, parsed, batch.batch_id,
+                                           "gpt-6-sol"), batch, root)
+    line["value"] = "1"
+    line["normalization_notes"] = "Printed line label normalized to its exact number."
+    result = validate_proposal(assemble_proposal(raw, document, parsed, batch.batch_id,
+                                                 "gpt-6-sol"), batch, root)
+    assert result.candidates[0].value == "1"
+    assert result.candidates[0].raw_observed_value == "Line 1"
 
 
 @pytest.mark.parametrize("stderr,code", [
