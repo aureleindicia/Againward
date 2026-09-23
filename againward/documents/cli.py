@@ -33,6 +33,12 @@ def main(argv: list[str] | None = None) -> int:
     inspect = commands.add_parser("inspect", help="Native source units and multimodal needs")
     inspect.add_argument("root", type=Path)
     inspect.add_argument("batch", type=Path)
+    extract = commands.add_parser("extract", help="Opt-in Codex source-grounded proposals; no approval")
+    extract.add_argument("root", type=Path)
+    extract.add_argument("batch", type=Path)
+    extract.add_argument("--model", required=True)
+    extract.add_argument("--source-id")
+    extract.add_argument("--timeout-seconds", type=int, default=180)
     validate = commands.add_parser("validate", help="Validate and store a supplied model/analyst proposal")
     validate.add_argument("root", type=Path)
     validate.add_argument("batch", type=Path)
@@ -52,6 +58,29 @@ def main(argv: list[str] | None = None) -> int:
             if args.command == "inspect":
                 result = {"batch_id": batch.batch_id,
                           "documents": [d.to_dict() for d in read_batch(batch, args.root)]}
+            elif args.command == "extract":
+                from againward.documents.codex_provider import CodexCliProvider
+                from againward.domains.rental.semantic_guidance import guidance
+                from .readers import read_document
+                provider = CodexCliProvider(args.root, model=args.model,
+                                            timeout_seconds=args.timeout_seconds)
+                selected = [d for d in batch.documents
+                            if args.source_id is None or d.source_id == args.source_id]
+                if not selected:
+                    raise ValueError("Source ID absent from current batch")
+                entries = []
+                for document in selected:
+                    parsed = read_document(document, args.root)
+                    proposal = provider.propose(document, parsed,
+                                                {"batch": batch, "semantic_guidance": guidance()})
+                    extraction = validate_proposal(proposal, batch, args.root)
+                    path = persist_extraction(extraction, args.root)
+                    entries.append({"source_id": document.source_id, "status": extraction.status,
+                                    "candidate_count": len(extraction.candidates),
+                                    "extraction_path": str(path),
+                                    "limitations": list(extraction.limitations)})
+                result = {"batch_id": batch.batch_id, "model": args.model,
+                          "approved_facts": 0, "extractions": entries}
             elif args.command == "validate":
                 extraction = validate_proposal(_load(args.proposal, args.root), batch, args.root)
                 path = persist_extraction(extraction, args.root)
