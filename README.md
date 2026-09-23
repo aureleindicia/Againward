@@ -1,5 +1,10 @@
 # AGAINWARD — investigations Energy et Rental sur preuves
 
+**Nouveau lecteur :** commencer par [l'état actuel](docs/CURRENT_STATE.md)
+et [l'index documentaire](docs/README.md). Les PDF Rental natifs ont désormais
+un contrôle privacy direct ; les scans demandent une inspection visuelle liée
+au hash, et la clearance ne vaut pas extraction sémantique ni approbation client.
+
 AGAINWARD partage un noyau d'investigation entre **Energy** (performance énergétique)
 et **Rental** (rapprochement de locations, contrats, factures, retours et avoirs).
 Rental est générique ; `construction` est son premier profil facultatif de vocabulaire

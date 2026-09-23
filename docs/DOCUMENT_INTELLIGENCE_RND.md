@@ -1,5 +1,14 @@
 # Document intelligence R&D — active work
 
+Continuation (2026-09-23): stacked branch `rnd/rental-privacy-repo-hardening`
+and draft PR #4 add native PDF privacy inspection, scan/hybrid human-review
+binding, Rental B2B risk separation, and a 19-case synthetic privacy benchmark
+(11 ordinary accepted, eight unsafe rejected, 0 false blocks, 0 unsafe passes).
+See [Rental privacy architecture](RENTAL_PRIVACY_ARCHITECTURE.md) and
+[benchmark limits](RENTAL_PRIVACY_BENCHMARKS.md). These are policy-routing
+results, not semantic recall. The independent document benchmark remains at
+zero recall without supplied source-grounded proposals.
+
 Mission specification: AGAINWARD Giga Goal, read in full on 2026-09-21.
 SHA-256: aaba6c33d9986878e8841ce3b7e98a47da8a8f3d397e733f3d913f25cb611378.
 This report records experiments and unfinished work; it is not an acceptance claim.

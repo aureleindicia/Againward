@@ -29,3 +29,13 @@ scripted test attestations. The `HUMAN` role in a review JSON is not an
 authenticated identity; a real reviewer must inspect every required visual
 component and stop when that is not possible. The separate document-intelligence
 benchmark still reports zero semantic recall without independent proposals.
+
+Adversarial review: a routine signed or scanned return note is the strongest
+ordinary false-block candidate. It passes with complete component review, but
+without it the gate intentionally returns `PARTIAL_DOCUMENT_INSPECTION`; this
+may cost reviewer time, not justify a bypass. A secret hidden in native PDF
+metadata is the strongest machine-inspectable unsafe-pass candidate; the
+regression blocks it. A medical image falsely attested as clean is **not**
+detectable by the present code: accountable visual review is a real operational
+condition, not a benchmark score. A sanitized residential address surviving
+unlabelled in PDF metadata is covered by an additional adversarial regression.

@@ -52,6 +52,9 @@ _MEDICAL = re.compile(r"(?i)\b(?:arr[eê]t maladie|diagnostic m[eé]dical|medica
 _HR_SENSITIVE = re.compile(r"(?i)\b(?:sanction disciplinaire|avertissement rh|licenciement|entretien disciplinaire|plainte harc[eè]lement|[eé]valuation individuelle|disciplinary action|personnel file)\b")
 _IDENTITY_DOCUMENT = re.compile(r"(?i)\b(?:passport(?: number| scan| copy)?|passeport|carte (?:nationale )?d.identit[eé]|identity card|driver.s license copy)\b")
 _RESIDENTIAL_ADDRESS = re.compile(r"(?i)\b(?:home address|residential address|adresse personnelle|adresse du domicile)\b")
+_RESIDENTIAL_ADDRESS_VALUE = re.compile(
+    r"(?i)\b(?:home address|residential address|adresse personnelle|adresse du domicile)\s*[:\-]\s*([^\r\n.;]{4,120})"
+)
 _HARD_PRIVACY_CATEGORIES = frozenset({"MEDICAL_DATA", "HR_SENSITIVE", "IDENTITY_DOCUMENT", "UNRELATED_PERSONAL_RECORD"})
 _PSEUDONYM = re.compile(r"^(?:OPERATOR|TECHNICIAN|EMPLOYEE|PERSON|WORKER|STAFF|ID)_[0-9A-F]{3,32}$", re.I)
 _SAFE_CODE = re.compile(r"^[A-Z][A-Z0-9_]{1,63}$")
@@ -553,6 +556,8 @@ def _assert_pdf_redaction(original_scan: dict[str, Any], residual_scan: dict[str
             email = _EMAIL.search(before, label.end(), min(len(before), label.end() + 120))
             if email is not None:
                 forbidden.add(email.group(0))
+    if "RESIDENTIAL_ADDRESS" in removed:
+        forbidden.update(match.group(1).strip() for match in _RESIDENTIAL_ADDRESS_VALUE.finditer(before))
     if "AUTHENTICATION_SECRET" in removed:
         for pattern in _SECRET_PATTERNS:
             for match in pattern.finditer(before):

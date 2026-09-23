@@ -1,5 +1,9 @@
 # Organisation du dépôt et des dossiers clients
 
+État actif et limites : [CURRENT_STATE.md](CURRENT_STATE.md). Index des documents :
+[README.md](README.md). Les audits `stage4_*`, `*_202609*` et rapports Goal
+restent des preuves historiques, pas des points d'entrée actuels.
+
 Cette convention garde le dépôt publiable sur GitHub tout en isolant les cas réels. Le moteur ne
 dépend d’aucun chemin Android ; `/storage/emulated/0/Download` peut servir de source de réception,
 jamais de dépendance codée en dur.
@@ -29,6 +33,19 @@ Pour la branche documentaire active, commencer par
 `docs/REAL_WORLD_DOCUMENT_ARCHITECTURE.md`, `docs/ENTITY_RESOLUTION.md` et
 `docs/DOCUMENT_INTELLIGENCE_RND.md`. Le dernier distingue preuves obtenues et
 travail encore nécessaire ; l'existence d'un module n'est pas une validation client.
+
+## Scripts racine — statut vérifié
+
+| Catégorie | Scripts | Usage |
+|---|---|---|
+| Point d'entrée canonique | `investigate.py` (alias de `againward.cli`), `create_workspace.py`, `intake_client_case.py` | Investigation et dossiers réels ; respecter contrat et privacy avant lecture métier. `investigate.py documents` est l'entrée des sources approuvées. |
+| Compatibilité | `analyze.py`, `manage_investigation.py`, `query_evidence.py`, `generate_demo.py` | Interfaces Energy/legacy encore testées ; ne pas en faire de nouveaux propriétaires Rental. |
+| Runners de benchmark | `run_rental_privacy_benchmark.py`, `run_rental_benchmark.py`, `run_document_benchmark.py`, `run_physical_benchmark.py`, `run_signal_intelligence_benchmark.py`, `run_minimal_attribution_benchmark.py`, `run_stage4_performance.py`, `run_stage4_shadow.py`, `prepare_stage4_model_benchmark.py` | Données synthétiques et preuves R&D ; résultats distincts des analyses client. |
+| Utilitaires spécialisés/historiques | `client_intake_pipeline.py`, `client_delivery.py`, `deliver_client_report.py`, `operational_economics.py`, `pilot_learning.py`, `report_design.py`, `value_map.py` | Modules/CLI de workflows antérieurs ; inspecter le cycle applicable avant usage et ne pas supposer un point d'entrée Rental canonique. |
+
+Ce classement indique l'usage actuel, pas une autorisation d'utiliser une
+commande avant clearance. Le package `againward/` reste propriétaire des
+frontières communes ; les calculs et rapports historiques ne sont pas supprimés.
 
 ## Workspace standard réel
 

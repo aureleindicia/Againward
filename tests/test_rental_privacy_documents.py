@@ -213,6 +213,21 @@ def test_pdf_redaction_cannot_hide_removed_email_in_metadata(tmp_path):
                   categories=[_category("PERSONAL_EMAIL", "REMOVED")])
 
 
+def test_pdf_redaction_cannot_hide_residential_address_value_in_metadata(tmp_path):
+    case = rental_case(tmp_path)
+    pdf(case / "incoming/invoice.pdf", ["Invoice INV-7. Net EUR 700.00.",
+                                        "Residential address: 5 Example Street."])
+    candidate = case / "privacy/candidate/invoice.pdf"
+    pdf(candidate, ["Invoice INV-7. Net EUR 700.00."])
+    metadata(candidate, "5 Example Street")
+    spec = _file_spec("incoming/invoice.pdf", action="SANITIZED",
+                      sanitized="privacy/candidate/invoice.pdf",
+                      transformations=[_transform("RESIDENTIAL_ADDRESS", "REMOVED")])
+    with pytest.raises(ValueError, match="SANITIZATION_FAILED"):
+        clearance(case, "invoice.pdf", spec=spec, status="SANITIZED",
+                  categories=[_category("RESIDENTIAL_ADDRESS", "REMOVED")])
+
+
 def test_irrelevant_residential_address_needs_minimization(tmp_path):
     case = rental_case(tmp_path)
     pdf(case / "incoming/invoice.pdf", ["Invoice INV-7. Net EUR 700.00.",
