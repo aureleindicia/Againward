@@ -16,6 +16,8 @@ def main() -> None:
     score = commands.add_parser("score")
     score.add_argument("corpus", type=Path)
     score.add_argument("run", type=Path)
+    audit = commands.add_parser("audit")
+    audit.add_argument("run", type=Path)
     args = parser.parse_args()
     if args.action == "run":
         from benchmarking.semantic_participant import run_semantic_participant
@@ -23,9 +25,13 @@ def main() -> None:
                                           model=args.model, timeout_seconds=args.timeout_seconds)
         view = {"split": result["split"], "cases": len(result["cases"]),
                 "model": result["model"], "engine": result["engine"]}
-    else:
+    elif args.action == "score":
         from benchmarking.semantic_scoring import score_semantic_candidates
         result = score_semantic_candidates(args.corpus, args.run)
+        view = result["metrics"]
+    else:
+        from benchmarking.semantic_preflight import audit_semantic_preflight
+        result = audit_semantic_preflight(args.run)
         view = result["metrics"]
     print(json.dumps(view, indent=2))
 

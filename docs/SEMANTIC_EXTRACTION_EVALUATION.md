@@ -1,4 +1,4 @@
-# Semantic extraction evaluation — real participant, not yet a release result
+# Semantic extraction evaluation — real DEV participant, not a release result
 
 Baseline at clean `70f187e`: DEV seed 7421 and ADVERSARIAL seed 19341 each had
 zero semantic submissions, TP 0 / FP 0 / FN 6 / TN 14 and annotated-field
@@ -66,3 +66,84 @@ prompt and policy before a truly independent HOLDOUT; because the generating
 repository is accessible to the implementation agent, a separate restricted
 context or external reviewer is necessary to claim blindness. Until then,
 HOLDOUT remains **OPEN** and Gate A cannot pass.
+
+## Frozen real DEV run, observed 2026-09-23
+
+The actual `gpt-6-sol` participant completed all 20 DEV case folders / 51
+ordinary source documents on frozen clean HEAD
+`53f9fd80ddaa4f7d22491c449e716e6bf09e5824`, split seed 7421. Its
+observation SHA-256 is
+`ce59c6ee304fcb7ba6a3f43dce4add13a07683f247e99fcd2a297f7d4f60b4d6`.
+After the observation file was frozen, the private scorer found 60/60 exact
+annotated fields and 1.0 precision **within those annotations only**. The
+annotations are just agreement ID, asset ID and original rate on the main
+commercial document (three per case). They do **not** score invoice net amount,
+dates, return trigger, credit allocation, governing clause, entity links or
+financial outcome. Seven of 51 document submissions abstained due to
+`EXTRACTION_SCHEMA_INVALID`; 33 had status `NEEDS_REVIEW` and 11 `PARTIAL`.
+There were 695 candidate facts, 365 carrying at least one ambiguity flag.
+Model wall time summed to 1,910.65 seconds for the 51 documents (median 34.98
+seconds per document, 90th observed rank 54.8 seconds); this excludes human
+review, privacy intake and end-to-end report work. Token usage and monetary
+cost were not exposed by the participant receipt and are **unmeasured**.
+
+An additional post-run structural audit, which does **not** use private truth
+or approve any fact, found 43 material entity proposals and **0/43** meeting
+the conservative pilot field/enum checklist. Missing `charge_key` and
+`charge_type` each affected 40 entities; 25 billing-unit values and 23 stop
+trigger values used noncanonical enums. This is why 60/60 is not even close to
+a working source-to-ledger success claim. The observed straightforward invoice
+had correct source-bound net amount but omitted both charge fields; the
+contract used a free-text billing unit and `CONTRACTUAL_END` instead of the
+supported `DAY`/`CONTRACT_END`. Downstream would STOP, not silently guess.
+
+Raw immutable artifacts are in ignored `scratch/semantic_dev_run/` and
+`scratch/semantic_dev_corpus/` of the detached validation worktree. Reproduce
+the scorer with `python run_semantic_benchmark.py score CORPUS RUN` once per
+fresh observation; the preflight with `python run_semantic_benchmark.py audit
+RUN`. Do not overwrite the scored run. The later guidance/prompt update to v3
+is a **separate remediation**, not part of this frozen result. No HOLDOUT exists.
+
+The matching frozen ADVERSARIAL run (seed 19341, same clean HEAD and v1
+participant) completed 20 case folders / 51 source documents. It found
+**33/60** exact annotated commercial fields (0.55 recall within the same
+three-field annotation scope) and 28 document abstentions. Of those, 22 were
+`MODEL_UNAVAILABLE`, five `EXTRACTION_SCHEMA_INVALID` and one
+`SOURCE_LOCATION_INVALID`. All 22 unavailable calls ended in 3.0–3.9 seconds,
+while successful calls had a 45.2-second median; this points to an invocation
+or service availability failure, but the old participant did not retain a safe
+diagnostic category, so its exact cause is unknown. A subsequent minimal
+Codex call succeeded; do not reinterpret the frozen run as if it had succeeded.
+The other 23 documents produced 365 candidates, 183 flagged. Structural
+preflight found 22 material entities and **0/22** complete for the narrow
+pilot. Model time summed to 1,315.50 seconds across the run. Financial,
+entity-link and human-review metrics remain null/unmeasured. Raw observation,
+score and audit artifacts are in ignored `scratch/semantic_adv_run/` in the
+detached validation worktree. ADV is a challenge of the old frozen v1 prompt,
+not evidence that v3 generalizes. A fresh v3 DEV/ADV comparison and an
+independent blind HOLDOUT are still required.
+
+## Targeted remediation probe, not a second benchmark
+
+The first DEV case's exact same commercial and invoice bytes were submitted
+again after updating Rental guidance and the base prompt to v3. The original
+v1 proposals lacked `charge_key`/`charge_type` on both entities and used
+unsupported free-text billing/stop enums on the agreement: **0/2** material
+entities met structural pilot preflight. V3 produced 21 agreement and 16
+invoice candidates with **2/2** structurally complete entities, canonical
+`DAY`/`CONTRACT_END`/`RENTAL` values, validated source spans and no
+extraction-level limitations. It still approved **zero** facts; 37 candidate
+decisions and cross-document links remain to be reviewed. This is one
+repeated synthetic case with prompt tuning, not a generalization score.
+
+The intermediate v2 run exposed a separate blocker: the model listed an
+ordinary invoice's lack of the contract's stop clause as a document
+limitation, which made the adapter STOP despite correct invoice facts. V3
+instructs the model to reserve extraction-level limitations for unreadable or
+ambiguous source-local content. The deterministic adapter still refuses any
+genuine unresolved limitation. Extracted prompt versions now include a hash of
+the Rental guidance; replay under changed guidance requires fresh extraction
+and fact review. One earlier attempt failed on an invalid model identifier;
+the response contract now specifies the accepted grammar and reports a
+candidate index without printing source content. All this must be challenged
+on independent varied documents before launch.

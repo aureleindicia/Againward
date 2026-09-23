@@ -7,6 +7,7 @@ import pytest
 from againward.documents.codex_provider import assemble_proposal
 from benchmarking.semantic_participant import run_semantic_participant
 from benchmarking.semantic_scoring import score_semantic_candidates
+from benchmarking.semantic_preflight import audit_semantic_preflight
 
 
 def test_participant_is_real_source_bound_but_never_approves(tmp_path, monkeypatch):
@@ -51,6 +52,7 @@ def test_private_semantic_scorer_uses_frozen_observations_and_null_financial_met
         "source_hashes": ["a" * 64], "documents": [{"source_sha256": "a" * 64,
             "status": "SUCCESS", "failure_code": None,
             "candidates": [{"source_id": "src-" + "a" * 64,
+                            "entity_id": "line-1", "ambiguity_flags": [],
                             "semantic_type": "rate", "value": "50.0"}]}],
     }}}
     raw_obs = json.dumps(observation).encode()
@@ -62,3 +64,10 @@ def test_private_semantic_scorer_uses_frozen_observations_and_null_financial_met
     assert result["metrics"]["supported_discrepancy_recall"] is None
     with pytest.raises(ValueError, match="overwritten"):
         score_semantic_candidates(corpus, run)
+    audit = audit_semantic_preflight(run)
+    assert audit["metrics"]["documents"] == 1
+    assert audit["metrics"]["candidates"] == 1
+    assert audit["metrics"]["unclassified_entities"] == 1
+    assert audit["metrics"].get("structurally_complete_entities", 0) == 0
+    with pytest.raises(ValueError, match="overwritten"):
+        audit_semantic_preflight(run)

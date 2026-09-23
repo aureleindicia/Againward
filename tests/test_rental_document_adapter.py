@@ -8,6 +8,7 @@ from againward.core.artifact_store import read_json, write_json
 from againward.core.workflow import prepare_investigation
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import SCHEMA, validate_proposal
+from againward.documents.codex_provider import EXTRACTOR_VERSION
 from againward.documents.readers import read_batch
 from againward.documents.sources import inventory_sources
 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
@@ -15,6 +16,7 @@ from againward.domains.rental.ingestion import build_evidence_dataset, load_rent
 from againward.domains.rental.reconciliation import reconcile
 from againward.domains.rental.workflow import current_calculations
 from againward.entrypoints import get_domain
+from againward.evidence.hashing import stable_hash
 
 
 CONTRACT = """Synthetic rental agreement A-781, accepted by VENDOR and CLIENT.
@@ -162,6 +164,18 @@ def test_reviewed_native_facts_resolve_to_exact_rental_ledgers_and_query_rows(tm
     assert any(r.get("raw_quote") == "850.00" for r in dataset.rows)
     assert all("/chars:" in ref.location for c in case.actual_charges for ref in c.evidence_refs)
     assert load_document_case(package, source.parent)[1] == lineage
+
+
+def test_changed_rental_model_guidance_requires_fresh_extraction_review(tmp_path):
+    source, package = packet(tmp_path)
+    stale = deepcopy(package)
+    extraction = stale["extractions"][0]
+    extraction["extractor_version"] = EXTRACTOR_VERSION
+    extraction["prompt_version"] = "old-unbound-guidance"
+    extraction["extraction_sha256"] = stable_hash({key: value for key, value in extraction.items()
+                                                   if key != "extraction_sha256"})
+    with pytest.raises(DocumentError, match="REVIEW_STALE"):
+        load_document_case(stale, source.parent)
 
 
 def test_lineage_integrates_with_kernel_and_inventory_tamper_invalidates_replay(tmp_path):

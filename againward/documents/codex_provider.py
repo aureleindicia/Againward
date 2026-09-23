@@ -6,6 +6,7 @@ review, or delivery authority. The caller still validates and reviews output.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import hashlib
 import json
 from pathlib import Path
 import shutil
@@ -17,12 +18,17 @@ from .contracts import DocumentError, SourceDocument, identifier, load_json, tex
 from .extraction import SCHEMA, proposal_context
 from .readers import ParsedDocument
 
-PROMPT_VERSION = "againward-source-facts-v1"
+PROMPT_VERSION = "againward-source-facts-v3"
 EXTRACTOR_VERSION = "codex-cli-source-units-v1"
 MAX_PROMPT_TEXT = 30_000
 MAX_UNITS = 300
 MAX_VISUAL_PAGES = 4
 MAX_IMAGE_BYTES = 8_000_000
+
+
+def prompt_version_for_guidance(guidance: str) -> str:
+    """Bind semantic instructions to extracted facts, not just the CLI wrapper."""
+    return PROMPT_VERSION + "-" + hashlib.sha256(guidance.encode("utf-8")).hexdigest()[:16]
 
 _OUTPUT_SCHEMA: dict[str, Any] = {
     "type": "object", "additionalProperties": False,
@@ -56,7 +62,8 @@ def _source_span(quote: str, unit_text: str) -> list[int]:
 
 
 def assemble_proposal(raw: dict[str, Any], document: SourceDocument,
-                      parsed: ParsedDocument, batch_id: str, model: str) -> dict[str, Any]:
+                      parsed: ParsedDocument, batch_id: str, model: str,
+                      *, prompt_version: str = PROMPT_VERSION) -> dict[str, Any]:
     """Turn model semantics into a closed, exact-source proposal; never correct it."""
     if set(raw) != {"status", "candidates", "limitations"}:
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Model output fields differ from response schema")
@@ -74,12 +81,23 @@ def assemble_proposal(raw: dict[str, Any], document: SourceDocument,
             raise DocumentError("SOURCE_LOCATION_INVALID", "Model cited a nonexistent unit")
         quote = text(row["raw_observed_value"])
         span = _source_span(quote, unit.text) if unit.route == "NATIVE" else None
-        identifier(row["entity_id"])
-        semantic_type = identifier(row["semantic_type"])
+        try:
+            identifier(row["entity_id"])
+        except DocumentError as exc:
+            raise DocumentError("EXTRACTION_SCHEMA_INVALID", f"Candidate {number} entity_id is not a safe identifier") from exc
+        try:
+            semantic_type = identifier(row["semantic_type"])
+        except DocumentError as exc:
+            raise DocumentError("EXTRACTION_SCHEMA_INVALID", f"Candidate {number} semantic_type is not a safe identifier") from exc
         notes = text(row["normalization_notes"], empty=True)
         if not isinstance(row["ambiguity_flags"], list):
             raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Model ambiguity flags must be a list")
         flags = list(row["ambiguity_flags"])
+        try:
+            for flag in flags:
+                identifier(flag)
+        except DocumentError as exc:
+            raise DocumentError("EXTRACTION_SCHEMA_INVALID", f"Candidate {number} ambiguity flag is not a safe identifier") from exc
         comparable = str(row["value"]).lower() if type(row["value"]) is bool else str(row["value"])
         if row["value"] is not None and comparable != quote and not notes.strip():
             notes = "Model did not explain the normalization; analyst must verify it against the cited source."
@@ -95,7 +113,7 @@ def assemble_proposal(raw: dict[str, Any], document: SourceDocument,
     return {"schema_version": SCHEMA, "source_id": document.source_id,
             "source_sha256": document.sha256, "batch_id": batch_id,
             "reader_version": parsed.reader_version, "extractor_version": EXTRACTOR_VERSION,
-            "model": model, "prompt_version": PROMPT_VERSION,
+            "model": model, "prompt_version": prompt_version,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "status": raw["status"], "candidates": candidates,
             "limitations": raw["limitations"]}
@@ -174,6 +192,13 @@ class CodexCliProvider:
             "of the named unit; include enough surrounding words to make it unique. "
             "Use only TEXT, ENUM, IDENTIFIER, CURRENCY, DECIMAL, DATE, BOOLEAN, INTEGER or UNKNOWN "
             "as value_type; DECIMAL must be a plain decimal string and DATE an ISO date string. "
+            "entity_id, semantic_type and every ambiguity_flag must match "
+            "[A-Za-z0-9][A-Za-z0-9_.:/-]* with no spaces or accents. "
+            "Use limitations only for unreadable, omitted or genuinely ambiguous source-local content. "
+            "Do not list normal facts absent from this document but present in another, such as an "
+            "invoice without the contractual daily rate or stop clause. The case-level adapter checks "
+            "cross-document completeness. Do not mention source spans as a limitation: Python "
+            "computes and verifies them after your response, or rejects the candidate. "
             "Do not claim a visual transcription is human verified. Keep conflicts and uncertainty visible. "
             "Do not approve privacy, facts, links, financial claims or delivery.\n"
             + json.dumps({"task_contract": proposal_context(), "guidance": guidance,
@@ -200,4 +225,5 @@ class CodexCliProvider:
             if result.returncode or not output.is_file():
                 raise DocumentError("MODEL_UNAVAILABLE", "Codex participant did not produce a valid response")
             raw = load_json(output.read_bytes(), maximum=2_000_000)
-        return assemble_proposal(raw, document, parsed, batch.batch_id, self.model)
+        return assemble_proposal(raw, document, parsed, batch.batch_id, self.model,
+                                 prompt_version=prompt_version_for_guidance(guidance))

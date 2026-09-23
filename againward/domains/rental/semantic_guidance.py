@@ -1,6 +1,6 @@
 """Rental interpretation vocabulary supplied to a neutral source-unit provider."""
 
-GUIDANCE_VERSION = "rental-semantic-guidance-v1"
+GUIDANCE_VERSION = "rental-semantic-guidance-v3"
 
 
 def guidance() -> str:
@@ -23,6 +23,30 @@ invoice_line_id, net_amount, unit_rate, billed_units, event_type, date,
 verification, extended_end, credit_id, status, allocated_amount.
 Do not output contact names, email addresses, phone numbers or signatures as
 analytical facts. Commercial prices and contractual IDs are relevant.
+
+For a source-supported RENTAL_SCOPE with a fixed daily price, include both
+charge_key (a stable source-backed category such as "rental"), charge_type
+RENTAL, currency, rate as DECIMAL, billing_unit DAY, and the applicable
+stop_event only when the source states it. Valid stop_event values are
+CONTRACT_END, RETURNED, COLLECTED and OFF_HIRE_REQUESTED. "Contractual end"
+maps to CONTRACT_END, not CONTRACTUAL_END. The same invoice-line charge_key
+must be justified by the invoice's own rental-charge description; do not copy
+it from a different document. Include charge_type RENTAL and net_amount only
+when the invoice explicitly labels the amount net or excluding tax. A
+source-local INVOICE_LINE needs invoice_id, invoice_line_id, agreement_id,
+equipment anchor, currency and a distinct entity_id per line. Do not omit
+charge_key/charge_type merely because "rental" feels obvious; otherwise the
+downstream ledger must STOP. Use canonical enum values, never a free-form
+phrase: billing_unit DAY/WEEK/MONTH/FIXED/PERCENT; document_status
+ACCEPTED/PROPOSED/VOID/EXTRACTED. Explain every normalized enum in
+normalization_notes with the exact local wording. Do not assert ACCEPTED
+agreement status from a mere quote or proposal. Keep decimal quantities as
+exact strings when the source uses decimals; do not derive billed units.
+An invoice without the contract's daily rate or stop clause is a normal
+separate document, not an extraction limitation. Keep such absent fields
+absent; only report a limitation when this source itself is unreadable,
+incomplete or internally ambiguous. Do not claim source spans were omitted;
+the deterministic validator adds exact native spans or refuses the proposal.
 
 Distinguish invoice date from rental start, return, collection, off-hire request
 and accepted rate-effective date. A quoted amount may be net or gross; do not

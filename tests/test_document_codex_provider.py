@@ -5,7 +5,7 @@ import subprocess
 
 import pytest
 
-from againward.documents.codex_provider import CodexCliProvider, assemble_proposal
+from againward.documents.codex_provider import CodexCliProvider, assemble_proposal, prompt_version_for_guidance
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
 from againward.documents.readers import read_document
@@ -84,6 +84,7 @@ def test_cli_participant_receives_only_approved_units_and_never_promotes(tmp_pat
     assert "850.00" in captured["prompt"]
     assert "privacy_manifest" not in captured["prompt"]
     assert "approved_facts" not in proposal
+    assert proposal["prompt_version"] == prompt_version_for_guidance("Synthetic Rental extraction only.")
     assert validate_proposal(proposal, batch, root).candidates[0].value == "850.00"
 
 
@@ -94,3 +95,11 @@ def test_model_budget_refuses_oversized_units_before_subprocess(tmp_path, monkey
     with pytest.raises(DocumentError, match="RESOURCE_LIMIT"):
         CodexCliProvider(root, model="gpt-5.3-codex").propose(
             document, parsed, {"batch": batch, "semantic_guidance": "Rental"})
+
+
+def test_invalid_model_identifier_fails_with_candidate_index(tmp_path):
+    _, batch, document, parsed = _source(tmp_path)
+    raw = _raw(parsed.units[0].location, "850.00")
+    raw["candidates"][0]["entity_id"] = "line with spaces"
+    with pytest.raises(DocumentError, match="Candidate 1 entity_id"):
+        assemble_proposal(raw, document, parsed, batch.batch_id, "gpt-6-sol")
