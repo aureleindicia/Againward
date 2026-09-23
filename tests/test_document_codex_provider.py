@@ -103,3 +103,42 @@ def test_invalid_model_identifier_fails_with_candidate_index(tmp_path):
     raw["candidates"][0]["entity_id"] = "line with spaces"
     with pytest.raises(DocumentError, match="Candidate 1 entity_id"):
         assemble_proposal(raw, document, parsed, batch.batch_id, "gpt-6-sol")
+
+
+@pytest.mark.parametrize("stderr,code", [
+    ("Authentication required: PRIVATE_SOURCE_MARKER", "MODEL_AUTH_REQUIRED"),
+    ("429 Too Many Requests: PRIVATE_SOURCE_MARKER", "MODEL_RATE_LIMITED"),
+    ("stream disconnected before completion: PRIVATE_SOURCE_MARKER", "MODEL_TRANSPORT_FAILURE"),
+    ("unrecognized failure: PRIVATE_SOURCE_MARKER", "MODEL_UNAVAILABLE"),
+])
+def test_cli_failure_is_categorized_without_leaking_stderr(tmp_path, monkeypatch, stderr, code):
+    root, batch, document, parsed = _source(tmp_path)
+
+    def fake_run(command, **kwargs):
+        return subprocess.CompletedProcess(command, 1, "", stderr)
+
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run", fake_run)
+    with pytest.raises(DocumentError) as caught:
+        CodexCliProvider(root, model="gpt-6-sol").propose(
+            document, parsed, {"batch": batch, "semantic_guidance": "Rental"})
+    assert caught.value.code == code
+    assert "PRIVATE_SOURCE_MARKER" not in str(caught.value)
+
+
+def test_cli_missing_binary_and_empty_success_fail_closed(tmp_path, monkeypatch):
+    root, batch, document, parsed = _source(tmp_path)
+
+    def absent(*args, **kwargs):
+        raise FileNotFoundError("PRIVATE_SOURCE_MARKER")
+
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run", absent)
+    with pytest.raises(DocumentError, match="MODEL_UNAVAILABLE") as caught:
+        CodexCliProvider(root, model="gpt-6-sol").propose(
+            document, parsed, {"batch": batch, "semantic_guidance": "Rental"})
+    assert "PRIVATE_SOURCE_MARKER" not in str(caught.value)
+
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run",
+                        lambda command, **kwargs: subprocess.CompletedProcess(command, 0, "", ""))
+    with pytest.raises(DocumentError, match="MODEL_EMPTY_RESPONSE"):
+        CodexCliProvider(root, model="gpt-6-sol").propose(
+            document, parsed, {"batch": batch, "semantic_guidance": "Rental"})

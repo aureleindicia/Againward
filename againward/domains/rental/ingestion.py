@@ -11,6 +11,7 @@ from dataclasses import asdict, fields
 import json
 from datetime import date, datetime
 from pathlib import Path
+from typing import Any
 
 from againward.core.privacy import assert_source_approved_for_analysis, case_root_for_path, privacy_manifest_path
 from againward.core.workflow import fingerprint
@@ -138,14 +139,20 @@ def load_rental_case(source: str | Path, *, output_directory=None):
     if payload.get("schema_version") == EXTRACTION_SCHEMA:
         payload, transformations = _expand_extraction(payload, source.parent, output_directory=output_directory)
     document_lineage = None
+    document_root = source.parent
     if payload.get("schema_version") == "againward-rental-document-case-v1":
         from .document_adapter import load_document_case
-        case, document_lineage = load_document_case(payload, source.parent)
+        # The document CLI stores reviewed packages one level below the source
+        # batch. Source blob paths remain relative to the batch root, never to
+        # the packages/ directory containing this derived artifact.
+        if source.parent.name == "packages":
+            document_root = source.parent.parent
+        case, document_lineage = load_document_case(payload, document_root)
     else:
         case = RentalCase.from_dict(payload)
     inventory = []
     for doc in case.documents:
-        path = _local_source(source.parent, doc.path)
+        path = _local_source(document_root, doc.path)
         assert_source_approved_for_analysis(path, output_directory=output_directory)
         if fingerprint(path) != doc.sha256:
             raise ValueError("Source document hash does not match the semantic extraction: " + doc.document_id)
@@ -164,7 +171,8 @@ def load_rental_case(source: str | Path, *, output_directory=None):
 
 @deterministic_decimal
 def build_evidence_dataset(case: RentalCase, *, document_lineage=None) -> EvidenceDataset:
-    rows, row_refs = [], {}
+    rows: list[dict[str, Any]] = []
+    row_refs: dict[str, list[dict[str, str]]] = {}
     numeric = {"net_amount": "amount_minor"}
     for table in ("parties", "items", "periods", "terms", "events", "actual_charges", "credits"):
         for record in getattr(case, table):

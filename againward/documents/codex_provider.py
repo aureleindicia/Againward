@@ -61,6 +61,21 @@ def _source_span(quote: str, unit_text: str) -> list[int]:
     return [start, start + len(quote)]
 
 
+def _model_invocation_failure(stderr: str) -> DocumentError:
+    """Report only a fixed diagnostic category; never leak CLI stderr/source text."""
+    message = stderr.casefold()
+    if any(marker in message for marker in ("not logged in", "login required", "authentication required",
+                                           "401 unauthorized", "invalid api key")):
+        return DocumentError("MODEL_AUTH_REQUIRED", "Codex participant authentication failed")
+    if any(marker in message for marker in ("rate limit", "429 too many requests", "quota exceeded",
+                                           "usage limit reached")):
+        return DocumentError("MODEL_RATE_LIMITED", "Codex participant usage limit reached")
+    if any(marker in message for marker in ("connection refused", "connection reset", "network error",
+                                           "dns error", "stream disconnected")):
+        return DocumentError("MODEL_TRANSPORT_FAILURE", "Codex participant transport failed")
+    return DocumentError("MODEL_UNAVAILABLE", "Codex participant did not produce a valid response")
+
+
 def assemble_proposal(raw: dict[str, Any], document: SourceDocument,
                       parsed: ParsedDocument, batch_id: str, model: str,
                       *, prompt_version: str = PROMPT_VERSION) -> dict[str, Any]:
@@ -222,8 +237,12 @@ class CodexCliProvider:
                                         timeout=self.timeout_seconds, check=False)
             except subprocess.TimeoutExpired as exc:
                 raise DocumentError("MODEL_TIMEOUT", "Codex participant timed out") from exc
-            if result.returncode or not output.is_file():
-                raise DocumentError("MODEL_UNAVAILABLE", "Codex participant did not produce a valid response")
+            except FileNotFoundError as exc:
+                raise DocumentError("MODEL_UNAVAILABLE", "Codex CLI executable is unavailable") from exc
+            if result.returncode:
+                raise _model_invocation_failure(result.stderr)
+            if not output.is_file():
+                raise DocumentError("MODEL_EMPTY_RESPONSE", "Codex participant returned no response file")
             raw = load_json(output.read_bytes(), maximum=2_000_000)
         return assemble_proposal(raw, document, parsed, batch.batch_id, self.model,
                                  prompt_version=prompt_version_for_guidance(guidance))
