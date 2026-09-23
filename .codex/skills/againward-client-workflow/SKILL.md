@@ -20,6 +20,8 @@ réinitialiser lifecycle, réponses, budget de requêtes ou artefacts. En cas de
 transaction inachevée, consulter `docs/INVESTIGATION_CONTINUATION.md` ; ne pas
 effacer le journal. Ne lire dans `/storage/emulated/0/Download` que les pièces
 explicitement désignées pour ce dossier. Ne pas versionner de données client.
+En `RESUMING`, relire `questions.json` et les réponses append-only avec leurs
+sources avant tout recalcul ; une absence de réponse n'est pas une confirmation.
 
 Pour Rental, lire `docs/FIRST_CLIENT_OPERATOR_PLAYBOOK.md`,
 `docs/FIRST_CLIENT_READINESS_PLAN.md`,
