@@ -49,6 +49,18 @@ def audit_semantic_preflight(run: Path) -> dict:
             for entity_id, fields in entities.items():
                 kinds = fields.get("entity_kind", [])
                 kind = kinds[0] if len(kinds) == 1 else None
+                if kind == "SUPPORTING_DOCUMENT":
+                    case_counter["supporting_entities"] += 1
+                    missing_support = [field for field in ("document_role", "document_status")
+                                       if len(fields.get(field, [])) != 1]
+                    invalid_support = [field for field, allowed in (("document_role", DOCUMENT_ROLES),
+                                                                    ("document_status", {"ACCEPTED", "PROPOSED", "VOID", "EXTRACTED"}))
+                                       if fields.get(field) and fields[field][0] not in allowed]
+                    if missing_support or invalid_support:
+                        case_counter["incomplete_supporting_entities"] += 1
+                        gaps.append({"source_sha256": document["source_sha256"], "entity_id": entity_id,
+                                     "kind": kind, "missing": missing_support, "invalid_enum": invalid_support})
+                    continue
                 if kind not in REQUIRED:
                     case_counter["unclassified_entities"] += 1
                     continue

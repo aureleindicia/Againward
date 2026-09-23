@@ -32,7 +32,8 @@ Net amount EUR 850.00 excluding tax.
 """
 
 
-def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=None, contact_email=None):
+def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=None,
+           supporting_text=None, contact_email=None):
     """Manual semantic annotations of prose, reviewed solely as test fixtures."""
     incoming, root = tmp_path / "input", tmp_path / "documents"
     incoming.mkdir(parents=True)
@@ -42,6 +43,8 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=N
         (incoming / "amendment.txt").write_text(amendment_text)
     if credit_text is not None:
         (incoming / "credit.txt").write_text(credit_text)
+    if supporting_text is not None:
+        (incoming / "rate-card.txt").write_text(supporting_text)
     batch = inventory_sources(incoming, root)
     parsed = {p.source_id: p for p in read_batch(batch, root)}
     shared = {
@@ -112,6 +115,15 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=N
             annotations["credit.txt"]["allocated_amount"] = ("80.00", "80.00", "DECIMAL")
         if "line L1" in credit_text:
             annotations["credit.txt"]["invoice_line_id"] = ("L1", "L1", "TEXT")
+    if supporting_text is not None:
+        annotations["rate-card.txt"] = {
+            "entity_kind": ("SUPPORTING_DOCUMENT", "duplicate rate card", "TEXT"),
+            "document_role": ("RATE_CARD", "rate card", "TEXT"),
+            "document_status": ("ACCEPTED", "Accepted", "TEXT"),
+            "agreement_id": ("A-781", "A-781", "TEXT"),
+            "asset_id": ("LIFT-92", "LIFT-92", "TEXT"),
+            "rate": ("50.00", "50.00", "DECIMAL"),
+        }
     extractions = []
     decisions = []
     for doc in batch.documents:
@@ -164,6 +176,20 @@ def test_reviewed_native_facts_resolve_to_exact_rental_ledgers_and_query_rows(tm
     assert any(r.get("raw_quote") == "850.00" for r in dataset.rows)
     assert all("/chars:" in ref.location for c in case.actual_charges for ref in c.evidence_refs)
     assert load_document_case(package, source.parent)[1] == lineage
+
+
+def test_corroborating_rate_card_remains_evidence_without_second_rental(tmp_path):
+    source, _ = packet(tmp_path, supporting_text=(
+        "Accepted duplicate rate card for agreement A-781, asset LIFT-92: "
+        "rate 50.00 EUR per day; no separate booking."))
+    case, inventory = load_rental_case(source)
+    result = reconcile(case)
+    assert len(case.documents) == 3
+    assert len(case.periods) == 1
+    assert len(case.terms) == 1
+    assert result["groups"][0]["difference"] == "150.00"
+    assert any(entity["kind"] == "SUPPORTING_DOCUMENT"
+               for entity in inventory["document_lineage"]["entities"])
 
 
 def test_changed_rental_model_guidance_requires_fresh_extraction_review(tmp_path):

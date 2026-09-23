@@ -99,7 +99,7 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
                             "Unextracted/missing components must be resolved before financial preparation")
     entities = entities_from_facts(facts)
     if any(e.kind not in {"RENTAL_SCOPE", "INVOICE_LINE", "RETURN", "RATE_AMENDMENT",
-                          "CREDIT", "IRRELEVANT"} for e in entities):
+                          "CREDIT", "SUPPORTING_DOCUMENT", "IRRELEVANT"} for e in entities):
         raise DocumentError("EXTRACTION_INCOMPLETE", "Unsupported material entity kind")
     by_source: dict[str, list[Entity]] = {}
     for e in entities:

@@ -1,12 +1,13 @@
 """Rental interpretation vocabulary supplied to a neutral source-unit provider."""
 
-GUIDANCE_VERSION = "rental-semantic-guidance-v4"
+GUIDANCE_VERSION = "rental-semantic-guidance-v5"
 
 
 def guidance() -> str:
     return """Rental B2B source interpretation, not authority or arithmetic.
 Classify each relevant document and material local entity. Use entity_kind values
-RENTAL_SCOPE, INVOICE_LINE, RETURN, RATE_AMENDMENT, CREDIT or IRRELEVANT. Use
+RENTAL_SCOPE, INVOICE_LINE, RETURN, RATE_AMENDMENT, CREDIT,
+SUPPORTING_DOCUMENT or IRRELEVANT. Use
 separate entity IDs for separate invoice lines, rental scopes or returns; IDs
 are local to this source and never establish a cross-document relationship.
 For each source include source-backed document_role and document_status for
@@ -37,7 +38,14 @@ charge_key (a stable source-backed category such as "rental"), charge_type
 RENTAL, currency, rate as DECIMAL, billing_unit DAY, and the applicable
 stop_event only when the source states it. Valid stop_event values are
 CONTRACT_END, RETURNED, COLLECTED and OFF_HIRE_REQUESTED. "Contractual end"
-maps to CONTRACT_END, not CONTRACTUAL_END. The same invoice-line charge_key
+maps to CONTRACT_END, not CONTRACTUAL_END.
+For a rule where returned units stop on their documented return date and
+unreturned units remain chargeable through the contractual period end, emit
+exactly one stop_event RETURNED for that rental scope. The contract end is
+the fallback period end, NOT a second stop_event candidate. Include
+stop_day_billable false only if the source explicitly excludes the return
+date from billing; do not infer it from a different document.
+The same invoice-line charge_key
 must be justified by the invoice's own rental-charge description; do not copy
 it from a different document. Include charge_type RENTAL and net_amount only
 when the invoice explicitly labels the amount net or excluding tax. A
@@ -68,10 +76,16 @@ its mention of a different return record is not proof of physical return.
 Use asset_id or serial_number only when supported by this source. A return
 note saying one unit remains on hire does not create a new RENTAL_SCOPE;
 only an accepted agreement or accepted amendment defines a rental scope.
-Likewise, a rate card that only corroborates an existing agreement does not
+Likewise, a rate card explicitly saying it duplicates an agreement does not
 create a second independent hire, and an accounting export marked mirror-only
-does not create a new invoice. Classify corroborating source content without
-inventing financial occurrences; the operator decides cross-document links.
+does not create a new invoice or credit. Represent these as source-local
+SUPPORTING_DOCUMENT entities with document_role RATE_CARD or PAYMENT_EXPORT,
+document_status and any exact corroborating IDs/amounts. These facts remain
+auditable but do not create Rental periods, charges or credits. An email that
+only requests off-hire and says a separate return note is proof may likewise
+be SUPPORTING_DOCUMENT with role EMAIL_EVIDENCE; do not promote its mention of
+the return note into a documented physical RETURN. The operator decides
+cross-document links and whether corroboration changes a conclusion.
 An invoice without the contract's daily rate or stop clause is a normal
 separate document, not an extraction limitation. Keep such absent fields
 absent; only report a limitation when this source itself is unreadable,

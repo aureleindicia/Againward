@@ -71,3 +71,25 @@ def test_private_semantic_scorer_uses_frozen_observations_and_null_financial_met
     assert audit["metrics"].get("structurally_complete_entities", 0) == 0
     with pytest.raises(ValueError, match="overwritten"):
         audit_semantic_preflight(run)
+
+
+def test_supporting_document_is_audited_without_counting_as_material_occurrence(tmp_path):
+    run = tmp_path / "run"
+    run.mkdir()
+    observations = {"split": "DEV", "cases": {"case-a": {"documents": [{
+        "source_sha256": "a" * 64, "status": "SUCCESS", "candidates": [
+            {"entity_id": "duplicate-rate", "semantic_type": "entity_kind",
+             "value": "SUPPORTING_DOCUMENT", "ambiguity_flags": []},
+            {"entity_id": "duplicate-rate", "semantic_type": "document_role",
+             "value": "RATE_CARD", "ambiguity_flags": []},
+            {"entity_id": "duplicate-rate", "semantic_type": "document_status",
+             "value": "ACCEPTED", "ambiguity_flags": []},
+        ],
+    }]}}}
+    raw = json.dumps(observations).encode()
+    (run / "semantic_observations.json").write_bytes(raw)
+    (run / "semantic_observations.sha256").write_text(sha256(raw).hexdigest())
+    metrics = audit_semantic_preflight(run)["metrics"]
+    assert metrics["supporting_entities"] == 1
+    assert metrics.get("material_entities", 0) == 0
+    assert metrics.get("unclassified_entities", 0) == 0
