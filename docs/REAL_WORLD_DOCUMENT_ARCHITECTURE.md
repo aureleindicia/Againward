@@ -60,6 +60,8 @@ supply a model/analyst proposal using the closed contract in
 python investigate.py documents validate DOCUMENT_ROOT BATCH_RECEIPT PROPOSAL
 python investigate.py documents review-template DOCUMENT_ROOT BATCH_RECEIPT EXTRACTION...
 python investigate.py documents promote DOCUMENT_ROOT BATCH_RECEIPT FACT_REVIEW EXTRACTION...
+python investigate.py documents link-review-template DOCUMENT_ROOT BATCH_RECEIPT FACT_REVIEW EXTRACTION...
+python investigate.py documents package-rental DOCUMENT_ROOT BATCH_RECEIPT FACT_REVIEW EXTRACTION...
 ```
 
 Only `extract` calls a provider. No document command changes question budgets or
@@ -67,6 +69,14 @@ creates delivery approval. `review-template` writes an unreviewed worksheet with
 every candidate, source location and ambiguity; its JSON has no reviewer/time,
 all decisions DEFER and limitations unacknowledged. A person must inspect and
 complete it before `promote` can accept a fact.
+`package-rental` assembles and replays the reviewed batch/extractions into the
+Rental source package without manual JSON concatenation, then calls the strict
+document adapter. Ambiguous material links still require optional explicit
+`--rental-links`/`--credit-links` reviewed decisions and cannot be guessed.
+`link-review-template` lists unresolved Rental/credit relationships, exact
+source IDs, matching/contradicting fields and eligible fact IDs. Its templates
+have no reviewer identity or decisions; only a real source review can fill
+them. A contradicted link cannot be manually confirmed.
 Every proposal carries source/batch identity, reader/extractor/model/prompt version,
 status and source-local candidates. A native quote must match exact half-open
 character offsets. A visual transcription is only a proposal and requires supplied

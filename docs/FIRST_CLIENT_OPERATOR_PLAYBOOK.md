@@ -64,14 +64,19 @@ reviewer/time. Do not resolve a contradictory flag without source proof. Then:
 
 ```sh
 python investigate.py documents promote workspaces/CASE_ID/processed/documents BATCH_RECEIPT_JSON COMPLETED_FACT_REVIEW_JSON EXTRACTION_JSON ...
+python investigate.py documents link-review-template workspaces/CASE_ID/processed/documents BATCH_RECEIPT_JSON COMPLETED_FACT_REVIEW_JSON EXTRACTION_JSON ...
+python investigate.py documents package-rental workspaces/CASE_ID/processed/documents BATCH_RECEIPT_JSON COMPLETED_FACT_REVIEW_JSON EXTRACTION_JSON ...
 ```
 
-The current CLI does **not yet** fully assemble and review the Rental document
-package or all entity-link decisions from this promotion artifact. Until an
-end-to-end operator rehearsal proves that step practical, it is a **Gate A
-blocker**: an ordinary operator must not improvise dozens of internal JSON
-records for a paying client. `docs/REAL_WORLD_DOCUMENT_ARCHITECTURE.md` defines
-the exact `againward-rental-document-case-v1` package and strict link review.
+`package-rental` creates the closed Rental package, replays every source and
+fact review, and refuses unresolved material links. For ambiguous links, an
+operator must inspect the exact supporting/contradicting facts and supply
+source-bound `--rental-links` or `--credit-links` review files; a fuzzy match
+cannot be confirmed just because it looks plausible. The relationship-review
+worksheet starts without a reviewer, time or decisions. Its matching fact IDs
+are eligible support, not proof that a particular link is right. The real
+eight-document rehearsal is **not yet complete**; until it is practical, this
+remains a Gate A blocker.
 
 When a reviewed canonical package exists, the existing downstream commands
 prepare Rental calculations and Evidence Plane, collect explicit assessments,

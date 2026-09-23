@@ -52,6 +52,18 @@ def main(argv: list[str] | None = None) -> int:
     template.add_argument("root", type=Path)
     template.add_argument("batch", type=Path)
     template.add_argument("extractions", nargs="+", type=Path)
+    package = commands.add_parser("package-rental", help="Assemble reviewed document inputs; stop on unresolved links")
+    package.add_argument("root", type=Path)
+    package.add_argument("batch", type=Path)
+    package.add_argument("fact_review", type=Path)
+    package.add_argument("extractions", nargs="+", type=Path)
+    package.add_argument("--rental-links", type=Path)
+    package.add_argument("--credit-links", type=Path)
+    links = commands.add_parser("link-review-template", help="Unreviewed Rental/credit relationship worksheets")
+    links.add_argument("root", type=Path)
+    links.add_argument("batch", type=Path)
+    links.add_argument("fact_review", type=Path)
+    links.add_argument("extractions", nargs="+", type=Path)
     args = parser.parse_args(argv)
     try:
         if args.command == "inventory":
@@ -107,6 +119,57 @@ def main(argv: list[str] | None = None) -> int:
                 result = {"status": "UNREVIEWED_TEMPLATE", "candidate_count": len(body["decisions"]),
                           "review_template": str(json_path), "worksheet": str(sheet_path),
                           "approved_facts": 0}
+            elif args.command == "package-rental":
+                from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
+                assert_document_action(args.root, mutation=True)
+                package_body = {"schema_version": DOCUMENT_CASE_SCHEMA, "batch": batch.to_dict(),
+                                "extractions": [_load(path, args.root) for path in args.extractions],
+                                "fact_review": _load(args.fact_review, args.root),
+                                "rental_relationship_review": _load(args.rental_links, args.root)
+                                if args.rental_links else None,
+                                "credit_relationship_review": _load(args.credit_links, args.root)
+                                if args.credit_links else None}
+                canonical, lineage = load_document_case(package_body, args.root)
+                destination = args.root / "packages" / (stable_hash(package_body) + ".json")
+                with transaction(args.root):
+                    if destination.exists() and _load(destination, args.root) != package_body:
+                        raise ValueError("SOURCE_CHANGED: prior Rental package altered")
+                    write_json(destination, package_body)
+                result = {"status": "REVIEWED_DOCUMENT_PACKAGE", "package": str(destination),
+                          "canonical_case_sha256": lineage["canonical_case_sha256"],
+                          "source_documents": len(batch.documents), "reviewed_facts": len(lineage["facts"]),
+                          "invoice_lines": len(canonical.actual_charges),
+                          "approved_for_delivery": False}
+            elif args.command == "link-review-template":
+                from .resolution import entities_from_facts, resolve_entities, RelationshipState
+                from .review_template import relationship_review_template
+                from againward.domains.rental.document_adapter import RENTAL_MATCH, CREDIT_MATCH
+                assert_document_action(args.root, mutation=True)
+                extractions = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                    for path in args.extractions)
+                facts = promote_facts(extractions, _load(args.fact_review, args.root), batch, args.root)
+                entities = entities_from_facts(facts)
+                views = []
+                planned = []
+                for policy in (RENTAL_MATCH, CREDIT_MATCH):
+                    resolved = resolve_entities(entities, policy)
+                    draft, worksheet = relationship_review_template(resolved)
+                    prefix = args.root / "review_templates" / (policy.relationship_type.lower() + "-" + stable_hash(draft))
+                    json_path, sheet_path = prefix.with_suffix(".json"), prefix.with_suffix(".md")
+                    if json_path.exists() or sheet_path.exists():
+                        raise ValueError("REVIEW_STALE: relationship worksheet already exists")
+                    planned.append((policy, resolved, draft, worksheet, json_path, sheet_path))
+                for policy, resolved, draft, worksheet, json_path, sheet_path in planned:
+                    json_path.parent.mkdir(parents=True, exist_ok=True)
+                    write_json(json_path, draft)
+                    sheet_path.write_text(worksheet, encoding="utf-8")
+                    views.append({"relationship_type": policy.relationship_type,
+                                  "unresolved": sum(r.state in {RelationshipState.CANDIDATE,
+                                                                    RelationshipState.AMBIGUOUS}
+                                                    for r in resolved.relationships),
+                                  "review_template": str(json_path), "worksheet": str(sheet_path)})
+                result = {"status": "UNREVIEWED_RELATIONSHIP_TEMPLATES", "relationships": views,
+                          "human_approved_links": 0}
             else:
                 assert_document_action(args.root, mutation=True)
                 extractions = tuple(replay_extraction(_load(path, args.root), batch, args.root)
