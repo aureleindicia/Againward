@@ -1229,7 +1229,9 @@ def _validate_codex_privacy_review_impl(
                 continue
             if action == "PASS":
                 if set(raw_scan["categories"]) - current_preservation_policy().risk.pass_categories:
-                    raise ValueError(f"{file_id}: PASS refusé; motifs privacy déterministes détectés.")
+                    reason = ("AUTHENTICATION_SECRET" if "AUTHENTICATION_SECRET" in raw_scan["categories"]
+                              else "MINIMIZATION_REQUIRED")
+                    raise ValueError(f"{file_id}: {reason}; PASS refusé.")
                 source_for_promotion = original
                 relative_target = str(Path(source_key).relative_to("incoming"))
             else:

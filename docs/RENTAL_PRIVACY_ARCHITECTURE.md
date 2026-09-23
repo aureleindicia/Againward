@@ -69,4 +69,6 @@ must use an accountable reviewer and STOP if the component cannot be inspected.
   reviewer controls remain necessary before first real-client use.
 
 See `docs/PRIVACY_ARCHITECTURE.md` for the inherited gate/lifecycle and
-`docs/REAL_WORLD_ACCEPTANCE.md` for unfinished first-client criteria.
+`docs/REAL_WORLD_ACCEPTANCE.md` for unfinished first-client criteria. The
+synthetic measured privacy run and its limits are in
+`docs/RENTAL_PRIVACY_BENCHMARKS.md`.
