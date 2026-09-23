@@ -1,6 +1,6 @@
 """Rental interpretation vocabulary supplied to a neutral source-unit provider."""
 
-GUIDANCE_VERSION = "rental-semantic-guidance-v6"
+GUIDANCE_VERSION = "rental-semantic-guidance-v7"
 
 
 def guidance() -> str:
@@ -105,7 +105,9 @@ explanation, never compute one. DECIMAL values are plain decimal strings; DATE
 values are ISO YYYY-MM-DD; BOOLEAN values are true/false; INTEGER values are
 JSON integers. The raw_observed_value must be an exact unique substring of a
 named native source unit; a visual quote may be transcribed but must be flagged
-as unverified and later reviewed by a human. Do not turn a promised credit into
-an issued one, assign an unreferenced credit to a line, or decide legal priority
-between conflicting clauses. If critical fields are absent, leave them absent
-and add a limitation; do not guess. The operator will review every proposal."""
+as unverified and later checked against original pixels by a human. Do not turn
+a promised credit into an issued one, assign an unreferenced credit to a line,
+or decide legal priority between conflicting clauses. If critical fields are
+absent, leave them absent and add a limitation; do not guess. An internal
+analyst and independent source reread verify ordinary proposals; the owner
+reviews only material unresolved exceptions and the finished delivery."""
