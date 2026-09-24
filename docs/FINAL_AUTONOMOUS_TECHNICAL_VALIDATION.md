@@ -26,6 +26,14 @@ This is not a completion certificate or a frozen evaluation. Current branch:
   8 challenger); it invalidated and regenerated the adjudication and later review
   stages. This is the permitted reuse boundary, not evidence reuse across the v9
   guidance change.
+- Revision guards passed targeted coverage for source mutation, source/privacy/
+  model/policy binding, adjudication-only reuse, preserved Evidence Plane budgets
+  and interrupted archive recovery. Row-level rate-card guidance is covered by
+  regression tests. Full suite at tested code checkpoint `9e3a7e8`: 831 passed
+  in 337.50 s, no failures or skips; Ruff passed; configured Mypy passed on 16
+  files. Rental benchmark 15/15; privacy benchmark 19/19 with 0 false blocks
+  and 0 unsafe passes. These scripted benchmarks do not establish model/report
+  accuracy.
 - A fresh raw, real-style synthetic case completed the integrated privacy and
   native-document path through an actual client PDF. Both originals were native
   PDFs; Codex read the originals, Python bound their hashes, deterministic code

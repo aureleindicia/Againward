@@ -100,8 +100,8 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
 
 ## Current evidence and blockers
 
-- Current branch: `release/first-rental-client-pilot`, draft PR #5, latest pushed
-  checkpoint `d047c4b`. The current v9 rerun regenerated all 8 primary
+- Current branch: `release/first-rental-client-pilot`, draft PR #5. The current
+  v9 rerun regenerated all 8 primary
   extractions and 8 independent rereads. Both passes represented LIFT-5 and
   LIFT-50 as separate rate-row entities; no `UNSUPPORTED_PROMOTION` recurred.
   One material disagreement remains on the visual-only signed-return scan.
@@ -113,6 +113,10 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
   The current live synthetic probes and limitations are in
   [final metrics](FINAL_AUTONOMOUS_METRICS.md). These results do not measure
   semantic report correctness or vision accuracy.
+- Current code regression: 831 tests passed in 337.50 s with no failures or
+  skips; Ruff and configured Mypy (16 files) pass. Rental benchmark 15/15, with
+  3 TP, 0 FP, 0 FN and 12 TN. These scripted/fixture results do not represent
+  independent final-report accuracy.
 - Current technical blockers: genuine visual inspection for the disputed scan;
   then completion and challenge of this dossier through fact review, entity
   links, calculations and report QA. A varied blind final challenge, independent
