@@ -22,6 +22,7 @@ REQUIRED = {
                        "rate", "currency", "charge_key", "charge_type", "effective_from", "terms_unchanged"},
 }
 STOP_EVENTS = {"CONTRACT_END", "RETURNED", "COLLECTED", "OFF_HIRE_REQUESTED"}
+PARTIAL_PERIOD_POLICIES = {"EXACT", "STARTED", "PRORATA"}
 
 
 def audit_semantic_preflight(run: Path) -> dict:
@@ -73,7 +74,8 @@ def audit_semantic_preflight(run: Path) -> dict:
                 for field, allowed in (("document_role", DOCUMENT_ROLES),
                                        ("document_status", {"ACCEPTED", "ISSUED", "PROPOSED", "VOID", "EXTRACTED"}),
                                        ("charge_type", CHARGE_TYPES), ("billing_unit", BILLING_UNITS),
-                                       ("stop_event", STOP_EVENTS)):
+                                       ("stop_event", STOP_EVENTS),
+                                       ("partial_period_policy", PARTIAL_PERIOD_POLICIES)):
                     values = fields.get(field, [])
                     if values and (len(values) != 1 or values[0] not in allowed):
                         bad.append(field)

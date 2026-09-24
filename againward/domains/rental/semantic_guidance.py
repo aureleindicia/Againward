@@ -1,6 +1,6 @@
 """Rental interpretation vocabulary supplied to a neutral source-unit provider."""
 
-GUIDANCE_VERSION = "rental-semantic-guidance-v7"
+GUIDANCE_VERSION = "rental-semantic-guidance-v8"
 
 
 def guidance() -> str:
@@ -45,6 +45,12 @@ exactly one stop_event RETURNED for that rental scope. The contract end is
 the fallback period end, NOT a second stop_event candidate. Include
 stop_day_billable false only if the source explicitly excludes the return
 date from billing; do not infer it from a different document.
+partial_period_policy concerns fractional billing TIME periods only. If the
+source explicitly defines how a partial day/week/month is priced, use only
+EXACT, STARTED or PRORATA and quote that clause. A statement that partial
+QUANTITIES are billed exactly describes unit counts, not fractional time;
+do not emit partial_period_policy for it. If no partial-time rule is stated,
+leave partial_period_policy absent. Never copy source prose into this enum.
 The same invoice-line charge_key
 must be justified by the invoice's own rental-charge description; do not copy
 it from a different document. Include charge_type RENTAL and net_amount only

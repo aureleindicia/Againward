@@ -93,3 +93,28 @@ def test_supporting_document_is_audited_without_counting_as_material_occurrence(
     assert metrics["supporting_entities"] == 1
     assert metrics.get("material_entities", 0) == 0
     assert metrics.get("unclassified_entities", 0) == 0
+
+
+def test_preflight_rejects_free_text_partial_period_policy(tmp_path):
+    from benchmarking.semantic_preflight import REQUIRED
+
+    run = tmp_path / "run"
+    run.mkdir()
+    fields = {field: "value" for field in REQUIRED["RENTAL_SCOPE"]}
+    fields.update(entity_kind="RENTAL_SCOPE", document_role="RENTAL_AGREEMENT",
+                  document_status="ACCEPTED", charge_type="RENTAL", billing_unit="DAY",
+                  stop_event="RETURNED",
+                  partial_period_policy="Partial quantities are billed exactly.")
+    observations = {"split": "DEV", "cases": {"case-a": {"documents": [{
+        "source_sha256": "a" * 64, "status": "SUCCESS",
+        "candidates": [{"entity_id": "scope-1", "semantic_type": key,
+                        "value": value, "ambiguity_flags": []}
+                       for key, value in fields.items()],
+    }]}}}
+    raw = json.dumps(observations).encode()
+    (run / "semantic_observations.json").write_bytes(raw)
+    (run / "semantic_observations.sha256").write_text(sha256(raw).hexdigest())
+    result = audit_semantic_preflight(run)
+    assert result["metrics"]["incomplete_material_entities"] == 1
+    assert result["metrics"].get("structurally_complete_entities", 0) == 0
+    assert result["cases"]["case-a"]["gaps"][0]["invalid_enum"] == ["partial_period_policy"]

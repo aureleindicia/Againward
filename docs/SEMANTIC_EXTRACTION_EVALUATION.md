@@ -1,14 +1,35 @@
 # Semantic extraction evaluation — real model, incomplete release evidence
 
-## Current checkpoint (2026-09-23)
+## Current checkpoint (2026-09-24)
 
-The current Rental guidance is v7. On the published, agent-authored
+The targeted v8 rerun used the same eight source hashes and `gpt-6-sol` model.
+It returned **8/8 validated proposals, 159 candidate facts, 6/6 structurally
+complete material entities**, with zero `partial_period_policy` candidates
+from the partial-quantity wording. In a separate DEV-only scripted visual
+protocol probe, all 159 candidates passed the actual Rental adapter and
+deterministic reconciliation produced EUR 150.00 and EUR 0.00 group
+differences. No human attested the scan; this is not report correctness,
+independent outcome accuracy, or a client deliverable. The v8 extraction
+artifacts are ignored local under
+`scratch/first_client_e2e_dossier/runtime_v8/documents/`. The v8 run has
+not yet received a second independent reread or a blind outcome challenge.
+
+The v7 Rental guidance on the published, agent-authored
 [eight-source DEV dossier](../benchmarking/first_client_dossier.py), a real
 `gpt-6-sol` primary run from ordinary PDF, scanned PDF, EML and XLSX bytes
-returned **8/8 validated source proposals, 162 candidate facts and 6/6
-structurally complete material entities**. This counts field presence and
-enum shape, not approved facts, correct links, financial findings or report
-accuracy. The local primary source batch is
+returned **8/8 validated source proposals, 162 candidate facts and 4/6
+structurally complete material entities** under the corrected preflight.
+The earlier 6/6 count was wrong: both agreement scopes contained a free-text
+`partial_period_policy` copied from a clause about partial *quantities*, not
+fractional billing periods. The Rental ledger rightly rejected that value.
+An analyst-only DEV technical probe explicitly rejected these two candidates,
+used a scripted visual protocol fixture (not a person), and reached a
+deterministic EUR 150.00 difference plus a EUR 0.00 control group. This proves
+source-to-ledger mechanics on a known synthetic dossier, not model accuracy
+or delivery clearance. The corrected preflight now flags the invalid enum;
+Rental guidance v8 tells the provider not to emit it for quantity clauses.
+The structural count covers field presence and enum shape, not approved facts,
+correct links, financial findings or report accuracy. The local primary source batch is
 `batch-919a3f56396ed854a77522d4231e82ad1a601436b5669b43bc5dd300de57919a`
 under ignored `scratch/first_client_e2e_dossier/runtime_v7/documents/`.
 The generator produced identical eight source hashes in two separate local
@@ -68,7 +89,7 @@ The frozen initial DEV/ADVERSARIAL participant used Codex CLI 0.155.1, `gpt-6-so
 low reasoning effort, prompt `againward-source-facts-v1`, extractor
 `codex-cli-source-units-v1`, and Rental guidance
 `rental-semantic-guidance-v1`. Later remediation uses prompt v3 and
-Rental guidance v7; its guidance hash is part of the replayed prompt version.
+Rental guidance v7/v8; its guidance hash is part of the replayed prompt version.
 `codex login status` reports ChatGPT subscription login on this device;
 there is no API-key fallback in this adapter. [Official OpenAI authentication
 documentation](https://learn.chatgpt.com/docs/auth) distinguishes ChatGPT
