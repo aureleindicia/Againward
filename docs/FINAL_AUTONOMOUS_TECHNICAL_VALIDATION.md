@@ -9,6 +9,23 @@ This is not a completion certificate or a frozen evaluation. Current branch:
 
 ## Verified development evidence
 
+- Eight-source v9 rerun: all 8 primary extractions and all 8 independent
+  rereads were regenerated after the guidance hash changed. On the rate sheet,
+  both passes now represent LIFT-5 and LIFT-50 as separate row entities, each
+  with its own identifier, rate, currency and billing unit. No row was dropped,
+  no entity contains conflicting values for a semantic field, and the previous
+  `UNSUPPORTED_PROMOTION` failure did not recur.
+- The case then reached source adjudication. The first adjudication answer failed
+  because it cited the agreement instead of the disputed return scan. Adjudication
+  guidance v3 now explicitly requires `UNRESOLVED` when the disputed source has
+  no verifiable native-text citation. The resumed run selected `UNRESOLVED` with
+  no citations and correctly stopped at `WAITING_FOR_REQUIRED_INFORMATION` for
+  the signed-return scan. No visual attestation was added; delivery and human
+  approval remain false.
+- Changing only adjudication policy reused exactly 16 source passes (8 primary,
+  8 challenger); it invalidated and regenerated the adjudication and later review
+  stages. This is the permitted reuse boundary, not evidence reuse across the v9
+  guidance change.
 - A fresh raw, real-style synthetic case completed the integrated privacy and
   native-document path through an actual client PDF. Both originals were native
   PDFs; Codex read the originals, Python bound their hashes, deterministic code
@@ -35,12 +52,12 @@ This is not a completion certificate or a frozen evaluation. Current branch:
 
 ## Acceptance still open
 
-The refreshed eight-source run currently stops at native fact promotion: two
-distinct rate-card row descriptions were assigned to one aggregate entity, so
-the single-value-per-entity invariant rejected them. Rental guidance now requires
-row-level entities for each independently priced asset, but the refreshed
-end-to-end run has not yet tested that change. Its signed-return scan still needs
-genuine pixel inspection before those visual facts can be promoted.
+The refreshed eight-source run stops before native fact review because a
+material disagreement concerns a visual-only signed-return scan. The adjudicator
+correctly refuses to select either proposal without source evidence that can be
+verified independently. The next step requires genuine inspection/attestation
+of that scan, after which the case can continue into native/visual fact review,
+entity links, calculations and report QA.
 
 Also open: frozen varied final challenge; independent final-report adjudication;
 measured founder review burden; full supplemental/revision integration evidence.

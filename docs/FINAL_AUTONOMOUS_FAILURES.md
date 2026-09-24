@@ -38,16 +38,24 @@ synthetic DEV fixtures; none establishes independently blind accuracy.
 - A transient `MODEL_UNAVAILABLE` during report QA left a resumable WAIT. Retry
   completed without re-extracting or fabricating the missing answer.
 - A refreshed eight-source model run resolved both original reread disputes,
-  then failed at native fact promotion. The saved proposals put two valid,
-  different rate-card descriptions under one aggregate `rate_card` entity. The
-  canonical single-value-per-entity guard correctly rejected that shape. Rental
-  extraction guidance now explicitly requires one entity per independently
-  priced equipment row; this policy change is unverified by a fresh model run.
+  then failed at native fact promotion because two rate-card rows shared an
+  aggregate `rate_card` entity. Under guidance v9, fresh primary and challenger
+  runs now use separate LIFT-5 and LIFT-50 row entities with no conflicting
+  field values; `UNSUPPORTED_PROMOTION` did not recur. The canonical guard was
+  not weakened and both rows remain represented.
+- The first v9 adjudication attempt failed closed with
+  `EXTRACTION_INCOMPLETE`: it cited the agreement, not the disputed signed-return
+  scan. Adjudication guidance v3 requires unresolved status when no native source
+  quote can support a selection. The resumed run recorded `UNRESOLVED` with no
+  citations and stopped at `WAITING_FOR_REQUIRED_INFORMATION`. The scan remains
+  uninspected by a genuine human; scripted visual fixtures do not satisfy it.
 
 ## Still open
 
-- The eight-source fresh run has not been repeated under row-level rate-card
-  guidance. No genuine human visual attestation has been obtained for its scan.
+- The eight-source v9 run has not yet passed source adjudication because the
+  material return-scan disagreement awaits genuine visual inspection. Native
+  fact review, links, calculation, report authoring and report QA did not run for
+  this dossier.
 - Source/guidance/privacy changes fail closed, but automatic revision/recomputation
   and supplemental-document continuation have only partial integration proof.
 - All-scan final QA, non-exact relationship adjudication, policy-version replay

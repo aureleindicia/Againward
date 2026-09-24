@@ -1,18 +1,19 @@
-# AGAINWARD — read first (2026-09-24)
+# AGAINWARD — read first (2026-09-25)
 
 Current first-client decision: **NOT READY — SPECIFIC CRITICAL BLOCKERS**.
-Final delivery validation is in progress; see
-[the live failure register](FINAL_AUTONOMOUS_FAILURES.md). Two native-source
-DEV runs have passed model finding/report QA after repairs, but the final
-frozen challenge and genuine human burden measurement remain open.
+The latest v9 eight-source DEV run passed the former rate-card promotion failure
+and stopped safely at an unresolved visual return-source disagreement. Final
+delivery validation remains in progress; see [the live failure
+register](FINAL_AUTONOMOUS_FAILURES.md) and [technical validation](FINAL_AUTONOMOUS_TECHNICAL_VALIDATION.md).
 Start with the [release audit](FIRST_CLIENT_RELEASE_AUDIT.md),
 [readiness plan](FIRST_CLIENT_READINESS_PLAN.md) and
 [internal autonomy/quality contract](AUTONOMOUS_SERVICE_QUALITY.md), then the
 [operator playbook](FIRST_CLIENT_OPERATOR_PLAYBOOK.md) for the active
 `release/first-rental-client-pilot` draft PR #5 stacked on PR #4. The
-eight-document source-to-report run, blind HOLDOUT and actual operator
-rehearsal remain open. The eight-source DEV intake/extraction and separate
-source reread now exist, but they are not an approved report.
+eight-document source-to-report report has not completed; the current dossier
+is waiting for genuine inspection of its signed-return scan. Blind HOLDOUT and
+measured operator rehearsal also remain open. This DEV dossier is not an
+approved client report.
 
 AGAINWARD is an asynchronous B2B analysis/advisory service whose internal
 production uses Codex and deterministic Python. The current commercial focus
@@ -82,13 +83,14 @@ cannot approve delivery and records a machine-readable job state. Use
 `--evaluation-only` for synthetic evaluation packages.
 `python investigate.py rental-case WORKSPACE --model MODEL --evaluation-only`
 is the developing single-job Rental entrypoint. It checks contract authority,
-attempts Codex-first raw privacy review, applies the existing deterministic
-post-check, then runs source extraction, independent reread/adjudication,
-fact review, exact links, calculations and report QA. Real visual attestations
-remain required where applicable. It archives old analysis on source/policy
-revision, serializes concurrent calls and never authorizes delivery. Raw privacy
-integration and the complete eight-source flow still require final live proof;
-the entrypoint's existence is not a readiness claim.
+attempts Codex-first raw privacy review, applies the deterministic post-check,
+then runs source extraction, independent reread/adjudication, fact review,
+exact links, calculations and report QA. A live synthetic native-PDF case has
+completed this source-to-report model path; this eight-source run currently
+waits at source adjudication for a visual scan. Real visual attestations remain
+required where applicable. Revisions invalidate dependent artifacts, preserve
+query budgets and archive prior analysis. The entrypoint does not authorize
+delivery or establish first-client readiness.
 The general `investigate.py` path still defaults to Energy and Rental expects
 canonical extraction JSON; it is **not** a raw multi-PDF automatic extractor.
 `manage_investigation.py`, `query_evidence.py` and `analyze.py` keep Energy-era
@@ -98,42 +100,30 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
 
 ## Current evidence and blockers
 
-- Starting document branch `rnd/real-world-document-intelligence` at `94d9d2a`
-  rejected all five probed ordinary/sensitive PDF forms as `.pdf`; 722 tests
-  passed. Rental privacy branch `rnd/rental-privacy-repo-hardening` adds native
-  PDF inspection, strict component-bound scan review and B2B policy, while
-  preserving Energy's stricter behavior. Its synthetic privacy benchmark passes
-  19/19, with 0 false blocks and 0 unsafe passes in 11 ordinary/8 unsafe cases.
-  See [benchmark scope](RENTAL_PRIVACY_BENCHMARKS.md); this does not measure
-  human/vision accuracy. Branch PR stack: `refactor/domain-kernel` PR #2 →
-  `rnd/real-world-document-intelligence` PR #3 →
-  `rnd/rental-privacy-repo-hardening` PR #4 → first-client draft PR #5, all
-  unmerged at this checkpoint. Verify live status before further work.
-- The routing-only baseline had zero semantic recall. A real Codex CLI model
-  submitted DEV/ADVERSARIAL proposals; frozen v1 runs lacked complete material
-  entities. The eight-source DEV dossier has 8/8 validated proposals;
-  corrected structural preflight scored v7 at 4/6 and v8 at 6/6 material
-  entities. Independent v8 reread found 6/8 strict source differences,
-  including one material off-hire-email role dispute. An original-source
-  adjudicator now resolves that DEV dispute with exact email/agreement
-  citations for further fact review. A seven-call native analyst pass accepted
-  149 facts after one bounded metadata repair; a two-call visual pass proposed
-  10 scan facts after one bounded repair. Real scan attestation and report QA
-  remain open for a genuine client. A downstream model-driven DEV job now
-  produced a five-page watermarked synthetic PDF after finding and PDF QA;
-  it used a scripted, explicitly non-human scan attestation. Five advisory
-  bundle differences remain diagnostic. No report accuracy rate,
-  human-correction rate or blind performance is measured.
-  A prior two-PDF technical probe reached a source-linked ledger without human
-  delivery approval. See
+- Current branch: `release/first-rental-client-pilot`, draft PR #5, latest pushed
+  checkpoint `d047c4b`. The current v9 rerun regenerated all 8 primary
+  extractions and 8 independent rereads. Both passes represented LIFT-5 and
+  LIFT-50 as separate rate-row entities; no `UNSUPPORTED_PROMOTION` recurred.
+  One material disagreement remains on the visual-only signed-return scan.
+  Adjudication v3 selected `UNRESOLVED` because no native quote can verify that
+  source. No genuine human scan attestation exists. The workflow is waiting
+  before native fact promotion; no client report was produced from this case.
+- The earlier synthetic privacy benchmark remains 19/19 (11 ordinary, 8
+  unsafe; 0 false blocks, 0 unsafe passes), using scripted visual attestations.
+  The current live synthetic probes and limitations are in
+  [final metrics](FINAL_AUTONOMOUS_METRICS.md). These results do not measure
+  semantic report correctness or vision accuracy.
+- Current technical blockers: genuine visual inspection for the disputed scan;
+  then completion and challenge of this dossier through fact review, entity
+  links, calculations and report QA. A varied blind final challenge, independent
+  outcome adjudication, actual founder correction/review time, cost/coverage
+  measurements and owner-controlled legal/provider/business permissions remain
+  open. The 99% material-correctness and 95% no-correction figures are targets,
+  not measured results.
+- Historical v7/v8 experiments and earlier scripted-attestation runs are kept in
   [semantic evaluation](SEMANTIC_EXTRACTION_EVALUATION.md) and
-  [E2E validation](FIRST_CLIENT_E2E_VALIDATION.md). Neither proves first-client
-  readiness or an independently blind holdout.
-- Before a first real client: genuine accountable scan/final review; a complete
-  model-driven source-to-report run, independent outcome challenge and measured
-  autonomy/coverage/cost; verified business/privacy/provider authority;
-  calibrated entity, financial and report quality on varied vendor layouts.
-  Privacy clearance alone does not satisfy these.
+  [E2E validation](FIRST_CLIENT_E2E_VALIDATION.md); they are not current approval
+  state. The older Goal/Stage audits remain historical evidence only.
 
 Preserve source and derivative hashes, privacy/reviewer versions, complete
 lineage, hard STOPs, confidence vs severity, no double counting, and Energy

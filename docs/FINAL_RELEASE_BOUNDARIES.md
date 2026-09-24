@@ -25,6 +25,21 @@ not a SaaS interface, guaranteed recovery product or legal ruling.
 - Final delivery remains owner authorized against exact current artifacts.
   Neither `READY_FOR_APPROVAL` nor an evaluation QA pass is delivery permission.
 
+## Current eight-source DEV status
+
+Under Rental semantic guidance v9, fresh primary extraction and independent
+reread both represent the two independently priced rate-card rows as distinct
+entities. The earlier `UNSUPPORTED_PROMOTION` failure did not recur, and the
+single-value-per-entity guard remains active. The current case is waiting at
+source adjudication because the material return disagreement is supported only
+by visual content in a signed scan. Adjudication v3 recorded `UNRESOLVED` rather
+than using the agreement as a substitute citation.
+
+No genuine visual attestation exists for this run. Scripted visual approvals in
+the privacy benchmark and previous downstream fixture runs test gate behavior;
+they do not count as inspection or approval of this scan. The current dossier
+has not reached fact promotion, calculations or report QA.
+
 ## Owner-controlled, not engineering approvals
 
 Actual client processing rights, provider restrictions, legal/commercial terms,
