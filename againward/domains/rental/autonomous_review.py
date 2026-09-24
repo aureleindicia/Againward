@@ -26,8 +26,9 @@ from .findings import review_findings
 from .workflow import current_calculations, record_assessments
 
 
-VERSION = "againward-rental-autonomous-finding-review-v3"
+VERSION = "againward-rental-autonomous-finding-review-v4"
 MAX_SOURCE_CHARS = 60_000
+MAX_EVIDENCE_CONTEXT_CHARS = 150_000
 _RESPONSE_SCHEMA: dict[str, Any] = {"type": "object", "additionalProperties": False,
                                    "required": ["payload"], "properties": {"payload": {"type": "string"}}}
 
@@ -89,36 +90,58 @@ def _source_context(root: Path, temporary: Path) -> tuple[list[dict], tuple[Path
     return sources, tuple(pictures)
 
 
-def _evidence_snapshot(root: Path) -> tuple[str, list[str]]:
-    dataset = read_json(root / "evidence_dataset.json")
+def _evidence_requests(dataset: dict) -> list[dict]:
     rows = dataset["rows"]
-    if len(rows) > 200:
-        raise ValueError("Autonomous bounded review needs a case-specific Evidence Plane query for over 200 rows")
+    if len(rows) > 600:
+        raise ValueError("Autonomous bounded review needs a scoped Evidence Plane strategy for over 600 rows")
     fields = [field["key"] for field in dataset["fields"]]
     selected = [field for field in ("record_type", "record_id", "source_id", "location", "raw_quote",
                                     "normalized_value", "charge_id", "invoice_id", "period_id", "rate",
                                     "quantity", "net_amount", "date", "status", "role", "relationship_type")
                 if field in fields]
-    query_id = "qa-" + dataset["dataset_sha256"][:20]
-    request = {"schema_version": "indicia-evidence-query-v1", "query_id": query_id,
-               "dataset_id": dataset["dataset_id"], "operation": "raw_slice",
-               "arguments": {"fields": selected, "limit": len(rows) or 1},
-               "purpose": "Independently check Rental facts, relationships and omissions against source evidence."}
-    path = root / "autonomous_review" / "evidence_request.json"
-    if path.exists() and read_json(path) != request:
-        raise ValueError("Existing autonomous evidence request is stale")
-    if not path.exists():
-        write_json(path, request)
-    response_path = root / "evidence_queries" / (query_id + ".json")
-    if response_path.exists():
-        session = EvidenceQuerySession.from_dict(read_json(root / "evidence_query_session.json"))
-        validate_session_artifacts(root, session)
-        response = read_json(response_path)
-        if response["request_sha256"] != stable_hash(request):
-            raise ValueError("Existing autonomous Evidence Plane query differs from current request")
-    else:
-        response = execute_case_query(root, path)
-    return query_id, [row["handle"] for row in response["retrieval_handles"]]
+    requests = []
+    for start in range(0, len(rows) or 1, 200):
+        number = start // 200
+        requests.append({"schema_version": "indicia-evidence-query-v1",
+                         "query_id": "qa2-" + dataset["dataset_sha256"][:20] +
+                                     (f"-{number}" if number else ""),
+                         "dataset_id": dataset["dataset_id"], "operation": "raw_slice",
+                         "arguments": {"fields": selected, "start": start,
+                                       "limit": min(200, len(rows) - start) if rows else 1},
+                         "purpose": "Independently check Rental facts, relationships and omissions against source evidence."})
+    return requests
+
+
+def _evidence_snapshot(root: Path) -> tuple[list[str], list[str], list[dict]]:
+    dataset = read_json(root / "evidence_dataset.json")
+    query_ids: list[str] = []
+    handles: list[str] = []
+    compact_responses: list[dict] = []
+    for request in _evidence_requests(dataset):
+        query_id = request["query_id"]
+        path = root / "autonomous_review" / f"evidence_request_{query_id}.json"
+        if path.exists() and read_json(path) != request:
+            raise ValueError("Existing autonomous evidence request is stale")
+        if not path.exists():
+            write_json(path, request)
+        response_path = root / "evidence_queries" / (query_id + ".json")
+        if response_path.exists():
+            session = EvidenceQuerySession.from_dict(read_json(root / "evidence_query_session.json"))
+            validate_session_artifacts(root, session)
+            response = read_json(response_path)
+            if response["request_sha256"] != stable_hash(request):
+                raise ValueError("Existing autonomous Evidence Plane query differs from current request")
+        else:
+            response = execute_case_query(root, path)
+        query_ids.append(query_id)
+        handles.extend(row["handle"] for row in response["retrieval_handles"])
+        compact_responses.append({"query_id": query_id, "response_sha256": response["response_sha256"],
+                                  "returned": response["result"]["returned"],
+                                  "rows": [{key: value for key, value in row.items() if value is not None}
+                                           for row in response["result"]["rows"]]})
+    if sum(len(json.dumps(response, ensure_ascii=False)) for response in compact_responses) > MAX_EVIDENCE_CONTEXT_CHARS:
+        raise DocumentError("RESOURCE_LIMIT", "Evidence Plane rows exceed bounded model context; scope the query")
+    return query_ids, handles, compact_responses
 
 
 def _cite_originals(sources: list[dict], citations: Any) -> None:
@@ -183,7 +206,7 @@ def _validate_challenge(payload: dict, candidates: list[dict], sources: list[dic
 
 
 def _materialize_assessments(raw: list[dict], candidates: list[dict],
-                             query_id: str, handles: list[str]) -> list[dict]:
+                             query_ids: list[str], handles: list[str]) -> list[dict]:
     by_id = {candidate["finding_id"]: candidate for candidate in candidates}
     result = []
     for item in raw:
@@ -199,7 +222,7 @@ def _materialize_assessments(raw: list[dict], candidates: list[dict],
             tests.append({key: value for key, value in test.items() if key != "evidence_ref_indices"}
                          | {"evidence_refs": [refs[index] for index in indices]})
         result.append({**{key: value for key, value in item.items() if key != "alternative_tests"},
-                       "alternative_tests": tests, "evidence_query_ids": [query_id],
+                       "alternative_tests": tests, "evidence_query_ids": query_ids,
                        "evidence_handles": handles})
     return result
 
@@ -211,14 +234,18 @@ def run_autonomous_finding_review(case_directory: str | Path, *, model: str,
         raise ValueError("Model and bounded timeout required")
     root = Path(case_directory).resolve()
     case, calculation = current_calculations(root)
-    query_id, handles = _evidence_snapshot(root)
+    query_ids, handles, evidence_responses = _evidence_snapshot(root)
     with tempfile.TemporaryDirectory(prefix="againward-rental-originals-") as directory:
         sources, images = _source_context(root, Path(directory))
         candidates = calculation["candidates"]
         basis = {"original_sources": sources, "case": case.to_dict(),
-                 "reconciliation": calculation, "evidence_query_id": query_id,
-                 "evidence_handles": handles}
-        source_hash = stable_hash({"sources": sources, "case": case.to_dict(), "reconciliation": calculation})
+                 "reconciliation": calculation, "evidence_query_ids": query_ids,
+                 "evidence_handles": handles, "evidence_plane_responses": evidence_responses}
+        inventory = read_json(root / "artifact_inventory.json")
+        source_hash = stable_hash({"sources": sources, "case": case.to_dict(),
+                                   "reconciliation": calculation,
+                                   "evidence_dataset_sha256": read_json(root / "evidence_dataset.json")["dataset_sha256"],
+                                   "privacy_manifest_sha256": inventory.get("privacy_manifest_sha256")})
         attempts: list[dict[str, Any]] = []
         model_calls = 0
         model_seconds = 0.0
@@ -279,7 +306,7 @@ def run_autonomous_finding_review(case_directory: str | Path, *, model: str,
                     raw = primary.get("assessments")
                     if set(primary) != {"assessments"} or not isinstance(raw, list):
                         raise ValueError("Model must assess all Rental candidates")
-                    assessments = _materialize_assessments(raw, candidates, query_id, handles)
+                    assessments = _materialize_assessments(raw, candidates, query_ids, handles)
                     reviewed = review_findings(case, calculation, assessments)
                     if reviewed["unreviewed_candidate_ids"]:
                         raise ValueError("Autonomous analyst left Rental candidate unreviewed")

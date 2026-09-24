@@ -71,7 +71,9 @@ package CLI. Its `documents` subcommands are `inventory`, `inspect`,
 `package-rental`; they require approved source state and supplied reviews.
 `python investigate.py rental-autonomous PACKAGE --output-dir CASE --model MODEL`
 resumes a privacy-approved, reviewed Rental document package through model
-finding QA, report writing and original-source PDF QA. It is not raw intake,
+finding QA, report writing and original-source PDF QA. Finding review now
+materializes bounded, paged Evidence Plane rows (up to 600 source rows) in the
+model context rather than retaining only query handles. It is not raw intake,
 cannot approve delivery and records a machine-readable job state. Use
 `--evaluation-only` for synthetic evaluation packages.
 The general `investigate.py` path still defaults to Energy and Rental expects

@@ -115,7 +115,9 @@ def run_autonomous_report(case_directory: str | Path, *, model: str,
     with tempfile.TemporaryDirectory(prefix="againward-rental-report-originals-") as directory:
         sources, images = _source_context(root, Path(directory))
         source_bundle_sha = stable_hash({"sources": sources, "case": case.to_dict(),
-                                         "reconciliation": calculation})
+                                         "reconciliation": calculation,
+                                         "evidence_dataset_sha256": read_json(root / "evidence_dataset.json")["dataset_sha256"],
+                                         "privacy_manifest_sha256": inventory.get("privacy_manifest_sha256")})
         assessments = read_json(root / "rental_assessments.json")["assessments"]
         qa_receipts = sorted((root / "autonomous_review").glob("attempt-*-*.json"))
         if not any((lambda receipt: receipt.get("qa_passed") is True

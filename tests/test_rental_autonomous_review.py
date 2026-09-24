@@ -2,7 +2,7 @@
 import pytest
 
 from againward.domains.rental.autonomous_review import (
-    _cite_originals, _materialize_assessments, _validate_challenge,
+    _cite_originals, _evidence_requests, _materialize_assessments, _validate_challenge,
 )
 from againward.domains.rental.domain_pack import RentalDomainPack
 
@@ -60,10 +60,22 @@ def test_model_selects_existing_source_refs_by_index_not_free_text():
     item = {"finding_id": "F1", "alternative_tests": [{"test_id": "T1",
             "description": "Check accepted rate", "result": "REFUTED", "evidence_ref_indices": [0]}]}
     result = _materialize_assessments([item], [{"finding_id": "F1", "evidence_refs": refs}],
-                                      "q1", ["handle1"])
+                                      ["q1"], ["handle1"])
     assert result[0]["alternative_tests"][0]["evidence_refs"] == refs
     assert result[0]["evidence_query_ids"] == ["q1"]
     item["alternative_tests"][0]["evidence_ref_indices"] = [1]
     with pytest.raises(ValueError, match="evidence_ref_indices"):
         _materialize_assessments([item], [{"finding_id": "F1", "evidence_refs": refs}],
-                                 "q1", ["handle1"])
+                                 ["q1"], ["handle1"])
+
+
+def test_evidence_plane_requests_page_normal_dossiers_without_crossing_budget():
+    dataset = {"dataset_id": "rental-case", "dataset_sha256": "a" * 64,
+               "fields": [{"key": "record_type"}], "rows": [{}] * 401}
+    requests = _evidence_requests(dataset)
+    assert [row["arguments"]["start"] for row in requests] == [0, 200, 400]
+    assert [row["arguments"]["limit"] for row in requests] == [200, 200, 1]
+    assert len({row["query_id"] for row in requests}) == 3
+    dataset["rows"] = [{}] * 601
+    with pytest.raises(ValueError, match="over 600"):
+        _evidence_requests(dataset)
