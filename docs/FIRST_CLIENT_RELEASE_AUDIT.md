@@ -8,7 +8,7 @@ evaluation and operator rehearsal.
 
 | Gate | Evidence now | Missing to pass |
 |---|---|---|
-| A — software/evidence | Real `gpt-6-sol` DEV/ADV source-unit submissions; strict exact quote validation; v8 eight-source technical source→ledger probe; hash-bound package handoff regression; prior 15-case Rental and 19-case privacy benchmarks | Fresh varied v8 DEV/ADV, independent blind HOLDOUT or declared substitute, complete eight-document privacy→report run with genuine scan attestation, positive/zero/abstain findings, failure injection, measured model/labor/cost, final full tests/benchmarks/CI |
+| A — software/evidence | Real `gpt-6-sol` DEV/ADV source-unit submissions; strict exact quote validation; v8 eight-source technical source→ledger probe; independent QA fail-closed on one material disagreement; hash-bound package handoff regression; 15-case Rental and 19-case privacy benchmarks | Cross-document QA adjudication, fresh varied v8 DEV/ADV, independent blind HOLDOUT or declared substitute, complete eight-document privacy→report run with genuine scan attestation, positive/zero/abstain findings, failure injection, measured model/labor/cost |
 | B — real operator | Visual packet and fact/link worksheets exist; local SOP drafted | Named person actually inspects scan and all financial claims, rehearses intake/delivery and approves exact PDF/evidence hashes on intended device |
 | C — business/permission | Owner checklist and narrow offer drafted | Owner confirms business/invoicing status, client-specific scope/permissions, suitable terms, provider-processing conditions, transfer/retention, and explicit first-client authorization |
 
@@ -25,13 +25,25 @@ count and provenance coverage for release-blocking model-driven cases remain
 [semantic evaluation](SEMANTIC_EXTRACTION_EVALUATION.md) for denominators and
 raw-artifact locations.
 
-The latest fully observed local suite at `28903e3` was **786 passed in
-327.62 s**; Python 3.11–3.14 CI passed at that SHA. The current v8 guidance
-and stricter preflight still require final-SHA regression and CI. The
-eight-source technical probe produced exact EUR 150.00 / EUR 0.00 groups,
+The current code SHA `c59d8f1` passed **787 local tests in 310.59 s**;
+all eight Python 3.11–3.14 CI jobs passed. Ruff and the configured CI mypy
+scope (14 files) passed. A deliberately broader `mypy againward benchmarking`
+check reported 161 existing typing errors in 24 files; that debt is not
+covered by the CI type gate. The Rental benchmark passed 15/15 (fixture
+TP 3 / FP 0 / FN 0 / TN 12; 10k-line ledger 3.017 s excluding documents).
+The privacy benchmark passed 19/19 (11 ordinary, eight unsafe, zero false
+blocks and zero unsafe passes; scripted visual fixtures). These are not
+end-to-end model-driven report accuracy rates. The eight-source technical
+probe produced exact EUR 150.00 / EUR 0.00 groups,
 but used agent-reviewed facts and a scripted scan-attestation fixture, with
 no human delivery review or client-style report. Do not describe it as an
 approved client claim.
+
+The independent v8 reread exposed one material off-hire-email classification
+disagreement and set `RECONCILIATION_REQUIRED`. The accepted agreement says
+the request alone does not stop billing. A trusted cross-document adjudication
+and blind final-outcome validation remain missing. The 99% report correctness
+and 95% no-correction objectives are unverified targets, not achieved metrics.
 
 Owner actions are listed in
 [operations checklist](FIRST_CLIENT_OPERATIONS_CHECKLIST.md). Neither a

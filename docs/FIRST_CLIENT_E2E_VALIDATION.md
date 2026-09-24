@@ -71,9 +71,14 @@ The same eight source hashes were re-extracted under v8: **8/8** validated
 source proposals, **159** candidate facts, **6/6** structurally complete
 material entities, and no erroneous partial-period candidate. A fresh
 technical probe using the v8 facts and a scripted visual protocol fixture
-reached the same EUR 150.00 / EUR 0.00 deterministic groups. No independent
-v8 source reread, genuine scan attestation, blind outcome evaluation or final
-client report has been completed. These remain release blockers.
+reached the same EUR 150.00 / EUR 0.00 deterministic groups. The independent
+v8 source reread found 6/8 exact entity differences and one material
+disagreement: whether the off-hire request email is only supporting evidence
+or a `RETURN` event. The email itself disclaims physical-return proof and the
+agreement says a request does not stop billing. The QA correctly blocks
+delivery pending cross-document adjudication. No genuine scan attestation,
+blind outcome evaluation or final client report has been completed. These
+remain release blockers.
 
 ## Missing integrated proof
 

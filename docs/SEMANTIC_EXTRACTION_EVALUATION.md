@@ -11,8 +11,17 @@ deterministic reconciliation produced EUR 150.00 and EUR 0.00 group
 differences. No human attested the scan; this is not report correctness,
 independent outcome accuracy, or a client deliverable. The v8 extraction
 artifacts are ignored local under
-`scratch/first_client_e2e_dossier/runtime_v8/documents/`. The v8 run has
-not yet received a second independent reread or a blind outcome challenge.
+`scratch/first_client_e2e_dossier/runtime_v8/documents/`. The v8 run has no
+blind outcome challenge. A second eight-call original-source reread found
+6/8 exact entity-bundle differences and **one ledger-material source
+disagreement**: the off-hire email was classified as `SUPPORTING_DOCUMENT`
+by the primary pass and `RETURN` with `OFF_HIRE_REQUESTED` by the challenger.
+The email explicitly says it is not proof of physical return, and the
+accepted agreement says a request alone does not stop billing. Cross-document
+adjudication is necessary; the QA receipt correctly reports
+`RECONCILIATION_REQUIRED` and `approved_for_delivery=false`. This is not a QA
+pass. The immutable local receipt is
+`scratch/first_client_e2e_dossier/runtime_v8/documents/independent_qa/d6690b93fba273ab6e2329a5fb3356c953812ca699b14b1c6454ee9ba0ba630b.json`.
 
 The v7 Rental guidance on the published, agent-authored
 [eight-source DEV dossier](../benchmarking/first_client_dossier.py), a real
