@@ -69,6 +69,11 @@ package CLI. Its `documents` subcommands are `inventory`, `inspect`,
 `analyst-review`, `visual-analyst-review`, `review-template`,
 `visual-fact-attest`, `validate`, `promote`, `link-review-template` and
 `package-rental`; they require approved source state and supplied reviews.
+`python investigate.py rental-autonomous PACKAGE --output-dir CASE --model MODEL`
+resumes a privacy-approved, reviewed Rental document package through model
+finding QA, report writing and original-source PDF QA. It is not raw intake,
+cannot approve delivery and records a machine-readable job state. Use
+`--evaluation-only` for synthetic evaluation packages.
 The general `investigate.py` path still defaults to Energy and Rental expects
 canonical extraction JSON; it is **not** a raw multi-PDF automatic extractor.
 `manage_investigation.py`, `query_evidence.py` and `analyze.py` keep Energy-era
@@ -99,8 +104,11 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
   citations for further fact review. A seven-call native analyst pass accepted
   149 facts after one bounded metadata repair; a two-call visual pass proposed
   10 scan facts after one bounded repair. Real scan attestation and report QA
-  remain open. Five advisory bundle differences remain diagnostic.
-  No report accuracy, human-correction rate or blind performance is measured.
+  remain open for a genuine client. A downstream model-driven DEV job now
+  produced a five-page watermarked synthetic PDF after finding and PDF QA;
+  it used a scripted, explicitly non-human scan attestation. Five advisory
+  bundle differences remain diagnostic. No report accuracy rate,
+  human-correction rate or blind performance is measured.
   A prior two-PDF technical probe reached a source-linked ledger without human
   delivery approval. See
   [semantic evaluation](SEMANTIC_EXTRACTION_EVALUATION.md) and

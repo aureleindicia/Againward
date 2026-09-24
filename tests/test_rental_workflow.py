@@ -11,8 +11,30 @@ from againward.entrypoints import get_domain
 from againward.domains.rental.workflow import record_assessments, recalculate
 from againward.domains.rental.review_policy import RentalDeliveryPolicy, validate_current_review
 from againward.domains.rental.reporting import render_report
+from againward.domains.rental.pdf_report import render_rental_pdf, validate_synthesis
 from tests.test_rental_ingestion import write_packet
 from benchmarking.rental_review import synthetic_review
+
+
+def test_synthesis_allows_only_reviewed_asset_identifiers_not_free_numbers():
+    pack = {"charge_groups": [], "findings": {"findings": []}, "document_lineage": {"facts": [
+        {"candidate": {"semantic_type": "asset_id", "value": "LIFT-5"}},
+        {"candidate": {"semantic_type": "asset_id", "value": "LIFT-50"}}]}}
+    validate_synthesis("LIFT-5 differs from LIFT-50 in the supplied rental records.", pack)
+    with pytest.raises(ValueError, match="Free numeric"):
+        validate_synthesis("LIFT-500 differs from LIFT-5.", pack)
+    with pytest.raises(ValueError, match="Free numeric"):
+        validate_synthesis("LIFT-5 returned on 2026-09-05.", pack)
+
+
+def test_client_pdf_can_layout_concise_long_synthesis(tmp_path):
+    pack = {"charge_groups": [], "findings": {"findings": []}, "documents": []}
+    synthesis = "The supplied documents require a written reconciliation. " * 22
+    result = render_rental_pdf(pack, synthesis, tmp_path / "report.pdf")
+    assert result["page_count"] == 5
+    assert (tmp_path / "report.pdf").read_bytes().startswith(b"%PDF-1.4")
+    render_rental_pdf(pack, synthesis, tmp_path / "evaluation.pdf", evaluation_only=True)
+    assert b"SYNTHETIC EVALUATION" in (tmp_path / "evaluation.pdf").read_bytes()
 
 
 def test_review_report_and_human_approval_bound_to_current_evidence(tmp_path):

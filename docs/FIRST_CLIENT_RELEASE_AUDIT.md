@@ -56,9 +56,21 @@ proposed 10/10 return-page facts after one recorded repair, but all await a
 real visual attestation. A scripted test-only visual/downstream review reached
 the actual five-page PDF with EUR 150.00 and EUR 0.00 groups. That PDF failed
 the product usability objective (debug hashes/generic fixture prose/founder
-claim-check instructions), and scripted decisions cannot count as autonomy or
-human-review evidence. The report writer and original-source report QA are
-therefore specific **technical blockers**, not merely missing evaluation.
+claim-check instructions). A subsequent model-driven finding reviewer and
+independent original-source challenger corrected an overconfident claim and
+validated an L2 EUR 150.00 difference without a recoverable amount. A model
+then wrote the client synthesis; PDF/original-source QA exposed internal
+labels and incomplete credit explanation, triggering a renderer correction.
+The resulting five-page PDF passed a later model QA (zero reported unsupported
+claims or omissions) and is watermarked synthetic evaluation. This is one
+known DEV dossier, using a **scripted non-human scan attestation**. It does not
+validate report correctness rates or a real client approval path.
+
+The current reviewed-package-to-PDF job is resumable, but raw privacy intake,
+fresh document processing/link review, authentic scan attestation and a blind
+challenge remain outside that job. A genuine complete raw authorized dossier
+to report run is still a **specific technical blocker**. Founder correction
+burden, end-to-end time, token cost and quality targets remain unmeasured.
 
 Owner actions are listed in
 [operations checklist](FIRST_CLIENT_OPERATIONS_CHECKLIST.md). Neither a

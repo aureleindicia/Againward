@@ -8,6 +8,7 @@ from __future__ import annotations
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 import re
+import textwrap
 
 from client_delivery import _PdfPage, _wrap, _write_pdf_pages
 
@@ -23,6 +24,19 @@ def _allowed_amounts(pack: dict) -> set[tuple[str, Decimal]]:
             value = row.get(key)
             if currency and value is not None:
                 result.add((currency, Decimal(str(value))))
+    return result
+
+
+def _allowed_asset_identifiers(pack: dict) -> set[str]:
+    lineage = pack.get("document_lineage", {})
+    facts = lineage.get("facts", []) if isinstance(lineage, dict) else []
+    result = set()
+    for fact in facts:
+        candidate = fact.get("candidate", {}) if isinstance(fact, dict) else {}
+        if candidate.get("semantic_type") in {"asset_id", "serial_number"}:
+            value = candidate.get("value")
+            if isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/-]{1,63}", value):
+                result.add(value)
     return result
 
 
@@ -45,11 +59,15 @@ def validate_synthesis(synthesis: str, pack: dict) -> None:
     remainder = list(synthesis)
     for start, end in spans:
         remainder[start:end] = " " * (end - start)
+    for identifier in sorted(_allowed_asset_identifiers(pack), key=len, reverse=True):
+        pattern = r"(?<![A-Za-z0-9])" + re.escape(identifier) + r"(?![A-Za-z0-9])"
+        for match in re.finditer(pattern, "".join(remainder)):
+            remainder[match.start():match.end()] = " " * (match.end() - match.start())
     if re.search(r"\d", "".join(remainder)):
         raise ValueError("Free numeric/date/identifier claims need a validated structured citation")
 
 
-def render_rental_pdf(pack: dict, synthesis: str, target: Path) -> dict:
+def render_rental_pdf(pack: dict, synthesis: str, target: Path, *, evaluation_only: bool = False) -> dict:
     validate_synthesis(synthesis, pack)
     pages: list[_PdfPage] = []
 
@@ -57,6 +75,8 @@ def render_rental_pdf(pack: dict, synthesis: str, target: Path) -> dict:
         page = _PdfPage([])
         pages.append(page)
         page.text("AGAINWARD  |  Rental invoice verification", size=9, bold=True)
+        if evaluation_only:
+            page.text("SYNTHETIC EVALUATION — NOT FOR CLIENT DELIVERY", size=9, bold=True)
         page.line()
         page.text(title, size=17, bold=True)
         return page
@@ -71,10 +91,12 @@ def render_rental_pdf(pack: dict, synthesis: str, target: Path) -> dict:
         return page
 
     page = new_page("Review summary")
-    page = add(page, synthesis)
+    for paragraph in textwrap.wrap(synthesis, width=850, break_long_words=False,
+                                   break_on_hyphens=False):
+        page = add(page, paragraph)
     page = add(page, "This is a documented comparison, not a debt, legal opinion or guaranteed recovery.")
-    page = add(page, "All amounts below are net and come from the validated evidence pack; "
-                    "unresolved sources or contract interpretations require an explicit STOP.")
+    page = add(page, "The comparison below uses net amounts excluding tax. "
+                    "Any source uncertainty is identified with the relevant finding.")
 
     page = new_page("Documents and scope")
     roles: dict[str, int] = {}
@@ -88,6 +110,10 @@ def render_rental_pdf(pack: dict, synthesis: str, target: Path) -> dict:
 
     page = new_page("Calculated comparison")
     groups = pack["charge_groups"]
+    expected_by_period = {(entry["period_id"], entry["charge_key"]): entry for entry in
+                          pack.get("expected_ledger", {}).get("entries", [])}
+    actual_by_charge = {entry["charge_id"]: entry for entry in
+                        pack.get("actual_ledger", {}).get("entries", [])}
     if not groups:
         page = add(page, "No comparable charge group was supported by the supplied reviewed evidence.")
     for group in groups:
@@ -95,7 +121,29 @@ def render_rental_pdf(pack: dict, synthesis: str, target: Path) -> dict:
         expected = group.get("expected_amount") or "Unknown"
         actual = group.get("actual_amount") or "Unknown"
         difference = group.get("difference") or "Unknown"
-        page = add(page, f"{currency} | billed {actual} | expected {expected} | difference {difference}.")
+        charge_ids = group.get("charge_ids", [])
+        label = ", ".join(charge_ids) if charge_ids else "Unallocated charge group"
+        page = add(page, f"Invoice line: {label}.", bold=True)
+        expected_entry = expected_by_period.get((group.get("period_id"), group.get("charge_key")))
+        if expected_entry is not None:
+            units = expected_entry.get("unit_days") or expected_entry.get("units")
+            unit_name = "asset-days" if expected_entry.get("unit_days") is not None else (
+                str(expected_entry.get("billing_unit", "units")).lower() + "s")
+            rate = expected_entry.get("rate")
+            if units is not None and rate is not None:
+                page = add(page, f"Contract basis: {units} {unit_name} at {currency} {rate}; "
+                                f"expected net {currency} {expected}.")
+        actual_entries = [actual_by_charge[charge_id] for charge_id in charge_ids
+                          if charge_id in actual_by_charge]
+        if len(actual_entries) == 1:
+            line = actual_entries[0]
+            page = add(page, f"Invoice amount {currency} {line['invoiced_amount']}; issued credit "
+                            f"{currency} {line['issued_credit']}; net billed after issued credit "
+                            f"{currency} {actual}.")
+        else:
+            page = add(page, f"Net billed {currency} {actual}; expected {currency} {expected}.")
+        page = add(page, f"Documentary difference: {currency} {difference}. "
+                        "This is not an automatically recoverable balance.")
         limitations = group.get("limitations", [])
         if limitations:
             page = add(page, "Limitations: " + "; ".join(str(item) for item in limitations), size=9)
@@ -107,8 +155,14 @@ def render_rental_pdf(pack: dict, synthesis: str, target: Path) -> dict:
     if not findings:
         page = add(page, "No supported discrepancy was selected for a client-facing claim.")
     for finding in findings:
-        page = add(page, f"{finding['family']} | {finding['status']} | {finding['evidence_level']} | "
-                         f"{finding['currency']} {finding['difference'] if finding['difference'] is not None else 'Unknown'}.",
+        decision = {"CONFIRME": "Supported by the supplied records",
+                    "A_CONSERVER_AVEC_RESERVES": "Supported with reservations",
+                    "INSUFFISAMMENT_ETAYE": "Not sufficiently supported",
+                    "REJETE": "Not supported", "ABSTAIN": "No conclusion from supplied records"}
+        page = add(page, f"{finding['family'].replace('_', ' ').capitalize()} — "
+                         f"{decision.get(finding['status'], 'Review pending')}; "
+                         f"documentary difference {finding['currency']} "
+                         f"{finding['difference'] if finding['difference'] is not None else 'unknown'}.",
                    bold=True)
         page = add(page, "Claim/abstention: " + str(finding["claim_or_abstention"]))
         page = add(page, "Best reason this may be false: " + str(finding["best_reason_false"]), size=9)

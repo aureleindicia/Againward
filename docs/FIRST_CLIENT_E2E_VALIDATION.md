@@ -108,24 +108,48 @@ exercised the actual package, Rental adapter, Evidence Plane, reconciliation,
 review contracts and PDF renderer. It reached 159 facts, two EUR groups at
 150.00 and 0.00, and a five-page PDF under ignored
 `scratch/first_client_e2e_dossier/runtime_v8/integration_probe/`. The PDF is
-not a deliverable: it displays source hashes, uses generic fixture findings
-and tells the founder to inspect claims and decide supplier follow-up.
-Model-driven finding assessment, report drafting, independent report/omission
-QA, an authentic visual check and one coherent resumable job remain **open**.
+not a deliverable: its findings were scripted and its first rendering displayed
+debug hashes/generic fixture prose.
+
+A later **model-driven downstream DEV run** reused that same fixture package,
+without reading generator-private truth. One model assessment selected the
+contract-supported quantity discrepancy; a separate original-source challenge
+first rejected overconfident recovery wording. A bounded correction and repeat
+produced a validated L2 finding: **EUR 150.00 documentary difference**, no
+recovery-grade amount, with later credits/replacements explicitly unresolved.
+All eight required adversarial finding checks passed. The first report QA found
+client-visible internal labels and an unclear net/credit explanation; the
+renderer now displays the deterministic 13 asset-days, EUR 900.00 invoice,
+EUR 100.00 issued credit, EUR 800.00 net billed and EUR 650.00 expected charge.
+A later independent original-source/PDF reread returned PASS with zero reported
+unsupported claims and zero reported missed discrepancies on a five-page PDF.
+The final evaluation PDF is watermarked on every page; SHA-256 is
+`6f9ec76a8e27a2a691d57db6918877142b9ec7d5243e1a4e23c3be4952886a1d`.
+The evidence-pack file SHA-256 is
+`67464c51ede52692b852ed8a8a50a44b48ea0cf33900e39e7d0b4a5414c832de`.
+Receipts and PDF are in ignored `scratch/first_client_e2e_dossier/runtime_v8/model_review_probe/`.
+This is **one known synthetic dossier with a scripted visual attestation**, not
+human review, a blind correctness score or permission to deliver. Same-family
+model author/QA agreement cannot establish 99% material correctness.
+
+`python investigate.py rental-autonomous PACKAGE --output-dir CASE --model MODEL`
+now resumes a hash-bound reviewed-package-to-PDF job, records state/events,
+returns an unchanged successful report without new model calls, and leaves
+delivery unapproved. This is **not yet** a one-command raw authorized dossier
+workflow. Authentic scan attestation, raw intake/privacy orchestration,
+independent challenge dossiers and measured founder burden remain open.
 
 ## Missing integrated proof
 
 The generator is committed, but a genuine operator has not visually inspected
-the raster scan or signed the final PDF/evidence hashes. Internal Codex still
-needs to reconcile advisory differences, prepare independently justified
-source-backed fact/link decisions, run the Evidence Plane on a genuine
-approval path, write and adversarially check the report, and demonstrate
-minimal founder correction burden. A technical ledger run alone is not that
-rehearsal. No
-receipt-to-report time, token cost, actual human labor or sample client PDF
-exists. Source/report mutation, supplemental privacy clearance, WAIT/RESUME
-and a clean repeat still need demonstration on this dossier. A separate blind
-outcome challenge is also missing. These are Gate A/B blockers.
+the raster scan or signed final PDF/evidence hashes. The reviewed-package
+downstream run is not a complete raw-to-report production job. Initial privacy,
+fresh extraction/review/linking, authentic visual attestation, supplemental
+privacy clearance and WAIT/RESUME must be integrated and rehearsed as one job.
+No independent blind report-correctness rate, human correction/review time,
+complete receipt-to-report time or token cost exists. Source/report mutation,
+failure recovery and a clean fresh end-to-end repeat still need demonstration.
+These are Gate A/B blockers despite the watermarked DEV sample PDF.
 
 ## Required next rehearsal, in order
 

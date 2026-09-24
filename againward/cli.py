@@ -50,6 +50,25 @@ def main(argv: list[str] | None = None) -> int:
     if arguments and arguments[0] == "documents":
         from againward.documents.cli import main as document_main
         return document_main(arguments[1:])
+    if arguments and arguments[0] == "rental-autonomous":
+        parser = argparse.ArgumentParser(description="Resume approved Rental package through model QA and PDF; never approve delivery")
+        parser.add_argument("package", help="Already privacy-approved, reviewed source-document package")
+        parser.add_argument("--output-dir", required=True)
+        parser.add_argument("--model", required=True)
+        parser.add_argument("--timeout-seconds", type=int, default=240)
+        parser.add_argument("--evaluation-only", action="store_true")
+        values = parser.parse_args(arguments[1:])
+        try:
+            from againward.domains.rental.autonomous_job import run_reviewed_package_job
+            result = run_reviewed_package_job(values.package, values.output_dir,
+                                              model=values.model,
+                                              timeout_seconds=values.timeout_seconds,
+                                              evaluation_only=values.evaluation_only)
+        except (OSError, ValueError) as exc:
+            print(f"Erreur: {exc}", file=sys.stderr)
+            return 2
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result.get("status") in {"READY_FOR_APPROVAL", "EVALUATION_ONLY_QA_PASSED"} else 3
     args = build_parser().parse_args(argv)
     try:
         intake = (
