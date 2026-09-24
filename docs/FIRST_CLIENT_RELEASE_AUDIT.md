@@ -41,8 +41,12 @@ approved client claim.
 
 The independent v8 reread exposed one material off-hire-email classification
 disagreement and set `RECONCILIATION_REQUIRED`. The accepted agreement says
-the request alone does not stop billing. A trusted cross-document adjudication
-and blind final-outcome validation remain missing. The 99% report correctness
+the request alone does not stop billing. A new original-source adjudication
+probe selected the supporting-document interpretation with exact email and
+agreement citations, reducing unresolved material source differences from
+one to zero **for fact review only**; it approved no facts or report. General
+cross-document adjudication and blind final-outcome validation remain unproven.
+The 99% report correctness
 and 95% no-correction objectives are unverified targets, not achieved metrics.
 
 Owner actions are listed in

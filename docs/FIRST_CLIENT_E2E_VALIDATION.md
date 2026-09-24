@@ -80,6 +80,17 @@ delivery pending cross-document adjudication. No genuine scan attestation,
 blind outcome evaluation or final client report has been completed. These
 remain release blockers.
 
+The new `documents adjudicate-qa` path reopens all eight original DEV sources
+and validates each returned native quote against its exact source unit/hash.
+On the frozen v8 dispute it selected the primary email classification as
+supporting evidence, citing both the email's disclaimer and the accepted
+agreement's explicit request-versus-return rule. This changed the material
+disagreement count from one unresolved to **zero unresolved for fact review**.
+It approved zero facts and did not recompute or approve a final report. Five
+advisory bundle differences remain; same-model adjudication is not an
+independent correctness estimate. The ignored local receipt is under
+`scratch/first_client_e2e_dossier/runtime_v8/documents/adjudications/`.
+
 ## Missing integrated proof
 
 The generator is committed, but a genuine operator has not visually inspected

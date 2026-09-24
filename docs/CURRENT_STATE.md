@@ -1,4 +1,4 @@
-# AGAINWARD — read first (2026-09-23)
+# AGAINWARD — read first (2026-09-24)
 
 Current first-client decision: **NOT READY — SPECIFIC CRITICAL BLOCKERS**.
 Start with the [release audit](FIRST_CLIENT_RELEASE_AUDIT.md),
@@ -65,7 +65,7 @@ python run_document_benchmark.py --help
 
 `againward` (installed project script) and `python investigate.py` share the
 package CLI. Its `documents` subcommands are `inventory`, `inspect`,
-`extract`, `independent-qa`, `compare-independent-qa`, `review-template`,
+`extract`, `independent-qa`, `compare-independent-qa`, `adjudicate-qa`, `review-template`,
 `visual-fact-attest`, `validate`, `promote`, `link-review-template` and
 `package-rental`; they require approved source state and supplied reviews.
 The general `investigate.py` path still defaults to Energy and Rental expects
@@ -90,9 +90,13 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
   unmerged at this checkpoint. Verify live status before further work.
 - The routing-only baseline had zero semantic recall. A real Codex CLI model
   submitted DEV/ADVERSARIAL proposals; frozen v1 runs lacked complete material
-  entities. The v7 eight-source DEV dossier has 8/8 validated proposals,
-  6/6 structurally complete material entities and a separate source reread:
-  6/8 strict source differences, 0/8 declared ledger-material differences.
+  entities. The eight-source DEV dossier has 8/8 validated proposals;
+  corrected structural preflight scored v7 at 4/6 and v8 at 6/6 material
+  entities. Independent v8 reread found 6/8 strict source differences,
+  including one material off-hire-email role dispute. An original-source
+  adjudicator now resolves that DEV dispute with exact email/agreement
+  citations for further fact review, but five advisory differences, scan
+  attestation and report QA remain open.
   No report accuracy, human-correction rate or blind performance is measured.
   A prior two-PDF technical probe reached a source-linked ledger without human
   delivery approval. See

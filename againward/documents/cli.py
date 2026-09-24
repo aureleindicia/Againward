@@ -69,6 +69,14 @@ def main(argv: list[str] | None = None) -> int:
     compare_qa.add_argument("batch", type=Path)
     compare_qa.add_argument("primary_extractions", nargs="+", type=Path)
     compare_qa.add_argument("--challenger-extractions", nargs="+", required=True, type=Path)
+    adjudicate = commands.add_parser("adjudicate-qa", help="Reopen original sources to resolve material QA differences")
+    adjudicate.add_argument("root", type=Path)
+    adjudicate.add_argument("batch", type=Path)
+    adjudicate.add_argument("qa", type=Path)
+    adjudicate.add_argument("primary_extractions", nargs="+", type=Path)
+    adjudicate.add_argument("--challenger-extractions", nargs="+", required=True, type=Path)
+    adjudicate.add_argument("--model", required=True)
+    adjudicate.add_argument("--timeout-seconds", type=int, default=180)
     package = commands.add_parser("package-rental", help="Assemble reviewed document inputs; stop on unresolved links")
     package.add_argument("root", type=Path)
     package.add_argument("batch", type=Path)
@@ -179,6 +187,31 @@ def main(argv: list[str] | None = None) -> int:
                           "material_sources_needing_reconciliation": sum(row["material_needs_reconciliation"]
                                                                          for row in body["source_results"]),
                           "approved_for_delivery": False}
+            elif args.command == "adjudicate-qa":
+                from .adjudication import adjudicate_with_codex
+                assert_document_action(args.root, mutation=True)
+                primary = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                for path in args.primary_extractions)
+                challenger = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                   for path in args.challenger_extractions)
+                body = adjudicate_with_codex(batch, primary, challenger, _load(args.qa, args.root),
+                                             args.root, model=args.model,
+                                             timeout_seconds=args.timeout_seconds)
+                destination = args.root / "adjudications" / (body["adjudication_sha256"] + ".json")
+                with transaction(args.root):
+                    if destination.exists() and _load(destination, args.root) != body:
+                        raise ValueError("SOURCE_CHANGED: prior adjudication artifact altered")
+                    write_json(destination, body)
+                paths = {e.to_dict()["extraction_sha256"]: str(path)
+                         for e, path in [*zip(primary, args.primary_extractions, strict=True),
+                                         *zip(challenger, args.challenger_extractions, strict=True)]}
+                result = {"status": body["status"], "adjudication_artifact": str(destination),
+                          "selected_extractions": [paths[body["selected_extractions"][source.source_id]]
+                                                   for source in batch.documents
+                                                   if source.source_id in body["selected_extractions"]],
+                          "material_unresolved_source_ids": body["material_unresolved_source_ids"],
+                          "advisory_differences_remaining": body["advisory_differences_remaining"],
+                          "facts_approved": 0, "approved_for_delivery": False}
             elif args.command == "package-rental":
                 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
                 assert_document_action(args.root, mutation=True)
