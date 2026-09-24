@@ -77,11 +77,14 @@ def render_rental_pdf(pack: dict, synthesis: str, target: Path) -> dict:
                     "unresolved sources or contract interpretations require an explicit STOP.")
 
     page = new_page("Documents and scope")
-    page = add(page, f"Reviewed documentary sources: {len(pack['documents'])}.")
+    roles: dict[str, int] = {}
     for document in pack["documents"]:
-        page = add(page, f"{document['role']}: source SHA-256 {document['sha256'][:20]}...; "
-                         f"status {document['status']}.")
-    page = add(page, "Full source hashes, exact locations and review decisions are in the accompanying evidence pack.")
+        roles[document["role"]] = roles.get(document["role"], 0) + 1
+    page = add(page, f"Reviewed documentary sources: {len(pack['documents'])}.")
+    page = add(page, "Source types: " + "; ".join(
+        f"{role.replace('_', ' ').lower()} ({count})" for role, count in sorted(roles.items())) + ".")
+    page = add(page, "The comparison covers only the supplied, reviewed documents. "
+                    "Source locations and integrity hashes are retained in the accompanying evidence pack.")
 
     page = new_page("Calculated comparison")
     groups = pack["charge_groups"]
@@ -116,11 +119,17 @@ def render_rental_pdf(pack: dict, synthesis: str, target: Path) -> dict:
     page = new_page("Evidence and next action")
     page = add(page, "The accompanying technical evidence pack contains exact source locations, "
                     "quoted spans, entity-link decisions, ledger groups and review hashes.")
-    page = add(page, "The owner must inspect each positive financial claim, confirm the cited clause and "
-                    "return/credit timeline, and approve the exact PDF hash before delivery.")
-    page = add(page, "If no difference is supported, state that the supplied evidence did not establish one; "
-                    "do not convert an unknown into zero or an apparent difference into savings.")
-    page = add(page, "Only a human may decide what to ask the client or whether a finding merits supplier discussion.")
+    if any(finding["status"] in {"CONFIRME", "A_CONSERVER_AVEC_RESERVES"} for finding in findings):
+        page = add(page, "Suggested next step: ask the supplier in writing to reconcile the "
+                        "documented charge difference against any accepted changes, asset substitutions "
+                        "and credits not present in the supplied records. This is a request for explanation, "
+                        "not a demand for payment.")
+    else:
+        page = add(page, "No supported client-facing discrepancy was established from the "
+                        "supplied evidence. Obtain the specifically missing source documents before "
+                        "making a financial claim.")
+    page = add(page, "A difference is not an automatic saving or a confirmed debt. "
+                    "The accompanying evidence pack records the calculation and open questions.")
 
     if not 4 <= len(pages) <= 8:
         raise ValueError("Rental client PDF must remain 4–8 pages for the measured pilot envelope")

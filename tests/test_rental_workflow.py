@@ -25,7 +25,12 @@ def test_review_report_and_human_approval_bound_to_current_evidence(tmp_path):
     mark_finalizable(root, conclusion_ref="investigation.json")
     report = render_report(root, "Synthetic analyst synthesis: EUR 150 discrepancy; no guaranteed recovery.")
     assert report["pdf"]["page_count"] == 5
-    assert (root / "rental_client_report.pdf").read_bytes().startswith(b"%PDF-1.4")
+    rendered = (root / "rental_client_report.pdf").read_bytes()
+    assert rendered.startswith(b"%PDF-1.4")
+    assert b"Source types:" in rendered
+    assert b"ask the supplier in writing" in rendered
+    assert b"source SHA-256" not in rendered
+    assert b"The owner must inspect" not in rendered
     assert "rental_client_report.pdf" in report["reviewed_artifact_hashes"]
     gate = evaluate_delivery_gate(root, policy=RentalDeliveryPolicy())
     assert not gate["ready_for_delivery"]
