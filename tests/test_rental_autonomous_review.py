@@ -59,6 +59,17 @@ def test_challenger_must_cite_every_original_native_source():
         _cite_originals(_sources(), invented)
 
 
+def test_visual_source_citations_require_attested_observations_not_ocr_guesses():
+    sources = [{"source_id": "scan", "units": [{"location": "page:1/visual",
+        "route": "VISUAL", "text": "", "attested_quotes": ["Signed return asset LIFT-5"],
+        "attached_image_index": 1}]}]
+    citation = [{"source_id": "scan", "location": "page:1/visual", "quote": "Signed return asset LIFT-5"}]
+    _cite_originals(sources, citation)
+    sources[0]["units"][0]["attested_quotes"] = []
+    with pytest.raises(ValueError, match="exact original-source quote"):
+        _cite_originals(sources, citation)
+
+
 def test_qa_cannot_pass_with_omission_or_failed_material_check():
     candidates = [{"finding_id": "F1", "evidence_level": "L2"}]
     assessments = [{"finding_id": "F1", "status": "A_CONSERVER_AVEC_RESERVES"}]

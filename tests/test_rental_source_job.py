@@ -18,7 +18,7 @@ def test_real_case_waits_for_privacy_before_source_inspection(tmp_path, monkeypa
     assert not (case / "processed" / "source_job_state.json").exists()
 
 
-def test_resume_refuses_changed_approved_bytes_before_inventory(tmp_path, monkeypatch):
+def test_resume_archives_prior_state_and_restarts_after_changed_approved_bytes(tmp_path, monkeypatch):
     create_client_workspace("case", root=tmp_path, synthetic=True,
                             domain_name="rental", intake_payload={})
     case = tmp_path / "case"
@@ -32,10 +32,15 @@ def test_resume_refuses_changed_approved_bytes_before_inventory(tmp_path, monkey
         run_approved_sources_job(case, model="test-model")
     assert (case / "processed" / "source_job_state.json").exists()
     source.write_text("invoice two", encoding="utf-8")
-    monkeypatch.setattr("againward.domains.rental.source_job.inventory_sources",
-                        lambda *args, **kwargs: pytest.fail("changed source inventoried"))
-    with pytest.raises(DocumentError, match="SOURCE_CHANGED"):
+    with pytest.raises(RuntimeError, match="fixture interruption"):
         run_approved_sources_job(case, model="test-model")
+    from againward.core.artifact_store import read_json
+    archives = list((case / "scratch/rental_revisions").iterdir())
+    assert len(archives) == 1
+    old = read_json(archives[0] / "source_job_state.json")
+    new = read_json(case / "processed/source_job_state.json")
+    assert old["binding"] != new["binding"]
+    assert new["primary"] == {} and new["approved_for_delivery"] is False
 
 
 def test_snapshot_rejects_symlinked_source(tmp_path):
@@ -67,3 +72,16 @@ def test_model_timeout_leaves_resumable_source_snapshot(tmp_path, monkeypatch):
     assert state["phase"] == "WAITING_MODEL_RETRY"
     assert state["batch_receipt"]
     assert not state["primary"]
+
+
+def test_parallel_case_invocation_does_not_start_another_reader(tmp_path, monkeypatch):
+    import fcntl
+    create_client_workspace("case", root=tmp_path, synthetic=True,
+                            domain_name="rental", intake_payload={})
+    case = tmp_path / "case"
+    monkeypatch.setattr("againward.domains.rental.source_job._run_approved_sources_job",
+                        lambda *a, **k: pytest.fail("second writer entered"))
+    with (case / ".rental-job.lock").open("w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        result = run_approved_sources_job(case, model="test-model")
+    assert result["reason_code"] == "CASE_ALREADY_RUNNING"

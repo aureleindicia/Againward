@@ -1,6 +1,10 @@
 # AGAINWARD — read first (2026-09-24)
 
 Current first-client decision: **NOT READY — SPECIFIC CRITICAL BLOCKERS**.
+Final delivery validation is in progress; see
+[the live failure register](FINAL_AUTONOMOUS_FAILURES.md). Two native-source
+DEV runs have passed model finding/report QA after repairs, but the final
+frozen challenge and genuine human burden measurement remain open.
 Start with the [release audit](FIRST_CLIENT_RELEASE_AUDIT.md),
 [readiness plan](FIRST_CLIENT_READINESS_PLAN.md) and
 [internal autonomy/quality contract](AUTONOMOUS_SERVICE_QUALITY.md), then the
@@ -76,6 +80,15 @@ materializes bounded, paged Evidence Plane rows (up to 600 source rows) in the
 model context rather than retaining only query handles. It is not raw intake,
 cannot approve delivery and records a machine-readable job state. Use
 `--evaluation-only` for synthetic evaluation packages.
+`python investigate.py rental-case WORKSPACE --model MODEL --evaluation-only`
+is the developing single-job Rental entrypoint. It checks contract authority,
+attempts Codex-first raw privacy review, applies the existing deterministic
+post-check, then runs source extraction, independent reread/adjudication,
+fact review, exact links, calculations and report QA. Real visual attestations
+remain required where applicable. It archives old analysis on source/policy
+revision, serializes concurrent calls and never authorizes delivery. Raw privacy
+integration and the complete eight-source flow still require final live proof;
+the entrypoint's existence is not a readiness claim.
 The general `investigate.py` path still defaults to Energy and Rental expects
 canonical extraction JSON; it is **not** a raw multi-PDF automatic extractor.
 `manage_investigation.py`, `query_evidence.py` and `analyze.py` keep Energy-era

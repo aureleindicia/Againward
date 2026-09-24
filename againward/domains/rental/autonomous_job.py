@@ -16,7 +16,7 @@ from againward.documents.contracts import DocumentError
 from againward.entrypoints import get_domain
 from againward.evidence.hashing import stable_hash
 
-from .autonomous_report import run_autonomous_report
+from .autonomous_report import current_report_versions, run_autonomous_report
 from .autonomous_review import run_autonomous_finding_review
 from .review_policy import validate_current_review
 
@@ -44,6 +44,8 @@ def _completed_report(root: Path, job: dict) -> dict | None:
     if not receipt_path.is_relative_to((root / "autonomous_report").resolve()):
         raise ValueError("Completed autonomous report receipt escaped its case directory")
     receipt = read_json(receipt_path)
+    if receipt.get("binding", {}).get("versions") != current_report_versions():
+        raise ValueError("Completed report policy or renderer changed; recomputation required")
     if (receipt.get("receipt_sha256") != stable_hash({key: value for key, value in receipt.items()
                                                       if key != "receipt_sha256"})
             or receipt.get("status") != job["state"]):

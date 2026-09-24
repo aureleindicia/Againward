@@ -14,6 +14,7 @@ from client_delivery import _PdfPage, _wrap, _write_pdf_pages
 
 
 _MONEY = re.compile(r"\b(EUR|USD|GBP|CHF|CAD|AUD|NZD)\s*([0-9]+(?:[.,][0-9]+)?)\b", re.I)
+RENDER_VERSION = "againward-rental-reviewed-evidence-v2"
 
 
 def _allowed_amounts(pack: dict) -> set[tuple[str, Decimal]]:
@@ -201,4 +202,4 @@ def render_rental_pdf(pack: dict, synthesis: str, target: Path, *, evaluation_on
 
     if not 4 <= len(pages) <= 8:
         raise ValueError("Rental client PDF must remain 4–8 pages for the measured pilot envelope")
-    return _write_pdf_pages(pages, [], target, renderer="againward-rental-reviewed-evidence-v1")
+    return _write_pdf_pages(pages, [], target, renderer=RENDER_VERSION)

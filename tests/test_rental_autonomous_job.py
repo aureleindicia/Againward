@@ -7,6 +7,7 @@ from againward.cli import main
 from againward.core.artifact_store import write_json
 from againward.core.workflow import fingerprint
 from againward.domains.rental.autonomous_job import _completed_report, run_reviewed_package_job
+from againward.domains.rental.autonomous_report import current_report_versions
 from againward.evidence.hashing import stable_hash
 
 
@@ -40,7 +41,7 @@ def test_completed_job_replay_is_hash_bound_and_never_approves(tmp_path):
     root.mkdir()
     for name in ("rental_client_report.pdf", "rental_evidence_pack.json", "report.md"):
         (root / name).write_bytes(name.encode())
-    receipt = {"status": "EVALUATION_ONLY_QA_PASSED", "attempts": [{
+    receipt = {"status": "EVALUATION_ONLY_QA_PASSED", "binding": {"versions": current_report_versions()}, "attempts": [{
         "pdf_sha256": fingerprint(root / "rental_client_report.pdf"),
         "evidence_pack_sha256": fingerprint(root / "rental_evidence_pack.json"),
         "report_md_sha256": fingerprint(root / "report.md")}]}

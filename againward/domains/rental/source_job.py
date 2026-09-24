@@ -1,7 +1,7 @@
-"""Resume approved Rental source documents through the existing reviewed-package job.
+"""Resume authorized Rental intake through privacy, sources and report QA.
 
-Real workspaces enter here only after their contract and privacy gates have
-cleared. The job never invents a visual inspection or a delivery approval.
+Raw semantic review runs only after contract authority; business readers run
+only after privacy clearance. No visual inspection or delivery approval is invented.
 """
 from __future__ import annotations
 
@@ -27,6 +27,7 @@ from againward.domains.rental.semantic_guidance import guidance
 from againward.evidence.hashing import stable_hash
 
 from .autonomous_job import run_reviewed_package_job
+from .autonomous_report import current_report_versions
 
 
 VERSION = "againward-rental-approved-sources-job-v1"
@@ -114,19 +115,28 @@ def _visual_review(root: Path, batch: SourceBatch, extractions: tuple[Any, ...],
     return matches[0] if matches else None
 
 
-def run_approved_sources_job(workspace: str | Path, *, model: str,
+def _run_approved_sources_job(workspace: str | Path, *, model: str,
                              timeout_seconds: int = 240,
                              evaluation_only: bool = False) -> dict[str, Any]:
     """One invocation drives all cleared source stages; STOPs remain explicit."""
     case = Path(workspace).resolve()
+    if any((case / name).is_symlink() for name in ("processed", "scratch", "privacy", "sanitized", "incoming")):
+        raise DocumentError("SOURCE_UNSAFE_PATH", "Workspace stage directory is linked")
     metadata = read_json(case / "workspace.json")
     if metadata.get("domain") != "rental":
         raise ValueError("A standard Rental workspace is required")
     evaluation_only = evaluation_only or metadata.get("case_kind") == "SYNTHETIC"
     privacy = inspect_privacy_status(case)
     if not privacy["approved_for_analysis"]:
-        return {"status": "WAITING_FOR_PRIVACY_REVIEW", "privacy_state": privacy["state"],
-                "approved_for_delivery": False}
+        from .privacy_job import run_privacy_intake
+        try:
+            intake = run_privacy_intake(case, model=model, timeout_seconds=timeout_seconds)
+        except DocumentError as exc:
+            return {"status": "WAITING_MODEL_RETRY" if exc.code in RETRYABLE_MODEL_CODES else "FAILED",
+                    "stage": "PRIVACY", "reason_code": exc.code, "approved_for_delivery": False}
+        if not intake["approved_for_analysis"]:
+            return {**intake, "approved_for_delivery": False}
+        privacy = inspect_privacy_status(case)
     assert_case_privacy_cleared(case)
     # Synthetic fixtures may live in incoming; a real case only uses sanitized.
     source = case / "sanitized"
@@ -139,15 +149,30 @@ def run_approved_sources_job(workspace: str | Path, *, model: str,
                "prompt_version": prompt_version_for_guidance(guidance()), "model": model,
                "evaluation_only": evaluation_only,
                "versions": [VERSION, QA_GUIDANCE_VERSION, ADJUDICATION_VERSION,
-                            REVIEW_VERSION, VISUAL_REVIEW_VERSION]}
+                            REVIEW_VERSION, VISUAL_REVIEW_VERSION, *current_report_versions()]}
     analysis = case / "processed"
     documents = analysis / "documents"
     path = analysis / "source_job_state.json"
     if path.exists():
         state = _load_state(path)
         if state["binding"] != binding:
-            raise DocumentError("SOURCE_CHANGED", "Source, privacy, model or guidance changed; start a new reviewed run")
-    else:
+            from againward.core.artifact_store import assert_artifacts_consistent
+            assert_artifacts_consistent(analysis)
+            # Retain every old artifact and approval for audit, never import an
+            # old approval into the new source/policy revision. Rename is atomic.
+            archive_root = case / "scratch/rental_revisions"
+            if (case / "scratch").is_symlink() or archive_root.is_symlink():
+                raise DocumentError("SOURCE_UNSAFE_PATH", "Revision archive is linked")
+            archive_root.mkdir(parents=True, exist_ok=True)
+            archive = archive_root / (state["state_sha256"][:16] + "-" +
+                datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f"))
+            analysis.rename(archive)
+            analysis.mkdir()
+            write_json(analysis / "revision_origin.json", {
+                "archived_directory": str(archive), "previous_binding": state["binding"],
+                "current_binding": binding, "reason": "SOURCE_PRIVACY_MODEL_OR_POLICY_CHANGED",
+                "historical_absolute_refs_are_not_active": True, "approved_for_delivery": False})
+    if not path.exists():
         state = {"schema_version": VERSION, "binding": binding, "phase": "INTAKE",
                  "events": [], "primary": {}, "challenger": {},
                  "human_approval": False, "approved_for_delivery": False}
@@ -335,3 +360,26 @@ def run_approved_sources_job(workspace: str | Path, *, model: str,
         _save(path, state, "FAILED", reason_code=exc.code)
         return {"status": "FAILED", "reason_code": exc.code,
                 "job_state": str(path), "approved_for_delivery": False}
+
+
+def run_approved_sources_job(workspace: str | Path, *, model: str,
+                             timeout_seconds: int = 240,
+                             evaluation_only: bool = False) -> dict[str, Any]:
+    """Serialize one case across model waits and atomic revision changes."""
+    import fcntl
+    import os
+
+    case = Path(workspace).resolve()
+    if not (case / "workspace.json").is_file():
+        raise ValueError("A standard Rental workspace is required")
+    descriptor = os.open(case / ".rental-job.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(descriptor, "r+") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return {"status": "RUNNING", "reason_code": "CASE_ALREADY_RUNNING", "approved_for_delivery": False}
+        try:
+            return _run_approved_sources_job(case, model=model, timeout_seconds=timeout_seconds,
+                                             evaluation_only=evaluation_only)
+        finally:
+            fcntl.flock(lock, fcntl.LOCK_UN)

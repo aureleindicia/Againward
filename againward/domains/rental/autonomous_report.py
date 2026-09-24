@@ -13,14 +13,18 @@ from againward.core.artifact_store import read_json, write_json
 from againward.core.client_lifecycle import record_existing_data_exhaustion, mark_finalizable
 from againward.evidence.hashing import stable_hash
 
-from .autonomous_review import _ask, _cite_originals, _source_context
-from .pdf_report import validate_synthesis
+from .autonomous_review import VERSION as FINDING_REVIEW_VERSION, _ask, _cite_originals, _source_context
+from .pdf_report import RENDER_VERSION, validate_synthesis
 from .reporting import evidence_pack, render_report
 from .review_policy import validate_current_review
 from .workflow import current_calculations
 
 
-VERSION = "againward-rental-autonomous-report-v2"
+VERSION = "againward-rental-autonomous-report-v3"
+
+
+def current_report_versions() -> list[str]:
+    return [VERSION, FINDING_REVIEW_VERSION, RENDER_VERSION]
 
 
 def _verified_pack_manifest(pack: dict, root: Path) -> dict:
@@ -109,7 +113,7 @@ def run_autonomous_report(case_directory: str | Path, *, model: str,
     case, calculation = current_calculations(root)
     pack = evidence_pack(root, findings)
     binding = {"version": VERSION, "source_sha256": inventory["extraction"]["sha256"],
-               "evidence_pack_sha256": stable_hash(pack)}
+               "evidence_pack_sha256": stable_hash(pack), "versions": current_report_versions()}
     fixture_only = evaluation_only or _evaluation_only(root)
     attempts: list[dict[str, Any]] = []
     with tempfile.TemporaryDirectory(prefix="againward-rental-report-originals-") as directory:
@@ -120,7 +124,8 @@ def run_autonomous_report(case_directory: str | Path, *, model: str,
                                          "privacy_manifest_sha256": inventory.get("privacy_manifest_sha256")})
         assessments = read_json(root / "rental_assessments.json")["assessments"]
         qa_receipts = sorted((root / "autonomous_review").glob("attempt-*-*.json"))
-        if not any((lambda receipt: receipt.get("qa_passed") is True
+        if not any((lambda receipt: receipt.get("schema_version") == FINDING_REVIEW_VERSION
+                    and receipt.get("qa_passed") is True
                     and receipt.get("source_bundle_sha256") == source_bundle_sha
                     and receipt.get("attempts", [{}])[-1].get("final_assessments",
                         receipt.get("attempts", [{}])[-1].get("assessment")) == assessments
@@ -189,8 +194,10 @@ def run_autonomous_report(case_directory: str | Path, *, model: str,
                 "A documented L2 difference is not a recoverable debt; do not fail a properly limited "
                 "report merely because later external records might exist. Conversely STOP on any "
                 "unreviewed material contradiction. Cite one exact native quote from EVERY native source; "
-                "source_citations MUST contain NATIVE locations only, NEVER a page:*/visual location. "
-                "Inspect image pixels separately and never call a scripted fixture human approval. "
+                "Copy locations EXACTLY from original_sources.units.location, without character-span suffixes. "
+                "For EVERY visual source inspect the attached_image_index pixels and cite an exact "
+                "attested_quotes observation at that unit location. These source/pixel-bound observations "
+                "are not native OCR. Never call a scripted fixture human approval. "
                 "Return payload STRING containing JSON object with EXACT keys verdict "
                 "(PASS/REVISE/STOP), source_citations [{source_id,location,quote}], "
                 "unsupported_claims [strings], missed_discrepancies [strings], financial_check string, "
@@ -208,7 +215,7 @@ def run_autonomous_report(case_directory: str | Path, *, model: str,
             for qa_repair in range(2):
                 current_prompt = qa_prompt if qa_repair == 0 else (
                     qa_prompt + "\nCorrect the malformed QA citation/schema below, without changing "
-                    "the substantive verdict simply to pass. Keep exact native quotes only.\n"
+                    "the substantive verdict simply to pass. Keep exact source-unit quotes only.\n"
                     + json.dumps({"prior_qa": prior_qa, "validator_error": qa_error},
                                  ensure_ascii=False))
                 qa, elapsed = _cached_answer(root, f"report-qa-{attempt + 1}-repair-{qa_repair}",

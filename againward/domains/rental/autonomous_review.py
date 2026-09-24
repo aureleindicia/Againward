@@ -16,7 +16,9 @@ from againward.core.artifact_store import read_json, write_json
 from againward.documents.codex_provider import _images, _model_invocation_failure
 from againward.documents.contracts import DocumentError, SourceBatch
 from againward.documents.readers import read_document
+from againward.documents.extraction import replay_extraction
 from againward.documents.sources import verify_batch
+from againward.documents.visual_fact_review import verify_visual_attestations
 from againward.evidence.cli import execute_case_query, validate_session_artifacts
 from againward.evidence.hashing import stable_hash
 from againward.evidence.protocol import EvidenceQuerySession
@@ -26,7 +28,7 @@ from .findings import review_findings
 from .workflow import current_calculations, record_assessments
 
 
-VERSION = "againward-rental-autonomous-finding-review-v5"
+VERSION = "againward-rental-autonomous-finding-review-v6"
 MAX_SOURCE_CHARS = 60_000
 MAX_EVIDENCE_CONTEXT_CHARS = 150_000
 _RESPONSE_SCHEMA: dict[str, Any] = {"type": "object", "additionalProperties": False,
@@ -74,13 +76,31 @@ def _source_context(root: Path, temporary: Path) -> tuple[list[dict], tuple[Path
     document_root = package_path.parent.parent
     batch = SourceBatch.from_dict(package["batch"])
     verify_batch(batch, document_root)
+    visual_quotes: dict[tuple[str, str], list[str]] = {}
+    fact_review = package.get("fact_review", {})
+    if fact_review.get("visual_attestations"):
+        extractions = tuple(replay_extraction(item, batch, document_root)
+                            for item in package["extractions"])
+        verify_visual_attestations(batch, extractions, fact_review, document_root)
+        accepted = {row["candidate_id"] for row in fact_review["decisions"] if row["decision"] == "ACCEPT"}
+        for extraction in extractions:
+            for candidate in extraction.candidates:
+                if (candidate.candidate_id in accepted and
+                        "VISUAL_TRANSCRIPTION_UNVERIFIED" in candidate.ambiguity_flags):
+                    visual_quotes.setdefault((extraction.source_id, candidate.location), []).append(
+                        candidate.raw_observed_value)
     sources: list[dict[str, Any]] = []
     pictures: list[Path] = []
     for index, document in enumerate(batch.documents):
         parsed = read_document(document, document_root)
+        image_indices = {unit.location: len(pictures) + offset + 1 for offset, unit in
+                         enumerate(unit for unit in parsed.units if unit.route != "NATIVE")}
         sources.append({"source_id": document.source_id, "source_sha256": document.sha256,
                         "units": [{"location": unit.location, "route": unit.route,
-                                   "unit_sha256": unit.unit_sha256, "text": unit.text}
+                                   "unit_sha256": unit.unit_sha256, "text": unit.text,
+                                   **({"attested_quotes": visual_quotes.get((document.source_id, unit.location), []),
+                                       "attached_image_index": image_indices[unit.location]}
+                                      if unit.route != "NATIVE" else {})}
                                   for unit in parsed.units]})
         # Renderers reuse page-1.png/source.png: isolate each source so a later
         # scan cannot replace pixels already attached to an earlier source.
@@ -151,19 +171,21 @@ def _evidence_snapshot(root: Path) -> tuple[list[str], list[str], list[dict]]:
 def _cite_originals(sources: list[dict], citations: Any) -> None:
     if not isinstance(citations, list) or not citations:
         raise ValueError("Independent QA must cite at least one original source")
-    units = {(source["source_id"], unit["location"]): unit["text"]
-             for source in sources for unit in source["units"] if unit["route"] == "NATIVE"}
+    units = {(source["source_id"], unit["location"]):
+             [unit["text"]] if unit["route"] == "NATIVE" else unit.get("attested_quotes", [])
+             for source in sources for unit in source["units"]}
     cited_sources = set()
     for citation in citations:
         if not isinstance(citation, dict) or set(citation) != {"source_id", "location", "quote"}:
             raise ValueError("Independent QA source citation schema invalid")
         quote = citation["quote"]
         original = units.get((citation["source_id"], citation["location"]))
-        if not isinstance(quote, str) or not quote.strip() or original is None or quote not in original:
+        if (not isinstance(quote, str) or not quote.strip() or original is None
+                or not any(quote in text for text in original)):
             raise ValueError("Independent QA citation is not an exact original-source quote")
         cited_sources.add(citation["source_id"])
     if {source_id for source_id, _ in units} - cited_sources:
-        raise ValueError("Independent QA omitted an original native source")
+        raise ValueError("Independent QA omitted an original source")
 
 
 def _validate_challenge(payload: dict, candidates: list[dict], sources: list[dict],
@@ -354,9 +376,15 @@ def run_autonomous_finding_review(case_directory: str | Path, *, model: str,
                 "Review every candidate. Provide eight required checks per candidate: calculations, "
                 "data_quality, contract_authority, timeline, alternative_explanations, recoverability, "
                 "double_counting, currency, each with status passed/failed/not_applicable and concrete evidence. "
+                "checks MUST be an OBJECT keyed by those eight check names, not a list. "
                 "Cite an exact original native text quote from EVERY native source with source_id and "
-                "location; do not "
-                "claim visual text is native. If any material point remains unresolved, verdict REVISE or STOP. "
+                "location copied EXACTLY from original_sources.units.location (for example page:1). "
+                "Do not use evidence-ref character-span locations such as page:1/chars:0:50. "
+                "Copy quote verbatim including whitespace from that original unit's text; do not "
+                "claim visual text is native. For EVERY visual source inspect its attached pixels "
+                "and cite an exact attested_quotes observation at the matching unit location. These "
+                "observations have source/candidate/pixel-bound attestations; they are not native OCR. "
+                "If any material point remains unresolved, verdict REVISE or STOP. "
                 "No human or delivery approval. Verdict MUST be exactly PASS, REVISE or STOP. "
                 "The output schema requires a payload STRING containing "
                 "a JSON object with EXACT keys verdict, reviewed_findings "
