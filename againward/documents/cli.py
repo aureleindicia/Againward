@@ -77,6 +77,19 @@ def main(argv: list[str] | None = None) -> int:
     adjudicate.add_argument("--challenger-extractions", nargs="+", required=True, type=Path)
     adjudicate.add_argument("--model", required=True)
     adjudicate.add_argument("--timeout-seconds", type=int, default=180)
+    analyst = commands.add_parser("analyst-review", help="Codex review of native facts; defer original visual pixels")
+    analyst.add_argument("root", type=Path)
+    analyst.add_argument("batch", type=Path)
+    analyst.add_argument("extractions", nargs="+", type=Path)
+    analyst.add_argument("--model", required=True)
+    analyst.add_argument("--timeout-seconds", type=int, default=180)
+    visual_analyst = commands.add_parser("visual-analyst-review", help="Codex visual proposal before real operator attestation")
+    visual_analyst.add_argument("root", type=Path)
+    visual_analyst.add_argument("batch", type=Path)
+    visual_analyst.add_argument("native_review", type=Path)
+    visual_analyst.add_argument("extractions", nargs="+", type=Path)
+    visual_analyst.add_argument("--model", required=True)
+    visual_analyst.add_argument("--timeout-seconds", type=int, default=180)
     package = commands.add_parser("package-rental", help="Assemble reviewed document inputs; stop on unresolved links")
     package.add_argument("root", type=Path)
     package.add_argument("batch", type=Path)
@@ -212,6 +225,44 @@ def main(argv: list[str] | None = None) -> int:
                           "material_unresolved_source_ids": body["material_unresolved_source_ids"],
                           "advisory_differences_remaining": body["advisory_differences_remaining"],
                           "facts_approved": 0, "approved_for_delivery": False}
+            elif args.command == "analyst-review":
+                from .analyst_review import review_with_codex
+                assert_document_action(args.root, mutation=True)
+                extractions = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                    for path in args.extractions)
+                body = review_with_codex(batch, extractions, args.root, model=args.model,
+                                         timeout_seconds=args.timeout_seconds)
+                destination = args.root / "analyst_reviews" / (body["receipt_sha256"] + ".json")
+                with transaction(args.root):
+                    if destination.exists() and _load(destination, args.root) != body:
+                        raise ValueError("SOURCE_CHANGED: prior analyst review receipt altered")
+                    write_json(destination, body)
+                result = {"status": body["status"], "review_artifact": str(destination),
+                          "native_facts_accepted": body["native_facts_accepted"],
+                          "visual_candidates_deferred": body["visual_candidates_deferred"],
+                          "model_calls": body["model_calls"], "cached_sources": body["cached_sources"],
+                          "human_approval": False, "approved_for_delivery": False}
+            elif args.command == "visual-analyst-review":
+                from .analyst_review import review_visual_with_codex
+                assert_document_action(args.root, mutation=True)
+                extractions = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                    for path in args.extractions)
+                body = review_visual_with_codex(batch, extractions, _load(args.native_review, args.root),
+                                                args.root, model=args.model,
+                                                timeout_seconds=args.timeout_seconds)
+                destination = args.root / "analyst_reviews" / (body["receipt_sha256"] + ".json")
+                review_path = (args.root / "review_templates" / (body["receipt_sha256"] + ".json")
+                               if body["status"] == "WAITING_FOR_VISUAL_ATTESTATION" else None)
+                with transaction(args.root):
+                    if destination.exists() or (review_path is not None and review_path.exists()):
+                        raise ValueError("REVIEW_STALE: visual analyst review already exists")
+                    write_json(destination, body)
+                    if review_path is not None:
+                        write_json(review_path, body["review"])
+                result = {"status": body["status"], "review_artifact": str(destination),
+                          "fact_review": str(review_path) if review_path is not None else None,
+                          "visual_candidates_pending_attestation": body["visual_candidates_pending_attestation"],
+                          "human_approval": False, "approved_for_delivery": False}
             elif args.command == "package-rental":
                 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
                 assert_document_action(args.root, mutation=True)

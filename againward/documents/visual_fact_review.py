@@ -90,6 +90,13 @@ def attest_visual_facts(batch: SourceBatch, extractions: tuple[Any, ...], review
                                  "reviewed_at_utc": datetime.now(timezone.utc).isoformat(),
                                  "decision": "CONFIRMED"})
     revised = json.loads(json.dumps(review))
+    confirmed = {candidate.candidate_id: candidate
+                 for candidates in groups.values() for candidate in candidates}
+    for decision in revised["decisions"]:
+        candidate = confirmed.get(decision.get("candidate_id"))
+        if candidate is not None:
+            decision["resolved_flags"] = sorted(set(decision["resolved_flags"]) |
+                                                set(candidate.ambiguity_flags))
     revised["visual_attestations"] = attestations
     return revised
 

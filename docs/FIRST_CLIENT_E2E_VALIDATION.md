@@ -91,6 +91,28 @@ advisory bundle differences remain; same-model adjudication is not an
 independent correctness estimate. The ignored local receipt is under
 `scratch/first_client_e2e_dossier/runtime_v8/documents/adjudications/`.
 
+The next live internal analyst pass made one explicit decision per candidate:
+first pass accepted 148 native facts and rejected one source-status
+classification too literally; a single recorded source-local repair reopened
+the email and accepted the justified `EXTRACTED` classification. It then
+accepted **149 native facts** and deferred all **10 visual facts**. A separate
+vision-model pass on the original return page first rejected the signed
+record's `ACCEPTED` status, then corrected that classification in one bounded
+pixel reread. It proposed 10/10 visual facts for a *real* operator check;
+all visual flags remain unresolved and no human attestation was produced.
+The immutable local proposals, repair histories and review receipts are under
+`scratch/first_client_e2e_dossier/runtime_v8/documents/analyst_*`.
+
+A deliberately scripted, **non-human/non-autonomous downstream fixture** then
+exercised the actual package, Rental adapter, Evidence Plane, reconciliation,
+review contracts and PDF renderer. It reached 159 facts, two EUR groups at
+150.00 and 0.00, and a five-page PDF under ignored
+`scratch/first_client_e2e_dossier/runtime_v8/integration_probe/`. The PDF is
+not a deliverable: it displays source hashes, uses generic fixture findings
+and tells the founder to inspect claims and decide supplier follow-up.
+Model-driven finding assessment, report drafting, independent report/omission
+QA, an authentic visual check and one coherent resumable job remain **open**.
+
 ## Missing integrated proof
 
 The generator is committed, but a genuine operator has not visually inspected

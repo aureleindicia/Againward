@@ -65,7 +65,8 @@ python run_document_benchmark.py --help
 
 `againward` (installed project script) and `python investigate.py` share the
 package CLI. Its `documents` subcommands are `inventory`, `inspect`,
-`extract`, `independent-qa`, `compare-independent-qa`, `adjudicate-qa`, `review-template`,
+`extract`, `independent-qa`, `compare-independent-qa`, `adjudicate-qa`,
+`analyst-review`, `visual-analyst-review`, `review-template`,
 `visual-fact-attest`, `validate`, `promote`, `link-review-template` and
 `package-rental`; they require approved source state and supplied reviews.
 The general `investigate.py` path still defaults to Energy and Rental expects
@@ -95,8 +96,10 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
   entities. Independent v8 reread found 6/8 strict source differences,
   including one material off-hire-email role dispute. An original-source
   adjudicator now resolves that DEV dispute with exact email/agreement
-  citations for further fact review, but five advisory differences, scan
-  attestation and report QA remain open.
+  citations for further fact review. A seven-call native analyst pass accepted
+  149 facts after one bounded metadata repair; a two-call visual pass proposed
+  10 scan facts after one bounded repair. Real scan attestation and report QA
+  remain open. Five advisory bundle differences remain diagnostic.
   No report accuracy, human-correction rate or blind performance is measured.
   A prior two-PDF technical probe reached a source-linked ledger without human
   delivery approval. See

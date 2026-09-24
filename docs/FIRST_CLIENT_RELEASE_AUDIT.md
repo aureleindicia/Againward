@@ -49,6 +49,17 @@ cross-document adjudication and blind final-outcome validation remain unproven.
 The 99% report correctness
 and 95% no-correction objectives are unverified targets, not achieved metrics.
 
+Subsequent v8 DEV work exercised autonomous native fact review: 148/149 native
+facts were accepted on the first pass and the one metadata-status error was
+repaired by one new source-bound model call. A pixel-inspecting model pass
+proposed 10/10 return-page facts after one recorded repair, but all await a
+real visual attestation. A scripted test-only visual/downstream review reached
+the actual five-page PDF with EUR 150.00 and EUR 0.00 groups. That PDF failed
+the product usability objective (debug hashes/generic fixture prose/founder
+claim-check instructions), and scripted decisions cannot count as autonomy or
+human-review evidence. The report writer and original-source report QA are
+therefore specific **technical blockers**, not merely missing evaluation.
+
 Owner actions are listed in
 [operations checklist](FIRST_CLIENT_OPERATIONS_CHECKLIST.md). Neither a
 legal signoff nor model-provider permission for real client data has been

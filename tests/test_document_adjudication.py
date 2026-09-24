@@ -32,12 +32,16 @@ def _case(tmp_path):
         document = by_name[name]
         parsed = read_document(document, root)
         quote = "ACCEPTED" if name == "agreement.txt" else "We request off-hire."
+        fields = [("entity_kind", kind, quote),
+                  ("document_role", "RENTAL_AGREEMENT" if name == "agreement.txt" else "EMAIL_EVIDENCE",
+                   "ACCEPTED agreement" if name == "agreement.txt" else "This email"),
+                  ("document_status", "ACCEPTED" if name == "agreement.txt" else "EXTRACTED", quote)]
         raw = {"status": "SUCCESS", "limitations": [], "candidates": [{
             "entity_id": "scope" if name == "agreement.txt" else "email",
-            "semantic_type": "entity_kind", "value_type": "ENUM", "value": kind,
-            "raw_observed_value": quote, "location": parsed.units[0].location,
+            "semantic_type": field, "value_type": "ENUM", "value": value,
+            "raw_observed_value": observed, "location": parsed.units[0].location,
             "normalization_notes": "Classified source role", "ambiguity_flags": [],
-        }]}
+        } for field, value, observed in fields]}
         return validate_proposal(assemble_proposal(raw, document, parsed, batch.batch_id,
                                                     "synthetic-model"), batch, root)
 
