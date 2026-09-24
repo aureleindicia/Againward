@@ -53,6 +53,8 @@ def test_review_report_and_human_approval_bound_to_current_evidence(tmp_path):
     assert b"ask the supplier in writing" in rendered
     assert b"source SHA-256" not in rendered
     assert b"The owner must inspect" not in rendered
+    assert b"Claim/abstention" not in rendered
+    assert b"Best reason this may be false" not in rendered
     assert "rental_client_report.pdf" in report["reviewed_artifact_hashes"]
     gate = evaluate_delivery_gate(root, policy=RentalDeliveryPolicy())
     assert not gate["ready_for_delivery"]

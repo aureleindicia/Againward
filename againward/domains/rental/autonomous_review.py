@@ -26,7 +26,7 @@ from .findings import review_findings
 from .workflow import current_calculations, record_assessments
 
 
-VERSION = "againward-rental-autonomous-finding-review-v4"
+VERSION = "againward-rental-autonomous-finding-review-v5"
 MAX_SOURCE_CHARS = 60_000
 MAX_EVIDENCE_CONTEXT_CHARS = 150_000
 _RESPONSE_SCHEMA: dict[str, Any] = {"type": "object", "additionalProperties": False,
@@ -227,6 +227,22 @@ def _materialize_assessments(raw: list[dict], candidates: list[dict],
     return result
 
 
+def _adopt_qa_alternatives(assessments: list[dict], challenge: dict) -> tuple[list[dict], list[dict]]:
+    """Promote a challenger's source-reviewed alternative into the client claim."""
+    qa_by_id = {row["finding_id"]: row for row in challenge["reviewed_findings"]}
+    final_assessments = []
+    corrections = []
+    for assessment in assessments:
+        fid = assessment["finding_id"]
+        corrected = qa_by_id[fid]["best_reason_false"]
+        if corrected != assessment["best_reason_false"]:
+            corrections.append({"finding_id": fid, "before": assessment["best_reason_false"],
+                                "after": corrected,
+                                "reason": "Independent source challenge corrected the primary alternative."})
+        final_assessments.append({**assessment, "best_reason_false": corrected})
+    return final_assessments, corrections
+
+
 def run_autonomous_finding_review(case_directory: str | Path, *, model: str,
                                   timeout_seconds: int = 240) -> dict:
     """Review all current candidates; persist only when original-source QA passes."""
@@ -389,6 +405,13 @@ def run_autonomous_finding_review(case_directory: str | Path, *, model: str,
             attempts.append({"assessment": assessments, "challenge": challenge,
                              "primary_seconds": round(primary_seconds, 3),
                              "challenge_seconds": round(challenge_seconds, 3)})
+            corrections = []
+            if passed:
+                qa_by_id = {row["finding_id"]: row for row in challenge["reviewed_findings"]}
+                final_assessments, corrections = _adopt_qa_alternatives(assessments, challenge)
+                review_findings(case, calculation, final_assessments)
+                attempts[-1]["final_assessments"] = final_assessments
+                attempts[-1]["qa_corrections"] = corrections
             receipt = {"schema_version": VERSION, "source_bundle_sha256": source_hash,
                        "model": model, "attempts": attempts, "qa_passed": passed,
                        "model_calls_this_run": model_calls,
@@ -398,9 +421,8 @@ def run_autonomous_finding_review(case_directory: str | Path, *, model: str,
             receipt_path = root / "autonomous_review" / f"attempt-{attempt + 1}-{receipt['receipt_sha256']}.json"
             write_json(receipt_path, receipt)
             if passed:
-                validated = record_assessments(root, assessments)
+                validated = record_assessments(root, final_assessments)
                 hypotheses = []
-                qa_by_id = {row["finding_id"]: row for row in challenge["reviewed_findings"]}
                 reviews = []
                 for finding in validated["findings"]:
                     fid = finding["finding_id"]

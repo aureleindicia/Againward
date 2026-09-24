@@ -142,15 +142,16 @@ def render_rental_pdf(pack: dict, synthesis: str, target: Path, *, evaluation_on
                             f"{currency} {actual}.")
         else:
             page = add(page, f"Net billed {currency} {actual}; expected {currency} {expected}.")
-        page = add(page, f"Documentary difference: {currency} {difference}. "
-                        "This is not an automatically recoverable balance.")
+        page = add(page, f"Documentary difference: {currency} {difference}.")
+        if group.get("difference") not in {None, "0.00"}:
+            page = add(page, "A billing difference is not automatically a recoverable balance.")
         limitations = group.get("limitations", [])
         if limitations:
             page = add(page, "Limitations: " + "; ".join(str(item) for item in limitations), size=9)
     page = add(page, "A positive difference is a supported discrepancy only when source terms, "
                     "identity, dates, credits and conventions were actually reviewed.")
 
-    page = new_page("Findings and adversarial checks")
+    page = new_page("Findings and limitations")
     findings = pack["findings"]["findings"]
     if not findings:
         page = add(page, "No supported discrepancy was selected for a client-facing claim.")
@@ -164,11 +165,11 @@ def render_rental_pdf(pack: dict, synthesis: str, target: Path, *, evaluation_on
                          f"documentary difference {finding['currency']} "
                          f"{finding['difference'] if finding['difference'] is not None else 'unknown'}.",
                    bold=True)
-        page = add(page, "Claim/abstention: " + str(finding["claim_or_abstention"]))
-        page = add(page, "Best reason this may be false: " + str(finding["best_reason_false"]), size=9)
+        page = add(page, "What the records support: " + str(finding["claim_or_abstention"]))
+        page = add(page, "Possible alternative: " + str(finding["best_reason_false"]), size=9)
         for limitation in finding.get("limitations", []):
             page = add(page, "Limit: " + str(limitation), size=9)
-    page = add(page, "Repeated finding families on one charge group are not added together.")
+    page = add(page, "Each invoice-charge difference is counted only once in the financial summary.")
 
     page = new_page("Evidence and next action")
     page = add(page, "The accompanying technical evidence pack contains exact source locations, "

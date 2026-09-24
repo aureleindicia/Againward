@@ -2,7 +2,8 @@
 import pytest
 
 from againward.domains.rental.autonomous_review import (
-    _cite_originals, _evidence_requests, _materialize_assessments, _validate_challenge,
+    _adopt_qa_alternatives, _cite_originals, _evidence_requests,
+    _materialize_assessments, _validate_challenge,
 )
 from againward.domains.rental.domain_pack import RentalDomainPack
 
@@ -79,3 +80,13 @@ def test_evidence_plane_requests_page_normal_dossiers_without_crossing_budget():
     dataset["rows"] = [{}] * 601
     with pytest.raises(ValueError, match="over 600"):
         _evidence_requests(dataset)
+
+
+def test_independent_alternative_replaces_misleading_primary_in_final_assessment():
+    primary = [{"finding_id": "F1", "best_reason_false": "The second unit remained hired."}]
+    challenge = {"reviewed_findings": [{"finding_id": "F1",
+                  "best_reason_false": "A documented replacement may explain continued billing."}]}
+    final, corrections = _adopt_qa_alternatives(primary, challenge)
+    assert final[0]["best_reason_false"] == challenge["reviewed_findings"][0]["best_reason_false"]
+    assert corrections[0]["before"] == primary[0]["best_reason_false"]
+    assert primary[0]["best_reason_false"] == "The second unit remained hired."
