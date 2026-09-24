@@ -9,6 +9,16 @@ This is not a completion certificate or a frozen evaluation. Current branch:
 
 ## Verified development evidence
 
+- A fresh raw, real-style synthetic case completed the integrated privacy and
+  native-document path through an actual client PDF. Both originals were native
+  PDFs; Codex read the originals, Python bound their hashes, deterministic code
+  calculated the ledger, and Codex performed findings and PDF QA. The run was
+  evaluation-only and did not authorize delivery. It does not establish accuracy
+  on independent cases.
+- A live synthetic privacy probe allowed an ordinary professional-contact PDF
+  and blocked a medical/HR-sensitive attachment. A synthetic secret was blocked
+  on retry; its first model response failed schema validation. These three probes
+  are development checks, not a blinded privacy benchmark.
 - Two native PDF sources passed the approved-source job through extraction,
   separate source reread, fact review, deterministic reconciliation, model
   findings and actual PDF QA. The first run required renderer corrections.
@@ -25,11 +35,17 @@ This is not a completion certificate or a frozen evaluation. Current branch:
 
 ## Acceptance still open
 
-Live proof of raw privacy orchestration; complete refreshed eight-source run;
-freeze and varied final challenge; independent final-report adjudication;
-measured founder review burden; end-to-end supplemental/revision and failure
-injection receipts. Do not infer 99% correctness or 95% correction-free operation
-from unit tests or a few synthetic reports.
+The refreshed eight-source run currently stops at native fact promotion: two
+distinct rate-card row descriptions were assigned to one aggregate entity, so
+the single-value-per-entity invariant rejected them. Rental guidance now requires
+row-level entities for each independently priced asset, but the refreshed
+end-to-end run has not yet tested that change. Its signed-return scan still needs
+genuine pixel inspection before those visual facts can be promoted.
+
+Also open: frozen varied final challenge; independent final-report adjudication;
+measured founder review burden; full supplemental/revision integration evidence.
+Do not infer 99% correctness or 95% correction-free operation from unit tests or
+a few synthetic reports.
 
 See [failures](FINAL_AUTONOMOUS_FAILURES.md),
 [metrics](FINAL_AUTONOMOUS_METRICS.md) and

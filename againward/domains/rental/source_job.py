@@ -52,6 +52,63 @@ def _load_state(path: Path) -> dict[str, Any]:
     return state
 
 
+def _remaining_revision_budget(analysis: Path) -> dict | None:
+    from dataclasses import asdict
+    from againward.evidence.cli import validate_session_artifacts
+    from againward.evidence.protocol import EvidenceQuerySession
+    from .workflow import _remaining_budget
+
+    session_path = analysis / "evidence_query_session.json"
+    if session_path.exists():
+        session = EvidenceQuerySession.from_dict(read_json(session_path))
+        validate_session_artifacts(analysis, session)
+        if session.status in {"closed", "failure_budget_exhausted"}:
+            raise ValueError("Closed evidence sessions cannot be reset by a source-job revision")
+        return asdict(_remaining_budget(session))
+    origin = analysis / "revision_origin.json"
+    return read_json(origin).get("remaining_evidence_budget") if origin.exists() else None
+
+
+def _only_adjudication_policy_changed(previous: dict, current: dict) -> bool:
+    old_versions, new_versions = previous.get("versions", []), current.get("versions", [])
+    # v1 binding order: source job, source QA, adjudication, native and visual
+    # review, then report policies. Extraction reuse is allowed for index 2 only.
+    return (len(old_versions) == len(new_versions) and len(old_versions) >= 5
+            and old_versions[2] != new_versions[2]
+            and old_versions[:2] + old_versions[3:] == new_versions[:2] + new_versions[3:]
+            and {k: v for k, v in previous.items() if k != "versions"} ==
+                {k: v for k, v in current.items() if k != "versions"})
+
+
+def _finish_revision(case: Path, binding: dict) -> None:
+    """Recover an interrupted archive without discarding the previous query usage."""
+    journal_path = case / ".rental-revision.json"
+    if not journal_path.exists():
+        return
+    journal = read_json(journal_path)
+    if journal.get("sha256") != stable_hash({k: v for k, v in journal.items() if k != "sha256"}):
+        raise DocumentError("REVIEW_STALE", "Source revision journal changed")
+    if journal["status"] == "COMPLETED":
+        return
+    if journal["status"] != "PENDING" or journal["origin"]["current_binding"] != binding:
+        raise DocumentError("REVIEW_STALE", "Source revision changed while recovery was pending")
+    archive = Path(journal["origin"]["archived_directory"])
+    if archive.is_symlink() or archive.parent.resolve() != (case / "scratch/rental_revisions").resolve():
+        raise DocumentError("SOURCE_UNSAFE_PATH", "Revision archive escaped its case")
+    analysis = case / "processed"
+    if not archive.exists():
+        analysis.rename(archive)
+    elif analysis.exists() and any(analysis.iterdir()):
+        origin = analysis / "revision_origin.json"
+        if not origin.exists() or read_json(origin) != journal["origin"]:
+            raise DocumentError("REVIEW_STALE", "Interrupted revision has conflicting active artifacts")
+    analysis.mkdir(exist_ok=True)
+    write_json(analysis / "revision_origin.json", journal["origin"])
+    journal["status"] = "COMPLETED"
+    journal["sha256"] = stable_hash({k: v for k, v in journal.items() if k != "sha256"})
+    write_json(journal_path, journal)
+
+
 def _source_snapshot(folder: Path) -> list[dict[str, str]]:
     if folder.is_symlink() or not folder.is_dir():
         raise DocumentError("SOURCE_UNSAFE_PATH", "Approved source folder missing or linked")
@@ -153,8 +210,19 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
     analysis = case / "processed"
     documents = analysis / "documents"
     path = analysis / "source_job_state.json"
+    _finish_revision(case, binding)
     if path.exists():
         state = _load_state(path)
+        if ("package" not in state and not (analysis / "evidence_query_session.json").exists()
+                and _only_adjudication_policy_changed(state["binding"], binding)):
+            # No financial work exists yet. Preserve hash-verified independent
+            # source reads; invalidate the changed judgment and its dependents.
+            for key in ("adjudication_receipt", "native_review_receipt", "visual_review_receipt", "fact_review_file"):
+                state.pop(key, None)
+            previous = state["binding"]
+            state["binding"] = binding
+            _save(path, state, "QA_POLICY_CHANGED", previous_binding=previous,
+                  reused_source_passes=len(state["primary"]) + len(state["challenger"]))
         if state["binding"] != binding:
             from againward.core.artifact_store import assert_artifacts_consistent
             assert_artifacts_consistent(analysis)
@@ -166,12 +234,16 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
             archive_root.mkdir(parents=True, exist_ok=True)
             archive = archive_root / (state["state_sha256"][:16] + "-" +
                 datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f"))
-            analysis.rename(archive)
-            analysis.mkdir()
-            write_json(analysis / "revision_origin.json", {
+            origin = {
                 "archived_directory": str(archive), "previous_binding": state["binding"],
                 "current_binding": binding, "reason": "SOURCE_PRIVACY_MODEL_OR_POLICY_CHANGED",
-                "historical_absolute_refs_are_not_active": True, "approved_for_delivery": False})
+                "remaining_evidence_budget": _remaining_revision_budget(analysis),
+                "budget_reset": False,
+                "historical_absolute_refs_are_not_active": True, "approved_for_delivery": False}
+            journal = {"status": "PENDING", "origin": origin}
+            journal["sha256"] = stable_hash(journal)
+            write_json(case / ".rental-revision.json", journal)
+            _finish_revision(case, binding)
     if not path.exists():
         state = {"schema_version": VERSION, "binding": binding, "phase": "INTAKE",
                  "events": [], "primary": {}, "challenger": {},
@@ -345,7 +417,10 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
         from againward.entrypoints import get_domain
         existing = read_json(analysis / "investigation_state.json") if (analysis / "investigation_state.json").is_file() else {}
         if "source" not in existing:
-            prepare_investigation(package, analysis, domain=get_domain("rental"))
+            from againward.evidence.protocol import QueryBudget
+            remaining = _remaining_revision_budget(analysis)
+            prepare_investigation(package, analysis, domain=get_domain("rental"),
+                                  evidence_budget=QueryBudget(**remaining) if remaining is not None else None)
             _save(path, state, "CALCULATING")
         result = run_reviewed_package_job(package, analysis, model=model,
                                           timeout_seconds=timeout_seconds,

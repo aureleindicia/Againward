@@ -1,6 +1,6 @@
 """Rental interpretation vocabulary supplied to a neutral source-unit provider."""
 
-GUIDANCE_VERSION = "rental-semantic-guidance-v8"
+GUIDANCE_VERSION = "rental-semantic-guidance-v9"
 
 
 def guidance() -> str:
@@ -8,8 +8,13 @@ def guidance() -> str:
 Classify each relevant document and material local entity. Use entity_kind values
 RENTAL_SCOPE, INVOICE_LINE, RETURN, RATE_AMENDMENT, CREDIT,
 SUPPORTING_DOCUMENT or IRRELEVANT. Use
-separate entity IDs for separate invoice lines, rental scopes or returns; IDs
-are local to this source and never establish a cross-document relationship.
+separate entity IDs for separate invoice lines, rental scopes, returns, and
+independently priced equipment rows; IDs are local to this source and never
+establish a cross-document relationship. In a multi-row rate card, do not group
+all rows under one aggregate rate_card entity: each asset's description, rate,
+unit, and identifiers belong to that row's distinct entity. A semantic field
+must have only one value per entity; preserve different row values as separate
+entities rather than treating them as conflicting alternatives.
 For each source include source-backed document_role and document_status for
 each material entity. Do not infer ACCEPTED from mere existence of a quote.
 document_role is the document type, NOT entity_kind or a free-form label. Use

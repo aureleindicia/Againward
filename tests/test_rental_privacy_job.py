@@ -6,17 +6,14 @@ import pytest
 from againward.core.workspace import create_client_workspace
 from againward.documents.contracts import DocumentError
 from againward.domains.rental import privacy_job
-from againward.domains.rental.source_job import _source_snapshot
 from benchmarking.rental_privacy import _case
 
 
 def _scripted_answer(prompt, images, **kwargs):
     data = json.loads(prompt.rsplit("\n", 1)[1])
-    from pathlib import Path
     review = data["review_template"]
     review["codex_semantic_review"] = {"completed": True, "first_substantive_reader_attested": True}
-    return {"status": "REVIEWED", "review": review,
-            "source_hashes": _source_snapshot(Path(data["workspace"]) / "incoming")}, 0.01
+    return {"status": "REVIEWED", "review": review}, 0.01
 
 
 def test_raw_privacy_never_calls_model_without_contract_authority(tmp_path, monkeypatch):
@@ -88,15 +85,18 @@ def test_scan_waits_for_actual_visual_attestation_and_reuses_first_read(tmp_path
     assert not list((case / "sanitized").iterdir())
 
 
-def test_hash_order_is_not_a_material_source_difference(tmp_path, monkeypatch):
-    case = _case(tmp_path, "order")
-    for name in ("a.txt", "b.txt"):
-        (case / "incoming" / name).write_text("Agreement AG-12 EUR 50.00 per day.")
+def test_python_rejects_source_mutation_during_model_review(tmp_path, monkeypatch):
+    case = _case(tmp_path, "mutation")
+    source = case / "incoming/agreement.txt"
+    source.write_text("Agreement AG-12 EUR 50.00 per day.")
 
-    def reordered(*args, **kwargs):
+    def changed(*args, **kwargs):
         payload, seconds = _scripted_answer(*args, **kwargs)
-        payload["source_hashes"].reverse()
+        source.write_text("Agreement AG-12 EUR 90.00 per day.")
         return payload, seconds
 
-    monkeypatch.setattr(privacy_job, "_ask", reordered)
-    assert privacy_job.run_privacy_intake(case, model="test", timeout_seconds=30)["approved_for_analysis"]
+    monkeypatch.setattr(privacy_job, "_ask", changed)
+    with pytest.raises(DocumentError, match="SOURCE_CHANGED"):
+        privacy_job.run_privacy_intake(case, model="test", timeout_seconds=30)
+    assert not (case / "privacy/autonomous_review.json").exists()
+    assert not list((case / "sanitized").iterdir())

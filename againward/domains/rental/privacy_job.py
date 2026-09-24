@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+from typing import Any
 
 from againward.core.artifact_store import read_json, write_json
 from againward.core.contract_policy import assert_contract_permission
@@ -21,7 +22,7 @@ from .autonomous_review import _ask
 from .privacy_policy import RENTAL_PRESERVATION
 
 
-VERSION = "againward-rental-codex-first-privacy-v1"
+VERSION = "againward-rental-codex-first-privacy-v2"
 
 
 def run_privacy_intake(case: Path, *, model: str, timeout_seconds: int) -> dict:
@@ -58,7 +59,7 @@ def run_privacy_intake(case: Path, *, model: str, timeout_seconds: int) -> dict:
         if base != saved["review"]:
             raise DocumentError("REVIEW_STALE", "Privacy semantic decision changed")
     else:
-        specs = [{"file_id": f"FILE-{index:03d}", "source": "incoming/" + row["name"],
+        specs: list[dict[str, Any]] = [{"file_id": f"FILE-{index:03d}", "source": "incoming/" + row["name"],
                   "action": "PASS", "sanitized": None, "categories": [], "transformations": [],
                   "business_confidentiality": "RESTRICTED_CLIENT"}
                  for index, row in enumerate(snapshot, 1)]
@@ -81,31 +82,28 @@ def run_privacy_intake(case: Path, *, model: str, timeout_seconds: int) -> dict:
             "relationships. Commercial confidentiality is NOT high-risk personal data. "
             "Secrets, medical/HR-sensitive data and unnecessary identity documents BLOCK. "
             "If minimization is required or any original cannot be completely inspected, return "
-            "status WAITING_FOR_PRIVACY_REVIEW, review null, source_hashes empty. Never guess PASS. "
+            "status WAITING_FOR_PRIVACY_REVIEW, review null. Never guess PASS. "
             "Otherwise fill the exact review template: completed and first_substantive_reader_attested "
             "true only after actual reading; status PASS or BLOCKED, each file action matching its "
             "decision. Use categories only as {category: UPPERCASE_CODE,action: KEPT or BLOCKED," 
             "count: integer,file_ids: [FILE-id]}. No names, contact values, quotes, reasoning or other "
             "free text in the output. Use blocked_reasons UPPERCASE codes only. Never add visual_reviews "
             "or HUMAN records; the post-check separately requires genuine operator visual approval. "
-            "Compute each original SHA256 yourself. Return payload STRING containing JSON with exactly "
-            "{status: REVIEWED or WAITING_FOR_PRIVACY_REVIEW,source_hashes: [{name: relative filename," 
-            "sha256: digest}],review: template or null}.\n" + json.dumps({
+            "The calling engine hashes every original before and after your review. Do not calculate "
+            "or return hashes. Return payload STRING containing JSON with exactly "
+            "{status: REVIEWED or WAITING_FOR_PRIVACY_REVIEW,review: template or null}.\n" + json.dumps({
                 "workspace": str(case), "originals": [row["name"] for row in snapshot],
                 "review_template": template}, ensure_ascii=False))
         answer, seconds = _ask(prompt, (), model=model, timeout_seconds=timeout_seconds)
-        if set(answer) != {"status", "source_hashes", "review"}:
+        if set(answer) != {"status", "review"}:
             raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Closed privacy decision required")
         if answer["status"] == "WAITING_FOR_PRIVACY_REVIEW":
             return {"status": "WAITING_FOR_PRIVACY_REVIEW", "reason_code": "SEMANTIC_INSPECTION_INCOMPLETE",
                     "approved_for_analysis": False, "model_wall_seconds": seconds}
-        hashes = answer["source_hashes"]
-        if (not isinstance(hashes, list) or any(not isinstance(row, dict) or
-                set(row) != {"name", "sha256"} or not isinstance(row["name"], str) for row in hashes)):
-            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Closed source hashes required")
-        if (answer["status"] != "REVIEWED" or sorted(hashes, key=lambda row: row["name"]) != snapshot
-                or _source_snapshot(case / "incoming") != snapshot):
-            raise DocumentError("SOURCE_CHANGED", "Privacy reader did not bind every original byte")
+        if answer["status"] != "REVIEWED":
+            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Closed semantic review status required")
+        if _source_snapshot(case / "incoming") != snapshot:
+            raise DocumentError("SOURCE_CHANGED", "Original bytes changed during privacy review")
         review = answer["review"]
         if (not isinstance(review, dict) or set(review) != set(template)
                 or review.get("status") not in {"PASS", "BLOCKED"}

@@ -5,6 +5,12 @@ synthetic DEV fixtures; none establishes independently blind accuracy.
 
 ## Observed and corrected
 
+- Raw privacy orchestration is now integrated before Rental source parsing. The
+  live synthetic probe passed an ordinary professional-contact PDF and blocked
+  a medical/HR-sensitive attachment. A synthetic secret was blocked on retry,
+  but its first response failed schema validation; this is a remaining
+  robustness gap, not a clean first-pass result.
+
 - Two-source approved-document job: original PDF QA stopped after two report
   attempts. The renderer omitted the quantity multiplier, claimed no discrepancy
   despite a calculated difference, and described a zero applied credit as if the
@@ -31,16 +37,19 @@ synthetic DEV fixtures; none establishes independently blind accuracy.
   now has a distinct rendering directory; a regression verifies distinct pixels.
 - A transient `MODEL_UNAVAILABLE` during report QA left a resumable WAIT. Retry
   completed without re-extracting or fabricating the missing answer.
+- A refreshed eight-source model run resolved both original reread disputes,
+  then failed at native fact promotion. The saved proposals put two valid,
+  different rate-card descriptions under one aggregate `rate_card` entity. The
+  canonical single-value-per-entity guard correctly rejected that shape. Rental
+  extraction guidance now explicitly requires one entity per independently
+  priced equipment row; this policy change is unverified by a fresh model run.
 
 ## Still open
 
-- The source job starts after privacy clearance; automatic raw-document privacy
-  orchestration is not implemented.
-- The eight-source fresh run stopped on adjudication before the comparator fix;
-  the earlier downstream PDF used a clearly labelled scripted scan attestation.
-  No genuine human visual attestation has been obtained.
+- The eight-source fresh run has not been repeated under row-level rate-card
+  guidance. No genuine human visual attestation has been obtained for its scan.
 - Source/guidance/privacy changes fail closed, but automatic revision/recomputation
-  and supplemental-document continuation need complete integration proof.
+  and supplemental-document continuation have only partial integration proof.
 - All-scan final QA, non-exact relationship adjudication, policy-version replay
   checks and final frozen challenge remain to be completed.
 - Actual founder correction/review burden and independently adjudicated report

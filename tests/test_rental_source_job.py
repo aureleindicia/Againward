@@ -85,3 +85,65 @@ def test_parallel_case_invocation_does_not_start_another_reader(tmp_path, monkey
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         result = run_approved_sources_job(case, model="test-model")
     assert result["reason_code"] == "CASE_ALREADY_RUNNING"
+
+
+def test_revision_preserves_used_evidence_budget(tmp_path):
+    from againward.core.artifact_store import read_json
+    from againward.core.workflow import prepare_investigation
+    from againward.domains.rental.source_job import _remaining_revision_budget
+    from againward.entrypoints import get_domain
+    from againward.evidence.protocol import QueryBudget
+    from benchmarking.rental_review import synthetic_review
+    from tests.test_rental_ingestion import write_packet
+
+    source, _ = write_packet(tmp_path / "sources")
+    old = tmp_path / "old"
+    prepare_investigation(source, old, domain=get_domain("rental"))
+    synthetic_review(old)
+    remaining = _remaining_revision_budget(old)
+    assert remaining["maximum_calls"] == 15
+    assert remaining["maximum_returned_rows"] < 600
+    fresh = tmp_path / "fresh"
+    prepare_investigation(source, fresh, domain=get_domain("rental"), evidence_budget=QueryBudget(**remaining))
+    assert read_json(fresh / "evidence_query_session.json")["budget"] == remaining
+
+
+def test_revision_recovers_interruption_after_archive_without_budget_reset(tmp_path):
+    from againward.core.artifact_store import read_json, write_json
+    from againward.domains.rental.source_job import _finish_revision, _remaining_revision_budget
+    from againward.evidence.hashing import stable_hash
+
+    case = tmp_path / "case"
+    archive = case / "scratch/rental_revisions/old"
+    archive.mkdir(parents=True)
+    (archive / "retained.txt").write_text("Prior evidence and approvals remain archived.")
+    binding = {"revision": "new"}
+    origin = {"archived_directory": str(archive), "current_binding": binding,
+              "remaining_evidence_budget": {"maximum_calls": 9}}
+    journal = {"status": "PENDING", "origin": origin}
+    journal["sha256"] = stable_hash(journal)
+    write_json(case / ".rental-revision.json", journal)
+    _finish_revision(case, binding)
+    assert read_json(case / "processed/revision_origin.json") == origin
+    assert _remaining_revision_budget(case / "processed") == {"maximum_calls": 9}
+    assert read_json(case / ".rental-revision.json")["status"] == "COMPLETED"
+    _finish_revision(case, binding)
+    assert (archive / "retained.txt").exists()
+
+
+def test_source_pass_reuse_is_limited_to_adjudication_policy_only():
+    from copy import deepcopy
+    from againward.domains.rental.source_job import _only_adjudication_policy_changed
+    old = {"sources": [{"sha256": "a" * 64}], "model": "fixture-model", "privacy": "old",
+           "versions": ["job", "qa", "adjudication-v1", "native", "visual", "report"]}
+    new = deepcopy(old)
+    new["versions"][2] = "adjudication-v2"
+    assert _only_adjudication_policy_changed(old, new)
+    for key in ("sources", "model", "privacy"):
+        changed = deepcopy(new)
+        changed[key] = "changed"
+        assert not _only_adjudication_policy_changed(old, changed)
+    for index in (0, 1, 3, 4, 5):
+        changed = deepcopy(new)
+        changed["versions"][index] = "changed"
+        assert not _only_adjudication_policy_changed(old, changed)

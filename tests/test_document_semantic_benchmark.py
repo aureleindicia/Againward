@@ -10,6 +10,15 @@ from benchmarking.semantic_scoring import score_semantic_candidates
 from benchmarking.semantic_preflight import audit_semantic_preflight
 
 
+def test_rental_guidance_keeps_rate_card_rows_as_distinct_entities():
+    from againward.domains.rental.semantic_guidance import guidance
+
+    text = " ".join(guidance().split())
+    assert "independently priced equipment rows" in text
+    assert "each asset's description, rate, unit, and identifiers" in text
+    assert "one value per entity" in text
+
+
 def test_participant_is_real_source_bound_but_never_approves(tmp_path, monkeypatch):
     public = tmp_path / "corpus/public"
     public.mkdir(parents=True)

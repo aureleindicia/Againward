@@ -11,7 +11,7 @@ from .artifact_store import transaction, write_json, read_json
 from .client_lifecycle import initialize_client_lifecycle, begin_privacy_cleared_analysis
 from .domain import DomainPack
 from .privacy import assert_source_approved_for_analysis, case_root_for_path, privacy_requirement
-from againward.evidence.protocol import EvidenceQuerySession, query_contract
+from againward.evidence.protocol import EvidenceQuerySession, QueryBudget, query_contract
 
 
 def fingerprint(path: Path) -> str:
@@ -25,7 +25,8 @@ def fingerprint(path: Path) -> str:
 def prepare_investigation(source: str | Path, output_directory: str | Path, *,
                           domain: DomainPack, intake: dict[str, Any] | None = None,
                           options: dict[str, Any] | None = None,
-                          evidence_plane_mode: str = "preferred") -> dict[str, Any]:
+                          evidence_plane_mode: str = "preferred",
+                          evidence_budget: QueryBudget | None = None) -> dict[str, Any]:
     source = Path(source)
     output = Path(output_directory)
     if evidence_plane_mode not in {"preferred", "shadow", "legacy"}:
@@ -56,7 +57,7 @@ def prepare_investigation(source: str | Path, output_directory: str | Path, *,
         prepared = domain.prepare(source, source_sha256=source_sha256, intake=context,
                                   options=dict(options or {}), evidence_plane_mode=evidence_plane_mode)
         dataset = prepared.evidence_dataset
-        session = EvidenceQuerySession.create(dataset) if dataset is not None else None
+        session = EvidenceQuerySession.create(dataset, budget=evidence_budget) if dataset is not None else None
         artifacts = dict(prepared.artifacts)
         prepared_at = datetime.now(timezone.utc).isoformat()
         state = {
