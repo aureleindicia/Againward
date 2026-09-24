@@ -37,6 +37,29 @@ def test_client_pdf_can_layout_concise_long_synthesis(tmp_path):
     assert b"SYNTHETIC EVALUATION" in (tmp_path / "evaluation.pdf").read_bytes()
 
 
+@pytest.mark.parametrize("unit_days,expected_basis", [(None, "7 days × 4 units"), ("28", "28 asset-days")])
+def test_pdf_basis_and_unexplained_difference_are_not_misrepresented(tmp_path, unit_days, expected_basis):
+    from pypdf import PdfReader
+
+    pack = {"documents": [], "findings": {"findings": []}, "charge_groups": [
+        {"period_id": "p", "charge_key": "rental", "charge_ids": ["line"],
+         "currency": "EUR", "expected_amount": "2100.00", "actual_amount": "2250.00",
+         "difference": "150.00"}],
+        "expected_ledger": {"entries": [{"period_id": "p", "charge_key": "rental",
+            "units": "7", "unit_days": unit_days, "quantity": "4", "billing_unit": "DAY", "rate": "75"}]},
+        "actual_ledger": {"entries": [{"charge_id": "line", "issued_credit": "0.00",
+            "invoiced_amount": "2250.00"}]}}
+    target = tmp_path / "report.pdf"
+    render_rental_pdf(pack, "The documentary difference requires clarification.", target)
+    text = " ".join(" ".join(page.extract_text().split()) for page in PdfReader(target).pages)
+    assert expected_basis in text
+    assert "28 asset-days ×" not in text
+    assert "no credit document supplied" not in text
+    assert "no issued credit applied to this line" in text
+    assert "A documentary difference appears" in text
+    assert "No supported client-facing discrepancy was established" not in text
+
+
 def test_review_report_and_human_approval_bound_to_current_evidence(tmp_path):
     source, _ = write_packet(tmp_path / "source")
     root = tmp_path / "case"

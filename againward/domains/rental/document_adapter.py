@@ -86,10 +86,14 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Validated extractions required")
     extractions = tuple(replay_extraction(e, batch, root) for e in p["extractions"])
     from againward.documents.codex_provider import EXTRACTOR_VERSION, prompt_version_for_guidance
+    from againward.documents.independent_qa import QA_INSTRUCTIONS, RETRY_INSTRUCTIONS
     from .semantic_guidance import guidance
+    approved_prompt_versions = {prompt_version_for_guidance(guidance() + suffix)
+                                for suffix in ("", RETRY_INSTRUCTIONS, QA_INSTRUCTIONS,
+                                               QA_INSTRUCTIONS + RETRY_INSTRUCTIONS)}
     for extraction in extractions:
         if (extraction.extractor_version == EXTRACTOR_VERSION
-                and extraction.prompt_version != prompt_version_for_guidance(guidance())):
+                and extraction.prompt_version not in approved_prompt_versions):
             raise DocumentError("REVIEW_STALE", "Rental Codex guidance changed; re-extract and review source")
     if (len(extractions) != len(batch.documents)
             or {e.source_id for e in extractions} != {d.source_id for d in batch.documents}):

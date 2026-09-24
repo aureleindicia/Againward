@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections import Counter
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 import json
 from pathlib import Path
 from typing import Any
@@ -20,7 +21,7 @@ from .readers import read_document
 from .sources import verify_batch
 
 
-QA_GUIDANCE_VERSION = "rental-independent-source-reread-v1"
+QA_GUIDANCE_VERSION = "rental-independent-source-reread-v2"
 QA_INSTRUCTIONS = """
 INDEPENDENT ADVERSARIAL SOURCE REREAD. You have not seen the first extraction.
 Read every original unit/page before answering. Search for material facts the
@@ -46,7 +47,7 @@ and state the limitation. Keep all response-schema field names and types exact.
 # claim that other source details are irrelevant to the final report.
 MATERIAL_FIELDS = {
     "RENTAL_SCOPE": {"entity_kind", "document_role", "document_status", "agreement_id",
-                     "supplier_id", "client_id", "asset_id", "serial_number", "description", "start", "end",
+                     "supplier_id", "client_id", "asset_id", "serial_number", "start", "end",
                      "quantity", "rate", "currency", "charge_key", "charge_type", "billing_unit",
                      "weekends_billable", "minimum_days", "partial_period_policy", "stop_event",
                      "stop_day_billable", "discount_fraction"},
@@ -65,6 +66,8 @@ MATERIAL_FIELDS = {
     "SUPPORTING_DOCUMENT": {"entity_kind", "document_role", "document_status"},
     "IRRELEVANT": {"entity_kind", "document_role", "document_status"},
 }
+_NUMERIC_MATERIAL_FIELDS = {"quantity", "minimum_days", "rate", "discount_fraction",
+                            "net_amount", "unit_rate", "billed_units", "allocated_amount"}
 
 
 def _entity_records(extraction: DocumentExtraction) -> list[dict[str, Any]]:
@@ -100,7 +103,18 @@ def _material_bundles(records: list[dict[str, Any]]) -> Counter[str]:
         kind = fields.get("entity_kind")
         # Unknown/unclassified entities are not a licence to ignore fields.
         keep = MATERIAL_FIELDS.get(kind if isinstance(kind, str) else "", set(fields))
-        bundles[stable_hash({field: value for field, value in fields.items() if field in keep})] += 1
+        material = {field: value for field, value in fields.items() if field in keep}
+        for field in _NUMERIC_MATERIAL_FIELDS & material.keys():
+            value = material[field]
+            if type(value) not in {int, str}:
+                continue
+            try:
+                numeric = Decimal(str(value))
+            except InvalidOperation:
+                continue
+            if numeric.is_finite():
+                material[field] = format(numeric.normalize(), "f")
+        bundles[stable_hash(material)] += 1
     return bundles
 
 

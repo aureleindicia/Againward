@@ -76,13 +76,17 @@ def _source_context(root: Path, temporary: Path) -> tuple[list[dict], tuple[Path
     verify_batch(batch, document_root)
     sources: list[dict[str, Any]] = []
     pictures: list[Path] = []
-    for document in batch.documents:
+    for index, document in enumerate(batch.documents):
         parsed = read_document(document, document_root)
         sources.append({"source_id": document.source_id, "source_sha256": document.sha256,
                         "units": [{"location": unit.location, "route": unit.route,
                                    "unit_sha256": unit.unit_sha256, "text": unit.text}
                                   for unit in parsed.units]})
-        pictures.extend(_images(document, parsed, document_root, temporary))
+        # Renderers reuse page-1.png/source.png: isolate each source so a later
+        # scan cannot replace pixels already attached to an earlier source.
+        image_directory = temporary / f"source-{index}"
+        image_directory.mkdir()
+        pictures.extend(_images(document, parsed, document_root, image_directory))
     if sum(len(unit["text"]) for source in sources for unit in source["units"]) > MAX_SOURCE_CHARS:
         raise DocumentError("RESOURCE_LIMIT", "Original source context exceeds bounded model window")
     if len(pictures) > 4:

@@ -204,6 +204,24 @@ def test_changed_rental_model_guidance_requires_fresh_extraction_review(tmp_path
         load_document_case(stale, source.parent)
 
 
+def test_adjudicated_challenger_prompt_remains_a_current_reviewed_source(tmp_path):
+    source, package = packet(tmp_path)
+    from againward.documents.codex_provider import prompt_version_for_guidance
+    from againward.documents.independent_qa import QA_INSTRUCTIONS
+    from againward.domains.rental.semantic_guidance import guidance
+
+    challenger = deepcopy(package)
+    extraction = challenger["extractions"][0]
+    extraction["extractor_version"] = EXTRACTOR_VERSION
+    extraction["prompt_version"] = prompt_version_for_guidance(guidance() + QA_INSTRUCTIONS)
+    extraction["extraction_sha256"] = stable_hash({key: value for key, value in extraction.items()
+                                                   if key != "extraction_sha256"})
+    challenger["fact_review"]["extraction_hashes"] = sorted(
+        item["extraction_sha256"] for item in challenger["extractions"])
+    case, _ = load_document_case(challenger, source.parent)
+    assert len(case.actual_charges) == 1
+
+
 def test_lineage_integrates_with_kernel_and_inventory_tamper_invalidates_replay(tmp_path):
     source, _ = packet(tmp_path)
     root = tmp_path / "case"

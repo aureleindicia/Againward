@@ -10,7 +10,7 @@ from againward.documents.codex_provider import assemble_proposal
 from againward.documents.cli import main
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
-from againward.documents.independent_qa import compare_extractions, reread_sources
+from againward.documents.independent_qa import _material_bundles, compare_extractions, reread_sources
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
 
@@ -142,3 +142,22 @@ def test_value_type_disagreement_is_advisory_when_material_value_agrees(tmp_path
     assert body["status"] == "RECONCILIATION_REQUIRED"
     assert body["material_status"] == "MATERIAL_AGREEMENT"
     assert body["source_results"][0]["material_needs_reconciliation"] is False
+
+
+def test_numeric_representation_and_description_label_are_advisory_but_money_is_material():
+    def record(kind, fields):
+        return {"fields": [{"semantic_type": "entity_kind", "value": kind},
+                           *({"semantic_type": field, "value": value}
+                             for field, value in fields.items())]}
+
+    invoice_int = record("INVOICE_LINE", {"invoice_id": "I1", "net_amount": "270.00",
+                                          "billed_units": 9})
+    invoice_decimal = record("INVOICE_LINE", {"invoice_id": "I1", "net_amount": "270",
+                                              "billed_units": "9"})
+    assert _material_bundles([invoice_int]) == _material_bundles([invoice_decimal])
+    changed_money = record("INVOICE_LINE", {"invoice_id": "I1", "net_amount": "271",
+                                            "billed_units": "9"})
+    assert _material_bundles([invoice_int]) != _material_bundles([changed_money])
+    described = record("RENTAL_SCOPE", {"agreement_id": "A1", "description": "electric platform"})
+    categorized = record("RENTAL_SCOPE", {"agreement_id": "A1", "category": "electric platform"})
+    assert _material_bundles([described]) == _material_bundles([categorized])

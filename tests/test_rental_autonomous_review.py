@@ -1,6 +1,30 @@
 """Model challenger receipts cannot substitute for original-source QA."""
 import pytest
 
+
+def test_original_source_images_do_not_overwrite_other_sources(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from againward.domains.rental import autonomous_review as module
+
+    documents = [SimpleNamespace(source_id=name, sha256=name * 64) for name in ("a", "b")]
+    monkeypatch.setattr(module, "read_json", lambda path: (
+        {"extraction": {"path": str(tmp_path / "packages" / "case.json")}}
+        if path.name == "artifact_inventory.json" else
+        {"schema_version": "againward-rental-document-case-v1", "batch": {}}))
+    monkeypatch.setattr(module.SourceBatch, "from_dict", lambda body: SimpleNamespace(documents=documents))
+    monkeypatch.setattr(module, "verify_batch", lambda *args: None)
+    monkeypatch.setattr(module, "read_document", lambda *args: SimpleNamespace(units=[]))
+
+    def render(document, parsed, root, directory):
+        target = directory / "page-1.png"
+        target.write_bytes(document.source_id.encode())
+        return [target]
+
+    monkeypatch.setattr(module, "_images", render)
+    _, images = module._source_context(tmp_path, tmp_path)
+    assert len(set(images)) == 2
+    assert [path.read_bytes() for path in images] == [b"a", b"b"]
+
 from againward.domains.rental.autonomous_review import (
     _adopt_qa_alternatives, _cite_originals, _evidence_requests,
     _materialize_assessments, _validate_challenge,

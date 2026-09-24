@@ -50,6 +50,23 @@ def main(argv: list[str] | None = None) -> int:
     if arguments and arguments[0] == "documents":
         from againward.documents.cli import main as document_main
         return document_main(arguments[1:])
+    if arguments and arguments[0] == "rental-case":
+        parser = argparse.ArgumentParser(description="Resume one authorized Rental workspace from approved source documents to QA-checked PDF")
+        parser.add_argument("workspace", help="Rental workspace; real sources need prior contract/privacy clearance")
+        parser.add_argument("--model", required=True)
+        parser.add_argument("--timeout-seconds", type=int, default=240)
+        parser.add_argument("--evaluation-only", action="store_true")
+        values = parser.parse_args(arguments[1:])
+        try:
+            from againward.domains.rental.source_job import run_approved_sources_job
+            result = run_approved_sources_job(values.workspace, model=values.model,
+                                              timeout_seconds=values.timeout_seconds,
+                                              evaluation_only=values.evaluation_only)
+        except (OSError, ValueError) as exc:
+            print(f"Erreur: {exc}", file=sys.stderr)
+            return 2
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result.get("status") in {"READY_FOR_APPROVAL", "EVALUATION_ONLY_QA_PASSED"} else 3
     if arguments and arguments[0] == "rental-autonomous":
         parser = argparse.ArgumentParser(description="Resume approved Rental package through model QA and PDF; never approve delivery")
         parser.add_argument("package", help="Already privacy-approved, reviewed source-document package")

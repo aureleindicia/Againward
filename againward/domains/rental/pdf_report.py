@@ -131,15 +131,24 @@ def render_rental_pdf(pack: dict, synthesis: str, target: Path, *, evaluation_on
                 str(expected_entry.get("billing_unit", "units")).lower() + "s")
             rate = expected_entry.get("rate")
             if units is not None and rate is not None:
-                page = add(page, f"Contract basis: {units} {unit_name} at {currency} {rate}; "
+                quantity = expected_entry.get("quantity")
+                basis = f"{units} {unit_name}"
+                if quantity is not None and expected_entry.get("unit_days") is None:
+                    basis += f" × {quantity} units"
+                page = add(page, f"Contract basis: {basis} at {currency} {rate}; "
                                 f"expected net {currency} {expected}.")
         actual_entries = [actual_by_charge[charge_id] for charge_id in charge_ids
                           if charge_id in actual_by_charge]
         if len(actual_entries) == 1:
             line = actual_entries[0]
-            page = add(page, f"Invoice amount {currency} {line['invoiced_amount']}; issued credit "
-                            f"{currency} {line['issued_credit']}; net billed after issued credit "
-                            f"{currency} {actual}.")
+            if line["issued_credit"] == "0.00":
+                page = add(page, f"Invoice amount {currency} {line['invoiced_amount']}; "
+                                f"no issued credit applied to this line in the supplied-record calculation; "
+                                f"billed amount shown {currency} {actual}. Later credits are unverified.")
+            else:
+                page = add(page, f"Invoice amount {currency} {line['invoiced_amount']}; issued credit "
+                                f"{currency} {line['issued_credit']}; net billed after issued credit "
+                                f"{currency} {actual}.")
         else:
             page = add(page, f"Net billed {currency} {actual}; expected {currency} {expected}.")
         page = add(page, f"Documentary difference: {currency} {difference}.")
@@ -179,6 +188,10 @@ def render_rental_pdf(pack: dict, synthesis: str, target: Path, *, evaluation_on
                         "documented charge difference against any accepted changes, asset substitutions "
                         "and credits not present in the supplied records. This is a request for explanation, "
                         "not a demand for payment.")
+    elif any(group.get("difference") not in {None, "0.00"} for group in groups):
+        page = add(page, "A documentary difference appears in the calculated comparison, but its "
+                        "cause and recoverability are not established by the supplied evidence. "
+                        "Obtain the specifically missing source documents before making a financial claim.")
     else:
         page = add(page, "No supported client-facing discrepancy was established from the "
                         "supplied evidence. Obtain the specifically missing source documents before "

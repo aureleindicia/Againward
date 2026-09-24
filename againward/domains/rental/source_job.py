@@ -1,0 +1,337 @@
+"""Resume approved Rental source documents through the existing reviewed-package job.
+
+Real workspaces enter here only after their contract and privacy gates have
+cleared. The job never invents a visual inspection or a delivery approval.
+"""
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from pathlib import Path
+from time import perf_counter
+from typing import Any
+
+from againward.core.artifact_store import read_json, write_json
+from againward.core.privacy import assert_case_privacy_cleared, inspect_privacy_status
+from againward.core.workflow import fingerprint
+from againward.documents.adjudication import ADJUDICATION_VERSION, adjudicate_with_codex
+from againward.documents.analyst_review import REVIEW_VERSION, VISUAL_REVIEW_VERSION, review_visual_with_codex, review_with_codex
+from againward.documents.codex_provider import CodexCliProvider, prompt_version_for_guidance
+from againward.documents.contracts import DocumentError, SourceBatch
+from againward.documents.extraction import persist_extraction, promote_facts, replay_extraction, validate_proposal
+from againward.documents.independent_qa import QA_GUIDANCE_VERSION, QA_INSTRUCTIONS, RETRY_INSTRUCTIONS, compare_extractions
+from againward.documents.readers import read_document
+from againward.documents.sources import inventory_sources, safe_file, verify_batch
+from againward.documents.visual_fact_review import verify_visual_attestations
+from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
+from againward.domains.rental.semantic_guidance import guidance
+from againward.evidence.hashing import stable_hash
+
+from .autonomous_job import run_reviewed_package_job
+
+
+VERSION = "againward-rental-approved-sources-job-v1"
+RETRYABLE_MODEL_CODES = {"MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_AUTH_REQUIRED",
+                         "MODEL_RATE_LIMITED", "MODEL_TRANSPORT_FAILURE", "MODEL_EMPTY_RESPONSE"}
+
+
+def _save(path: Path, state: dict[str, Any], phase: str, **details: Any) -> None:
+    state["phase"] = phase
+    state["events"].append({"at_utc": datetime.now(timezone.utc).isoformat(),
+                            "phase": phase, **details})
+    state["state_sha256"] = stable_hash({key: value for key, value in state.items()
+                                         if key != "state_sha256"})
+    write_json(path, state)
+
+
+def _load_state(path: Path) -> dict[str, Any]:
+    state = read_json(path)
+    if (state.get("schema_version") != VERSION or state.get("state_sha256") !=
+            stable_hash({key: value for key, value in state.items() if key != "state_sha256"})):
+        raise DocumentError("REVIEW_STALE", "Source job state changed")
+    return state
+
+
+def _source_snapshot(folder: Path) -> list[dict[str, str]]:
+    if folder.is_symlink() or not folder.is_dir():
+        raise DocumentError("SOURCE_UNSAFE_PATH", "Approved source folder missing or linked")
+    paths = sorted(path for path in folder.rglob("*") if path.is_file() or path.is_symlink())
+    if not paths:
+        raise DocumentError("SOURCE_UNREADABLE", "Approved source folder is empty")
+    return [{"name": path.relative_to(folder).as_posix(), "sha256": fingerprint(safe_file(folder, path.relative_to(folder).as_posix()))}
+            for path in paths]
+
+
+def _receipt(path: str, root: Path, directory: str, hash_key: str) -> dict[str, Any]:
+    file = Path(path).resolve()
+    if not file.is_relative_to((root / directory).resolve()):
+        raise DocumentError("SOURCE_UNSAFE_PATH", "Job receipt escaped its document directory")
+    body = read_json(file)
+    if body.get(hash_key) != stable_hash({key: value for key, value in body.items()
+                                          if key != hash_key}):
+        raise DocumentError("REVIEW_STALE", "Job receipt changed")
+    return body
+
+
+def _extractions(paths: dict[str, str], batch: SourceBatch, root: Path) -> tuple[Any, ...]:
+    selected = []
+    for document in batch.documents:
+        path = paths[document.source_id]
+        file = Path(path).resolve()
+        if not file.is_relative_to((root / "extractions").resolve()):
+            raise DocumentError("SOURCE_UNSAFE_PATH", "Extraction escaped its case")
+        selected.append(replay_extraction(read_json(file), batch, root))
+    return tuple(selected)
+
+
+def _visual_review(root: Path, batch: SourceBatch, extractions: tuple[Any, ...],
+                   proposed: dict[str, Any]) -> tuple[dict[str, Any], str] | None:
+    """Select only a current component-bound operator receipt, never a template."""
+    base = proposed["review"]
+    matches: list[tuple[dict[str, Any], str]] = []
+    for path in sorted((root / "review_templates").glob("attested-*.json")):
+        if path.is_symlink():
+            raise DocumentError("SOURCE_UNSAFE_PATH", "Linked visual attestation refused")
+        candidate = read_json(path)
+        stripped = {key: value for key, value in candidate.items()
+                    if key != "visual_attestations"}
+        base_decisions = {row["candidate_id"]: row for row in base["decisions"]}
+        rows = stripped.get("decisions", [])
+        if (stripped.get("extraction_hashes") != base.get("extraction_hashes")
+                or {row.get("candidate_id") for row in rows} != set(base_decisions)):
+            continue
+        compatible = all(
+            {key: value for key, value in row.items() if key != "resolved_flags"} ==
+            {key: value for key, value in base_decisions[row["candidate_id"]].items()
+             if key != "resolved_flags"}
+            for row in rows)
+        if not compatible:
+            continue
+        verify_visual_attestations(batch, extractions, candidate, root)
+        promote_facts(extractions, candidate, batch, root)
+        matches.append((candidate, str(path)))
+    if len(matches) > 1:
+        raise DocumentError("REVIEW_STALE", "Multiple current visual attestations need an explicit choice")
+    return matches[0] if matches else None
+
+
+def run_approved_sources_job(workspace: str | Path, *, model: str,
+                             timeout_seconds: int = 240,
+                             evaluation_only: bool = False) -> dict[str, Any]:
+    """One invocation drives all cleared source stages; STOPs remain explicit."""
+    case = Path(workspace).resolve()
+    metadata = read_json(case / "workspace.json")
+    if metadata.get("domain") != "rental":
+        raise ValueError("A standard Rental workspace is required")
+    evaluation_only = evaluation_only or metadata.get("case_kind") == "SYNTHETIC"
+    privacy = inspect_privacy_status(case)
+    if not privacy["approved_for_analysis"]:
+        return {"status": "WAITING_FOR_PRIVACY_REVIEW", "privacy_state": privacy["state"],
+                "approved_for_delivery": False}
+    assert_case_privacy_cleared(case)
+    # Synthetic fixtures may live in incoming; a real case only uses sanitized.
+    source = case / "sanitized"
+    if privacy["state"] == "NOT_REQUIRED" and not any(source.iterdir()):
+        source = case / "incoming"
+    snapshot = _source_snapshot(source)
+    privacy_path = case / "privacy" / "privacy_manifest.json"
+    binding = {"sources": snapshot,
+               "privacy_manifest_sha256": fingerprint(privacy_path) if privacy_path.is_file() else None,
+               "prompt_version": prompt_version_for_guidance(guidance()), "model": model,
+               "evaluation_only": evaluation_only,
+               "versions": [VERSION, QA_GUIDANCE_VERSION, ADJUDICATION_VERSION,
+                            REVIEW_VERSION, VISUAL_REVIEW_VERSION]}
+    analysis = case / "processed"
+    documents = analysis / "documents"
+    path = analysis / "source_job_state.json"
+    if path.exists():
+        state = _load_state(path)
+        if state["binding"] != binding:
+            raise DocumentError("SOURCE_CHANGED", "Source, privacy, model or guidance changed; start a new reviewed run")
+    else:
+        state = {"schema_version": VERSION, "binding": binding, "phase": "INTAKE",
+                 "events": [], "primary": {}, "challenger": {},
+                 "human_approval": False, "approved_for_delivery": False}
+        _save(path, state, "INTAKE", source_count=len(snapshot))
+
+    try:
+        if "batch_receipt" not in state:
+            batch = inventory_sources(source, documents)
+            receipt = documents / "batches" / batch.batch_id / (stable_hash(batch.to_dict()) + ".json")
+            state["batch_receipt"] = str(receipt)
+            _save(path, state, "SOURCE_ACCEPTED", document_count=len(batch.documents))
+        batch = SourceBatch.from_dict(read_json(Path(state["batch_receipt"])))
+        verify_batch(batch, documents)
+        # Aliases may duplicate bytes; every approved byte still needs a snapshot.
+        if {row["sha256"] for row in snapshot} != {doc.sha256 for doc in batch.documents}:
+            raise DocumentError("SOURCE_CHANGED", "Inventory no longer matches approved folder")
+        provider = CodexCliProvider(documents, model=model, timeout_seconds=timeout_seconds)
+        for document in batch.documents:
+            if document.source_id not in state["primary"]:
+                parsed = read_document(document, documents)
+                started = perf_counter()
+                for attempt in (1, 2):
+                    try:
+                        proposal = provider.propose(document, parsed,
+                            {"batch": batch, "semantic_guidance": guidance() +
+                             (RETRY_INSTRUCTIONS if attempt == 2 else "")})
+                        extraction = validate_proposal(proposal, batch, documents)
+                        break
+                    except DocumentError as exc:
+                        if attempt == 2 or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_SCHEMA_INVALID"}:
+                            raise
+                stored = persist_extraction(extraction, documents)
+                state["primary"][document.source_id] = str(stored)
+                _save(path, state, "DOCUMENT_PARSED", source_id=document.source_id,
+                      model_attempts=attempt, model_wall_seconds=round(perf_counter() - started, 3))
+        primary = _extractions(state["primary"], batch, documents)
+        for document in batch.documents:
+            if document.source_id not in state["challenger"]:
+                parsed = read_document(document, documents)
+                started = perf_counter()
+                for attempt in (1, 2):
+                    try:
+                        proposal = provider.propose(document, parsed,
+                            {"batch": batch, "semantic_guidance": guidance() + QA_INSTRUCTIONS +
+                             (RETRY_INSTRUCTIONS if attempt == 2 else "")})
+                        extraction = validate_proposal(proposal, batch, documents)
+                        break
+                    except DocumentError as exc:
+                        if attempt == 2 or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_SCHEMA_INVALID"}:
+                            raise
+                stored = persist_extraction(extraction, documents)
+                state["challenger"][document.source_id] = str(stored)
+                _save(path, state, "QA_SOURCE_REREAD", source_id=document.source_id,
+                      model_attempts=attempt, model_wall_seconds=round(perf_counter() - started, 3))
+        challenger = _extractions(state["challenger"], batch, documents)
+        qa = compare_extractions(batch, primary, challenger, documents)
+        if "qa_receipt" not in state:
+            qa_path = documents / "independent_qa" / (qa["qa_sha256"] + ".json")
+            write_json(qa_path, qa)
+            state["qa_receipt"] = str(qa_path)
+            _save(path, state, "QA_COMPLETED", material_disagreements=sum(
+                row["material_needs_reconciliation"] for row in qa["source_results"]))
+        else:
+            saved_qa = _receipt(state["qa_receipt"], documents, "independent_qa", "qa_sha256")
+            if saved_qa["source_results"] != qa["source_results"]:
+                raise DocumentError("REVIEW_STALE", "QA comparison changed")
+            qa = saved_qa
+        if "adjudication_receipt" not in state:
+            started = perf_counter()
+            adjudication = adjudicate_with_codex(batch, primary, challenger, qa, documents,
+                                                 model=model, timeout_seconds=timeout_seconds)
+            saved = documents / "adjudications" / (adjudication["adjudication_sha256"] + ".json")
+            write_json(saved, adjudication)
+            state["adjudication_receipt"] = str(saved)
+            _save(path, state, "QA_DISAGREEMENT_RESOLVED", unresolved=len(
+                adjudication["material_unresolved_source_ids"]),
+                model_wall_seconds=round(perf_counter() - started, 3))
+        adjudication = _receipt(state["adjudication_receipt"], documents,
+                                "adjudications", "adjudication_sha256")
+        if adjudication.get("batch_id") != batch.batch_id or adjudication.get("qa_sha256") != qa["qa_sha256"]:
+            raise DocumentError("REVIEW_STALE", "Adjudication no longer binds the current source QA")
+        if adjudication["material_unresolved_source_ids"]:
+            _save(path, state, "WAITING_FOR_REQUIRED_INFORMATION", stage="SOURCE_ADJUDICATION",
+                  source_ids=adjudication["material_unresolved_source_ids"])
+            return {"status": "WAITING_FOR_REQUIRED_INFORMATION", "stage": "SOURCE_ADJUDICATION",
+                    "source_ids": adjudication["material_unresolved_source_ids"],
+                    "job_state": str(path), "approved_for_delivery": False}
+        by_hash = {item.to_dict()["extraction_sha256"]: item for item in (*primary, *challenger)}
+        selected = tuple(by_hash[adjudication["selected_extractions"][document.source_id]]
+                         for document in batch.documents)
+        if "native_review_receipt" not in state:
+            started = perf_counter()
+            native = review_with_codex(batch, selected, documents, model=model,
+                                       timeout_seconds=timeout_seconds)
+            saved = documents / "analyst_reviews" / (native["receipt_sha256"] + ".json")
+            write_json(saved, native)
+            state["native_review_receipt"] = str(saved)
+            _save(path, state, "FACT_REVIEWED", native_facts=native["native_facts_accepted"],
+                  model_wall_seconds=round(perf_counter() - started, 3),
+                  model_calls=native["model_calls"])
+        native = _receipt(state["native_review_receipt"], documents,
+                          "analyst_reviews", "receipt_sha256")
+        if (native.get("batch_id") != batch.batch_id or
+                native.get("review", {}).get("extraction_hashes") !=
+                sorted(item.to_dict()["extraction_sha256"] for item in selected)):
+            raise DocumentError("REVIEW_STALE", "Native fact review no longer binds selected extractions")
+        if native["status"] == "REPAIR_REQUIRED":
+            _save(path, state, "WAITING_FOR_REQUIRED_INFORMATION", stage="FACT_REVIEW")
+            return {"status": "WAITING_FOR_REQUIRED_INFORMATION", "stage": "FACT_REVIEW",
+                    "job_state": str(path), "approved_for_delivery": False}
+        review = native["review"]
+        if native["visual_candidates_deferred"]:
+            if "visual_review_receipt" not in state:
+                started = perf_counter()
+                visual = review_visual_with_codex(batch, selected, native, documents,
+                                                  model=model, timeout_seconds=timeout_seconds)
+                saved = documents / "analyst_reviews" / (visual["receipt_sha256"] + ".json")
+                write_json(saved, visual)
+                state["visual_review_receipt"] = str(saved)
+                template = documents / "review_templates" / (visual["receipt_sha256"] + ".json")
+                write_json(template, visual["review"])
+                _save(path, state, "VISUAL_REVIEW_PROPOSED",
+                      pending=visual["visual_candidates_pending_attestation"],
+                      model_wall_seconds=round(perf_counter() - started, 3),
+                      model_calls=visual["visual_analyst_model_calls"])
+            visual = _receipt(state["visual_review_receipt"], documents,
+                              "analyst_reviews", "receipt_sha256")
+            if (visual.get("batch_id") != batch.batch_id or
+                    visual.get("review", {}).get("extraction_hashes") !=
+                    sorted(item.to_dict()["extraction_sha256"] for item in selected)):
+                raise DocumentError("REVIEW_STALE", "Visual review no longer binds selected extractions")
+            if visual["status"] != "WAITING_FOR_VISUAL_ATTESTATION":
+                _save(path, state, "WAITING_FOR_REQUIRED_INFORMATION", stage="VISUAL_FACT_REVIEW")
+                return {"status": "WAITING_FOR_REQUIRED_INFORMATION", "stage": "VISUAL_FACT_REVIEW",
+                        "job_state": str(path), "approved_for_delivery": False}
+            attested = _visual_review(documents, batch, selected, visual)
+            if attested is None:
+                _save(path, state, "WAITING_FOR_VISUAL_ATTESTATION",
+                      pending=visual["visual_candidates_pending_attestation"])
+                return {"status": "WAITING_FOR_VISUAL_ATTESTATION", "stage": "VISUAL_FACT_REVIEW",
+                        "review": str(documents / "review_templates" / (visual["receipt_sha256"] + ".json")),
+                        "batch": state["batch_receipt"],
+                        "extractions": [state["primary"].get(document.source_id)
+                                        if selected_item.to_dict()["extraction_sha256"] ==
+                                        primary_item.to_dict()["extraction_sha256"] else
+                                        state["challenger"][document.source_id]
+                                        for document, selected_item, primary_item in
+                                        zip(batch.documents, selected, primary, strict=True)],
+                        "job_state": str(path), "approved_for_delivery": False}
+            review, review_path = attested
+            state["fact_review_file"] = review_path
+            _save(path, state, "VISUAL_ATTESTATION_REPLAYED")
+        body = {"schema_version": DOCUMENT_CASE_SCHEMA, "batch": batch.to_dict(),
+                "extractions": [item.to_dict() for item in selected], "fact_review": review,
+                "rental_relationship_review": None, "credit_relationship_review": None}
+        if "package" not in state:
+            canonical, lineage = load_document_case(body, documents)
+            package = documents / "packages" / (stable_hash(body) + ".json")
+            write_json(package, body)
+            state["package"] = str(package)
+            _save(path, state, "CALCULATION_INPUT_REVIEWED", facts=len(lineage["facts"]),
+                  invoice_lines=len(canonical.actual_charges))
+        package = Path(state["package"])
+        if not package.resolve().is_relative_to((documents / "packages").resolve()):
+            raise DocumentError("SOURCE_UNSAFE_PATH", "Package escaped its case")
+        if package.name != stable_hash(body) + ".json" or read_json(package) != body:
+            raise DocumentError("REVIEW_STALE", "Reviewed package changed or no longer matches source decisions")
+        load_document_case(body, documents)
+        from againward.core.workflow import prepare_investigation
+        from againward.entrypoints import get_domain
+        existing = read_json(analysis / "investigation_state.json") if (analysis / "investigation_state.json").is_file() else {}
+        if "source" not in existing:
+            prepare_investigation(package, analysis, domain=get_domain("rental"))
+            _save(path, state, "CALCULATING")
+        result = run_reviewed_package_job(package, analysis, model=model,
+                                          timeout_seconds=timeout_seconds,
+                                          evaluation_only=evaluation_only)
+        _save(path, state, result["status"], pdf_sha256=result.get("pdf_sha256"))
+        return {**result, "source_job_state": str(path)}
+    except DocumentError as exc:
+        if exc.code in RETRYABLE_MODEL_CODES:
+            _save(path, state, "WAITING_MODEL_RETRY", reason_code=exc.code)
+            return {"status": "WAITING_MODEL_RETRY", "reason_code": exc.code,
+                    "job_state": str(path), "approved_for_delivery": False}
+        _save(path, state, "FAILED", reason_code=exc.code)
+        return {"status": "FAILED", "reason_code": exc.code,
+                "job_state": str(path), "approved_for_delivery": False}
