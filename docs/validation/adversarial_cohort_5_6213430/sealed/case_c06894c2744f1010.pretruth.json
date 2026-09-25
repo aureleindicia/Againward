@@ -1,0 +1,54 @@
+{
+  "schema_version": "againward-rental-pretruth-seal-v1",
+  "case_id": "c06894c2744f1010",
+  "code_commit": "6213430c8bd9dd58ac6c84f4fc33c2cc1fe8f502",
+  "selection_record_commit": "a96540d673456ef512eedadd9fb729f13e583a72",
+  "model": "gpt-6-sol",
+  "codex_cli": "codex-cli 0.156.1",
+  "policy_versions": [
+    "againward-rental-approved-sources-job-v1",
+    "rental-independent-source-reread-v2",
+    "againward-source-adjudication-v4",
+    "againward-codex-analyst-review-v3",
+    "againward-codex-visual-analyst-v2",
+    "againward-rental-autonomous-report-v4",
+    "againward-rental-autonomous-finding-review-v6",
+    "againward-rental-reviewed-evidence-v2",
+    "againward-source-facts-v3-3c5241952f9688d9"
+  ],
+  "private_truth_opened_before_seal": false,
+  "source_hashes": {
+    "billing.pdf": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+    "commercial.pdf": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+  },
+  "model_runtime": {
+    "primary_source_reads": 2,
+    "independent_rereads": 2,
+    "material_source_disagreements": 1,
+    "visual_invoice_proposals_primary": 16,
+    "invoice_candidates_challenger": 0,
+    "facts_approved": 0,
+    "recorded_model_wall_seconds_before_failure": 110.128,
+    "adjudication_runtime": null,
+    "model_cost": null
+  },
+  "pipeline_status": "FAILED",
+  "reason_code": "EXTRACTION_INCOMPLETE",
+  "stage": "SOURCE_ADJUDICATION",
+  "report_produced": false,
+  "pdf_sha256": null,
+  "material_findings_reported": [],
+  "financial_differences_reported": null,
+  "limitations_reported": [
+    "Primary extracted invoice candidates from image content but explicitly required pixel verification because the text layer contains only an attachment-cover phrase.",
+    "Independent challenger returned zero invoice candidates and said the visible image details could not be cited as exact native text.",
+    "No pixel review, fact promotion, calculation or report QA was reached."
+  ],
+  "abstentions": [
+    "No financial conclusion was reported."
+  ],
+  "stop_wait_reason": "Source adjudication could not select the limited visual primary proposal under the current completeness gate; the orchestration returned FAILED / EXTRACTION_INCOMPLETE instead of routing to visual review or a recorded HUMAN escalation.",
+  "human_escalation": false,
+  "final_report_qa": "NOT_REACHED",
+  "sealed_at_utc": "2026-09-25T19:21:40Z"
+}
