@@ -20,7 +20,8 @@ No independently adjudicated final report sample has been completed.
 | Current code benchmarks at `ef6e849` | Rental 15/15 (3 TP, 0 FP, 0 FN, 12 TN), 10,000 lines in 2.571854 s; privacy 19/19, 0 false blocks, 0 unsafe passes | Scripted fixtures, not material report correctness |
 | Current code checkpoint `1760abb` | **835 passed in 306.77 s; 0 failed/skipped** from a clean worktree; Ruff and configured mypy (16 files) clean; PR #5 CI 8/8 pytest jobs green | Report-author v4 repair has unit coverage, but no successful live v4 report-author repair yet |
 | Current checkpoint benchmarks | Rental 15/15 (3 TP, 0 FP, 0 FN, 12 TN); privacy 19/19 (11 ordinary, 8 unsafe), 0 false blocks and 0 unsafe passes | Scripted synthetic fixtures; no blind report accuracy or real privacy authority |
-| Eight-source current-code fresh replay | Eight primary and eight challenger reads; two material disagreements resolved, including pixel-bound scan adjudication; **STOP at FACT_REVIEW** | Native reviewer accepted an orphan rate-sheet date lacking required entity metadata; no v4 PDF or final QA for this replay. Previous v3 DEV PDF remains historical evidence only |
+| Eight-source v4 fresh replay (historical failure) | Eight primary and eight challenger reads; two material disagreements resolved, including pixel-bound scan adjudication; **STOP at FACT_REVIEW** | Native reviewer accepted an orphan rate-sheet date lacking required entity metadata; no PDF/final QA for that replay |
+| Eight-source current-code fresh run | Eight primary + eight independent reads; 0 material disagreements; 150 native + 10 pixel-bound visual `MODEL` facts; two invoice lines; live report-author v4 repair; final PDF QA `PASS`; PDF SHA256 `07e8c9d31c2c2505c053ebe3761c1c83e8da0388139e2d34bb5364a55971ecb7` | `EVALUATION_ONLY_QA_PASSED`, EUR 150 LIFT-5 after EUR 100 credit and EUR 0 LIFT-50; no HUMAN or delivery approval; known DEV case and same-model QA, not independent accuracy |
 | Eight-source old-workspace replay | Reached 161 facts, 10 visual MODEL-reviewed, two invoice lines, then stopped on 17,066-byte remaining Evidence Plane context budget | Budget carried across revisions; it was not reset. Different run from the fresh v4 replay |
 | Varied challenge corpus | 20 synthetic ADVERSARIAL cases generated with separated private truth | Prepared, not a blinded final-report result; author has seen generator |
 | ADVERSARIAL source→report probes (nonblind) | 3/20 attempted: 2/3 evaluation PDFs passed model QA, both show the precommitted EUR 150 financial difference; 1/3 stopped at source adjudication because a CSV row did not establish issued-invoice authority | Delivered coverage 2/3 in this selected subset; 2/2 oracle financial amounts matched, **not** independently adjudicated report correctness; synthetic privacy exemption, 17 cases unrun; no HUMAN correction measured |
@@ -38,6 +39,7 @@ Ignored benchmark receipts: `scratch/final_validation_9e3a7e8/rental/`,
 `scratch/final_validation_report_v4/rental/`,
 `scratch/final_validation_report_v4/privacy/`,
 `scratch/final_validation_report_v4/rental_eight_v4_fresh_eval/`,
+`scratch/current_code_eight_source/eight_fact_v3_fresh/`,
 `scratch/final_validation_9e3a7e8/privacy/`, `scratch/final_privacy_dfe9fdd/`,
 `scratch/final_rental_dfe9fdd/`, and `scratch/model_privacy_dev_v2/results.json`,
 plus the secret retry output in the development session record. Source-job events

@@ -3,9 +3,9 @@
 Current first-client decision: **NOT READY — INDEPENDENT QUALITY MEASUREMENT OPEN**.
 An earlier v9 eight-source DEV run passed the former rate-card promotion failure
 and completed a model-QA-checked evaluation PDF without HUMAN scan transcription.
-The latest fresh replay on code checkpoint `1760abb` stopped at native
-`FACT_REVIEW` because a rate-sheet date was accepted on an entity missing
-required identity/authority fields; it did not produce a current-code PDF. Final
+A later fresh replay stopped at native `FACT_REVIEW` on an orphan rate-sheet date.
+The source-local structural review is now corrected and a new eight-source
+current-code run reached `EVALUATION_ONLY_QA_PASSED` with a QA-checked PDF. Final
 delivery validation remains in progress; see [the live failure
 register](FINAL_AUTONOMOUS_FAILURES.md) and [technical validation](FINAL_AUTONOMOUS_TECHNICAL_VALIDATION.md).
 Start with the [release audit](FIRST_CLIENT_RELEASE_AUDIT.md),
@@ -141,8 +141,22 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
   resolved two material disagreements, including the original-pixel scan,
   but stopped at native `FACT_REVIEW` on a structurally incomplete rate-sheet
   date entity. The current report-author v4 repair is unit-tested, not live-E2E
-  validated. Treat this as an unresolved core coverage defect, not a client
+  validated at that checkpoint. This was a core coverage defect, not a client
   clarification or a reason to relax the entity invariant.
+- Current fact-review policy v3 checks structural completeness only for accepted
+  source-local entities and withholds promotion during repair. A date detached
+  from any valid entity must be rejected; dates on complete rate/document
+  entities remain valid. Targeted regression covers the orphan, bounded repair,
+  complete dated LIFT-5/LIFT-50 rows and malformed entities. A fresh synthetic
+  eight-source run used the same source hashes with 8 primary and 8 independent
+  reads, 0 material source disagreements, 150 accepted native facts, 10 pixel-
+  bound visual `MODEL` facts, 2 invoice lines, finding QA and report-author v4
+  repair. Final original-source/PDF QA passed:
+  `EVALUATION_ONLY_QA_PASSED`, PDF SHA256
+  `07e8c9d31c2c2505c053ebe3761c1c83e8da0388139e2d34bb5364a55971ecb7`.
+  The DEV oracle is EUR 150 for LIFT-5 after the EUR 100 issued credit and EUR 0
+  for LIFT-50. No HUMAN evidence or delivery approval was created. This known
+  dossier and same-model QA are not independent accuracy measurements.
 - Current technical blockers: a varied blind final challenge, independent
   outcome adjudication, actual founder correction/review time, cost/coverage
   measurements and owner-controlled legal/provider/business permissions remain

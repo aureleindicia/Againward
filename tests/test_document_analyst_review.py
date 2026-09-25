@@ -12,6 +12,7 @@ from againward.documents.codex_provider import assemble_proposal
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import promote_facts, validate_proposal
 from againward.documents.readers import read_document
+from againward.documents.sources import inventory_sources
 from againward.documents.visual_fact_review import attest_visual_facts
 from tests.test_document_adjudication import _case
 from tests.test_document_visual_fact_review import _packet
@@ -24,6 +25,107 @@ def _native_decisions(extractions):
          "resolved_flags": []}
         for candidate in extraction.candidates]}
         for extraction in extractions}
+
+
+def _rate_sheet_with_orphan(tmp_path):
+    public = tmp_path / "public"
+    public.mkdir()
+    (public / "rates.txt").write_text(
+        "ACCEPTED rate card for AG-7 dated 2026-08-28.\n"
+        "LIFT-5: EUR 50.00 per day.\nLIFT-50: EUR 30.00 per day.\n")
+    root = tmp_path / "documents"
+    batch = inventory_sources(public, root)
+    document = batch.documents[0]
+    parsed = read_document(document, root)
+    rows = []
+
+    def add(entity, field, value, quote, line=0, value_type="TEXT"):
+        rows.append({"entity_id": entity, "semantic_type": field, "value_type": value_type,
+                     "value": value, "raw_observed_value": quote,
+                     "location": parsed.units[line].location,
+                     "normalization_notes": "Source-local classification", "ambiguity_flags": []})
+
+    for entity, line, asset, rate in (("lift_5", 1, "LIFT-5", "50.00"),
+                                      ("lift_50", 2, "LIFT-50", "30.00")):
+        add(entity, "entity_kind", "SUPPORTING_DOCUMENT", asset, line, "ENUM")
+        add(entity, "document_role", "RATE_CARD", "rate card", 0, "ENUM")
+        add(entity, "document_status", "ACCEPTED", "ACCEPTED", 0, "ENUM")
+        add(entity, "asset_id", asset, asset, line, "IDENTIFIER")
+        add(entity, "rate", rate, rate, line, "DECIMAL")
+        add(entity, "date", "2026-08-28", "2026-08-28", 0, "DATE")
+    add("rate_sheet", "date", "2026-08-28", "2026-08-28", 0, "DATE")
+    extraction = validate_proposal(assemble_proposal(
+        {"status": "SUCCESS", "limitations": [], "candidates": rows},
+        document, parsed, batch.batch_id, "synthetic-model"), batch, root)
+    return root, batch, extraction
+
+
+def test_orphan_date_requires_rejection_while_complete_rate_rows_keep_dates(tmp_path):
+    root, batch, extraction = _rate_sheet_with_orphan(tmp_path)
+    all_accepted = _native_decisions((extraction,))
+    blocked = build_analyst_review(batch, (extraction,), all_accepted, root)
+    assert blocked["status"] == "REPAIR_REQUIRED"
+    assert blocked["native_facts_accepted"] == 0
+    assert blocked["structural_gaps"][0]["entity_id"] == "rate_sheet"
+    assert blocked["structural_gaps"][0]["missing"] == [
+        "entity_kind", "document_role", "document_status"]
+
+    orphan = next(c for c in extraction.candidates if c.entity_id == "rate_sheet")
+    repaired = _native_decisions((extraction,))
+    decision = next(d for d in repaired[extraction.source_id]["decisions"]
+                    if d["candidate_id"] == orphan.candidate_id)
+    decision.update(decision="REJECT", reason="Printed date has no source-local analytical entity role.")
+    ready = build_analyst_review(batch, (extraction,), repaired, root)
+    assert ready["status"] == "READY_FOR_PACKAGE"
+    assert ready["structural_gaps"] == []
+    facts = promote_facts((extraction,), ready["review"], batch, root)
+    assert len(facts) == 12
+    by_entity = {}
+    for fact in facts:
+        by_entity.setdefault(fact.candidate.entity_id, {})[fact.candidate.semantic_type] = fact.candidate.value
+    assert set(by_entity) == {"lift_5", "lift_50"}
+    assert {by_entity[e]["rate"] for e in by_entity} == {"50.00", "30.00"}
+    assert all(by_entity[e]["date"] == "2026-08-28" for e in by_entity)
+
+
+def test_partial_accepted_entity_fails_closed_even_when_other_facts_are_valid(tmp_path):
+    root, batch, extraction = _rate_sheet_with_orphan(tmp_path)
+    decisions = _native_decisions((extraction,))
+    for candidate, decision in zip(extraction.candidates, decisions[extraction.source_id]["decisions"]):
+        if candidate.entity_id == "rate_sheet" or (candidate.entity_id == "lift_50"
+                                                   and candidate.semantic_type == "document_status"):
+            decision.update(decision="REJECT", reason="Reject unsupported structural candidate.")
+    receipt = build_analyst_review(batch, (extraction,), decisions, root)
+    assert receipt["status"] == "REPAIR_REQUIRED"
+    assert receipt["native_facts_accepted"] == 0
+    assert receipt["structural_gaps"] == [{"source_id": extraction.source_id,
+                                            "entity_id": "lift_50", "missing": ["document_status"]}]
+
+
+def test_native_repair_rejects_orphan_without_losing_valid_rate_dates(tmp_path, monkeypatch):
+    root, batch, extraction = _rate_sheet_with_orphan(tmp_path)
+    calls = []
+
+    def model(command, *, input, **_kwargs):
+        payload = json.loads(input.split("\n", 1)[1])
+        calls.append(payload)
+        proposal = _native_decisions((extraction,))[extraction.source_id]
+        if "structural_gaps" in payload:
+            orphan = next(c for c in extraction.candidates if c.entity_id == "rate_sheet")
+            next(d for d in proposal["decisions"] if d["candidate_id"] == orphan.candidate_id).update(
+                decision="REJECT", reason="Printed date is detached from an analytical entity.")
+        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(proposal))
+        return SimpleNamespace(returncode=0, stderr="")
+
+    monkeypatch.setattr("againward.documents.analyst_review.subprocess.run", model)
+    receipt = review_with_codex(batch, (extraction,), root, model="synthetic-model")
+    assert len(calls) == 2
+    assert receipt["status"] == "READY_FOR_PACKAGE"
+    assert receipt["initial_structural_gaps"][0]["entity_id"] == "rate_sheet"
+    assert receipt["structural_gaps"] == []
+    assert receipt["native_facts_accepted"] == 12
+    assert receipt["repair_history"][0]["before"][-1]["decision"] == "ACCEPT"
+    assert receipt["repair_history"][0]["after"][-1]["decision"] == "REJECT"
 
 
 def test_native_analyst_review_promotes_current_facts_without_human_role(tmp_path):

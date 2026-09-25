@@ -1,4 +1,4 @@
-# Final autonomous technical validation — historical DEV E2E passed; latest replay stopped
+# Final autonomous technical validation — current DEV E2E passed
 
 Mission: authorized raw Rental documents → autonomous investigation and QA →
 finished source-backed report, with real final delivery authority retained.
@@ -75,6 +75,25 @@ This is not a first-client readiness certificate or a blind accuracy result. Cur
   remained distinct. No current-code PDF or final report QA was produced in
   this fresh replay. The earlier `4b536e4` PDF is valid DEV evidence for that
   prior policy, not evidence that the current v4 checkpoint passed E2E.
+- Fact-review policy v3 checks structural completeness on accepted source-local
+  entities and withholds promotion while an accepted entity lacks
+  `entity_kind`, `document_role` or `document_status`. A detached date can be
+  rejected in the bounded repair; dates on valid rate/document entities remain
+  representable. Targeted tests reproduce the accepted orphan, exercise its
+  repair, preserve two distinct dated rate rows and fail closed on a partial
+  entity.
+- A **new** synthetic eight-source workspace on current code used the same eight
+  source hashes: 8 primary reads, 8 independent rereads, 0 material source
+  disagreements, completed adjudication, 150 accepted native facts, 10
+  pixel-bound visual `MODEL` facts and 2 invoice lines. Finding QA passed;
+  report-author v4's bounded repair ran live; original-source/PDF model QA
+  passed. Final status: `EVALUATION_ONLY_QA_PASSED`; PDF SHA256
+  `07e8c9d31c2c2505c053ebe3761c1c83e8da0388139e2d34bb5364a55971ecb7`.
+  The deterministic result is LIFT-5 EUR 650 expected, EUR 900 invoiced less
+  EUR 100 issued credit, EUR 150 documentary difference; LIFT-50 EUR 270
+  expected/invoiced, EUR 0 difference. No `HUMAN` attestation or delivery
+  approval was created. This known DEV oracle and same-model QA do not measure
+  independent material correctness.
 - A fresh raw, real-style synthetic case completed the integrated privacy and
   native-document path through an actual client PDF. Both originals were native
   PDFs; Codex read the originals, Python bound their hashes, deterministic code
@@ -103,7 +122,8 @@ This is not a first-client readiness certificate or a blind accuracy result. Cur
 
 The historical synthetic eight-source case proves an engineering path, not
 repeatable E2E completion or material report correctness in unfamiliar dossiers.
-The latest v4 replay exposes a model extraction/review structural failure.
+The prior v4 replay exposed a structural review failure, corrected in the
+current candidate and tested by the new DEV E2E.
 A 20-case varied synthetic
 ADVERSARIAL corpus has been prepared with separate private truth under ignored
 `scratch/final_validation_4b536e4/challenge/`; this agent has seen its
@@ -112,8 +132,8 @@ run source→report after the first known-case success: two produced evaluation
 PDFs passing model QA and matched their precommitted EUR 150 financial oracle;
 one stopped safely because a CSV record did not establish an issued invoice.
 That is 2/3 delivered coverage in a tiny selected subset, not a 99% quality
-score; 17 corpus cases remain unrun. The new fresh eight-source replay is not
-an additional delivered report. These synthetic workspaces bypass real
+score; 17 corpus cases remain unrun. The new eight-source PDF is evaluation
+output, not a delivered report. These synthetic workspaces bypass real
 contract/privacy intake, so they exercise approved-source-to-report behavior,
 not raw real-client authority. Independent final-report
 adjudication, measured founder corrections/review time, model cost and broad
@@ -123,12 +143,12 @@ no-correction objectives remain targets, not observed rates.
 
 ## Next frozen measurement (no further feature expansion)
 
-Current code/prompt/policy checkpoint: `1760abb` (semantic guidance v9,
-source adjudication v4, native analyst review v2, report author v4). Do not
+Current code/prompt/policy candidate: semantic guidance v9,
+source adjudication v4, native analyst review v3, report author v4. Do not
 change it to improve a HOLDOUT score without starting a new declared version.
-The structural fact-review stop above is an unresolved core coverage defect;
-the code is a pinned evaluation candidate, not a release freeze or readiness
-claim. Once that defect is resolved and a clean source-to-report replay passes,
+The structural fact-review stop above is corrected and a clean source-to-report
+replay passed. This remains an evaluation candidate, not a release freeze or
+readiness claim. Next,
 an evaluator who has not seen this DEV generator should prepare a fresh, sealed public/private
 challenge with varied vendors, layouts, scans, credits, returns, clean invoices
 and genuinely insufficient dossiers. Run every admitted public case source→report;

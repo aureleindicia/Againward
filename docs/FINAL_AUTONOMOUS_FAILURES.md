@@ -91,13 +91,22 @@ synthetic DEV fixtures; none establishes independently blind accuracy.
   after repair while acknowledging the structural gap. The priced LIFT-5 and
   LIFT-50 rows remained separate. This is a model extraction/review reliability
   defect, not missing source bytes or a reason to weaken the entity guard.
+- Fact-review policy v3 now checks only accepted source-local entities for
+  completeness and withholds promotion whenever one lacks identity/authority
+  fields. Its bounded repair explicitly rejects a detached printed date with
+  no analytical entity role. Regression covers the exact orphan pattern, its
+  repair, two valid dated rate rows and a malformed partial entity. A separate
+  fresh eight-source current-code run reached `EVALUATION_ONLY_QA_PASSED` with
+  a QA-checked PDF and the EUR 150/0 DEV oracle. The v4 STOP remains historical
+  failure evidence, not an unresolved current blocker.
 
 ## Still open
 
 - No independently adjudicated final-report cohort has been completed.
   The eight-source result is a known synthetic DEV case with same-model source
-  and report QA, not a blind quality score. The latest fresh v4 replay did not
-  reach a report, so report-author v4 live E2E remains unverified.
+  and report QA, not a blind quality score. The prior fresh v4 replay did not
+  reach a report; the current fresh run exercised report-author v4 repair and
+  final PDF QA.
 - A separate ADVERSARIAL "correct invoice" case stopped at source adjudication:
   its only billing record is a CSV row with invoice reference and net amount,
   but no charge description or evidence that an issued invoice exists.
