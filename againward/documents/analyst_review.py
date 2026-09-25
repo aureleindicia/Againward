@@ -221,7 +221,7 @@ def review_with_codex(batch: SourceBatch, extractions: tuple[DocumentExtraction,
             "proposed value. Each accepted entity needs accepted entity_kind, document_role and "
             "document_status candidates. A printed date in an otherwise orphan entity is not "
             "an analytical fact: REJECT it if it cannot be attached to a valid entity. Preserve "
-            "useful document dates on a valid document or rate-row entity. REJECT unsupported values. "
+            "useful document dates on a valid document or rate-row entity. REJECT unsupported values, "
             "An invoice's printed net amount is an observed invoice fact: ACCEPT its exact "
             "source-supported transcription even when it disagrees with the contract. Never "
             "DEFER a clearly printed billed amount merely because reconciliation would require "

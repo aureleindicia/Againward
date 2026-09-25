@@ -157,6 +157,11 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
   The DEV oracle is EUR 150 for LIFT-5 after the EUR 100 issued credit and EUR 0
   for LIFT-50. No HUMAN evidence or delivery approval was created. This known
   dossier and same-model QA are not independent accuracy measurements.
+- Post-fix scripted checks: 838 pytest cases passed in 310.49 s from committed
+  code; Ruff and configured mypy (16 files) passed. Rental benchmark 15/15
+  (3 TP, 0 FP, 0 FN, 12 TN); privacy benchmark 19/19 (11 ordinary, 8 unsafe;
+  0 false blocks, 0 unsafe passes). PR #5 CI passed 8/8 Python 3.11–3.14
+  pytest jobs. These checks are regression evidence, not independent accuracy.
 - Current technical blockers: a varied blind final challenge, independent
   outcome adjudication, actual founder correction/review time, cost/coverage
   measurements and owner-controlled legal/provider/business permissions remain

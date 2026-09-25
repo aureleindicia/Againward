@@ -94,6 +94,11 @@ This is not a first-client readiness certificate or a blind accuracy result. Cur
   expected/invoiced, EUR 0 difference. No `HUMAN` attestation or delivery
   approval was created. This known DEV oracle and same-model QA do not measure
   independent material correctness.
+- Post-fix committed-code regression: **838 passed in 310.49 s, 0 failed**;
+  Ruff and configured mypy (16 files) clean; Rental benchmark 15/15 (3 TP,
+  0 FP, 0 FN, 12 TN); privacy benchmark 19/19 (11 ordinary, 8 unsafe;
+  0 false blocks, 0 unsafe passes). PR #5 CI passed 8/8 pytest jobs on Python
+  3.11–3.14. These are scripted checks, separate from the model E2E result.
 - A fresh raw, real-style synthetic case completed the integrated privacy and
   native-document path through an actual client PDF. Both originals were native
   PDFs; Codex read the originals, Python bound their hashes, deterministic code
