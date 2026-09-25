@@ -75,13 +75,29 @@ synthetic DEV fixtures; none establishes independently blind accuracy.
   structured-claim validator correctly rejected it, but the job raised a raw
   error instead of allowing a bounded author correction. Report policy v4 keeps
   the validator and permits one source-bound repair; a second invalid draft
-  returns `STOP_INVALID_MODEL_REPORT_AUTHOR`. The v4 model rerun is pending.
+  returns `STOP_INVALID_MODEL_REPORT_AUTHOR`. The repair has targeted tests but
+  has not yet been exercised by a live author draft.
+- The same multiply revised DEV workspace then stopped during Evidence Plane
+  retrieval: only 17,066 context bytes remained, and its first 200-row query
+  exceeded that preserved budget. This is a real revision-budget STOP; it was
+  not reset to make the old investigation pass. A separate fresh synthetic
+  workspace was created with byte-identical eight sources to test current code.
+- That fresh v4 run regenerated eight primary and eight challenger reads,
+  resolved two material disagreements (including the signed scan using the
+  disputed original pixels), then stopped safely at `FACT_REVIEW` with
+  `REPAIR_REQUIRED`. The selected primary rate sheet contained a standalone
+  `rate_sheet` date candidate with no `entity_kind`, `document_role` or
+  `document_status`; the native reviewer accepted that orphan candidate even
+  after repair while acknowledging the structural gap. The priced LIFT-5 and
+  LIFT-50 rows remained separate. This is a model extraction/review reliability
+  defect, not missing source bytes or a reason to weaken the entity guard.
 
 ## Still open
 
 - No independently adjudicated final-report cohort has been completed.
   The eight-source result is a known synthetic DEV case with same-model source
-  and report QA, not a blind quality score.
+  and report QA, not a blind quality score. The latest fresh v4 replay did not
+  reach a report, so report-author v4 live E2E remains unverified.
 - A separate ADVERSARIAL "correct invoice" case stopped at source adjudication:
   its only billing record is a CSV row with invoice reference and net amount,
   but no charge description or evidence that an issued invoice exists.

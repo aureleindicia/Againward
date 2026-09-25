@@ -1,4 +1,4 @@
-# Final autonomous technical validation — eight-source DEV E2E passed; final measurement open
+# Final autonomous technical validation — historical DEV E2E passed; latest replay stopped
 
 Mission: authorized raw Rental documents → autonomous investigation and QA →
 finished source-backed report, with real final delivery authority retained.
@@ -32,8 +32,8 @@ This is not a first-client readiness certificate or a blind accuracy result. Cur
   `bccb8d73719329768bdc73c86e98306159bea78ae392d1d447c239e6984e870e`.
   The PDF identifies a EUR 150 documented LIFT-5 difference after the issued
   EUR 100 credit, and EUR 0 for LIFT-50; it explicitly avoids a recovery claim.
-  Human approval and delivery authorization remain false. A replay under current
-  code/pixel receipts produced the same PDF hash.
+  Human approval and delivery authorization remain false. A replay under that
+  earlier code/pixel receipt set produced the same PDF hash.
 - Policy-only revisions reused exactly 16 source passes (8 primary, 8
   challenger) and invalidated later judgments. Changed sources, privacy, model,
   semantic guidance or rendered pixels cannot reuse dependent approvals.
@@ -51,6 +51,30 @@ This is not a first-client readiness certificate or a blind accuracy result. Cur
   3.11–3.14 pytest jobs. On that code, Rental remained 15/15 (3 TP, 0 FP,
   0 FN, 12 TN; 10,000 lines in 2.571854 s) and privacy remained 19/19
   (0 false blocks, 0 unsafe passes). These are scripted regression results.
+- Report-author policy v4 added one bounded repair for a deterministic rejection
+  of free dates/numbers/identifiers in narrative prose. It does not permit an
+  invalid synthesis into the PDF. Code checkpoint `1760abb` passed **835 tests
+  in 306.77 s, 0 failed/skipped** from a clean worktree, Ruff, configured mypy
+  (16 files), and PR #5 CI 8/8 pytest jobs. Rental benchmark remained 15/15
+  (3 TP, 0 FP, 0 FN, 12 TN); privacy remained 19/19 (11 ordinary, 8 unsafe,
+  0 false blocks, 0 unsafe passes). The repair is unit-tested, not yet shown
+  by a successful live v4 report-author run.
+- The historical eight-source workspace was rerun with native-review v2 and
+  report policy v4. It advanced through 161 reviewed facts (10 visual `MODEL`
+  facts), two invoice lines, calculation input and finding QA, but its
+  preserved Evidence Plane budget had only 17,066 context bytes left after
+  repeated revisions; the next evidence query was rejected. No budget reset
+  or fabricated continuation was applied.
+- A fresh synthetic workspace with the same eight source bytes then completed
+  eight primary and eight challenger reads. Two material disagreements were
+  resolved; the signed-return decision cited the disputed original scan with
+  source, unit and preview hashes. It stopped at `FACT_REVIEW`, however: the
+  chosen rate-sheet extraction contained an orphan document-date entity and
+  the native model review accepted it without required `entity_kind`,
+  `document_role` and `document_status`. The row-level LIFT-5/LIFT-50 entities
+  remained distinct. No current-code PDF or final report QA was produced in
+  this fresh replay. The earlier `4b536e4` PDF is valid DEV evidence for that
+  prior policy, not evidence that the current v4 checkpoint passed E2E.
 - A fresh raw, real-style synthetic case completed the integrated privacy and
   native-document path through an actual client PDF. Both originals were native
   PDFs; Codex read the originals, Python bound their hashes, deterministic code
@@ -77,8 +101,10 @@ This is not a first-client readiness certificate or a blind accuracy result. Cur
 
 ## Acceptance still open
 
-The known synthetic eight-source case proves an engineering path, not material
-report correctness in unfamiliar dossiers. A 20-case varied synthetic
+The historical synthetic eight-source case proves an engineering path, not
+repeatable E2E completion or material report correctness in unfamiliar dossiers.
+The latest v4 replay exposes a model extraction/review structural failure.
+A 20-case varied synthetic
 ADVERSARIAL corpus has been prepared with separate private truth under ignored
 `scratch/final_validation_4b536e4/challenge/`; this agent has seen its
 generator, so its own runs are **not blind**. Three selected cases have been
@@ -86,7 +112,8 @@ run source→report after the first known-case success: two produced evaluation
 PDFs passing model QA and matched their precommitted EUR 150 financial oracle;
 one stopped safely because a CSV record did not establish an issued invoice.
 That is 2/3 delivered coverage in a tiny selected subset, not a 99% quality
-score; 17 corpus cases remain unrun. These synthetic workspaces bypass real
+score; 17 corpus cases remain unrun. The new fresh eight-source replay is not
+an additional delivered report. These synthetic workspaces bypass real
 contract/privacy intake, so they exercise approved-source-to-report behavior,
 not raw real-client authority. Independent final-report
 adjudication, measured founder corrections/review time, model cost and broad
@@ -96,8 +123,13 @@ no-correction objectives remain targets, not observed rates.
 
 ## Next frozen measurement (no further feature expansion)
 
-After the final code/prompt commit passes clean regression and CI, an evaluator
-who has not seen this DEV generator should prepare a fresh, sealed public/private
+Current code/prompt/policy checkpoint: `1760abb` (semantic guidance v9,
+source adjudication v4, native analyst review v2, report author v4). Do not
+change it to improve a HOLDOUT score without starting a new declared version.
+The structural fact-review stop above is an unresolved core coverage defect;
+the code is a pinned evaluation candidate, not a release freeze or readiness
+claim. Once that defect is resolved and a clean source-to-report replay passes,
+an evaluator who has not seen this DEV generator should prepare a fresh, sealed public/private
 challenge with varied vendors, layouts, scans, credits, returns, clean invoices
 and genuinely insufficient dossiers. Run every admitted public case source→report;
 retain all STOPs and retries in the denominator. Before looking at agent reports,

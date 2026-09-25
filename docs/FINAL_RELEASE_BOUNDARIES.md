@@ -39,6 +39,15 @@ The existing visual-review path accepted 18 candidates under `MODEL` receipts;
 synthetic PDF passed same-model original-source/report QA and is marked
 `EVALUATION_ONLY_QA_PASSED`, not approved for delivery.
 
+That PDF predates current report-author policy v4. A later replay in the same
+DEV workspace exhausted its legitimately preserved Evidence Plane context
+budget. A separate fresh, byte-identical eight-source v4 evaluation resolved
+two material source disagreements, including a pixel-bound signed-scan review,
+but stopped at native `FACT_REVIEW`: the model accepted an orphan rate-sheet
+date entity without mandatory identity/authority fields. No v4 PDF or final
+report QA was produced. This is a technical coverage limit, not missing client
+information and not authority to bypass the entity guard.
+
 No genuine HUMAN visual attestation exists for this run and none was required
 for the clear synthetic scan. Scripted privacy benchmark reviews are not real
 human inspection. This one known case and correlated model checks do not prove

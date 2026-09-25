@@ -1,8 +1,11 @@
 # AGAINWARD — read first (2026-09-25)
 
 Current first-client decision: **NOT READY — INDEPENDENT QUALITY MEASUREMENT OPEN**.
-The latest v9 eight-source DEV run passed the former rate-card promotion failure
-and completed a model-QA-checked evaluation PDF without HUMAN scan transcription. Final
+An earlier v9 eight-source DEV run passed the former rate-card promotion failure
+and completed a model-QA-checked evaluation PDF without HUMAN scan transcription.
+The latest fresh replay on code checkpoint `1760abb` stopped at native
+`FACT_REVIEW` because a rate-sheet date was accepted on an entity missing
+required identity/authority fields; it did not produce a current-code PDF. Final
 delivery validation remains in progress; see [the live failure
 register](FINAL_AUTONOMOUS_FAILURES.md) and [technical validation](FINAL_AUTONOMOUS_TECHNICAL_VALIDATION.md).
 Start with the [release audit](FIRST_CLIENT_RELEASE_AUDIT.md),
@@ -86,7 +89,8 @@ attempts Codex-first raw privacy review, applies the deterministic post-check,
 then runs source extraction, independent reread/adjudication, fact review,
 exact links, calculations and report QA. Both a synthetic native-PDF case and
 the eight-source dossier with a signed scan completed this source-to-report
-model path. Clear scanned facts can use source/QA/pixel-bound `MODEL` receipts;
+model path under an earlier policy. The current v4 fresh replay stopped before
+calculation on a separate native structural gap. Clear scanned facts can use source/QA/pixel-bound `MODEL` receipts;
 genuinely ambiguous pixels still require exceptional HUMAN review. Revisions invalidate dependent artifacts, preserve
 query budgets and archive prior analysis. The entrypoint does not authorize
 delivery or establish first-client readiness.
@@ -129,6 +133,16 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
   0 skipped), Ruff, configured mypy (16 files), Rental 15/15, privacy 19/19
   with 0 false blocks/unsafe passes, and PR #5 CI 8/8. These remain regression
   evidence, not an independently adjudicated quality rate.
+- Current checkpoint `1760abb` passed 835 tests in 306.77 s from a clean
+  worktree (0 failed/skipped), Ruff and configured mypy (16 files); PR #5 CI
+  passed 8/8 jobs. Rental remained 15/15, privacy 19/19 with 0 false blocks
+  and 0 unsafe passes. A multiply revised eight-source workspace exhausted
+  its preserved Evidence Plane budget; a separate byte-identical fresh run
+  resolved two material disagreements, including the original-pixel scan,
+  but stopped at native `FACT_REVIEW` on a structurally incomplete rate-sheet
+  date entity. The current report-author v4 repair is unit-tested, not live-E2E
+  validated. Treat this as an unresolved core coverage defect, not a client
+  clarification or a reason to relax the entity invariant.
 - Current technical blockers: a varied blind final challenge, independent
   outcome adjudication, actual founder correction/review time, cost/coverage
   measurements and owner-controlled legal/provider/business permissions remain
