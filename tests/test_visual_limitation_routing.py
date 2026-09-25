@@ -89,7 +89,8 @@ def test_visual_only_disagreement_routes_to_original_pixel_adjudication(tmp_path
     root, batch, visual_doc, primary, challenger, qa, raw = _case(tmp_path)
     selected = next(item for item in primary if item.source_id == visual_doc.source_id)
     assert visual_only_limited_extraction(selected, batch, root)
-    assert qa["source_results"][0]["material_needs_reconciliation"]
+    visual_qa = next(row for row in qa["source_results"] if row["source_id"] == visual_doc.source_id)
+    assert visual_qa["material_needs_reconciliation"]
     result = validate_adjudication(batch, primary, challenger, qa, raw, root)
     assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"
     assert result["material_unresolved_source_ids"] == []
