@@ -210,3 +210,13 @@ Preserve source and derivative hashes, privacy/reviewer versions, complete
 lineage, hard STOPs, confidence vs severity, no double counting, and Energy
 characterization. Do not copy client data into shared benchmarks, relax a gate
 to improve a score, or treat scripted reviews as actual human approval.
+
+- Luna visual robustness characterization (10 fresh runs; DEV only) is recorded
+  in [luna_visual_robustness_10_20260925.json](validation/luna_visual_robustness_10_20260925.json).
+  Across 5 repeats each of known scanned-invoice case `c06894c2744f1010` and the
+  known eight-source signed-return dossier, there were 0 useful scanned facts
+  from either extraction pass, 0 successful pixel recoveries, 0 calculations,
+  and 0 QA-passed reports. Three invoice runs waited for required information;
+  the known original scan supports the EUR 150 discrepancy, so those waits are
+  recorded as oracle-unjustified misses. This is repeatability evidence on two
+  known synthetic cases, not independent accuracy evidence or a ≥99% estimate.

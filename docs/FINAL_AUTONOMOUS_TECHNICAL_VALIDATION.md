@@ -246,3 +246,23 @@ test-stability follow-up `12af083255a8fdde298086e52627c863addd249d`:
 The first CI attempt on `7bfb232` caught an ordering assumption in the added
 test; the assertion now selects the scan by source ID. No production behavior
 changed in the test-only follow-up.
+
+## Known-scan Luna robustness probe (2026-09-25)
+
+A fixed-build experiment ran 5 fresh workspaces for `c06894c2744f1010` and 5
+for the known eight-source Rental DEV dossier with the signed return scan. The
+model was explicitly `gpt-6-luna`; all source hashes and code/prompt/policy
+bindings are recorded per run in
+[the robustness artifact](validation/luna_visual_robustness_10_20260925.json).
+No production code, prompt, policy, or unseen ADVERSARIAL case was changed or
+used. Useful scanned invoice candidates were produced in 0/5 runs, as were
+useful signed-return candidates in 0/5. Six runs completed both source passes
+with no useful material visual candidate; six invoked pixel adjudication with
+original pixels attached, but none recovered a citeable visual fact. No run
+reached formal visual fact review, calculation, or a QA-passed PDF. Three A
+runs waited at source adjudication; the known scan supports EUR 150, therefore
+those waits are not scored as justified abstentions. The other seven runs
+failed closed on source-location or adjudication validation. Luna is not
+currently suitable for this visual path as configured on this measured
+cohort. These 10 repeats characterize two known cases only; they are not
+independent/blind accuracy evidence and do not estimate ≥99% correctness.
