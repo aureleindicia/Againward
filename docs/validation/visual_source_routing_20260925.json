@@ -3,6 +3,8 @@
   "case_id": "c06894c2744f1010",
   "purpose": "Regression evidence only; this known case is not fresh accuracy evidence.",
   "starting_commit": "af230678c450e6d936d9123c7279566af94348e3",
+  "production_fix_commit": "7bfb232d855683a1ccdc89df18caa22569b1bfc1",
+  "test_stability_commit": "12af083255a8fdde298086e52627c863addd249d",
   "model": "gpt-6-luna",
   "model_binding_source": "Active Codex config.toml model, passed explicitly to the workflow CLI",
   "codex_cli": "codex-cli 0.156.1",
@@ -46,5 +48,16 @@
     "human_evidence_created": false
   },
   "interpretation": "The previous pre-visual EXTRACTION_INCOMPLETE path is removed for a source pass with pixel-only candidates: targeted tests now route that shape through original-pixel adjudication and visual review. This live Luna replay had zero invoice candidates in both passes, so it safely waited at source adjudication for lack of source-bound candidate evidence. It is a different model-output limitation; the known EUR 150 result was not reached.",
-  "runtime_wall_seconds_from_state_events": 96.1
+  "runtime_wall_seconds_from_state_events": 96.1,
+  "validation": {
+    "targeted_visual_and_document_tests": "45 passed",
+    "visual_routing_tests_after_order_fix": "5 passed",
+    "full_pytest": "843 passed in 395.34 seconds",
+    "ruff": "ruff check . passed",
+    "mypy": "passed; 16 source files",
+    "rental_benchmark": "15/15; TP=3, FP=0, FN=0, TN=12",
+    "privacy_benchmark": "19/19; false blocks=0, unsafe passes=0",
+    "pr_5_ci": "two runs passed 8/8 jobs each across Python 3.11, 3.12, 3.13 and 3.14",
+    "pr_state": "OPEN, DRAFT, UNMERGED"
+  }
 }

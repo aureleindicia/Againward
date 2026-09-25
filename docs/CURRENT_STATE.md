@@ -152,6 +152,13 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
   The successful eight-source signed-scan MODEL receipt was reverified against
   its source, adjudication and rendered pixels, with no HUMAN attestation.
   [Regression record](validation/visual_source_routing_20260925.json).
+- Validation on production fix `7bfb232` and order-independent test follow-up
+  `12af083`: 843 pytest cases passed (395.34 s), Ruff passed, configured mypy
+  passed (16 files), Rental benchmark 15/15 (3 TP, 0 FP, 0 FN, 12 TN), privacy
+  benchmark 19/19 (0 false blocks, 0 unsafe passes). PR #5 CI passed twice,
+  8/8 jobs each across Python 3.11–3.14; PR remains draft and unmerged. The
+  first CI run on `7bfb232` found the visual test's PDF-order assumption; the
+  test was made source-ID based and both CI runs on `12af083` passed.
 - Prior clean-code regression at `4b536e4`: 833 tests passed in 318.78 s with no failures or
   skips; Ruff and configured Mypy (16 files) pass. Rental benchmark 15/15, with
   3 TP, 0 FP, 0 FN and 12 TN. These scripted/fixture results do not represent

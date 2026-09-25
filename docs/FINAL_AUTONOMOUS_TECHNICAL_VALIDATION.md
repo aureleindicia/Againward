@@ -229,3 +229,20 @@ reverified with current validators. One visual component remained bound to the
 same source/render hashes; it used no HUMAN attestation. Existing scripted
 HUMAN fallback tests also remain in the passing targeted set. This validates
 receipt compatibility, not a new eight-source model replay.
+
+Validation on production fix `7bfb232d855683a1ccdc89df18caa22569b1bfc1` and
+test-stability follow-up `12af083255a8fdde298086e52627c863addd249d`:
+
+- Targeted source, adjudication, visual-review and Rental adapter/job tests:
+  45 passed; visual routing tests after removing a nondeterministic PDF ordering
+  assumption: 5 passed.
+- Full pytest: 843 passed in 395.34 seconds. Ruff passed. Configured mypy passed
+  for 16 source files.
+- Rental benchmark: 15/15 (3 TP, 0 FP, 0 FN, 12 TN). Privacy benchmark: 19/19
+  (0 false blocks, 0 unsafe passes).
+- PR #5 CI: two runs passed all 8 jobs each across Python 3.11–3.14. PR #5 is
+  still open, draft and unmerged.
+
+The first CI attempt on `7bfb232` caught an ordering assumption in the added
+test; the assertion now selects the scan by source ID. No production behavior
+changed in the test-only follow-up.
