@@ -1,0 +1,82 @@
+{
+  "schema_version": "againward-rental-pretruth-seal-v1",
+  "case_id": "ae824b441b9bc207",
+  "code_commit": "6213430c8bd9dd58ac6c84f4fc33c2cc1fe8f502",
+  "selection_record_commit": "a96540d673456ef512eedadd9fb729f13e583a72",
+  "model": "gpt-6-sol",
+  "codex_cli": "codex-cli 0.156.1",
+  "policy_versions": [
+    "againward-rental-approved-sources-job-v1",
+    "rental-independent-source-reread-v2",
+    "againward-source-adjudication-v4",
+    "againward-codex-analyst-review-v3",
+    "againward-codex-visual-analyst-v2",
+    "againward-rental-autonomous-report-v4",
+    "againward-rental-autonomous-finding-review-v6",
+    "againward-rental-reviewed-evidence-v2",
+    "againward-source-facts-v3-3c5241952f9688d9"
+  ],
+  "private_truth_opened_before_seal": false,
+  "source_hashes": {
+    "billing.pdf": "31342ee40575afff0237325faf15faac7a2d82f10d68fd8341a6b6c83408cab5",
+    "commercial.pdf": "acf2cdaaac636960d0f74d3df8856519b470849b631d3f12e42d58c463019a6a",
+    "return.pdf": "04cf2d59495684a8037a1a4bc210504cec6e586dff6b717cd93a36f64c206529"
+  },
+  "model_runtime": {
+    "primary_source_reads": 3,
+    "independent_rereads": 3,
+    "material_source_disagreements": 1,
+    "material_disagreements_resolved": 1,
+    "native_facts_accepted": 48,
+    "invoice_lines": 1,
+    "finding_review_state": "FINDINGS_QA_PASSED",
+    "report_qa_attempts": 2,
+    "recorded_pre_report_model_wall_seconds": 238.007,
+    "report_author_and_qa_runtime": null,
+    "model_cost": null
+  },
+  "pipeline_status": "STOP_REPORT_QA",
+  "report_produced": true,
+  "pdf_sha256": "86523be3d094b44ca97d3a7fa4a6fd5299a72b4fa11f6cb4c4a8acd223a2dd00",
+  "material_findings_reported": [
+    {
+      "family": "INCORRECT_QUANTITY",
+      "decision": "CONFIRME",
+      "currency": "EUR",
+      "reported_difference": "550.00",
+      "components_reported": {
+        "documented_return_effect": "400.00",
+        "additional_pricing_excess": "150.00"
+      },
+      "no_double_counting_claimed": true
+    }
+  ],
+  "financial_differences_reported": [
+    {
+      "currency": "EUR",
+      "contract_expected_after_return": "1000.00",
+      "invoice_net": "1550.00",
+      "documentary_difference": "550.00",
+      "full_period_contract_basis_before_return": "1400.00",
+      "return_effect": "400.00",
+      "other_pricing_excess": "150.00"
+    }
+  ],
+  "limitations_reported": [
+    "Invoice provides one aggregate rental line without daily quantities or a rate breakdown.",
+    "The report says external replacement, amendment, credit or adjustment records could alter the account; supplied copies do not establish them.",
+    "The report states the amount is a documented difference, not a recoverable debt."
+  ],
+  "abstentions": [
+    "The report does not treat the full EUR 550 as solely attributable to the return; it separates a EUR 400 return effect and EUR 150 additional pricing excess."
+  ],
+  "stop_wait_reason": "Two report QA attempts returned REVISE for reviewer-facing instructions and generic rules in the report; the pipeline stopped with STOP_REPORT_QA.",
+  "human_escalation": false,
+  "final_report_qa": {
+    "verdict": "REVISE",
+    "attempts": 2,
+    "evaluation_only": true,
+    "delivery_approved": false
+  },
+  "sealed_at_utc": "2026-09-25T19:16:09Z"
+}
