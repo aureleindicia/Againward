@@ -1,0 +1,40 @@
+{
+  "schema_version": "againward-rental-posttruth-adjudication-v1",
+  "case_id": "2bd34c965a660ce2",
+  "pretruth_record": "../sealed/case_2bd34c965a660ce2.pretruth.json",
+  "pretruth_record_sha256": "7f6f31c76953445dc246fe2a9132b90cc63e63408c41239ba5b67528a8f16771",
+  "truth_accessed_after_seal": true,
+  "oracle_family": "issued_credit",
+  "oracle_source_hashes_match_selection": true,
+  "expected_material_findings": [],
+  "actual_material_findings": [],
+  "expected_financial_differences": {
+    "EUR": "0.00"
+  },
+  "actual_reported_financial_differences": {
+    "EUR": "0.00"
+  },
+  "amount_comparison": {
+    "agreement_basis_expected_net_EUR": "2100.00",
+    "invoice_net_EUR": "2250.00",
+    "allocated_issued_credit_EUR": "150.00",
+    "net_billed_after_credit_EUR": "2100.00",
+    "expected_documentary_difference_EUR": "0.00",
+    "actual_documentary_difference_EUR": "0.00",
+    "amount_error": false
+  },
+  "clean_case_false_finding_check": {
+    "expected_clean": true,
+    "actual_finding_invented": false,
+    "result": "PASS"
+  },
+  "classification": [
+    "JUSTIFIED_STOP"
+  ],
+  "classification_reason": "The authored comparison correctly reports no supported discrepancy after the explicitly allocated credit. The pipeline appropriately withheld completion when both final report-QA attempts identified unsupported generic wording about unspecified missing documents and internal report phrasing. No QA-passed final report was produced.",
+  "material_error_tags": [],
+  "final_report_qa": "REVISE on both attempts; pipeline STOP_REPORT_QA",
+  "human_escalation": false,
+  "independent_of_model_qa": true,
+  "adjudicated_at_utc": "2026-09-25T19:00:54Z"
+}
