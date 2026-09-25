@@ -18,12 +18,13 @@ from againward.core.artifact_store import transaction, write_json
 from againward.evidence.hashing import stable_hash
 from .codex_provider import _images, _model_invocation_failure
 from .contracts import DocumentError, SourceBatch, identifier, load_json, text
-from .extraction import DocumentExtraction, promote_facts, replay_extraction
+from .extraction import (DocumentExtraction, promote_facts, replay_extraction,
+                         visual_only_limited_extraction)
 from .readers import read_document
 from .sources import verify_batch
 
 
-REVIEW_VERSION = "againward-codex-analyst-review-v3"
+REVIEW_VERSION = "againward-codex-analyst-review-v4"
 VISUAL_REVIEW_VERSION = "againward-codex-visual-analyst-v2"
 MAX_GLOBAL_TEXT = 50_000
 _SCHEMA: dict[str, Any] = {
@@ -110,7 +111,9 @@ def build_analyst_review(batch: SourceBatch, extractions: tuple[DocumentExtracti
     if (len(validated) != len(batch.documents)
             or {extraction.source_id for extraction in validated} != {doc.source_id for doc in batch.documents}):
         raise DocumentError("EXTRACTION_INCOMPLETE", "Every source needs one reviewed extraction")
-    if any(extraction.status == "FAILED" or extraction.limitations for extraction in validated):
+    if any(extraction.status == "FAILED" or
+           (extraction.limitations and not visual_only_limited_extraction(extraction, batch, root))
+           for extraction in validated):
         raise DocumentError("EXTRACTION_INCOMPLETE", "Failed or limited sources need repair before review")
     if set(proposals) != {extraction.source_id for extraction in validated
                          if any(candidate.source_span is not None for candidate in extraction.candidates)}:

@@ -137,6 +137,21 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
   synthetic tranche is evidence of a generic scan extraction gap and report
   authoring QA friction, not a ≥99% estimate. Detailed seals and adjudications:
   [five-case cohort](validation/adversarial_cohort_5_6213430/).
+- The c06894 visual-source routing defect is corrected narrowly: a selected
+  proposal with only visual candidates and only native-text/pixel-verification
+  limitations may proceed to original-pixel adjudication and the existing
+  visual review. The other completeness limits still stop; a selected visual
+  proposal also needs an exact hash-bound pixel citation before proceeding.
+  Regression tests model the original primary-visual / empty-challenger shape
+  through MODEL visual receipts, and keep ambiguous pixels on the HUMAN/WAIT
+  path. A fresh live replay with the configured model `gpt-6-luna` had zero
+  invoice candidates from both passes; multimodal adjudication left the source
+  unresolved and the workflow waited at `SOURCE_ADJUDICATION`. It did not
+  reproduce the old pre-visual `EXTRACTION_INCOMPLETE`, but did not reach the
+  known EUR 150 result. This is regression evidence, not a new accuracy sample.
+  The successful eight-source signed-scan MODEL receipt was reverified against
+  its source, adjudication and rendered pixels, with no HUMAN attestation.
+  [Regression record](validation/visual_source_routing_20260925.json).
 - Prior clean-code regression at `4b536e4`: 833 tests passed in 318.78 s with no failures or
   skips; Ruff and configured Mypy (16 files) pass. Rental benchmark 15/15, with
   3 TP, 0 FP, 0 FN and 12 TN. These scripted/fixture results do not represent

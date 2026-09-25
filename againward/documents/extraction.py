@@ -24,6 +24,39 @@ from .sources import assert_document_action, verify_batch
 SCHEMA = "againward-document-extraction-v1"
 
 
+def visual_only_limited_extraction(extraction: "DocumentExtraction", batch: SourceBatch,
+                                   root: Path) -> bool:
+    """Identify limited proposals that can proceed only into bound pixel review.
+
+    This is deliberately narrower than general completeness: the proposal must
+    contain only candidates sourced from rendered units, and every declared
+    limitation must describe the native-text/pixel boundary. Missing pages,
+    unreadable sources, and other extraction limits remain hard stops.
+    """
+    if not extraction.limitations or extraction.status == "FAILED" or not extraction.candidates:
+        return False
+    document = next((item for item in batch.documents if item.source_id == extraction.source_id), None)
+    if document is None or document.sha256 != extraction.source_sha256:
+        raise DocumentError("SOURCE_CHANGED", "Visual limitation does not bind the current source")
+    parsed = read_document(document, root)
+    visual_locations = {unit.location for unit in parsed.units if unit.route != "NATIVE"}
+    if not visual_locations or any(candidate.source_span is not None
+                                   or candidate.location not in visual_locations
+                                   or "VISUAL_TRANSCRIPTION_UNVERIFIED" not in candidate.ambiguity_flags
+                                   for candidate in extraction.candidates):
+        return False
+    for limitation in extraction.limitations:
+        value = limitation.casefold()
+        visual_scope = any(word in value for word in ("visual", "image", "pixel", "scan"))
+        requires_pixels = "pixel" in value and any(word in value for word in ("verif", "review", "inspect"))
+        native_gap = ("visible" in value and "native" in value
+                      and any(word in value for word in ("text", "quote", "substring", "citation"))
+                      and any(word in value for word in ("absent", "omitted", "cannot", "not in", "unavailable")))
+        if not visual_scope or not (requires_pixels or native_gap):
+            return False
+    return True
+
+
 @dataclass(frozen=True)
 class FactCandidate:
     candidate_id: str

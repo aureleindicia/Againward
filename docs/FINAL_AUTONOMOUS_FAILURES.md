@@ -145,3 +145,34 @@ proof and not a ≥99% estimate. Same-model QA is not counted as independent
 correctness evidence; final delivered-report correctness is undefined because
 its denominator is zero. Production code, prompts, and policy were not changed
 during these five runs.
+
+## Visual-source routing fix and known-case regression
+
+The five-case c06894 result above remains historical evidence. Its immediate
+code cause was `validate_adjudication`: after a model selected the visual
+primary, the validator rejected every extraction carrying any limitation with
+`EXTRACTION_INCOMPLETE`. That happened before the already-existing fact review
+could defer pixel candidates and invoke original-pixel review. The independent
+challenger's zero native-text candidates and visual limitation were therefore
+treated like an unrepairable incomplete extraction.
+
+The routing now admits only a narrow state: every selected candidate must be
+bound to a non-native rendered unit and carry the visual-transcription flag;
+every limitation must explicitly describe the native-text/pixel boundary; and
+the adjudication must cite the disputed original pixels. The existing visual
+review must then cover every candidate with a current MODEL receipt or use the
+existing HUMAN/WAIT fallback before the Rental adapter permits calculation.
+Other limitations, failed proposals, missing pixel bindings, mutation, and an
+empty visual proposal remain fail-closed. Ordinary native disagreements keep
+their existing exact source-citation gate.
+
+A fresh c06894 replay using the active runtime model `gpt-6-luna` produced zero
+invoice candidates from both passes. The multimodal adjudicator inspected the
+original scan but could not ground a choice in any proposal candidate, so the
+workflow returned `WAITING_FOR_REQUIRED_INFORMATION` at `SOURCE_ADJUDICATION`
+instead of the old generic pre-visual `EXTRACTION_INCOMPLETE`. The known EUR 150
+oracle amount was not reached, and no report or HUMAN evidence was created.
+The targeted replay with the historical candidate-bearing primary/empty
+challenger shape now reaches pixel adjudication and existing visual-review
+receipts; the new live Luna result is a distinct model-output coverage limit.
+See [the regression record](validation/visual_source_routing_20260925.json).

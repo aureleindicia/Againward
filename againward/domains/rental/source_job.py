@@ -31,6 +31,7 @@ from .autonomous_report import current_report_versions
 
 
 VERSION = "againward-rental-approved-sources-job-v1"
+VISUAL_LIMITATION_ROUTING_VERSION = "againward-rental-visual-limitation-routing-v1"
 RETRYABLE_MODEL_CODES = {"MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_AUTH_REQUIRED",
                          "MODEL_RATE_LIMITED", "MODEL_TRANSPORT_FAILURE", "MODEL_EMPTY_RESPONSE"}
 
@@ -205,7 +206,8 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                "prompt_version": prompt_version_for_guidance(guidance()), "model": model,
                "evaluation_only": evaluation_only,
                "versions": [VERSION, QA_GUIDANCE_VERSION, ADJUDICATION_VERSION,
-                            REVIEW_VERSION, VISUAL_REVIEW_VERSION + "+" + MODEL_VISUAL_VERSION,
+                            REVIEW_VERSION, VISUAL_REVIEW_VERSION + "+" + MODEL_VISUAL_VERSION +
+                            "+" + VISUAL_LIMITATION_ROUTING_VERSION,
                             *current_report_versions()]}
     analysis = case / "processed"
     documents = analysis / "documents"

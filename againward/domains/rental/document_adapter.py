@@ -10,7 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from againward.documents.contracts import DocumentError, SourceBatch, closed
-from againward.documents.extraction import promote_facts, replay_extraction
+from againward.documents.extraction import (promote_facts, replay_extraction,
+                                            visual_only_limited_extraction)
 from againward.documents.resolution import (
     Entity, MatchPolicy, RelationshipState, entities_from_facts, resolve_entities,
     review_relationships,
@@ -101,9 +102,23 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
     facts = promote_facts(extractions, p["fact_review"], batch, root)
     if any(f.candidate.semantic_type not in _ANALYTICAL_FIELDS for f in facts):
         raise DocumentError("UNSUPPORTED_PROMOTION", "Non-analytical fields must not enter Rental evidence")
-    if any(e.limitations for e in extractions):
-        raise DocumentError("EXTRACTION_INCOMPLETE",
-                            "Unextracted/missing components must be resolved before financial preparation")
+    reviewed_visual_hashes = {
+        (row.get("source_sha256"), candidate_hash)
+        for key in ("visual_model_reviews", "visual_attestations")
+        for row in p["fact_review"].get(key, []) if isinstance(row, dict)
+        for candidate_hash in row.get("candidate_hashes", [])
+    }
+    for extraction in extractions:
+        if not extraction.limitations:
+            continue
+        if not visual_only_limited_extraction(extraction, batch, root):
+            raise DocumentError("EXTRACTION_INCOMPLETE",
+                                "Unextracted/missing components must be resolved before financial preparation")
+        required_visual_hashes = {stable_hash(candidate.to_dict()) for candidate in extraction.candidates}
+        if any((extraction.source_sha256, candidate_hash) not in reviewed_visual_hashes
+               for candidate_hash in required_visual_hashes):
+            raise DocumentError("EXTRACTION_INCOMPLETE",
+                                "Visual-only extraction limitation needs review of every original-pixel candidate")
     entities = entities_from_facts(facts)
     if any(e.kind not in {"RENTAL_SCOPE", "INVOICE_LINE", "RETURN", "RATE_AMENDMENT",
                           "CREDIT", "SUPPORTING_DOCUMENT", "IRRELEVANT"} for e in entities):

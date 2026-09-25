@@ -190,3 +190,42 @@ build but identifies a scan extraction failure to address before freeze. These
 five synthetic cases do not estimate population accuracy. Per-case selection,
 immutable seals, scoring, and metric definitions are in
 [the cohort artifact](validation/adversarial_cohort_5_6213430/).
+
+## Visual-source routing regression
+
+The c06894 failure occurred after independent QA and inside adjudication
+validation: a selected proposal was rejected solely because it carried a
+limitation, before pixel review could resolve a visual-only limitation. The
+new route requires a nonfailed proposal whose candidates are all tied to current
+non-native units and explicitly flagged as unverified visual transcription;
+the limitation text must describe the native-text/pixel boundary, and a
+resolved adjudication must include an exact original-pixel citation. Generic
+missing-source and completeness limits continue to stop. Fact review still
+defers visual candidates, and the Rental adapter requires every candidate to
+have a validated source/render-bound MODEL or HUMAN receipt before calculation.
+The source-job version binding includes this routing policy.
+
+Five focused visual-routing regressions and the existing adjudication, fact
+review, pixel provenance, adapter and source-job tests passed together: 45
+passed. They cover the historical visual-primary/empty-challenger shape, clear
+pixel continuation, ambiguous-pixel HUMAN fallback, missing pixel hashes,
+source/render mutation and rejection of nonvisual omissions. Full-suite results
+after the commit are recorded below.
+
+The fresh live c06894 replay used the actual configured `gpt-6-luna` model
+(`codex-cli 0.156.1`), with policy versions adjudication v5, analyst review v4
+and visual limitation routing v1. Both passes returned zero invoice candidates;
+the multimodal adjudicator reopened the scan but left the source unresolved
+because there were no source-bound candidate values to cite. The run waited at
+`SOURCE_ADJUDICATION`; it did not fail with the old pre-pixel
+`EXTRACTION_INCOMPLETE`, and it did not reach calculation or the known EUR 150
+oracle amount. This is regression evidence on a known case, not accuracy
+evidence. The full receipts and hashes are in
+[the regression record](validation/visual_source_routing_20260925.json).
+
+For non-regression, the prior successful eight-source signed-scan run's selected
+extractions, source batch, pixel adjudication and MODEL visual receipts were
+reverified with current validators. One visual component remained bound to the
+same source/render hashes; it used no HUMAN attestation. Existing scripted
+HUMAN fallback tests also remain in the passing targeted set. This validates
+receipt compatibility, not a new eight-source model replay.

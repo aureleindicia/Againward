@@ -18,13 +18,13 @@ from typing import Any
 from againward.evidence.hashing import stable_hash
 from .codex_provider import _images, _model_invocation_failure
 from .contracts import DocumentError, SourceBatch, identifier, load_json, text
-from .extraction import DocumentExtraction
+from .extraction import DocumentExtraction, visual_only_limited_extraction
 from .independent_qa import compare_extractions
 from .readers import read_document
 from .sources import verify_batch
 
 
-ADJUDICATION_VERSION = "againward-source-adjudication-v4"
+ADJUDICATION_VERSION = "againward-source-adjudication-v5"
 MAX_SOURCE_TEXT = 60_000
 MAX_VISUAL_PAGES = 4
 _SCHEMA: dict[str, Any] = {
@@ -161,8 +161,19 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
             selected.pop(source_id)
         if source_id in selected:
             chosen = extraction_by_hash[selected[source_id]]
-            if chosen.status == "FAILED" or chosen.limitations:
+            if chosen.status == "FAILED":
                 raise DocumentError("EXTRACTION_INCOMPLETE", "Failed or limited proposal cannot be selected")
+            if chosen.limitations:
+                if not visual_only_limited_extraction(chosen, batch, root):
+                    raise DocumentError("EXTRACTION_INCOMPLETE",
+                                        "Failed or non-visual-limited proposal cannot be selected")
+                visual_locations = {candidate.location for candidate in chosen.candidates}
+                if not any(citation.get("source_id") == source_id
+                           and citation.get("preview_sha256")
+                           and citation.get("location") in visual_locations
+                           for citation in verified):
+                    raise DocumentError("EXTRACTION_INCOMPLETE",
+                                        "Visual-only limitation needs cited original-pixel adjudication")
         decisions.append({"source_id": source_id, "selection": selection,
                           "rationale": rationale, "citations": verified,
                           "primary_extraction_sha256": disputed[source_id]["primary_extraction_sha256"],
