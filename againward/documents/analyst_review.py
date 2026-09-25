@@ -489,6 +489,7 @@ def review_visual_with_codex(batch: SourceBatch, extractions: tuple[DocumentExtr
     result["initial_visual_structural_gaps"] = initial_gaps
     result["visual_structural_gaps"] = final_gaps
     result["visual_repair_history"] = repair_history
+    result["model"] = model
     result["human_approval"] = False
     result["delivery_approved"] = False
     result["receipt_sha256"] = stable_hash(result)

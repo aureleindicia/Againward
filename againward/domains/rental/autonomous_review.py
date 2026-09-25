@@ -18,7 +18,7 @@ from againward.documents.contracts import DocumentError, SourceBatch
 from againward.documents.readers import read_document
 from againward.documents.extraction import replay_extraction
 from againward.documents.sources import verify_batch
-from againward.documents.visual_fact_review import verify_visual_attestations
+from againward.documents.visual_fact_review import verify_model_visual_reviews, verify_visual_attestations
 from againward.evidence.cli import execute_case_query, validate_session_artifacts
 from againward.evidence.hashing import stable_hash
 from againward.evidence.protocol import EvidenceQuerySession
@@ -78,10 +78,13 @@ def _source_context(root: Path, temporary: Path) -> tuple[list[dict], tuple[Path
     verify_batch(batch, document_root)
     visual_quotes: dict[tuple[str, str], list[str]] = {}
     fact_review = package.get("fact_review", {})
-    if fact_review.get("visual_attestations"):
+    if fact_review.get("visual_attestations") or fact_review.get("visual_model_reviews"):
         extractions = tuple(replay_extraction(item, batch, document_root)
                             for item in package["extractions"])
-        verify_visual_attestations(batch, extractions, fact_review, document_root)
+        if fact_review.get("visual_model_reviews"):
+            verify_model_visual_reviews(batch, extractions, fact_review, document_root)
+        else:
+            verify_visual_attestations(batch, extractions, fact_review, document_root)
         accepted = {row["candidate_id"] for row in fact_review["decisions"] if row["decision"] == "ACCEPT"}
         for extraction in extractions:
             for candidate in extraction.candidates:

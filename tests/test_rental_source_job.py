@@ -131,7 +131,7 @@ def test_revision_recovers_interruption_after_archive_without_budget_reset(tmp_p
     assert (archive / "retained.txt").exists()
 
 
-def test_source_pass_reuse_is_limited_to_adjudication_policy_only():
+def test_source_pass_reuse_is_limited_to_adjudication_or_visual_policy_only():
     from copy import deepcopy
     from againward.domains.rental.source_job import _only_adjudication_policy_changed
     old = {"sources": [{"sha256": "a" * 64}], "model": "fixture-model", "privacy": "old",
@@ -139,11 +139,14 @@ def test_source_pass_reuse_is_limited_to_adjudication_policy_only():
     new = deepcopy(old)
     new["versions"][2] = "adjudication-v2"
     assert _only_adjudication_policy_changed(old, new)
+    visual_only = deepcopy(old)
+    visual_only["versions"][4] = "visual-model-v2"
+    assert _only_adjudication_policy_changed(old, visual_only)
     for key in ("sources", "model", "privacy"):
         changed = deepcopy(new)
         changed[key] = "changed"
         assert not _only_adjudication_policy_changed(old, changed)
-    for index in (0, 1, 3, 4, 5):
+    for index in (0, 1, 3, 5):
         changed = deepcopy(new)
         changed["versions"][index] = "changed"
         assert not _only_adjudication_policy_changed(old, changed)

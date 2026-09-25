@@ -6,11 +6,15 @@ from copy import deepcopy
 import pytest
 
 from againward.documents.codex_provider import assemble_proposal
+from againward.core.artifact_store import write_json
+from againward.documents.adjudication import validate_adjudication
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import promote_facts, validate_proposal
+from againward.documents.independent_qa import compare_extractions
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
-from againward.documents.visual_fact_review import attest_visual_facts
+from againward.documents.visual_fact_review import attest_visual_facts, record_model_visual_review
+from againward.evidence.hashing import stable_hash
 from benchmarking.document_renderers import pdf
 
 
@@ -84,3 +88,35 @@ def test_mixed_review_requires_exact_human_visual_attestation(tmp_path):
     stale["decisions"][0]["decision"] = "DEFER"
     with pytest.raises(DocumentError, match="HUMAN_REVIEW_REQUIRED"):
         promote_facts((extraction,), stale, batch, root)
+
+
+def test_clear_visual_fact_can_use_model_receipt_without_becoming_human(tmp_path):
+    root, batch, extraction, review = _packet(tmp_path)
+    visual_review = deepcopy(review)
+    visual_review["decisions"][0]["resolved_flags"] = []
+    visual = {"batch_id": batch.batch_id, "review": visual_review,
+              "status": "WAITING_FOR_VISUAL_ATTESTATION", "model": "scripted-model"}
+    visual["receipt_sha256"] = stable_hash(visual)
+    write_json(root / "analyst_reviews" / (visual["receipt_sha256"] + ".json"), visual)
+    qa = compare_extractions(batch, (extraction,), (extraction,), root)
+    write_json(root / "independent_qa" / (qa["qa_sha256"] + ".json"), qa)
+    adjudication = validate_adjudication(batch, (extraction,), (extraction,), qa,
+                                        {"decisions": []}, root)
+    write_json(root / "adjudications" / (adjudication["adjudication_sha256"] + ".json"), adjudication)
+    model_review = record_model_visual_review(batch, (extraction,), visual, qa, adjudication,
+                                              root, model="scripted-model")
+    assert model_review["reviewer_role"] == "ANALYST"
+    assert model_review["visual_model_reviews"][0]["reviewer_role"] == "MODEL"
+    assert "visual_attestations" not in model_review
+    assert len(promote_facts((extraction,), model_review, batch, root)) == 1
+    stale = deepcopy(model_review)
+    stale["visual_model_reviews"][0]["preview_sha256"] = "0" * 64
+    with pytest.raises(DocumentError, match="REVIEW_STALE"):
+        promote_facts((extraction,), stale, batch, root)
+    stale = deepcopy(model_review)
+    stale["visual_model_reviews"][0]["qa_sha256"] = "0" * 64
+    with pytest.raises(DocumentError, match="REVIEW_STALE"):
+        promote_facts((extraction,), stale, batch, root)
+    (root / batch.documents[0].blob_path).write_bytes(b"changed")
+    with pytest.raises(DocumentError, match="SOURCE_CHANGED"):
+        promote_facts((extraction,), model_review, batch, root)

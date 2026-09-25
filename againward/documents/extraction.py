@@ -274,11 +274,12 @@ def promote_facts(extractions: tuple[DocumentExtraction, ...], review: Any,
     """Review binds a candidate set. Confidence never selects or promotes facts.
 
     Reviewer identity is a supplied assertion, not authentication. Delivery still
-    needs its separate human approval. Visual checks must name a HUMAN reviewer.
+    needs its separate human delivery approval. Visual facts require current
+    pixel-bound HUMAN attestations or model receipts backed by source QA.
     Formula values cannot be promoted; request an evidenced fixed-value export.
     """
     p = closed(review, {"schema_version", "extraction_hashes", "reviewer_role", "reviewed_at",
-                        "decisions", "limitations_acknowledged"}, optional={"visual_attestations"})
+                        "decisions", "limitations_acknowledged"}, optional={"visual_attestations", "visual_model_reviews"})
     if (p["schema_version"] != "againward-fact-review-v1" or not isinstance(p["reviewer_role"], str)
             or p["reviewer_role"] not in {"ANALYST", "HUMAN"}):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Invalid fact review")
@@ -300,8 +301,13 @@ def promote_facts(extractions: tuple[DocumentExtraction, ...], review: Any,
     # A self-declared HUMAN role is never a substitute for source/pixel-bound
     # inspection. This applies to legacy full-human reviews as well as the
     # narrower analyst review plus visual-only human attestation.
-    from .visual_fact_review import verify_visual_attestations
-    verify_visual_attestations(batch, validated, p, root)
+    from .visual_fact_review import verify_model_visual_reviews, verify_visual_attestations
+    if p.get("visual_model_reviews"):
+        if p.get("visual_attestations"):
+            raise DocumentError("REVIEW_STALE", "Mixed HUMAN and MODEL visual claims are not allowed")
+        verify_model_visual_reviews(batch, validated, p, root)
+    else:
+        verify_visual_attestations(batch, validated, p, root)
     facts = []
     seen = set()
     for decision in p["decisions"]:
@@ -325,8 +331,8 @@ def promote_facts(extractions: tuple[DocumentExtraction, ...], review: Any,
             raise DocumentError("UNSUPPORTED_PROMOTION", "Formula needs an evidenced fixed-value source")
         if set(c.ambiguity_flags) - resolved:
             raise DocumentError("UNSUPPORTED_PROMOTION", "Unresolved ambiguity")
-        # An ANALYST review can include visual facts only if a separate
-        # source/pixel/candidate-bound HUMAN attestation was verified above.
+        # An ANALYST review can include visual facts only after a separate
+        # source/pixel/candidate-bound visual receipt was verified above.
         facts.append(CanonicalFact("fact-" + stable_hash({"candidate": c.to_dict(),
                                                         "extraction": extraction.to_dict()["extraction_sha256"]}),
                                    c, extraction.to_dict()["extraction_sha256"], stable_hash(p), reason))

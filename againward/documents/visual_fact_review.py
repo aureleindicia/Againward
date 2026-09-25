@@ -1,7 +1,9 @@
-"""One short, source-bound human check for visual facts in an analyst review.
+"""Source-bound visual receipts for model review and exceptional human fallback.
 
 The operator's local identity is a claim, not cryptographic authentication.
 Scripted tests exercise the protocol but never count as a real inspection.
+MODEL receipts bind independent source QA, visual review and rendered pixels;
+they are probabilistic evidence, not HUMAN attestations or accuracy proof.
 """
 from __future__ import annotations
 
@@ -14,6 +16,7 @@ import re
 import tempfile
 from typing import Any, Callable
 
+from againward.core.artifact_store import read_json
 from againward.evidence.hashing import stable_hash
 from .codex_provider import _images
 from .contracts import DocumentError, SourceBatch, closed, digest, text, timestamp
@@ -23,6 +26,7 @@ from .readers import read_document
 _ACTOR = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{1,63}")
 _ATTESTATION_KEYS = {"source_sha256", "location", "unit_sha256", "preview_sha256",
                      "candidate_hashes", "reviewer_role", "reviewer_id", "reviewed_at_utc", "decision"}
+MODEL_VISUAL_VERSION = "againward-visual-model-evidence-v1"
 
 
 def _accepted_visual_groups(extractions: tuple[Any, ...], review: dict) -> dict[tuple[str, str], list[Any]]:
@@ -126,3 +130,137 @@ def verify_visual_attestations(batch: SourceBatch, extractions: tuple[Any, ...],
             preview_hash, _, unit_sha = _render_hash(by_hash[key[0]], root, key[1], Path(directory))
             if row["unit_sha256"] != unit_sha or row["preview_sha256"] != preview_hash:
                 raise DocumentError("REVIEW_STALE", "Visual preview changed after inspection")
+
+
+def record_model_visual_review(batch: SourceBatch, extractions: tuple[Any, ...],
+                               visual: dict, qa: dict, adjudication: dict,
+                               root: Path, *, model: str) -> dict:
+    """Issue a MODEL (never HUMAN) receipt after source QA and pixel review."""
+    if (visual.get("status") != "WAITING_FOR_VISUAL_ATTESTATION"
+            or visual.get("receipt_sha256") != stable_hash({k: v for k, v in visual.items()
+                                                            if k != "receipt_sha256"})
+            or visual.get("batch_id") != batch.batch_id):
+        raise DocumentError("REVIEW_STALE", "Current pixel analyst review required")
+    review = json.loads(json.dumps(visual["review"]))
+    decisions = {row["candidate_id"]: row for row in review["decisions"]}
+    groups = _accepted_visual_groups(extractions, review)
+    if not groups or any(decisions[c.candidate_id]["decision"] != "ACCEPT"
+                         for extraction in extractions for c in extraction.candidates
+                         if "VISUAL_TRANSCRIPTION_UNVERIFIED" in c.ambiguity_flags):
+        raise DocumentError("HUMAN_REVIEW_REQUIRED", "Unresolved pixel facts cannot receive model approval")
+    if (qa.get("qa_sha256") != stable_hash({k: v for k, v in qa.items() if k != "qa_sha256"})
+            or adjudication.get("adjudication_sha256") != stable_hash(
+                {k: v for k, v in adjudication.items() if k != "adjudication_sha256"})
+            or qa.get("batch_id") != batch.batch_id or adjudication.get("batch_id") != batch.batch_id
+            or adjudication.get("qa_sha256") != qa["qa_sha256"]
+            or adjudication.get("material_unresolved_source_ids")):
+        raise DocumentError("REVIEW_STALE", "Source QA/adjudication does not support model visual review")
+    selected = {item.source_id: item.to_dict()["extraction_sha256"] for item in extractions}
+    if adjudication.get("selected_extractions") != selected:
+        raise DocumentError("REVIEW_STALE", "Selected visual proposal changed")
+    by_hash = {document.sha256: document for document in batch.documents}
+    source_by_sha = {document.sha256: document.source_id for document in batch.documents}
+    qa_by_source = {row["source_id"]: row for row in qa["source_results"]}
+    decisions_by_source = {row["source_id"]: row for row in adjudication["decisions"]}
+    rows = []
+    with tempfile.TemporaryDirectory(prefix="againward-model-visual-") as directory:
+        for source_sha, location in sorted(groups):
+            document = by_hash[source_sha]
+            source_id = source_by_sha[source_sha]
+            qa_row = qa_by_source[source_id]
+            if selected[source_id] not in {qa_row["primary_extraction_sha256"],
+                                           qa_row["challenger_extraction_sha256"]}:
+                raise DocumentError("REVIEW_STALE", "Visual selection is not an independently read proposal")
+            if qa_row["material_needs_reconciliation"] and not any(
+                    cite.get("source_id") == source_id and cite.get("location") == location
+                    and "preview_sha256" in cite
+                    for cite in decisions_by_source.get(source_id, {}).get("citations", [])):
+                raise DocumentError("HUMAN_REVIEW_REQUIRED", "Disputed pixels were not reopened in adjudication")
+            preview, _, unit = _render_hash(document, root, location, Path(directory))
+            rows.append({"schema_version": MODEL_VISUAL_VERSION,
+                         "source_id": source_id, "source_sha256": source_sha,
+                         "location": location, "unit_sha256": unit, "preview_sha256": preview,
+                         "candidate_hashes": sorted(stable_hash(c.to_dict()) for c in groups[(source_sha, location)]),
+                         "reviewer_role": "MODEL", "model": model,
+                         "visual_receipt_sha256": visual["receipt_sha256"],
+                         "qa_sha256": qa["qa_sha256"],
+                         "adjudication_sha256": adjudication["adjudication_sha256"],
+                         "decision": "SUPPORTED_FOR_FACT_REVIEW"})
+    for extraction in extractions:
+        for candidate in extraction.candidates:
+            if candidate.source_span is None and decisions[candidate.candidate_id]["decision"] == "ACCEPT":
+                decisions[candidate.candidate_id]["resolved_flags"] = list(candidate.ambiguity_flags)
+    review["visual_model_reviews"] = rows
+    verify_model_visual_reviews(batch, extractions, review, root)
+    return review
+
+
+def verify_model_visual_reviews(batch: SourceBatch, extractions: tuple[Any, ...],
+                                review: dict, root: Path) -> None:
+    """Replay persisted model/QA receipts and exact pixels; a role flag alone proves nothing."""
+    groups = _accepted_visual_groups(extractions, review)
+    rows = review.get("visual_model_reviews", [])
+    if not isinstance(rows, list) or len(rows) != len(groups):
+        raise DocumentError("HUMAN_REVIEW_REQUIRED", "Every accepted pixel group needs a model receipt")
+    by_source = {document.source_id: document for document in batch.documents}
+    selected = {item.source_id: item.to_dict()["extraction_sha256"] for item in extractions}
+    seen = set()
+    with tempfile.TemporaryDirectory(prefix="againward-model-visual-verify-") as directory:
+        for row in rows:
+            if not isinstance(row, dict) or set(row) != {
+                    "schema_version", "source_id", "source_sha256", "location", "unit_sha256",
+                    "preview_sha256", "candidate_hashes", "reviewer_role", "model",
+                    "visual_receipt_sha256", "qa_sha256", "adjudication_sha256", "decision"}:
+                raise DocumentError("REVIEW_STALE", "Model visual receipt fields invalid")
+            document = by_source.get(row["source_id"])
+            key = (row["source_sha256"], row["location"])
+            if (document is None or document.sha256 != row["source_sha256"] or key not in groups or key in seen
+                    or row["schema_version"] != MODEL_VISUAL_VERSION or row["reviewer_role"] != "MODEL"
+                    or row["decision"] != "SUPPORTED_FOR_FACT_REVIEW"):
+                raise DocumentError("REVIEW_STALE", "Model visual receipt does not match current component")
+            seen.add(key)
+            if row["candidate_hashes"] != sorted(stable_hash(c.to_dict()) for c in groups[key]):
+                raise DocumentError("REVIEW_STALE", "Visual candidates changed")
+            preview, _, unit = _render_hash(document, root, row["location"], Path(directory))
+            if preview != row["preview_sha256"] or unit != row["unit_sha256"]:
+                raise DocumentError("REVIEW_STALE", "Visual pixels changed")
+            receipts = []
+            for folder, digest_key, field in (("analyst_reviews", "receipt_sha256", "visual_receipt_sha256"),
+                                              ("independent_qa", "qa_sha256", "qa_sha256"),
+                                              ("adjudications", "adjudication_sha256", "adjudication_sha256")):
+                path = root / folder / (digest(row[field]) + ".json")
+                if path.is_symlink() or not path.is_file():
+                    raise DocumentError("REVIEW_STALE", "Model visual dependency receipt missing")
+                receipt = read_json(path)
+                if receipt.get(digest_key) != row[field] or stable_hash(
+                        {k: v for k, v in receipt.items() if k != digest_key}) != row[field]:
+                    raise DocumentError("REVIEW_STALE", "Model visual dependency receipt changed")
+                receipts.append(receipt)
+            visual, qa, adjudication = receipts
+            if (visual.get("batch_id") != batch.batch_id or visual.get("model", row["model"]) != row["model"]
+                    or visual.get("status") != "WAITING_FOR_VISUAL_ATTESTATION"
+                    or qa.get("batch_id") != batch.batch_id or adjudication.get("batch_id") != batch.batch_id
+                    or adjudication.get("qa_sha256") != qa["qa_sha256"]
+                    or adjudication.get("selected_extractions") != selected
+                    or adjudication.get("material_unresolved_source_ids")):
+                raise DocumentError("REVIEW_STALE", "Model visual dependencies changed")
+            reviewed = {item["candidate_id"]: item for item in visual["review"]["decisions"]}
+            for candidate in groups[key]:
+                current = next(item for item in review["decisions"] if item["candidate_id"] == candidate.candidate_id)
+                prior = reviewed.get(candidate.candidate_id)
+                if (prior is None or prior["decision"] != "ACCEPT"
+                        or {k: v for k, v in current.items() if k != "resolved_flags"} !=
+                           {k: v for k, v in prior.items() if k != "resolved_flags"}):
+                    raise DocumentError("REVIEW_STALE", "Visual model decision changed after pixel review")
+            qa_row = next(item for item in qa["source_results"] if item["source_id"] == row["source_id"])
+            if selected[row["source_id"]] not in {qa_row["primary_extraction_sha256"],
+                                                  qa_row["challenger_extraction_sha256"]}:
+                raise DocumentError("REVIEW_STALE", "Visual proposal is outside independent source QA")
+            if qa_row["material_needs_reconciliation"] and not any(
+                    cite.get("source_id") == row["source_id"] and cite.get("location") == row["location"]
+                    and cite.get("preview_sha256") == preview
+                    for decision in adjudication["decisions"] for cite in decision["citations"]):
+                raise DocumentError("REVIEW_STALE", "Material visual dispute lacks pixel adjudication")
+            if qa_row["material_needs_reconciliation"]:
+                from .adjudication import verify_adjudication_pixels
+                verify_adjudication_pixels(batch, adjudication, root)

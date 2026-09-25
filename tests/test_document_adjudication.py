@@ -4,17 +4,20 @@ from __future__ import annotations
 from copy import deepcopy
 import json
 from pathlib import Path
+import tempfile
 from types import SimpleNamespace
 
 import pytest
 
-from againward.documents.adjudication import adjudicate_with_codex, validate_adjudication
+from againward.documents.adjudication import adjudicate_with_codex, validate_adjudication, verify_adjudication_pixels
 from againward.documents.codex_provider import assemble_proposal
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
 from againward.documents.independent_qa import compare_extractions
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
+from againward.documents.visual_fact_review import _render_hash
+from benchmarking.document_renderers import pdf
 
 
 def _case(tmp_path):
@@ -127,3 +130,63 @@ def test_adjudicator_reopens_original_sources_without_private_truth(tmp_path, mo
     with pytest.raises(DocumentError, match="REVIEW_STALE"):
         adjudicate_with_codex(batch, primary, challenger, stale, root, model="synthetic-model")
     assert len(calls) == 1
+
+
+def test_visual_dispute_requires_current_disputed_pixels_not_other_document(tmp_path, monkeypatch):
+    public = tmp_path / "public"
+    public.mkdir()
+    pdf(public / "return.pdf", ["Signed return: LIFT-5 serial 204 returned September 5."], scan=True)
+    (public / "agreement.txt").write_text("Contract says an email request alone is not a return.")
+    root = tmp_path / "documents"
+    batch = inventory_sources(public, root)
+    visual = next(doc for doc in batch.documents if "return.pdf" in doc.original_names)
+    native = next(doc for doc in batch.documents if "agreement.txt" in doc.original_names)
+
+    def proposal(document, kind):
+        parsed = read_document(document, root)
+        observed = "Signed return: LIFT-5 serial 204 returned September 5." if document == visual else "Contract says"
+        raw = {"status": "SUCCESS", "limitations": [], "candidates": [{
+            "entity_id": "return", "semantic_type": "entity_kind", "value_type": "ENUM",
+            "value": kind, "raw_observed_value": observed, "location": parsed.units[0].location,
+            "normalization_notes": "Source classification", "ambiguity_flags": [],
+        }]}
+        return validate_proposal(assemble_proposal(raw, document, parsed, batch.batch_id,
+                                                   "scripted-model"), batch, root)
+
+    native_pass = proposal(native, "RENTAL_SCOPE")
+    primary_visual = proposal(visual, "RETURN")
+    challenger_visual = proposal(visual, "SUPPORTING_DOCUMENT")
+    primary = (native_pass, primary_visual)
+    challenger = (native_pass, challenger_visual)
+    qa = compare_extractions(batch, primary, challenger, root)
+    with tempfile.TemporaryDirectory() as directory:
+        preview, _, _ = _render_hash(visual, root, "page:1", Path(directory))
+    raw = {"decisions": [{"source_id": visual.source_id, "selection": "PRIMARY",
+                          "rationale": "Pixel reading supports a signed return; model judgment, not deterministic proof.",
+                          "citations": [{"source_id": visual.source_id, "location": "page:1",
+                                         "quote": "Signed return: LIFT-5 serial 204 returned September 5.",
+                                         "preview_sha256": preview}]}]}
+    resolved = validate_adjudication(batch, primary, challenger, qa, raw, root)
+    assert resolved["status"] == "RESOLVED_FOR_FACT_REVIEW"
+    assert resolved["decisions"][0]["citations"][0]["deterministic_semantic_verification"] is False
+    verify_adjudication_pixels(batch, resolved, root)
+    original_render = _render_hash
+    monkeypatch.setattr("againward.documents.visual_fact_review._render_hash",
+                        lambda *args: ("0" * 64, None, "0" * 64))
+    with pytest.raises(DocumentError, match="REVIEW_STALE"):
+        verify_adjudication_pixels(batch, resolved, root)
+    monkeypatch.setattr("againward.documents.visual_fact_review._render_hash", original_render)
+    stale = deepcopy(raw)
+    stale["decisions"][0]["citations"][0]["preview_sha256"] = "0" * 64
+    with pytest.raises(DocumentError, match="REVIEW_STALE"):
+        validate_adjudication(batch, primary, challenger, qa, stale, root)
+    wrong_source = deepcopy(raw)
+    wrong_source["decisions"][0]["citations"][0]["source_id"] = native.source_id
+    with pytest.raises(DocumentError):
+        validate_adjudication(batch, primary, challenger, qa, wrong_source, root)
+    unresolved = deepcopy(raw)
+    unresolved["decisions"][0].update(selection="UNRESOLVED", citations=[])
+    assert validate_adjudication(batch, primary, challenger, qa, unresolved, root)["status"] == "RECONCILIATION_REQUIRED"
+    (root / visual.blob_path).write_bytes(b"mutated source")
+    with pytest.raises(DocumentError, match="SOURCE_CHANGED"):
+        validate_adjudication(batch, primary, challenger, qa, raw, root)

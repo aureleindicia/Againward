@@ -13,7 +13,7 @@ from typing import Any
 from againward.core.artifact_store import read_json, write_json
 from againward.core.privacy import assert_case_privacy_cleared, inspect_privacy_status
 from againward.core.workflow import fingerprint
-from againward.documents.adjudication import ADJUDICATION_VERSION, adjudicate_with_codex
+from againward.documents.adjudication import ADJUDICATION_VERSION, adjudicate_with_codex, verify_adjudication_pixels
 from againward.documents.analyst_review import REVIEW_VERSION, VISUAL_REVIEW_VERSION, review_visual_with_codex, review_with_codex
 from againward.documents.codex_provider import CodexCliProvider, prompt_version_for_guidance
 from againward.documents.contracts import DocumentError, SourceBatch
@@ -21,7 +21,7 @@ from againward.documents.extraction import persist_extraction, promote_facts, re
 from againward.documents.independent_qa import QA_GUIDANCE_VERSION, QA_INSTRUCTIONS, RETRY_INSTRUCTIONS, compare_extractions
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources, safe_file, verify_batch
-from againward.documents.visual_fact_review import verify_visual_attestations
+from againward.documents.visual_fact_review import MODEL_VISUAL_VERSION, record_model_visual_review, verify_visual_attestations
 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
 from againward.domains.rental.semantic_guidance import guidance
 from againward.evidence.hashing import stable_hash
@@ -71,11 +71,11 @@ def _remaining_revision_budget(analysis: Path) -> dict | None:
 
 def _only_adjudication_policy_changed(previous: dict, current: dict) -> bool:
     old_versions, new_versions = previous.get("versions", []), current.get("versions", [])
-    # v1 binding order: source job, source QA, adjudication, native and visual
-    # review, then report policies. Extraction reuse is allowed for index 2 only.
+    # Source passes are unchanged by adjudication or visual-review policy.
     return (len(old_versions) == len(new_versions) and len(old_versions) >= 5
-            and old_versions[2] != new_versions[2]
-            and old_versions[:2] + old_versions[3:] == new_versions[:2] + new_versions[3:]
+            and (old_versions[2], old_versions[4]) != (new_versions[2], new_versions[4])
+            and [v for i, v in enumerate(old_versions) if i not in (2, 4)] ==
+                [v for i, v in enumerate(new_versions) if i not in (2, 4)]
             and {k: v for k, v in previous.items() if k != "versions"} ==
                 {k: v for k, v in current.items() if k != "versions"})
 
@@ -206,7 +206,8 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                "prompt_version": prompt_version_for_guidance(guidance()), "model": model,
                "evaluation_only": evaluation_only,
                "versions": [VERSION, QA_GUIDANCE_VERSION, ADJUDICATION_VERSION,
-                            REVIEW_VERSION, VISUAL_REVIEW_VERSION, *current_report_versions()]}
+                            REVIEW_VERSION, VISUAL_REVIEW_VERSION + "+" + MODEL_VISUAL_VERSION,
+                            *current_report_versions()]}
     analysis = case / "processed"
     documents = analysis / "documents"
     path = analysis / "source_job_state.json"
@@ -326,6 +327,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                                 "adjudications", "adjudication_sha256")
         if adjudication.get("batch_id") != batch.batch_id or adjudication.get("qa_sha256") != qa["qa_sha256"]:
             raise DocumentError("REVIEW_STALE", "Adjudication no longer binds the current source QA")
+        verify_adjudication_pixels(batch, adjudication, documents)
         if adjudication["material_unresolved_source_ids"]:
             _save(path, state, "WAITING_FOR_REQUIRED_INFORMATION", stage="SOURCE_ADJUDICATION",
                   source_ids=adjudication["material_unresolved_source_ids"])
@@ -380,8 +382,28 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 _save(path, state, "WAITING_FOR_REQUIRED_INFORMATION", stage="VISUAL_FACT_REVIEW")
                 return {"status": "WAITING_FOR_REQUIRED_INFORMATION", "stage": "VISUAL_FACT_REVIEW",
                         "job_state": str(path), "approved_for_delivery": False}
-            attested = _visual_review(documents, batch, selected, visual)
-            if attested is None:
+            model_review = None
+            try:
+                model_review = record_model_visual_review(batch, selected, visual, qa, adjudication,
+                                                          documents, model=model)
+            except DocumentError as exc:
+                if exc.code != "HUMAN_REVIEW_REQUIRED":
+                    raise
+            if model_review is not None:
+                reviewed_path = documents / "review_templates" / ("model-reviewed-" + stable_hash(model_review) + ".json")
+                if reviewed_path.exists():
+                    if read_json(reviewed_path) != model_review:
+                        raise DocumentError("REVIEW_STALE", "Model visual review changed on replay")
+                else:
+                    write_json(reviewed_path, model_review)
+                review = model_review
+                state["fact_review_file"] = str(reviewed_path)
+                _save(path, state, "VISUAL_MODEL_REVIEWED",
+                      accepted=visual["visual_candidates_pending_attestation"], human_approval=False)
+                attested = None
+            else:
+                attested = _visual_review(documents, batch, selected, visual)
+            if model_review is None and attested is None:
                 _save(path, state, "WAITING_FOR_VISUAL_ATTESTATION",
                       pending=visual["visual_candidates_pending_attestation"])
                 return {"status": "WAITING_FOR_VISUAL_ATTESTATION", "stage": "VISUAL_FACT_REVIEW",
@@ -394,9 +416,10 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                                         for document, selected_item, primary_item in
                                         zip(batch.documents, selected, primary, strict=True)],
                         "job_state": str(path), "approved_for_delivery": False}
-            review, review_path = attested
-            state["fact_review_file"] = review_path
-            _save(path, state, "VISUAL_ATTESTATION_REPLAYED")
+            if attested is not None:
+                review, review_path = attested
+                state["fact_review_file"] = review_path
+                _save(path, state, "VISUAL_ATTESTATION_REPLAYED")
         body = {"schema_version": DOCUMENT_CASE_SCHEMA, "batch": batch.to_dict(),
                 "extractions": [item.to_dict() for item in selected], "fact_review": review,
                 "rental_relationship_review": None, "credit_relationship_review": None}
