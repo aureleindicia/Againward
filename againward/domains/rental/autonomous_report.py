@@ -20,7 +20,7 @@ from .review_policy import validate_current_review
 from .workflow import current_calculations
 
 
-VERSION = "againward-rental-autonomous-report-v3"
+VERSION = "againward-rental-autonomous-report-v4"
 
 
 def current_report_versions() -> list[str]:
@@ -102,6 +102,39 @@ def _cached_answer(root: Path, prefix: str, binding: dict, prompt: str,
     return payload, seconds
 
 
+def _validated_author_synthesis(root: Path, binding: dict, prompt: str,
+                                images: tuple[Path, ...], model: str,
+                                timeout_seconds: int, pack: dict,
+                                attempt: int) -> tuple[str | None, float, int]:
+    """Retry one invalid draft without weakening the structured-claim guard."""
+    elapsed_total = 0.0
+    model_calls = 0
+    current_prompt = prompt
+    for repair in range(2):
+        author, elapsed = _cached_answer(root, f"author-{attempt}-repair-{repair}",
+                                         binding, current_prompt, images, model, timeout_seconds)
+        elapsed_total += elapsed
+        model_calls += int(elapsed > 0)
+        try:
+            if not isinstance(author, dict) or set(author) != {"synthesis"}:
+                raise ValueError("Report author must provide only synthesis")
+            synthesis = author["synthesis"]
+            validate_synthesis(synthesis, pack)
+            return synthesis, elapsed_total, model_calls
+        except (TypeError, ValueError) as exc:
+            if repair == 1:
+                return None, elapsed_total, model_calls
+            current_prompt = (
+                prompt + "\nThe previous draft failed deterministic validation. Rewrite the "
+                "synthesis while preserving its supported meaning. Omit free dates, numbers and "
+                "identifiers rather than guessing; the validated tables state exact values. "
+                "Do not weaken caveats or claim recovery. Return only {synthesis: string}.\n"
+                + json.dumps({"previous_draft": author, "validator_error": str(exc)},
+                             ensure_ascii=False)
+            )
+    return None, elapsed_total, model_calls
+
+
 def run_autonomous_report(case_directory: str | Path, *, model: str,
                           timeout_seconds: int = 240, evaluation_only: bool = False) -> dict:
     """Compose and source-challenge PDF; READY means ready for real final review only."""
@@ -156,12 +189,12 @@ def run_autonomous_report(case_directory: str | Path, *, model: str,
                               "prior_report_qa": attempts[-1]["qa"] if attempts else None},
                              ensure_ascii=False)
             )
-            author, author_seconds = _cached_answer(root, f"author-{attempt + 1}", binding,
-                                                     author_prompt, images, model, timeout_seconds)
-            if not isinstance(author, dict) or set(author) != {"synthesis"}:
-                raise ValueError("Report author must provide only synthesis")
-            synthesis = author["synthesis"]
-            validate_synthesis(synthesis, pack)
+            synthesis, author_seconds, author_calls = _validated_author_synthesis(
+                root, binding, author_prompt, images, model, timeout_seconds,
+                pack, attempt + 1)
+            if synthesis is None:
+                return {"status": "STOP_INVALID_MODEL_REPORT_AUTHOR",
+                        "human_approval": False, "approved_for_delivery": False}
             rendered = render_report(root, synthesis, evaluation_only=fixture_only)
             pdf_path = Path(rendered["pdf"]["pdf_path"])
             pdf_bytes = pdf_path.read_bytes()
@@ -236,7 +269,7 @@ def run_autonomous_report(case_directory: str | Path, *, model: str,
                              "evidence_pack_sha256": hashlib.sha256((root / "rental_evidence_pack.json").read_bytes()).hexdigest(),
                              "author_seconds": round(author_seconds, 3),
                              "qa_seconds": round(qa_seconds, 3),
-                             "model_calls_this_attempt": int(author_seconds > 0) + qa_model_calls,
+                             "model_calls_this_attempt": author_calls + qa_model_calls,
                              "qa": qa})
             receipt = {"schema_version": VERSION, "binding": binding,
                        "attempts": attempts, "status": "READY_FOR_APPROVAL" if passed and not fixture_only else

@@ -84,5 +84,6 @@ under the actual approved contract/configuration; this document is not a legal
 or provider-compliance certification.
 
 Release remains **NOT READY** until a source-to-report, model-driven challenge,
-independent blind assessment, genuine operator visual/final review, final CI,
+independent blind assessment, genuine operator final review and exception-path
+visual rehearsal where needed, final CI,
 and owner-controlled business/privacy/provider requirements are recorded.

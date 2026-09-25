@@ -45,6 +45,12 @@ This is not a first-client readiness certificate or a blind accuracy result. Cur
   passed on 16 files. Rental benchmark 15/15 (3 TP, 0 FP, 0 FN, 12 TN; 10,000
   invoice lines in 3.36836 s); privacy benchmark 19/19 (0 false blocks,
   0 unsafe passes). Scripted benchmarks do not establish model/report accuracy.
+- Native-review v2 and evaluation-metadata code checkpoint `ef6e849` then passed
+  **833 tests in 347.26 s, 0 failed/skipped**, on a clean HEAD at run start;
+  Ruff and configured mypy (16 files) passed, and PR #5 CI passed 8/8 Python
+  3.11–3.14 pytest jobs. On that code, Rental remained 15/15 (3 TP, 0 FP,
+  0 FN, 12 TN; 10,000 lines in 2.571854 s) and privacy remained 19/19
+  (0 false blocks, 0 unsafe passes). These are scripted regression results.
 - A fresh raw, real-style synthetic case completed the integrated privacy and
   native-document path through an actual client PDF. Both originals were native
   PDFs; Codex read the originals, Python bound their hashes, deterministic code
@@ -80,7 +86,9 @@ run source→report after the first known-case success: two produced evaluation
 PDFs passing model QA and matched their precommitted EUR 150 financial oracle;
 one stopped safely because a CSV record did not establish an issued invoice.
 That is 2/3 delivered coverage in a tiny selected subset, not a 99% quality
-score; 17 corpus cases remain unrun. Independent final-report
+score; 17 corpus cases remain unrun. These synthetic workspaces bypass real
+contract/privacy intake, so they exercise approved-source-to-report behavior,
+not raw real-client authority. Independent final-report
 adjudication, measured founder corrections/review time, model cost and broad
 coverage/abstention evidence remain open. Genuine real-client processing and
 delivery still require owner-controlled authority. The 99% correctness and 95%

@@ -125,6 +125,10 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
   skips; Ruff and configured Mypy (16 files) pass. Rental benchmark 15/15, with
   3 TP, 0 FP, 0 FN and 12 TN. These scripted/fixture results do not represent
   independent final-report accuracy.
+- Current code checkpoint `ef6e849` passed 833 tests in 347.26 s (0 failed,
+  0 skipped), Ruff, configured mypy (16 files), Rental 15/15, privacy 19/19
+  with 0 false blocks/unsafe passes, and PR #5 CI 8/8. These remain regression
+  evidence, not an independently adjudicated quality rate.
 - Current technical blockers: a varied blind final challenge, independent
   outcome adjudication, actual founder correction/review time, cost/coverage
   measurements and owner-controlled legal/provider/business permissions remain

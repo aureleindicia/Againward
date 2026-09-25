@@ -69,6 +69,13 @@ synthetic DEV fixtures; none establishes independently blind accuracy.
   through to a generic `EXTRACTION_INCOMPLETE` packaging failure. On rerun,
   the case reached QA-checked PDF with EUR 1,400 expected and EUR 150
   documentary difference; this is DEV feedback, not a held-out score.
+- A later eight-source replay under native-review v2 reached calculation and
+  finding QA but first paused at report QA with transient `MODEL_UNAVAILABLE`.
+  On resume, the author supplied a free return date in prose. The deterministic
+  structured-claim validator correctly rejected it, but the job raised a raw
+  error instead of allowing a bounded author correction. Report policy v4 keeps
+  the validator and permits one source-bound repair; a second invalid draft
+  returns `STOP_INVALID_MODEL_REPORT_AUTHOR`. The v4 model rerun is pending.
 
 ## Still open
 
