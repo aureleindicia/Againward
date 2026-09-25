@@ -1,0 +1,32 @@
+{
+  "schema_version": "againward-rental-posttruth-adjudication-v1",
+  "case_id": "d479ef3c53ea8609",
+  "pretruth_record": "../sealed/case_d479ef3c53ea8609.pretruth.json",
+  "pretruth_record_sha256": "95a209f373f677d8a4165a8df4f16f4b366a0b4d18c3d5082ff6712734438d84",
+  "truth_accessed_after_seal": true,
+  "oracle_family": "ambiguous_date",
+  "oracle_source_hashes_match_selection": true,
+  "expected_material_findings": [],
+  "actual_material_findings": [],
+  "expected_financial_differences": null,
+  "actual_reported_financial_differences": null,
+  "amount_comparison": {
+    "expected_supported_discrepancy_EUR": null,
+    "actual_reported_discrepancy_EUR": null,
+    "amount_error": false
+  },
+  "abstention_check": {
+    "oracle_requires_abstention": true,
+    "system_waited_before_calculation": true,
+    "result": "PASS"
+  },
+  "classification": [
+    "JUSTIFIED_ABSTENTION"
+  ],
+  "classification_reason": "The source explicitly omits its numeric date convention. The system did not normalize dates or produce an unsupported charge comparison, matching the oracle-required abstention.",
+  "material_error_tags": [],
+  "final_report_qa": "NOT_REACHED",
+  "human_escalation": false,
+  "oracle_comparison_independent_of_internal_model_qa": true,
+  "adjudicated_at_utc": "2026-09-25T19:25:57Z"
+}
