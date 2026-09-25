@@ -131,22 +131,25 @@ def test_revision_recovers_interruption_after_archive_without_budget_reset(tmp_p
     assert (archive / "retained.txt").exists()
 
 
-def test_source_pass_reuse_is_limited_to_adjudication_or_visual_policy_only():
+def test_source_pass_reuse_is_limited_to_downstream_review_policy_only():
     from copy import deepcopy
-    from againward.domains.rental.source_job import _only_adjudication_policy_changed
+    from againward.domains.rental.source_job import _only_downstream_policy_changed
     old = {"sources": [{"sha256": "a" * 64}], "model": "fixture-model", "privacy": "old",
            "versions": ["job", "qa", "adjudication-v1", "native", "visual", "report"]}
     new = deepcopy(old)
     new["versions"][2] = "adjudication-v2"
-    assert _only_adjudication_policy_changed(old, new)
+    assert _only_downstream_policy_changed(old, new)
+    native_only = deepcopy(old)
+    native_only["versions"][3] = "native-v2"
+    assert _only_downstream_policy_changed(old, native_only)
     visual_only = deepcopy(old)
     visual_only["versions"][4] = "visual-model-v2"
-    assert _only_adjudication_policy_changed(old, visual_only)
+    assert _only_downstream_policy_changed(old, visual_only)
     for key in ("sources", "model", "privacy"):
         changed = deepcopy(new)
         changed[key] = "changed"
-        assert not _only_adjudication_policy_changed(old, changed)
-    for index in (0, 1, 3, 5):
+        assert not _only_downstream_policy_changed(old, changed)
+    for index in (0, 1, 5):
         changed = deepcopy(new)
         changed["versions"][index] = "changed"
-        assert not _only_adjudication_policy_changed(old, changed)
+        assert not _only_downstream_policy_changed(old, changed)

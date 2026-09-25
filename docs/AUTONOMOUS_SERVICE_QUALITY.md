@@ -18,18 +18,21 @@ formulas and report hashes remain replayable. A model cannot grant privacy
 clearance, impersonate a person or authorize delivery.
 
 The founder's routine work is a short final review of the finished report and
-delivery authorization. A human also checks original pixels for the limited
-components that the privacy and fact policies require. Material unresolved
+delivery authorization. Clear visual facts can pass through independent
+multimodal reread, pixel-bound adjudication when disputed, and a distinct MODEL
+fact receipt. A human checks original pixels only when the evidence or an
+applicable authority requirement remains genuinely unresolved. Material unresolved
 contract priority, identity, net/gross basis or evidence gaps trigger a concise
 exception/clarification; they are not converted into guessed claims. This is
 an exception path, not a standing requirement to approve hundreds of facts.
 
-Current technical state is below this target: `documents extract` and
-`documents independent-qa` are real model calls, but internal Codex still has
-to prepare and reconcile fact/link reviews, run the investigation and write a
-source-backed synthesis. A script-created `HUMAN` record is never evidence of
-the owner's review. The second pass uses the same model family and therefore
-can share errors; it is an omission/disagreement screen, not independent truth.
+Current technical state remains below verified quality readiness: one known
+eight-source synthetic Rental dossier has autonomously reached a source-backed,
+model-QA-checked evaluation PDF, including a scanned return. A script-created
+`HUMAN` record is never evidence of the owner's review. The second pass uses
+the same model family and can share errors; it is an omission/disagreement
+screen, not independent outcome truth. Report correctness and routine human
+review burden remain unmeasured on a blind cohort.
 
 ## Quantitative objectives and denominators
 

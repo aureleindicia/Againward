@@ -1,8 +1,8 @@
 # AGAINWARD — read first (2026-09-25)
 
-Current first-client decision: **NOT READY — SPECIFIC CRITICAL BLOCKERS**.
+Current first-client decision: **NOT READY — INDEPENDENT QUALITY MEASUREMENT OPEN**.
 The latest v9 eight-source DEV run passed the former rate-card promotion failure
-and stopped safely at an unresolved visual return-source disagreement. Final
+and completed a model-QA-checked evaluation PDF without HUMAN scan transcription. Final
 delivery validation remains in progress; see [the live failure
 register](FINAL_AUTONOMOUS_FAILURES.md) and [technical validation](FINAL_AUTONOMOUS_TECHNICAL_VALIDATION.md).
 Start with the [release audit](FIRST_CLIENT_RELEASE_AUDIT.md),
@@ -10,8 +10,7 @@ Start with the [release audit](FIRST_CLIENT_RELEASE_AUDIT.md),
 [internal autonomy/quality contract](AUTONOMOUS_SERVICE_QUALITY.md), then the
 [operator playbook](FIRST_CLIENT_OPERATOR_PLAYBOOK.md) for the active
 `release/first-rental-client-pilot` draft PR #5 stacked on PR #4. The
-eight-document source-to-report report has not completed; the current dossier
-is waiting for genuine inspection of its signed-return scan. Blind HOLDOUT and
+eight-document source-to-report path has completed in synthetic evaluation mode. Blind HOLDOUT and
 measured operator rehearsal also remain open. This DEV dossier is not an
 approved client report.
 
@@ -85,10 +84,10 @@ cannot approve delivery and records a machine-readable job state. Use
 is the developing single-job Rental entrypoint. It checks contract authority,
 attempts Codex-first raw privacy review, applies the deterministic post-check,
 then runs source extraction, independent reread/adjudication, fact review,
-exact links, calculations and report QA. A live synthetic native-PDF case has
-completed this source-to-report model path; this eight-source run currently
-waits at source adjudication for a visual scan. Real visual attestations remain
-required where applicable. Revisions invalidate dependent artifacts, preserve
+exact links, calculations and report QA. Both a synthetic native-PDF case and
+the eight-source dossier with a signed scan completed this source-to-report
+model path. Clear scanned facts can use source/QA/pixel-bound `MODEL` receipts;
+genuinely ambiguous pixels still require exceptional HUMAN review. Revisions invalidate dependent artifacts, preserve
 query budgets and archive prior analysis. The entrypoint does not authorize
 delivery or establish first-client readiness.
 The general `investigate.py` path still defaults to Energy and Rental expects
@@ -100,26 +99,33 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
 
 ## Current evidence and blockers
 
-- Current branch: `release/first-rental-client-pilot`, draft PR #5. The current
-  v9 rerun regenerated all 8 primary
-  extractions and 8 independent rereads. Both passes represented LIFT-5 and
-  LIFT-50 as separate rate-row entities; no `UNSUPPORTED_PROMOTION` recurred.
-  One material disagreement remains on the visual-only signed-return scan.
-  Adjudication v3 selected `UNRESOLVED` because no native quote can verify that
-  source. No genuine human scan attestation exists. The workflow is waiting
-  before native fact promotion; no client report was produced from this case.
+- Current branch: `release/first-rental-client-pilot`, draft PR #5. The v9
+  eight-source rerun regenerated 8 primary and 8 independent rereads. Both
+  passes represented LIFT-5 and LIFT-50 as separate rate-row entities; no
+  `UNSUPPORTED_PROMOTION` recurred. Adjudication v4 reopened the exact disputed
+  scan pixels, then the visual analyst accepted 18 facts under `MODEL`, not
+  `HUMAN`, receipts. The integrated path promoted 168 facts and 2 invoice
+  lines, completed deterministic calculation and model PDF QA, and returned
+  `EVALUATION_ONLY_QA_PASSED`. PDF SHA256:
+  `bccb8d73719329768bdc73c86e98306159bea78ae392d1d447c239e6984e870e`.
+  Delivery and HUMAN approval remain false.
 - The earlier synthetic privacy benchmark remains 19/19 (11 ordinary, 8
   unsafe; 0 false blocks, 0 unsafe passes), using scripted visual attestations.
   The current live synthetic probes and limitations are in
   [final metrics](FINAL_AUTONOMOUS_METRICS.md). These results do not measure
   semantic report correctness or vision accuracy.
-- Current code regression: 831 tests passed in 337.50 s with no failures or
+- Three selected cases from a 20-case synthetic ADVERSARIAL corpus were run
+  beyond the known eight-source dossier: two reached QA-checked evaluation PDFs
+  (one native invoice, one scanned invoice) and matched their precommitted
+  EUR 150 financial oracle; one CSV-only billing record stopped for missing
+  issued-invoice/charge authority. Coverage is 2/3 in this tiny nonblind subset,
+  not a correctness claim. Seventeen cases and independent report adjudication
+  remain outstanding.
+- Prior clean-code regression at `4b536e4`: 833 tests passed in 318.78 s with no failures or
   skips; Ruff and configured Mypy (16 files) pass. Rental benchmark 15/15, with
   3 TP, 0 FP, 0 FN and 12 TN. These scripted/fixture results do not represent
   independent final-report accuracy.
-- Current technical blockers: genuine visual inspection for the disputed scan;
-  then completion and challenge of this dossier through fact review, entity
-  links, calculations and report QA. A varied blind final challenge, independent
+- Current technical blockers: a varied blind final challenge, independent
   outcome adjudication, actual founder correction/review time, cost/coverage
   measurements and owner-controlled legal/provider/business permissions remain
   open. The 99% material-correctness and 95% no-correction figures are targets,

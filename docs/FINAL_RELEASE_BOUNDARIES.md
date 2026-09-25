@@ -10,9 +10,11 @@ not a SaaS interface, guaranteed recovery product or legal ruling.
   contacts are not blanket exclusions.
 - Secrets, medical/HR-sensitive content, unnecessary identity documents and
   genuinely uninspectable components do not pass to business analysis.
-- Visual originals require current source/candidate/pixel-bound accountable
-  attestations under the active policy. Model or scripted fixtures do not become
-  genuine human inspection.
+- Visual originals require current source/candidate/render-bound inspection.
+  Independently reread and, when disputed, source-pixel-adjudicated visual facts
+  may receive `MODEL` receipts for analysis; unresolved pixels still escalate
+  to HUMAN/required information. MODEL/scripted receipts are never HUMAN,
+  deterministic semantic proof or delivery approval.
 - Model reads, investigates and writes; deterministic code owns quantities,
   periods, amounts, allocation, rounding and totals. A documentary difference
   does not establish its cause, recoverability or legal entitlement.
@@ -30,20 +32,22 @@ not a SaaS interface, guaranteed recovery product or legal ruling.
 Under Rental semantic guidance v9, fresh primary extraction and independent
 reread both represent the two independently priced rate-card rows as distinct
 entities. The earlier `UNSUPPORTED_PROMOTION` failure did not recur, and the
-single-value-per-entity guard remains active. The current case is waiting at
-source adjudication because the material return disagreement is supported only
-by visual content in a signed scan. Adjudication v3 recorded `UNRESOLVED` rather
-than using the agreement as a substitute citation.
+single-value-per-entity guard remains active. Adjudication v4 reopened the
+signed scan's exact pixels and chose a source/render-cited interpretation.
+The existing visual-review path accepted 18 candidates under `MODEL` receipts;
+168 facts and two invoice lines reached deterministic calculation. The final
+synthetic PDF passed same-model original-source/report QA and is marked
+`EVALUATION_ONLY_QA_PASSED`, not approved for delivery.
 
-No genuine visual attestation exists for this run. Scripted visual approvals in
-the privacy benchmark and previous downstream fixture runs test gate behavior;
-they do not count as inspection or approval of this scan. The current dossier
-has not reached fact promotion, calculations or report QA.
+No genuine HUMAN visual attestation exists for this run and none was required
+for the clear synthetic scan. Scripted privacy benchmark reviews are not real
+human inspection. This one known case and correlated model checks do not prove
+visual accuracy or first-client readiness.
 
 ## Owner-controlled, not engineering approvals
 
 Actual client processing rights, provider restrictions, legal/commercial terms,
-retention choices, genuine required visual review and final delivery approval.
+retention choices, genuine exceptional visual review and final delivery approval.
 No real client documents have been authorized by synthetic benchmark contracts.
 
 ## Evidence boundary

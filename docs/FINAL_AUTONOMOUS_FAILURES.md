@@ -45,20 +45,45 @@ synthetic DEV fixtures; none establishes independently blind accuracy.
   not weakened and both rows remain represented.
 - The first v9 adjudication attempt failed closed with
   `EXTRACTION_INCOMPLETE`: it cited the agreement, not the disputed signed-return
-  scan. Adjudication guidance v3 requires unresolved status when no native source
-  quote can support a selection. The resumed run recorded `UNRESOLVED` with no
-  citations and stopped at `WAITING_FOR_REQUIRED_INFORMATION`. The scan remains
-  uninspected by a genuine human; scripted visual fixtures do not satisfy it.
+  scan. Policy v3 then stopped at `UNRESOLVED` solely because the scan lacked
+  native text. This was an orchestration defect, not evidence that pixels were
+  unreadable. Policy v4 reopened exact original pixels; its first responses
+  failed exact location/quote validation, leading to constrained unit locations
+  and one bounded repair. The accepted response cited the disputed scan itself
+  and selected `CHALLENGER`, still subject to fact/report QA.
+- The next automatic stop was `WAITING_FOR_VISUAL_ATTESTATION` despite all 18
+  scan candidates being accepted by the visual analyst. The existing promotion
+  gate now permits a separately verified `MODEL` visual receipt only when the
+  independent source reread, any material pixel adjudication, candidate set and
+  rendered pixels are current. HUMAN attestation remains the exception path.
+  The eight-source DEV run then completed a QA-checked PDF; no HUMAN receipt
+  was fabricated, and neither a model receipt nor same-model PDF QA is
+  independent correctness evidence.
+- In the first varied ADVERSARIAL source-to-report probe, the native reviewer
+  deferred a clearly printed EUR 1,550 invoice amount solely because it
+  disagreed with the contract calculation. That conflated documentary
+  transcription with financial reconciliation. Native review policy v2 now
+  directs the model to accept source-supported billed amounts while deterministic
+  code calculates the difference. The source job also routes an unresolved
+  native review to `WAITING_FOR_REQUIRED_INFORMATION` rather than falling
+  through to a generic `EXTRACTION_INCOMPLETE` packaging failure. On rerun,
+  the case reached QA-checked PDF with EUR 1,400 expected and EUR 150
+  documentary difference; this is DEV feedback, not a held-out score.
 
 ## Still open
 
-- The eight-source v9 run has not yet passed source adjudication because the
-  material return-scan disagreement awaits genuine visual inspection. Native
-  fact review, links, calculation, report authoring and report QA did not run for
-  this dossier.
+- No independently adjudicated final-report cohort has been completed.
+  The eight-source result is a known synthetic DEV case with same-model source
+  and report QA, not a blind quality score.
+- A separate ADVERSARIAL "correct invoice" case stopped at source adjudication:
+  its only billing record is a CSV row with invoice reference and net amount,
+  but no charge description or evidence that an issued invoice exists.
+  Primary/challenger both marked limitations; adjudication refused to confer
+  invoice authority. This is a genuine evidence/coverage limitation requiring
+  a proper invoice or clarification, not a zero-discrepancy report.
 - Source/guidance/privacy changes fail closed, but automatic revision/recomputation
   and supplemental-document continuation have only partial integration proof.
-- All-scan final QA, non-exact relationship adjudication, policy-version replay
-  checks and final frozen challenge remain to be completed.
+- All-scan final QA, non-exact relationship adjudication, wider policy-version
+  replay checks and the frozen challenge outcome remain to be completed.
 - Actual founder correction/review burden and independently adjudicated report
   correctness are unmeasured. No 99% or 95% success-rate claim is justified.

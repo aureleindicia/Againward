@@ -69,13 +69,12 @@ def _remaining_revision_budget(analysis: Path) -> dict | None:
     return read_json(origin).get("remaining_evidence_budget") if origin.exists() else None
 
 
-def _only_adjudication_policy_changed(previous: dict, current: dict) -> bool:
+def _only_downstream_policy_changed(previous: dict, current: dict) -> bool:
     old_versions, new_versions = previous.get("versions", []), current.get("versions", [])
-    # Source passes are unchanged by adjudication or visual-review policy.
+    # Source passes are unchanged by adjudication/fact/visual-review policy.
     return (len(old_versions) == len(new_versions) and len(old_versions) >= 5
-            and (old_versions[2], old_versions[4]) != (new_versions[2], new_versions[4])
-            and [v for i, v in enumerate(old_versions) if i not in (2, 4)] ==
-                [v for i, v in enumerate(new_versions) if i not in (2, 4)]
+            and old_versions[2:5] != new_versions[2:5]
+            and old_versions[:2] + old_versions[5:] == new_versions[:2] + new_versions[5:]
             and {k: v for k, v in previous.items() if k != "versions"} ==
                 {k: v for k, v in current.items() if k != "versions"})
 
@@ -215,7 +214,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
     if path.exists():
         state = _load_state(path)
         if ("package" not in state and not (analysis / "evidence_query_session.json").exists()
-                and _only_adjudication_policy_changed(state["binding"], binding)):
+                and _only_downstream_policy_changed(state["binding"], binding)):
             # No financial work exists yet. Preserve hash-verified independent
             # source reads; invalidate the changed judgment and its dependents.
             for key in ("adjudication_receipt", "native_review_receipt", "visual_review_receipt", "fact_review_file"):
@@ -353,8 +352,9 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 native.get("review", {}).get("extraction_hashes") !=
                 sorted(item.to_dict()["extraction_sha256"] for item in selected)):
             raise DocumentError("REVIEW_STALE", "Native fact review no longer binds selected extractions")
-        if native["status"] == "REPAIR_REQUIRED":
-            _save(path, state, "WAITING_FOR_REQUIRED_INFORMATION", stage="FACT_REVIEW")
+        if native["status"] in {"REPAIR_REQUIRED", "WAITING_FOR_REQUIRED_INFORMATION"}:
+            _save(path, state, "WAITING_FOR_REQUIRED_INFORMATION", stage="FACT_REVIEW",
+                  review_status=native["status"])
             return {"status": "WAITING_FOR_REQUIRED_INFORMATION", "stage": "FACT_REVIEW",
                     "job_state": str(path), "approved_for_delivery": False}
         review = native["review"]

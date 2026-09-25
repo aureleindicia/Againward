@@ -104,6 +104,8 @@ def test_codex_analyst_reads_original_native_sources_and_cannot_skip_candidates(
     seen = []
 
     def model(command, *, input, **_kwargs):
+        assert "invoice's printed net amount is an observed invoice fact" in input
+        assert "deterministic code performs that comparison downstream" in input
         prompt = json.loads(input.split("\n", 1)[1])
         seen.append(prompt)
         assert "off-hire request alone" in json.dumps(prompt["original_native_sources"])

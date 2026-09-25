@@ -27,6 +27,8 @@ def test_real_documents_have_no_embedded_canonical_packets_and_scans_have_no_tex
     assert not list((corpus / "public").rglob("*.json"))
     assert {p.suffix for p in (corpus / "public").rglob("*.*")} >= {".pdf", ".csv", ".xlsx", ".eml"}
     for cid, case in truth["cases"].items():
+        assert case["visual_inspection_required"] == (case["family"] in {"scan", "hybrid"})
+        assert "scan_review_required" not in case
         if case["family"] in {"scan", "hybrid"}:
             reader = PdfReader(corpus / "public" / cid / "billing.pdf")
             text = reader.pages[0].extract_text()

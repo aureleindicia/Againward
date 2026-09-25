@@ -161,7 +161,8 @@ def generate_corpus(output: Path, *, split: str, seed: int) -> dict:
         truth[token] = {"family": family, "source_hashes": hashes,
                         "expected_supported_discrepancy": None if difference is None else {currency: f"{difference:.2f}"},
                         "must_abstain": expected is None,
-                        "scan_review_required": family in {"scan", "hybrid"},
+                        # Pixels require inspection, not automatic HUMAN attestation.
+                        "visual_inspection_required": family in {"scan", "hybrid"},
                         "decisive_fields": [
                             {"source_sha256": hashes["commercial.pdf"], "field": "agreement_id", "value": agreement},
                             {"source_sha256": hashes["commercial.pdf"], "field": "asset_id", "value": asset},
