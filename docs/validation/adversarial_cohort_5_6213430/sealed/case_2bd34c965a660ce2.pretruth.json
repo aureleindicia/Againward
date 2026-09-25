@@ -1,0 +1,69 @@
+{
+  "schema_version": "againward-rental-pretruth-seal-v1",
+  "case_id": "2bd34c965a660ce2",
+  "code_commit": "6213430c8bd9dd58ac6c84f4fc33c2cc1fe8f502",
+  "selection_record_commit": "a96540d673456ef512eedadd9fb729f13e583a72",
+  "model": "gpt-6-sol",
+  "codex_cli": "codex-cli 0.156.1",
+  "policy_versions": [
+    "againward-rental-approved-sources-job-v1",
+    "rental-independent-source-reread-v2",
+    "againward-source-adjudication-v4",
+    "againward-codex-analyst-review-v3",
+    "againward-codex-visual-analyst-v2",
+    "againward-rental-autonomous-report-v4",
+    "againward-rental-autonomous-finding-review-v6",
+    "againward-rental-reviewed-evidence-v2",
+    "againward-source-facts-v3-3c5241952f9688d9"
+  ],
+  "private_truth_opened_before_seal": false,
+  "source_hashes": {
+    "billing.pdf": "e13e0979364564cfb4b2146ffb96a923ae904d1831b464004e6d2d4d4e3222bb",
+    "commercial.pdf": "31a0fd5072a1ad75506e92e68ef982b8a842d8c647e8087b1b0dbf05309051dd",
+    "credit.pdf": "77dfd070f801e31f2d03ec205478e5178d2887a1a1d2221159b6adfdfff302d7"
+  },
+  "model_runtime": {
+    "primary_source_reads": 3,
+    "independent_rereads": 3,
+    "material_source_disagreements": 0,
+    "native_facts_accepted": 48,
+    "invoice_lines": 1,
+    "finding_review_state": "FINDINGS_QA_PASSED",
+    "report_qa_attempts": 2,
+    "recorded_primary_reread_adjudication_native_review_model_seconds": 212.387,
+    "finding_and_report_author_model_seconds": null,
+    "model_cost": null
+  },
+  "pipeline_status": "STOP_REPORT_QA",
+  "report_produced": true,
+  "pdf_sha256": "860536b1073e274c33ede9d1f446330dfb944f1d5738f152b0e5fe2de67fe9cb",
+  "report_receipt_sha256": "381b9b2189346c8e22c5dc930130233e89caf5fc39b263bbfcefc9637cfa5740",
+  "evidence_pack_sha256": "7cb818f574d303f18c22bd12b2ad8e73a0b060cd02cb86022cfa7c8d9c74485e",
+  "material_findings_reported": [],
+  "financial_differences_reported": [
+    {
+      "currency": "EUR",
+      "expected_net": "2100.00",
+      "invoice_gross": "2250.00",
+      "issued_credit_allocated": "150.00",
+      "net_billed_after_credit": "2100.00",
+      "documentary_difference": "0.00"
+    }
+  ],
+  "limitations_reported": [
+    "Payment, refund and remaining account balance are not established by the supplied sources.",
+    "Model report QA rejected the generic request to obtain unspecified missing documents and the report's internal phrasing; it required a concrete supplier confirmation request."
+  ],
+  "abstentions": [
+    "No supported financial discrepancy finding was selected."
+  ],
+  "stop_wait_reason": "After two report QA attempts, both verdicts were REVISE for unsupported/vague report wording; the pipeline stopped with STOP_REPORT_QA.",
+  "human_escalation": false,
+  "final_report_qa": {
+    "verdict": "REVISE",
+    "attempts": 2,
+    "evaluation_only": true,
+    "delivery_approved": false
+  },
+  "sealed_at_utc": "2026-09-25T19:00:54Z"
+}
