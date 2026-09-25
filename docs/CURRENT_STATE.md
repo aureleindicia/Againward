@@ -123,8 +123,20 @@ clearance; benchmarks generate only synthetic files under ignored `scratch/`.
   (one native invoice, one scanned invoice) and matched their precommitted
   EUR 150 financial oracle; one CSV-only billing record stopped for missing
   issued-invoice/charge authority. Coverage is 2/3 in this tiny nonblind subset,
-  not a correctness claim. Seventeen cases and independent report adjudication
-  remain outstanding.
+  not a correctness claim. At that checkpoint, seventeen cases and independent
+  report adjudication remained outstanding; the next five-case tranche is
+  recorded below.
+- A further five preselected cases were run on production-code commit
+  `6213430c8bd9dd58ac6c84f4fc33c2cc1fe8f502`; per-case pretruth records were
+  sealed before oracle access. Two cases produced drafts with correct material
+  amounts (EUR 0 clean and EUR 550 return) but both stopped at report QA; two
+  oracle-required abstentions were correct; one scan case failed before visual
+  review and missed a supported EUR 150 discrepancy. Aggregate: 4/5 correct
+  end-to-end outcomes, 1 unjustified stop/material miss, 0 final-QA-passed
+  reports, and no amount, false-positive or provenance errors. This small
+  synthetic tranche is evidence of a generic scan extraction gap and report
+  authoring QA friction, not a ≥99% estimate. Detailed seals and adjudications:
+  [five-case cohort](validation/adversarial_cohort_5_6213430/).
 - Prior clean-code regression at `4b536e4`: 833 tests passed in 318.78 s with no failures or
   skips; Ruff and configured Mypy (16 files) pass. Rental benchmark 15/15, with
   3 TP, 0 FP, 0 FN and 12 TN. These scripted/fixture results do not represent

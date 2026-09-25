@@ -169,3 +169,24 @@ sample cannot establish a ≥99% population correctness rate.
 See [failures](FINAL_AUTONOMOUS_FAILURES.md),
 [metrics](FINAL_AUTONOMOUS_METRICS.md) and
 [release boundaries](FINAL_RELEASE_BOUNDARIES.md).
+
+## Five-case pre-freeze tranche on build 6213430
+
+Exactly five previously unrun synthetic ADVERSARIAL cases were selected from
+public/input-side metadata and run without changing production code, prompts,
+or policy. For each case, the pipeline result was made read-only and its SHA256
+committed before the private oracle was inspected. Each oracle comparison is
+bound to its sealed record. The agent had seen the corpus generator in earlier
+development, so this is not a blind challenge; it did not use private truth or
+generator internals to select these five cases.
+
+The cases yielded two oracle-correct financial drafts (EUR 0 clean and EUR 550
+for the partial return), both stopped by report QA; two justified abstentions;
+and one unjustified extraction stop on a visual invoice that missed the
+supported EUR 150 discrepancy before pixel review. Thus 4/5 outcomes were
+correct including justified STOP/ABSTAIN, but no report passed final QA (0/5),
+and one material miss was observed. The cohort advances evaluation of this
+build but identifies a scan extraction failure to address before freeze. These
+five synthetic cases do not estimate population accuracy. Per-case selection,
+immutable seals, scoring, and metric definitions are in
+[the cohort artifact](validation/adversarial_cohort_5_6213430/).

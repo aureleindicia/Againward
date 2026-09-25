@@ -1,6 +1,9 @@
 # Final autonomous metrics — frozen-code development checkpoint
 
-No independently adjudicated final report sample has been completed.
+No QA-passed delivered report cohort has been independently adjudicated. A
+separate five-case synthetic pre-freeze tranche has now been scored against its
+precommitted case oracles; none of its reports passed final QA, so its
+delivered-report denominator is zero.
 
 **MEASURED: not yet measured / N=0 independently adjudicated final cases.**
 **TARGET: ≥99% material correctness; ≥95% supported cases without human correction.**
@@ -27,6 +30,7 @@ No independently adjudicated final report sample has been completed.
 | Eight-source old-workspace replay | Reached 161 facts, 10 visual MODEL-reviewed, two invoice lines, then stopped on 17,066-byte remaining Evidence Plane context budget | Budget carried across revisions; it was not reset. Different run from the fresh v4 replay |
 | Varied challenge corpus | 20 synthetic ADVERSARIAL cases generated with separated private truth | Prepared, not a blinded final-report result; author has seen generator |
 | ADVERSARIAL source→report probes (nonblind) | 3/20 attempted: 2/3 evaluation PDFs passed model QA, both show the precommitted EUR 150 financial difference; 1/3 stopped at source adjudication because a CSV row did not establish issued-invoice authority | Delivered coverage 2/3 in this selected subset; 2/2 oracle financial amounts matched, **not** independently adjudicated report correctness; synthetic privacy exemption, 17 cases unrun; no HUMAN correction measured |
+| Next five ADVERSARIAL outcomes on build `6213430` | 5/5 attempted from public-side preselection; 2 PDF drafts generated and both match the oracle material financial outcome (EUR 0 clean; EUR 550); 2 justified abstentions; 1 unjustified scan stop with an EUR 150 miss | 0/5 final QA-passed reports; 2 report QA stops for authoring/presentation defects; 4/5 correct end-to-end outcomes including justified stops/abstentions; 0 false positives, 0 amount errors, 0 provenance errors, 0 HUMAN escalations. Small synthetic tranche; not a blind population estimate |
 | Founder final review minutes / factual corrections | Not measured | No actual operator rehearsal |
 | Human report passages | Not measured in production | Model authored DEV synthesis; engineering changes do not establish correction-free service |
 | Model costs/tokens | Not measured | CLI subscription usage not inferred as free |
@@ -42,6 +46,8 @@ Ignored benchmark receipts: `scratch/final_validation_9e3a7e8/rental/`,
 `scratch/final_validation_report_v4/privacy/`,
 `scratch/final_validation_report_v4/rental_eight_v4_fresh_eval/`,
 `scratch/current_code_eight_source/eight_fact_v3_fresh/`,
+and the tracked pre-truth-sealed five-case cohort in
+`docs/validation/adversarial_cohort_5_6213430/`.
 `scratch/final_validation_9e3a7e8/privacy/`, `scratch/final_privacy_dfe9fdd/`,
 `scratch/final_rental_dfe9fdd/`, and `scratch/model_privacy_dev_v2/results.json`,
 plus the secret retry output in the development session record. Source-job events

@@ -119,3 +119,29 @@ synthetic DEV fixtures; none establishes independently blind accuracy.
   replay checks and the frozen challenge outcome remain to be completed.
 - Actual founder correction/review burden and independently adjudicated report
   correctness are unmeasured. No 99% or 95% success-rate claim is justified.
+
+## Additional measured failures: five-case cohort on build 6213430
+
+The next five preselected synthetic corpus cases were scored after immutable
+pretruth sealing. One visual invoice case stopped with `EXTRACTION_INCOMPLETE`
+before original-pixel review, calculation, or HUMAN escalation, although the
+oracle supported a EUR 150 discrepancy and required scan review rather than
+abstention. This is one unjustified stop and one material miss. It is a generic
+scan extraction/continuation failure candidate and must be addressed before a
+freeze decision.
+
+Two other cases reached authored PDF drafts with correct oracle material
+outcomes (EUR 0 clean and EUR 550 partial return), but report QA twice rejected
+authoring/presentation language and no final QA-passed report was produced.
+These are justified workflow stops, while showing a report-author QA friction
+class. The two remaining cases abstained as the oracle required. Across the
+five: 4/5 correct end-to-end outcomes, 0 false positives, 0 amount errors, 0
+provenance/evidence errors, 0 HUMAN escalations, and 0/5 final-QA-passed
+reports. Detailed case results and immutable pretruth records are linked from
+[the cohort artifact](validation/adversarial_cohort_5_6213430/).
+
+This is a small synthetic pre-freeze tranche, not independent population-level
+proof and not a ≥99% estimate. Same-model QA is not counted as independent
+correctness evidence; final delivered-report correctness is undefined because
+its denominator is zero. Production code, prompts, and policy were not changed
+during these five runs.
