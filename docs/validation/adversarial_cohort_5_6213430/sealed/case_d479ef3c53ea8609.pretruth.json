@@ -1,0 +1,51 @@
+{
+  "schema_version": "againward-rental-pretruth-seal-v1",
+  "case_id": "d479ef3c53ea8609",
+  "code_commit": "6213430c8bd9dd58ac6c84f4fc33c2cc1fe8f502",
+  "selection_record_commit": "a96540d673456ef512eedadd9fb729f13e583a72",
+  "model": "gpt-6-sol",
+  "codex_cli": "codex-cli 0.156.1",
+  "policy_versions": [
+    "againward-rental-approved-sources-job-v1",
+    "rental-independent-source-reread-v2",
+    "againward-source-adjudication-v4",
+    "againward-codex-analyst-review-v3",
+    "againward-codex-visual-analyst-v2",
+    "againward-rental-autonomous-report-v4",
+    "againward-rental-autonomous-finding-review-v6",
+    "againward-rental-reviewed-evidence-v2",
+    "againward-source-facts-v3-3c5241952f9688d9"
+  ],
+  "private_truth_opened_before_seal": false,
+  "source_hashes": {
+    "billing.pdf": "9a3e94bd9412d0c7d5494790aede502966c9f5943753616af63ce7cbe2f74425",
+    "commercial.pdf": "0347d26dd5d16589befe7fdd760540fa6837937d3df9169b51fe4b18d8660be7"
+  },
+  "model_runtime": {
+    "primary_source_reads": 2,
+    "independent_rereads": 2,
+    "material_source_disagreements": 2,
+    "material_disagreements_unresolved": 2,
+    "facts_approved": 0,
+    "recorded_model_calls": 5,
+    "recorded_model_wall_seconds": 157.174,
+    "model_cost": null
+  },
+  "pipeline_status": "WAITING_FOR_REQUIRED_INFORMATION",
+  "stage": "SOURCE_ADJUDICATION",
+  "report_produced": false,
+  "pdf_sha256": null,
+  "material_findings_reported": [],
+  "financial_differences_reported": null,
+  "limitations_reported": [
+    "The accepted agreement gives numeric dates 01/09/2026 and 08/09/2026 but explicitly does not specify a date convention.",
+    "Both extraction passes marked the date-sensitive rental and invoice entities NEEDS_REVIEW/PARTIAL; source adjudication cited the conflicting original fields but selected neither proposal."
+  ],
+  "abstentions": [
+    "No normalized contract period, charge calculation or financial discrepancy was reported."
+  ],
+  "stop_wait_reason": "Source adjudication left two source disagreements unresolved because neither limited proposal resolves the explicitly unstated date convention or supplies a complete reviewed extraction.",
+  "human_escalation": false,
+  "final_report_qa": "NOT_REACHED",
+  "sealed_at_utc": "2026-09-25T19:25:57Z"
+}
