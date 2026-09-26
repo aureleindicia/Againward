@@ -52,8 +52,19 @@ def contradictory_source_limitations(extraction: "DocumentExtraction") -> list[d
         for semantic_type, phrases in aliases.items():
             if semantic_type not in present or not any(phrase in lowered for phrase in phrases):
                 continue
-            if semantic_type == "net_amount" and "separate invoice total" in lowered:
-                continue
+            if semantic_type == "net_amount":
+                # A limitation may mention an existing amount to distinguish it
+                # from an additional line/invoice total (for example, "no
+                # separate line amount beyond the stated net amount"). That
+                # preserves the observed net amount; it does not deny it.
+                if "separate invoice total" in lowered or re.search(
+                    r"\b(?:no|not\s+(?:show|visible))\b.{0,80}\bseparate\b.{0,35}"
+                    r"\b(?:invoice total|line amount|total amount)\b.{0,40}"
+                    r"\b(?:beyond|in addition to|other than|apart from)\b.{0,30}"
+                    r"\b(?:stated|reported|observed|visible)\s+net amount\b",
+                    lowered,
+                ):
+                    continue
             conflicts.append({"semantic_type": semantic_type, "limitation": limitation})
     return conflicts
 

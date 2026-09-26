@@ -217,6 +217,19 @@ def test_page_scoped_visual_field_absence_is_retained_for_pixel_review(tmp_path)
     assert limitation in invoice.limitations
 
 
+def test_absence_of_additional_amount_does_not_contradict_stated_net_amount(tmp_path):
+    root, batch, visual_doc, primary, _challenger, _qa, _raw = _case(tmp_path)
+    invoice = next(item for item in primary if item.source_id == visual_doc.source_id)
+    limitation = (
+        "Page 1 does not show a unit rate or separate line amount beyond the stated net amount."
+    )
+    invoice = replace(invoice, limitations=(limitation,))
+
+    assert any(candidate.semantic_type == "net_amount" for candidate in invoice.candidates)
+    assert visual_only_limited_extraction(invoice, batch, root)
+    assert limitation in invoice.limitations
+
+
 def test_page_scoped_limit_does_not_mask_missing_source_pages(tmp_path):
     root, batch, visual_doc, primary, _challenger, _qa, _raw = _case(tmp_path)
     invoice = next(item for item in primary if item.source_id == visual_doc.source_id)
