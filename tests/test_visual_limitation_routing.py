@@ -10,9 +10,10 @@ import pytest
 from againward.core.artifact_store import write_json
 from againward.documents.adjudication import validate_adjudication, verify_adjudication_pixels
 from againward.documents.analyst_review import build_analyst_review
-from againward.documents.codex_provider import assemble_proposal
+from againward.documents.codex_provider import assemble_proposal, bind_visual_pages, prompt_version_for_guidance
 from againward.documents.contracts import DocumentError
-from againward.documents.extraction import validate_proposal, visual_only_limited_extraction
+from againward.documents.extraction import (append_adjudicator_visual_observations,
+    promote_facts, validate_proposal, visual_only_limited_extraction)
 from againward.documents.independent_qa import compare_extractions
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
@@ -58,10 +59,18 @@ def _case(tmp_path: Path):
                         "normalization_notes": "Visual reading awaiting pixel review.",
                         "ambiguity_flags": []}
                        for kind, value_type, value, observed in rows]},
-        visual_doc, visual_source, batch.batch_id, "scripted-model"), batch, root)
+        visual_doc, visual_source, batch.batch_id, "scripted-model",
+        prompt_version=prompt_version_for_guidance(""),
+        visual_bindings=bind_visual_pages(visual_doc, visual_source, root, model="scripted-model",
+            prompt_version=prompt_version_for_guidance(""), invocation_id="fixture-primary"),
+        invocation_id="fixture-primary"), batch, root)
     visual_challenger = validate_proposal(assemble_proposal({
         "status": "PARTIAL", "limitations": [CHALLENGER_LIMIT], "candidates": []},
-        visual_doc, visual_source, batch.batch_id, "scripted-model"), batch, root)
+        visual_doc, visual_source, batch.batch_id, "scripted-model",
+        prompt_version=prompt_version_for_guidance(""),
+        visual_bindings=bind_visual_pages(visual_doc, visual_source, root, model="scripted-model",
+            prompt_version=prompt_version_for_guidance(""), invocation_id="fixture-challenger"),
+        invocation_id="fixture-challenger"), batch, root)
     native = validate_proposal(assemble_proposal({
         "status": "SUCCESS", "limitations": [], "candidates": []},
         native_doc, native_source, batch.batch_id, "scripted-model"), batch, root)
@@ -127,6 +136,22 @@ def test_resolved_pixels_can_continue_to_visual_review_as_model_evidence(tmp_pat
     assert "visual_attestations" not in model_review
 
 
+def test_challenger_only_visual_observation_can_be_selected_for_pixel_review(tmp_path):
+    root, batch, visual_doc, primary, challenger, qa, raw = _case(tmp_path)
+    swapped_primary, swapped_challenger = challenger, primary
+    qa = compare_extractions(batch, swapped_primary, swapped_challenger, root)
+    raw["decisions"][0]["selection"] = "CHALLENGER"
+    result = validate_adjudication(batch, swapped_primary, swapped_challenger, qa, raw, root)
+    expected = next(item for item in swapped_challenger if item.source_id == visual_doc.source_id)
+    assert result["selected_extractions"][visual_doc.source_id] == expected.to_dict()["extraction_sha256"]
+    selected = tuple(next(item for item in (*swapped_primary, *swapped_challenger)
+                          if item.source_id == doc.source_id
+                          and item.to_dict()["extraction_sha256"] == result["selected_extractions"][doc.source_id])
+                     for doc in batch.documents)
+    review = build_analyst_review(batch, selected, {}, root)
+    assert review["visual_candidates_deferred"] > 0
+
+
 def test_ambiguous_pixels_keep_existing_human_review_fallback(tmp_path):
     root, batch, _visual_doc, primary, challenger, qa, adjudication = _pixel_adjudication(tmp_path)
     selected = tuple(next(item for item in (*primary, *challenger)
@@ -176,3 +201,54 @@ def test_nonvisual_extraction_limit_remains_a_hard_stop(tmp_path):
     qa = compare_extractions(batch, primary, challenger, root)
     with pytest.raises(DocumentError, match="non-visual-limited proposal"):
         validate_adjudication(batch, primary, challenger, qa, raw, root)
+
+
+def test_pixel_adjudicator_recovers_new_unapproved_observation_after_both_readers_miss(tmp_path):
+    root, batch, visual_doc, _primary, _challenger, _qa, _raw = _case(tmp_path)
+    visual_source = read_document(visual_doc, root)
+    prompt_version = "scripted-prompt-version"
+
+    def empty_pass(status: str, limitation: str, invocation_id: str):
+        proposal = assemble_proposal({"status": status, "limitations": [limitation], "candidates": []},
+            visual_doc, visual_source, batch.batch_id, "scripted-model", prompt_version=prompt_version,
+            visual_bindings=bind_visual_pages(visual_doc, visual_source, root, model="scripted-model",
+                prompt_version=prompt_version, invocation_id=invocation_id), invocation_id=invocation_id)
+        return validate_proposal(proposal, batch, root)
+
+    primary_visual = empty_pass("PARTIAL", PRIMARY_LIMIT, "miss-primary")
+    challenger_visual = empty_pass("NEEDS_REVIEW", CHALLENGER_LIMIT, "miss-challenger")
+    native_doc = next(doc for doc in batch.documents if doc.source_id != visual_doc.source_id)
+    native_source = read_document(native_doc, root)
+    native = validate_proposal(assemble_proposal({"status": "SUCCESS", "limitations": [],
+        "candidates": []}, native_doc, native_source, batch.batch_id, "scripted-model"), batch, root)
+    primary, challenger = (primary_visual, native), (challenger_visual, native)
+    qa = compare_extractions(batch, primary, challenger, root)
+    with __import__("tempfile").TemporaryDirectory() as directory:
+        preview, _, _ = _render_hash(visual_doc, root, "page:1", Path(directory))
+    raw = {"decisions": [{"source_id": visual_doc.source_id, "selection": "PRIMARY",
+        "rationale": "Both readers omitted the visible total; adjudicator observed it on original pixels.",
+        "citations": [{"source_id": visual_doc.source_id, "location": "page:1",
+                       "quote": "EUR 150.00", "preview_sha256": preview}],
+        "observations": [{"semantic_type": "net_amount", "value_type": "DECIMAL",
+            "value": "150.00", "visible_text": "EUR 150.00", "page": 1,
+            "ambiguity": [], "entity_hint": "invoice total"}]}]}
+    adjudication = validate_adjudication(batch, primary, challenger, qa, raw, root)
+    assert adjudication["status"] == "RESOLVED_FOR_FACT_REVIEW"
+    observation = adjudication["decisions"][0]["pixel_observations"][0]
+    assert observation["origin"] == "ADJUDICATOR_PIXEL_OBSERVATION"
+    observation["adjudicator_model"] = "scripted-model"
+    observation["adjudication_version"] = adjudication["schema_version"]
+    augmented = append_adjudicator_visual_observations(primary_visual, [observation], batch, root,
+                                                        adjudication["adjudication_sha256"])
+    candidate = next(c for c in augmented.candidates
+                     if "ADJUDICATOR_PIXEL_OBSERVATION" in c.ambiguity_flags)
+    assert candidate.value == "150.00" and candidate.source_span is None
+    review = build_analyst_review(batch, (augmented, native), {}, root)
+    decision = next(row for row in review["review"]["decisions"]
+                    if row["candidate_id"] == candidate.candidate_id)
+    assert decision["decision"] == "DEFER"
+    forced = deepcopy(review["review"])
+    next(row for row in forced["decisions"] if row["candidate_id"] == candidate.candidate_id).update(
+        decision="ACCEPT", resolved_flags=list(candidate.ambiguity_flags))
+    with pytest.raises(DocumentError, match="HUMAN_REVIEW_REQUIRED"):
+        promote_facts((augmented, native), forced, batch, root)

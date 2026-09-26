@@ -25,7 +25,7 @@ from .sources import verify_batch
 
 
 REVIEW_VERSION = "againward-codex-analyst-review-v4"
-VISUAL_REVIEW_VERSION = "againward-codex-visual-analyst-v2"
+VISUAL_REVIEW_VERSION = "againward-codex-visual-analyst-v3"
 MAX_GLOBAL_TEXT = 50_000
 _SCHEMA: dict[str, Any] = {
     "type": "object", "additionalProperties": False,

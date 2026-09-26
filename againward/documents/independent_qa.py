@@ -41,6 +41,12 @@ words when a numeric token repeats. Do not reuse or edit an unsupported quote.
 If the source cannot support a fact with a unique quote, omit that candidate
 and state the limitation. Keep all response-schema field names and types exact.
 """
+VISUAL_RETRY_INSTRUCTIONS = """
+The prior visual observation response failed deterministic page/schema validation.
+Reinspect the attached page image and return the visual observation schema.
+Use a displayed page number, exact visible wording, typed value, ambiguity, and
+a short descriptive entity_hint. Do not emit hashes, spans, source IDs or candidate IDs.
+"""
 
 # Material here means fields capable of changing the supported Rental ledger,
 # source authority or relationship. This is a triage classification, not a

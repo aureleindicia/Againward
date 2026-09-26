@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import pytest
 
 from againward.documents.analyst_review import build_analyst_review, review_visual_with_codex, review_with_codex
-from againward.documents.codex_provider import assemble_proposal
+from againward.documents.codex_provider import assemble_proposal, bind_visual_pages, prompt_version_for_guidance
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import promote_facts, validate_proposal
 from againward.documents.readers import read_document
@@ -166,8 +166,12 @@ def test_visual_model_cannot_resolve_flags_without_component_bound_operator(tmp_
          "raw_observed_value": quote, "location": parsed.units[0].location,
          "normalization_notes": "Pixel proposal", "ambiguity_flags": []}
         for field, value, quote in fields]}
+    prompt_version = prompt_version_for_guidance("")
     extraction = validate_proposal(assemble_proposal(raw, document, parsed, batch.batch_id,
-                                                     "synthetic-model"), batch, root)
+        "synthetic-model", prompt_version=prompt_version,
+        visual_bindings=bind_visual_pages(document, parsed, root, model="synthetic-model",
+            prompt_version=prompt_version, invocation_id="analyst-review-fixture"),
+        invocation_id="analyst-review-fixture"), batch, root)
     base = build_analyst_review(batch, (extraction,), {}, root)
 
     def visual_model(prompt, *, images, **_kwargs):

@@ -16,7 +16,7 @@ import tempfile
 from typing import Any
 
 from againward.evidence.hashing import stable_hash
-from .codex_provider import _images, _model_invocation_failure
+from .codex_provider import VISUAL_SEMANTIC_TYPES, _images, _model_invocation_failure
 from .contracts import DocumentError, SourceBatch, identifier, load_json, text
 from .extraction import DocumentExtraction, visual_only_limited_extraction
 from .independent_qa import compare_extractions
@@ -24,7 +24,7 @@ from .readers import read_document
 from .sources import verify_batch
 
 
-ADJUDICATION_VERSION = "againward-source-adjudication-v5"
+ADJUDICATION_VERSION = "againward-source-adjudication-v6-pixel-observations"
 MAX_SOURCE_TEXT = 60_000
 MAX_VISUAL_PAGES = 4
 _SCHEMA: dict[str, Any] = {
@@ -43,6 +43,19 @@ _SCHEMA: dict[str, Any] = {
                 "properties": {"source_id": {"type": "string"},
                                "location": {"type": "string"}, "quote": {"type": "string"},
                                "preview_sha256": {"type": "string"}},
+            }},
+            "observations": {"type": "array", "items": {
+                "type": "object", "additionalProperties": False,
+                "required": ["semantic_type", "value_type", "value", "visible_text", "page", "ambiguity", "entity_hint"],
+                "properties": {
+                    "semantic_type": {"type": "string", "enum": VISUAL_SEMANTIC_TYPES},
+                    "value_type": {"type": "string", "enum": ["TEXT", "ENUM", "IDENTIFIER", "CURRENCY",
+                        "DECIMAL", "DATE", "BOOLEAN", "INTEGER", "UNKNOWN"]},
+                    "value": {"type": ["string", "integer", "boolean", "null"]},
+                    "visible_text": {"type": "string"}, "page": {"type": "integer", "minimum": 1},
+                    "ambiguity": {"type": "array", "items": {"type": "string"}},
+                    "entity_hint": {"type": "string", "description": "Short descriptive local group label; not an internal ID."},
+                },
             }},
         },
     }}},
@@ -68,6 +81,13 @@ def verify_adjudication_pixels(batch: SourceBatch, receipt: dict[str, Any], root
     documents = {document.source_id: document for document in batch.documents}
     with tempfile.TemporaryDirectory(prefix="againward-adjudication-replay-") as directory:
         for decision in receipt.get("decisions", []):
+            for observation in decision.get("pixel_observations", []):
+                document = documents.get(observation.get("source_id"))
+                if document is None or document.sha256 != observation.get("source_sha256"):
+                    raise DocumentError("REVIEW_STALE", "Pixel observation source changed")
+                preview, _, unit = _render_hash(document, root, observation["location"], Path(directory))
+                if preview != observation.get("render_sha256") or unit != observation.get("unit_sha256"):
+                    raise DocumentError("REVIEW_STALE", "Pixel observation render changed")
             for citation in decision.get("citations", []):
                 if "preview_sha256" not in citation:
                     continue
@@ -101,7 +121,9 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
     decisions: list[dict[str, Any]] = []
     seen: set[str] = set()
     for decision in raw["decisions"]:
-        if not isinstance(decision, dict) or set(decision) != {"source_id", "selection", "rationale", "citations"}:
+        if (not isinstance(decision, dict)
+                or set(decision) - {"source_id", "selection", "rationale", "citations", "observations"}
+                or not {"source_id", "selection", "rationale", "citations"} <= set(decision)):
             raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Adjudication decision fields invalid")
         source_id = identifier(decision["source_id"])
         if source_id not in disputed or source_id in seen:
@@ -112,6 +134,41 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
             raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown adjudication selection")
         rationale = text(decision["rationale"], maximum=2000)
         citations = decision["citations"]
+        raw_observations = decision.get("observations", [])
+        if not isinstance(raw_observations, list) or len(raw_observations) > 100:
+            raise DocumentError("RESOURCE_LIMIT", "Bounded adjudicator visual observations required")
+        observed_by_location: dict[str, set[str]] = {}
+        bound_observations: list[dict[str, Any]] = []
+        for observation in raw_observations:
+            required = {"semantic_type", "value_type", "value", "visible_text", "page", "ambiguity", "entity_hint"}
+            if not isinstance(observation, dict) or set(observation) != required:
+                raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Adjudicator visual observation shape invalid")
+            page = observation["page"]
+            source_units = units.get(source_id, {})
+            location = f"page:{page}" if type(page) is int else ""
+            if location not in source_units and page == 1:
+                visual = [candidate for candidate in source_units.values() if candidate.route != "NATIVE"]
+                if len(visual) == 1:
+                    location = visual[0].location
+            unit = source_units.get(location)
+            if unit is None or unit.route == "NATIVE":
+                raise DocumentError("SOURCE_LOCATION_INVALID", "Adjudicator observation cited an invalid visual page")
+            visible_text = text(observation["visible_text"], maximum=2000)
+            from .visual_fact_review import _render_hash
+            with tempfile.TemporaryDirectory(prefix="againward-pixel-observation-") as directory:
+                render_sha, _, current_unit_sha = _render_hash(
+                    next(doc for doc in batch.documents if doc.source_id == source_id),
+                    root, location, Path(directory))
+            if current_unit_sha != unit.unit_sha256:
+                raise DocumentError("REVIEW_STALE", "Adjudicator page changed during pixel observation")
+            observed_by_location.setdefault(location, set()).add(visible_text)
+            bound_observations.append({"source_id": source_id, "source_sha256": source_hashes[source_id],
+                "location": location, "unit_sha256": unit.unit_sha256, "render_sha256": render_sha,
+                "origin": "ADJUDICATOR_PIXEL_OBSERVATION",
+                "semantic_type": identifier(observation["semantic_type"]),
+                "value_type": observation["value_type"], "value": observation["value"],
+                "visible_text": visible_text, "ambiguity": observation["ambiguity"],
+                "entity_hint": text(observation["entity_hint"], maximum=240)})
         if not isinstance(citations, list) or len(citations) > 12:
             raise DocumentError("RESOURCE_LIMIT", "Bounded original-source citations required")
         if selection != "UNRESOLVED" and not citations:
@@ -145,8 +202,9 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
                     raise DocumentError("REVIEW_STALE", "Visual citation is not bound to current rendered pixels")
                 proposals = (extraction_by_hash[disputed[source_id]["primary_extraction_sha256"]],
                              extraction_by_hash[disputed[source_id]["challenger_extraction_sha256"]])
-                if quote not in {candidate.raw_observed_value for proposal in proposals
-                                 for candidate in proposal.candidates if candidate.location == location}:
+                if (quote not in {candidate.raw_observed_value for proposal in proposals
+                                  for candidate in proposal.candidates if candidate.location == location}
+                        and quote not in observed_by_location.get(location, set())):
                     raise DocumentError("SOURCE_LOCATION_INVALID", "Visual observation absent from disputed proposals")
                 verified.append({"source_id": cited_source, "source_sha256": source_hashes[cited_source],
                                  "location": location, "unit_sha256": unit.unit_sha256,
@@ -164,18 +222,22 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
             if chosen.status == "FAILED":
                 raise DocumentError("EXTRACTION_INCOMPLETE", "Failed or limited proposal cannot be selected")
             if chosen.limitations:
-                if not visual_only_limited_extraction(chosen, batch, root):
+                pixel_recovered = bool(bound_observations) and all(
+                    observation["location"] in {citation["location"] for citation in verified
+                                                 if citation.get("preview_sha256")}
+                    for observation in bound_observations)
+                if not pixel_recovered and not visual_only_limited_extraction(chosen, batch, root):
                     raise DocumentError("EXTRACTION_INCOMPLETE",
                                         "Failed or non-visual-limited proposal cannot be selected")
-                visual_locations = {candidate.location for candidate in chosen.candidates}
-                if not any(citation.get("source_id") == source_id
-                           and citation.get("preview_sha256")
-                           and citation.get("location") in visual_locations
-                           for citation in verified):
+                visual_locations = ({candidate.location for candidate in chosen.candidates}
+                                    | {observation["location"] for observation in bound_observations})
+                if not any(citation.get("source_id") == source_id and citation.get("preview_sha256")
+                           and citation.get("location") in visual_locations for citation in verified):
                     raise DocumentError("EXTRACTION_INCOMPLETE",
                                         "Visual-only limitation needs cited original-pixel adjudication")
         decisions.append({"source_id": source_id, "selection": selection,
                           "rationale": rationale, "citations": verified,
+                          "pixel_observations": bound_observations,
                           "primary_extraction_sha256": disputed[source_id]["primary_extraction_sha256"],
                           "challenger_extraction_sha256": disputed[source_id]["challenger_extraction_sha256"]})
     unresolved = sorted(set(disputed) - set(selected))
@@ -206,7 +268,11 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
     current = _require_current_qa(batch, primary, challenger, qa, root)
     disputes = [row for row in current["source_results"] if row["material_needs_reconciliation"]]
     if not disputes:
-        return validate_adjudication(batch, primary, challenger, qa, {"decisions": []}, root)
+        result = validate_adjudication(batch, primary, challenger, qa, {"decisions": []}, root)
+        result["model"] = model
+        result["adjudication_sha256"] = stable_hash({k: v for k, v in result.items()
+                                                     if k != "adjudication_sha256"})
+        return result
     parsed = [read_document(document, root) for document in batch.documents]
     sources: list[dict[str, Any]] = [{"source_id": document.source_id, "source_sha256": document.sha256,
                 "units": [{"location": unit.location, "route": unit.route,
@@ -224,10 +290,13 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         "the disputed original source itself; evidence from a different document alone cannot "
         "resolve a document-specific disagreement. For a visual citation, inspect the attached image "
         "for the disputed source and cite its exact location, supplied preview_sha256 and a relevant "
-        "observed value from the disputed proposals. Location MUST be exactly a listed unit location "
-        "such as page:1, never page:1 plus prose/coordinates. A visual quote MUST be one complete "
-        "raw_observed_value string from a disputed proposal, not a combined or rephrased sentence. "
-        "Use separate citations for separate observed values. The hash binds pixels but does not prove the "
+        "observed value from the disputed proposals. You may also report NEW PIXEL OBSERVATIONS when a "
+        "material fact is clear in the disputed original pixels but absent from both proposals. Give a "
+        "typed value, exact visible wording, page number, ambiguity, and a short descriptive local entity_hint "
+        "(not an internal ID). These observations are unapproved "
+        "leads for later fact review, never accepted facts. Location MUST be exactly a listed unit location "
+        "such as page:1, never page:1 plus prose/coordinates. For each pixel observation, cite that page "
+        "and use its exact visible wording as the quote. The hash binds pixels but does not prove the "
         "semantic reading. Choose UNRESOLVED if pixels are illegible or materially ambiguous. "
         "Do not infer what the scan says from the agreement or other documents. Two proposals containing different "
         "true fields are not automatically a material conflict. Compare the actual financial meaning, "
@@ -292,7 +361,15 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                 raise DocumentError("MODEL_EMPTY_RESPONSE", "Codex adjudicator returned no response file")
             raw = load_json(output.read_bytes(), maximum=200_000)
             try:
-                return validate_adjudication(batch, primary, challenger, qa, raw, root)
+                result = validate_adjudication(batch, primary, challenger, qa, raw, root)
+                result["model"] = model
+                for decision in result["decisions"]:
+                    for observation in decision.get("pixel_observations", []):
+                        observation["adjudicator_model"] = model
+                        observation["adjudication_version"] = ADJUDICATION_VERSION
+                result["adjudication_sha256"] = stable_hash({k: v for k, v in result.items()
+                                                             if k != "adjudication_sha256"})
+                return result
             except DocumentError as exc:
                 if attempt or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_INCOMPLETE", "REVIEW_STALE"}:
                     raise

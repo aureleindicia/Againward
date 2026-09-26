@@ -10,7 +10,7 @@ from types import SimpleNamespace
 import pytest
 
 from againward.documents.adjudication import adjudicate_with_codex, validate_adjudication, verify_adjudication_pixels
-from againward.documents.codex_provider import assemble_proposal
+from againward.documents.codex_provider import assemble_proposal, bind_visual_pages, prompt_version_for_guidance
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
 from againward.documents.independent_qa import compare_extractions
@@ -150,8 +150,16 @@ def test_visual_dispute_requires_current_disputed_pixels_not_other_document(tmp_
             "value": kind, "raw_observed_value": observed, "location": parsed.units[0].location,
             "normalization_notes": "Source classification", "ambiguity_flags": [],
         }]}
+        prompt_version = prompt_version_for_guidance("")
+        kwargs = {}
+        if any(unit.route != "NATIVE" for unit in parsed.units):
+            kwargs = {"prompt_version": prompt_version,
+                      "visual_bindings": bind_visual_pages(document, parsed, root,
+                          model="scripted-model", prompt_version=prompt_version,
+                          invocation_id="fixture-visual"),
+                      "invocation_id": "fixture-visual"}
         return validate_proposal(assemble_proposal(raw, document, parsed, batch.batch_id,
-                                                   "scripted-model"), batch, root)
+                                                   "scripted-model", **kwargs), batch, root)
 
     native_pass = proposal(native, "RENTAL_SCOPE")
     primary_visual = proposal(visual, "RETURN")

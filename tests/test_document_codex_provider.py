@@ -5,13 +5,15 @@ import subprocess
 
 import pytest
 
-from againward.documents.codex_provider import CodexCliProvider, assemble_proposal, prompt_version_for_guidance
+from againward.documents.codex_provider import (CodexCliProvider, VISUAL_RENDER_DPI,
+    VISUAL_RENDER_VERSION, assemble_proposal, prompt_version_for_guidance)
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
 from againward.domains.rental.models import DOCUMENT_ROLES
 from againward.domains.rental.semantic_guidance import guidance
+from benchmarking.document_renderers import pdf
 
 
 def _source(tmp_path: Path, content="Invoice INV-9: net EUR 850.00."):
@@ -168,3 +170,97 @@ def test_cli_missing_binary_and_empty_success_fail_closed(tmp_path, monkeypatch)
     with pytest.raises(DocumentError, match="MODEL_EMPTY_RESPONSE"):
         CodexCliProvider(root, model="gpt-6-sol").propose(
             document, parsed, {"batch": batch, "semantic_guidance": "Rental"})
+
+
+def _visual_source(tmp_path):
+    public = tmp_path / "visual-public"
+    public.mkdir()
+    pdf(public / "scan.pdf", ["Invoice INV-7 amount EUR 150.00"], scan=True)
+    root = tmp_path / "visual-documents"
+    batch = inventory_sources(public, root)
+    document = batch.documents[0]
+    return root, batch, document, read_document(document, root)
+
+
+def test_visual_observation_has_no_model_locator_and_python_binds_current_300dpi_page(tmp_path, monkeypatch):
+    root, batch, document, parsed = _visual_source(tmp_path)
+    captured = {}
+    raw = {"status": "SUCCESS", "limitations": [], "observations": [{
+        "semantic_type": "net_amount", "value_type": "DECIMAL", "value": "150.00",
+        "visible_text": "EUR 150.00", "page": 1, "ambiguity": [], "entity_hint": "invoice total"}]}
+    real_run = subprocess.run
+
+    def fake_run(command, **kwargs):
+        if Path(command[0]).name == "pdftoppm" or "againward.documents.pdf_worker" in command:
+            return real_run(command, **kwargs)
+        captured["command"] = command
+        captured["prompt"] = kwargs["input"]
+        captured["image"] = Path(command[command.index("--image") + 1]).read_bytes()
+        output = Path(command[command.index("--output-last-message") + 1])
+        output.write_text(json.dumps(raw), encoding="utf-8")
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run", fake_run)
+    provider = CodexCliProvider(root, model="gpt-6-luna", evaluation_only=True)
+    proposal = provider.propose(document, parsed, {"batch": batch, "semantic_guidance": "Rental billing"})
+    extraction = validate_proposal(proposal, batch, root)
+    candidate = extraction.candidates[0]
+    binding = extraction.visual_bindings[0]
+    assert "source_sha256" not in captured["prompt"]
+    assert "unit_sha256" not in captured["prompt"]
+    assert "candidate_id" not in captured["prompt"]
+    assert captured["command"].count("--image") == 1
+    assert binding["source_id"] == document.source_id
+    assert binding["source_sha256"] == document.sha256
+    assert binding["location"] == "page:1"
+    assert binding["render_dpi"] == VISUAL_RENDER_DPI == 300
+    assert binding["render_version"] == VISUAL_RENDER_VERSION
+    assert binding["render_sha256"] == __import__("hashlib").sha256(captured["image"]).hexdigest()
+    assert candidate.source_span is None
+    assert candidate.value == "150.00"
+    assert "VISUAL_TRANSCRIPTION_UNVERIFIED" in candidate.ambiguity_flags
+    assert "COMPONENT_REVIEW_REQUIRED" in candidate.ambiguity_flags
+    diagnostics = list((root.parent / "scratch/visual_model_diagnostics").glob("*.json"))
+    assert len(diagnostics) == 1
+    assert "raw_response" in json.loads(diagnostics[0].read_text())
+    raw["observations"][0].update(value_type="CURRENCY", value="150.00 EUR")
+    combined = validate_proposal(provider.propose(document, parsed,
+        {"batch": batch, "semantic_guidance": "Rental billing"}), batch, root).candidates[0]
+    assert combined.value_type == "DECIMAL" and combined.value == "150.00"
+    assert "NUMERIC_NORMALIZATION_REQUIRES_REVIEW" in combined.ambiguity_flags
+
+
+def test_visual_reader_rejects_impossible_page_and_stale_source_bytes(tmp_path, monkeypatch):
+    root, batch, document, parsed = _visual_source(tmp_path)
+    raw = {"status": "SUCCESS", "limitations": [], "observations": [{
+        "semantic_type": "invoice_id", "value_type": "IDENTIFIER", "value": "INV-7",
+        "visible_text": "INV-7", "page": 2, "ambiguity": [], "entity_hint": "invoice"}]}
+    real_run = subprocess.run
+
+    def fake_run(command, **kwargs):
+        if Path(command[0]).name == "pdftoppm" or "againward.documents.pdf_worker" in command:
+            return real_run(command, **kwargs)
+        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(raw))
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run", fake_run)
+    provider = CodexCliProvider(root, model="gpt-6-luna")
+    with pytest.raises(DocumentError, match="SOURCE_LOCATION_INVALID"):
+        provider.propose(document, parsed, {"batch": batch, "semantic_guidance": "Rental"})
+    diagnostic = json.loads(next((root.parent / "scratch/visual_model_diagnostics").glob("*.json")).read_text())
+    assert diagnostic["stage"] == "VISUAL_ASSEMBLY"
+    assert diagnostic["emitted_locations"] == [2]
+    assert diagnostic["valid_locations"] == ["page:1"]
+    assert diagnostic["rejection_code"] == "SOURCE_LOCATION_INVALID"
+    assert diagnostic["semantic_values_present"] is True
+    assert "raw_response" not in diagnostic
+
+    raw["observations"][0]["page"] = 1
+    proposal = provider.propose(document, parsed, {"batch": batch, "semantic_guidance": "Rental"})
+    stale_render = json.loads(json.dumps(proposal))
+    stale_render["visual_bindings"][0]["render_sha256"] = "0" * 64
+    with pytest.raises(DocumentError, match="SOURCE_LOCATION_INVALID"):
+        validate_proposal(stale_render, batch, root)
+    (root / document.blob_path).write_bytes(b"mutated original")
+    with pytest.raises(DocumentError, match="SOURCE_CHANGED"):
+        validate_proposal(proposal, batch, root)

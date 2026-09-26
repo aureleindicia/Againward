@@ -26,7 +26,47 @@ from .readers import read_document
 _ACTOR = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{1,63}")
 _ATTESTATION_KEYS = {"source_sha256", "location", "unit_sha256", "preview_sha256",
                      "candidate_hashes", "reviewer_role", "reviewer_id", "reviewed_at_utc", "decision"}
-MODEL_VISUAL_VERSION = "againward-visual-model-evidence-v1"
+MODEL_VISUAL_VERSION = "againward-visual-model-evidence-v2-300dpi"
+
+
+def _selection_is_qa_bound(source_id: str, selected_sha: str, qa_row: dict,
+                           adjudication: dict, extractions: tuple[Any, ...]) -> bool:
+    if selected_sha in {qa_row["primary_extraction_sha256"], qa_row["challenger_extraction_sha256"]}:
+        return True
+    extension = adjudication.get("adjudicator_extractions", {}).get(source_id)
+    extraction = next((item for item in extractions if item.source_id == source_id
+                       and item.to_dict()["extraction_sha256"] == selected_sha), None)
+    if not isinstance(extension, dict) or extraction is None:
+        return False
+    candidate_hashes = sorted(stable_hash(candidate.to_dict()) for candidate in extraction.candidates
+                              if "ADJUDICATOR_PIXEL_OBSERVATION" in candidate.ambiguity_flags)
+    base_hashes = {qa_row["primary_extraction_sha256"], qa_row["challenger_extraction_sha256"]}
+    observed = [observation for decision in adjudication.get("decisions", [])
+                if decision.get("source_id") == source_id
+                for observation in decision.get("pixel_observations", [])]
+    candidates = [candidate for candidate in extraction.candidates
+                  if "ADJUDICATOR_PIXEL_OBSERVATION" in candidate.ambiguity_flags]
+    bound_match = all(any(
+        candidate.location == observation.get("location")
+        and candidate.semantic_type == observation.get("semantic_type")
+        and candidate.value_type == observation.get("value_type")
+        and candidate.value == observation.get("value")
+        and candidate.raw_observed_value == observation.get("visible_text")
+        and observation.get("source_id") == source_id
+        and observation.get("source_sha256") == extraction.source_sha256
+        and observation.get("adjudicator_model") == adjudication.get("model")
+        and observation.get("adjudication_version") == adjudication.get("schema_version")
+        and observation.get("origin") == "ADJUDICATOR_PIXEL_OBSERVATION"
+        for observation in observed) for candidate in candidates)
+    return (extension.get("extraction_sha256") == selected_sha
+            and extension.get("base_extraction_sha256") in base_hashes
+            and extension.get("candidate_hashes") == candidate_hashes and bool(candidate_hashes)
+            and len(observed) == len(candidate_hashes) and bound_match
+            and all(candidate.source_span is None
+                    and "ADJUDICATOR_PIXEL_OBSERVATION" in candidate.ambiguity_flags
+                    and "VISUAL_TRANSCRIPTION_UNVERIFIED" in candidate.ambiguity_flags
+                    for candidate in extraction.candidates
+                    if "ADJUDICATOR_PIXEL_OBSERVATION" in candidate.ambiguity_flags))
 
 
 def _accepted_visual_groups(extractions: tuple[Any, ...], review: dict) -> dict[tuple[str, str], list[Any]]:
@@ -168,8 +208,8 @@ def record_model_visual_review(batch: SourceBatch, extractions: tuple[Any, ...],
             document = by_hash[source_sha]
             source_id = source_by_sha[source_sha]
             qa_row = qa_by_source[source_id]
-            if selected[source_id] not in {qa_row["primary_extraction_sha256"],
-                                           qa_row["challenger_extraction_sha256"]}:
+            if not _selection_is_qa_bound(source_id, selected[source_id], qa_row,
+                                          adjudication, extractions):
                 raise DocumentError("REVIEW_STALE", "Visual selection is not an independently read proposal")
             if qa_row["material_needs_reconciliation"] and not any(
                     cite.get("source_id") == source_id and cite.get("location") == location
@@ -180,6 +220,8 @@ def record_model_visual_review(batch: SourceBatch, extractions: tuple[Any, ...],
             rows.append({"schema_version": MODEL_VISUAL_VERSION,
                          "source_id": source_id, "source_sha256": source_sha,
                          "location": location, "unit_sha256": unit, "preview_sha256": preview,
+                         "render_version": "againward-poppler-png-300dpi-v1" if document.media_type == "application/pdf" else "original-image-v1",
+                         "render_dpi": 300 if document.media_type == "application/pdf" else None,
                          "candidate_hashes": sorted(stable_hash(c.to_dict()) for c in groups[(source_sha, location)]),
                          "reviewer_role": "MODEL", "model": model,
                          "visual_receipt_sha256": visual["receipt_sha256"],
@@ -209,14 +251,16 @@ def verify_model_visual_reviews(batch: SourceBatch, extractions: tuple[Any, ...]
         for row in rows:
             if not isinstance(row, dict) or set(row) != {
                     "schema_version", "source_id", "source_sha256", "location", "unit_sha256",
-                    "preview_sha256", "candidate_hashes", "reviewer_role", "model",
+                    "preview_sha256", "render_version", "render_dpi", "candidate_hashes", "reviewer_role", "model",
                     "visual_receipt_sha256", "qa_sha256", "adjudication_sha256", "decision"}:
                 raise DocumentError("REVIEW_STALE", "Model visual receipt fields invalid")
             document = by_source.get(row["source_id"])
             key = (row["source_sha256"], row["location"])
             if (document is None or document.sha256 != row["source_sha256"] or key not in groups or key in seen
                     or row["schema_version"] != MODEL_VISUAL_VERSION or row["reviewer_role"] != "MODEL"
-                    or row["decision"] != "SUPPORTED_FOR_FACT_REVIEW"):
+                    or row["decision"] != "SUPPORTED_FOR_FACT_REVIEW"
+                    or row["render_version"] != ("againward-poppler-png-300dpi-v1" if document.media_type == "application/pdf" else "original-image-v1")
+                    or row["render_dpi"] != (300 if document.media_type == "application/pdf" else None)):
                 raise DocumentError("REVIEW_STALE", "Model visual receipt does not match current component")
             seen.add(key)
             if row["candidate_hashes"] != sorted(stable_hash(c.to_dict()) for c in groups[key]):
@@ -253,8 +297,8 @@ def verify_model_visual_reviews(batch: SourceBatch, extractions: tuple[Any, ...]
                            {k: v for k, v in prior.items() if k != "resolved_flags"}):
                     raise DocumentError("REVIEW_STALE", "Visual model decision changed after pixel review")
             qa_row = next(item for item in qa["source_results"] if item["source_id"] == row["source_id"])
-            if selected[row["source_id"]] not in {qa_row["primary_extraction_sha256"],
-                                                  qa_row["challenger_extraction_sha256"]}:
+            if not _selection_is_qa_bound(row["source_id"], selected[row["source_id"]], qa_row,
+                                          adjudication, extractions):
                 raise DocumentError("REVIEW_STALE", "Visual proposal is outside independent source QA")
             if qa_row["material_needs_reconciliation"] and not any(
                     cite.get("source_id") == row["source_id"] and cite.get("location") == row["location"]

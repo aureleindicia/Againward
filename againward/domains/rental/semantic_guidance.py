@@ -122,3 +122,38 @@ or decide legal priority between conflicting clauses. If critical fields are
 absent, leave them absent and add a limitation; do not guess. An internal
 analyst and independent source reread verify ordinary proposals; the owner
 reviews only material unresolved exceptions and the finished delivery."""
+
+
+def visual_guidance() -> str:
+    """Light source-local vocabulary for observing pixels before evidence binding."""
+    return """Rental document observation vocabulary, not authority or calculation.
+Describe material facts that are actually visible. A page may contain an
+agreement scope, invoice line, return, rate amendment, credit, or supporting
+document. Group facts about the same printed document/line/asset with one
+short descriptive entity_hint; it is a local grouping label, not an ID.
+
+Allowed entity_kind: RENTAL_SCOPE, INVOICE_LINE, RETURN, RATE_AMENDMENT,
+CREDIT, SUPPORTING_DOCUMENT, IRRELEVANT.
+Allowed document_role: RENTAL_AGREEMENT, RATE_CARD, QUOTE, PURCHASE_ORDER,
+AMENDMENT, INVOICE, CREDIT_NOTE, DELIVERY_NOTE, RETURN_NOTE, OFF_HIRE_NOTICE,
+EMAIL_EVIDENCE, ASSET_LIST, PAYMENT_EXPORT, TEXT_NOTE, UNKNOWN, IRRELEVANT.
+Allowed document_status: ACCEPTED, ISSUED, PROPOSED, VOID, EXTRACTED.
+Useful semantic fields include agreement_id, supplier_id, item_id, asset_id,
+serial_number, description, start, end, effective_from, date, quantity, rate,
+currency, billing_unit, invoice_id, invoice_line_id, net_amount, unit_rate,
+billed_units, credit_id, event_type, verification, extended_end, status,
+charge_key, charge_type, stop_event, stop_day_billable, and terms_unchanged.
+Represent a money amount or rate as DECIMAL; represent the currency as its
+own ISO code observation with semantic_type currency and value_type CURRENCY.
+An issued invoice is document_status ISSUED; ACCEPTED describes accepted terms
+or a signed/accepted return, not the customer's acceptance of an invoice.
+Use the same entity_hint consistently for entity_kind, document_role,
+document_status and fields of the same invoice line or return. On a multi-line
+invoice, group each line separately and repeat document identity/authority
+metadata on each line where it applies.
+
+Preserve visible wording, uncertainty, and document role. Do not decide whether
+a charge is contractually due, link different documents, compute totals, or
+infer an absent term. Use a null value when a visible value cannot be read;
+mark ambiguity instead of guessing. The runtime will bind source and pixel
+identity after your observations."""

@@ -5,7 +5,7 @@ from copy import deepcopy
 
 import pytest
 
-from againward.documents.codex_provider import assemble_proposal
+from againward.documents.codex_provider import assemble_proposal, bind_visual_pages, prompt_version_for_guidance
 from againward.core.artifact_store import write_json
 from againward.documents.adjudication import validate_adjudication
 from againward.documents.contracts import DocumentError
@@ -32,8 +32,12 @@ def _packet(tmp_path):
         "location": parsed.units[0].location, "normalization_notes": "Exact printed date",
         "ambiguity_flags": [],
     }]}
+    prompt_version = prompt_version_for_guidance("")
     extraction = validate_proposal(assemble_proposal(raw, document, parsed, batch.batch_id,
-                                                     "synthetic-model"), batch, root)
+        "synthetic-model", prompt_version=prompt_version,
+        visual_bindings=bind_visual_pages(document, parsed, root, model="synthetic-model",
+            prompt_version=prompt_version, invocation_id="fixture-visual"),
+        invocation_id="fixture-visual"), batch, root)
     candidate = extraction.candidates[0]
     review = {"schema_version": "againward-fact-review-v1",
               "extraction_hashes": [extraction.to_dict()["extraction_sha256"]],

@@ -87,12 +87,20 @@ class DocumentExtraction:
     model: str
     prompt_version: str
     created_at: str
+    visual_bindings: tuple[dict[str, Any], ...]
+    invocation_id: str | None
     status: str
     candidates: tuple[FactCandidate, ...]
     limitations: tuple[str, ...]
 
     def to_dict(self) -> dict[str, Any]:
         body = {"schema_version": SCHEMA, **asdict(self)}
+        # Preserve the established native proposal/receipt representation byte
+        # for byte. Visual bindings are an additive contract only for sources
+        # that actually contain non-native units.
+        if not self.visual_bindings and self.invocation_id is None:
+            body.pop("visual_bindings")
+            body.pop("invocation_id")
         return json.loads(json.dumps({**body, "extraction_sha256": stable_hash(body)}))
 
     @property
@@ -214,7 +222,10 @@ def validate_proposal(payload: Any, batch: SourceBatch, root: Path, *,
     """Re-read immutable sources, never trust a model-supplied parsed-text snapshot."""
     p = closed(payload, {"schema_version", "source_id", "source_sha256", "batch_id", "reader_version",
                          "extractor_version", "model", "prompt_version", "created_at", "status",
-                         "candidates", "limitations"})
+                         "candidates", "limitations"},
+               optional={"visual_bindings", "invocation_id"})
+    p.setdefault("visual_bindings", [])
+    p.setdefault("invocation_id", None)
     try:
         encoded_size = len(json.dumps(p, allow_nan=False).encode("utf-8"))
     except (ValueError, TypeError, RecursionError) as exc:
@@ -231,6 +242,42 @@ def validate_proposal(payload: Any, batch: SourceBatch, root: Path, *,
     parsed = read_document(doc, root, limits=limits)
     if p["reader_version"] != parsed.reader_version:
         raise DocumentError("SOURCE_CHANGED", "Reader changed; explicit re-extraction required")
+    visual_units = [unit for unit in parsed.units if unit.route != "NATIVE"]
+    bindings = p["visual_bindings"]
+    if not isinstance(bindings, list) or len(bindings) != len(visual_units):
+        raise DocumentError("SOURCE_LOCATION_INVALID", "Every visual page needs a deterministic render binding")
+    if visual_units:
+        from .codex_provider import (VISUAL_RENDER_DPI, VISUAL_RENDER_VERSION, _images)
+        import hashlib
+        import tempfile
+        expected_locations = {unit.location for unit in visual_units}
+        if not isinstance(p["invocation_id"], str) or not p["invocation_id"]:
+            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Visual invocation identity missing")
+        seen_locations: set[str] = set()
+        with tempfile.TemporaryDirectory(prefix="againward-visual-binding-check-") as directory:
+            images = _images(doc, parsed, root, Path(directory))
+            for unit, image, binding in zip(visual_units, images, bindings, strict=True):
+                if (not isinstance(binding, dict) or set(binding) != {
+                        "source_id", "source_sha256", "location", "unit_sha256", "render_sha256",
+                        "reader_version", "render_version", "render_dpi", "model", "prompt_version",
+                        "invocation_id"}):
+                    raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Visual evidence binding shape invalid")
+                render_sha = hashlib.sha256(image.read_bytes()).hexdigest()
+                expected_dpi = VISUAL_RENDER_DPI if doc.media_type == "application/pdf" else None
+                expected_render = VISUAL_RENDER_VERSION if doc.media_type == "application/pdf" else "original-image-v1"
+                if (binding["source_id"] != doc.source_id or binding["source_sha256"] != doc.sha256
+                        or binding["location"] != unit.location or binding["unit_sha256"] != unit.unit_sha256
+                        or binding["render_sha256"] != render_sha
+                        or binding["reader_version"] != parsed.reader_version
+                        or binding["render_version"] != expected_render or binding["render_dpi"] != expected_dpi
+                        or binding["model"] != p["model"] or binding["prompt_version"] != p["prompt_version"]
+                        or binding["invocation_id"] != p["invocation_id"] or unit.location in seen_locations):
+                    raise DocumentError("SOURCE_LOCATION_INVALID", "Visual observation binding is stale or invalid")
+                seen_locations.add(unit.location)
+        if seen_locations != expected_locations:
+            raise DocumentError("SOURCE_LOCATION_INVALID", "Visual page binding set is incomplete")
+    elif bindings or p["invocation_id"] is not None:
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Native-only extraction cannot carry visual binding")
     for key in ("model", "extractor_version", "prompt_version"):
         text(p[key], maximum=160)
     timestamp(p["created_at"])
@@ -252,7 +299,8 @@ def validate_proposal(payload: Any, batch: SourceBatch, root: Path, *,
         status = "NEEDS_REVIEW"
     return DocumentExtraction(doc.source_id, doc.sha256, batch.batch_id, parsed.reader_version,
                               p["extractor_version"], p["model"], p["prompt_version"], p["created_at"],
-                              status, candidates, tuple(sorted(limitations)))
+                              tuple(bindings), p["invocation_id"], status, candidates,
+                              tuple(sorted(limitations)))
 
 
 def persist_extraction(extraction: DocumentExtraction, root: Path) -> Path:
@@ -269,6 +317,70 @@ def persist_extraction(extraction: DocumentExtraction, root: Path) -> Path:
         else:
             write_json(destination, body)
     return destination
+
+
+def append_adjudicator_visual_observations(extraction: DocumentExtraction,
+                                           observations: list[dict[str, Any]],
+                                           batch: SourceBatch, root: Path,
+                                           adjudication_sha256: str) -> DocumentExtraction:
+    """Bind newly read pixel observations into an unapproved extraction queue."""
+    from dataclasses import replace
+    from .contracts import digest
+
+    digest(adjudication_sha256)
+    doc = next((item for item in batch.documents if item.source_id == extraction.source_id), None)
+    if doc is None or doc.sha256 != extraction.source_sha256:
+        raise DocumentError("SOURCE_CHANGED", "Adjudicator observation source is stale")
+    parsed = read_document(doc, root)
+    units = {unit.location: unit for unit in parsed.units if unit.route != "NATIVE"}
+    bindings = {row["location"]: row for row in extraction.visual_bindings}
+    candidates = list(extraction.candidates)
+    from hashlib import sha256
+    for index, observation in enumerate(observations, 1):
+        required = {"source_id", "source_sha256", "location", "unit_sha256", "render_sha256",
+                    "origin", "semantic_type", "value_type", "value", "visible_text", "ambiguity", "entity_hint"}
+        if (not isinstance(observation, dict) or not required <= set(observation)
+                or set(observation) - required - {"adjudicator_model", "adjudication_version"}):
+            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Bound pixel observation fields invalid")
+        location = text(observation["location"], maximum=160)
+        unit = units.get(location)
+        binding = bindings.get(location)
+        if (unit is None or binding is None or observation["source_id"] != doc.source_id
+                or observation["source_sha256"] != doc.sha256
+                or observation["origin"] != "ADJUDICATOR_PIXEL_OBSERVATION"
+                or observation["unit_sha256"] != unit.unit_sha256
+                or observation["render_sha256"] != binding["render_sha256"]):
+            raise DocumentError("SOURCE_LOCATION_INVALID", "Adjudicator observation is not bound to current pixels")
+        semantic = identifier(observation["semantic_type"])
+        observed = text(observation["visible_text"], maximum=2000)
+        value = _value(observation["value"], observation["value_type"])
+        ambiguity = observation["ambiguity"]
+        if not isinstance(ambiguity, list) or len(ambiguity) > 20:
+            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Bounded pixel ambiguity notes required")
+        flags = {"VISUAL_AMBIGUITY_" + __import__("hashlib").sha256(
+            text(note, maximum=500).encode("utf-8")).hexdigest()[:12] for note in ambiguity}
+        flags.update({"VISUAL_TRANSCRIPTION_UNVERIFIED", "COMPONENT_REVIEW_REQUIRED",
+                      "ADJUDICATOR_PIXEL_OBSERVATION"})
+        hint = text(observation["entity_hint"], maximum=240)
+        entity_id = "pixel-" + sha256(f"{location}\0{hint}".encode()).hexdigest()[:20]
+        comparable = str(value).lower() if type(value) is bool else str(value)
+        notes = "Pixel ambiguity: " + "; ".join(text(note, maximum=500) for note in ambiguity) if ambiguity else ""
+        if value is not None and comparable != observed:
+            notes = "; ".join(part for part in (notes,
+                "Normalized from adjudicator pixel observation; independent fact review required.") if part)
+        if value is not None and comparable != observed:
+            flags.add("NUMERIC_NORMALIZATION_REQUIRES_REVIEW" if observation["value_type"] == "DECIMAL"
+                      else "UNEXPLAINED_NORMALIZATION")
+        candidate_id = "pixel-" + sha256(
+            f"{adjudication_sha256}\0{doc.source_id}\0{location}\0{index}\0{semantic}\0{observed}".encode()
+        ).hexdigest()[:28]
+        candidates.append(FactCandidate(candidate_id, entity_id, semantic, observation["value_type"],
+            value, observed, location, doc.source_id, unit.unit_sha256, notes,
+            tuple(sorted(flags)), None, None))
+    ids = [candidate.candidate_id for candidate in candidates]
+    if len(ids) != len(set(ids)):
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Duplicate adjudicator observation ID")
+    return replace(extraction, candidates=tuple(candidates), status="NEEDS_REVIEW")
 
 
 def replay_extraction(payload: Any, batch: SourceBatch, root: Path) -> DocumentExtraction:

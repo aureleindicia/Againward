@@ -15,23 +15,26 @@ from againward.core.privacy import assert_case_privacy_cleared, inspect_privacy_
 from againward.core.workflow import fingerprint
 from againward.documents.adjudication import ADJUDICATION_VERSION, adjudicate_with_codex, verify_adjudication_pixels
 from againward.documents.analyst_review import REVIEW_VERSION, VISUAL_REVIEW_VERSION, review_visual_with_codex, review_with_codex
-from againward.documents.codex_provider import CodexCliProvider, prompt_version_for_guidance
+from againward.documents.codex_provider import (VISUAL_RENDER_VERSION, CodexCliProvider,
+    prompt_version_for_guidance)
 from againward.documents.contracts import DocumentError, SourceBatch
-from againward.documents.extraction import persist_extraction, promote_facts, replay_extraction, validate_proposal
-from againward.documents.independent_qa import QA_GUIDANCE_VERSION, QA_INSTRUCTIONS, RETRY_INSTRUCTIONS, compare_extractions
+from againward.documents.extraction import (append_adjudicator_visual_observations, persist_extraction,
+    promote_facts, replay_extraction, validate_proposal)
+from againward.documents.independent_qa import (QA_GUIDANCE_VERSION, QA_INSTRUCTIONS,
+    RETRY_INSTRUCTIONS, VISUAL_RETRY_INSTRUCTIONS, compare_extractions)
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources, safe_file, verify_batch
 from againward.documents.visual_fact_review import MODEL_VISUAL_VERSION, record_model_visual_review, verify_visual_attestations
 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
-from againward.domains.rental.semantic_guidance import guidance
+from againward.domains.rental.semantic_guidance import guidance, visual_guidance
 from againward.evidence.hashing import stable_hash
 
 from .autonomous_job import run_reviewed_package_job
 from .autonomous_report import current_report_versions
 
 
-VERSION = "againward-rental-approved-sources-job-v1"
-VISUAL_LIMITATION_ROUTING_VERSION = "againward-rental-visual-limitation-routing-v1"
+VERSION = "againward-rental-approved-sources-job-v2-visual-observations"
+VISUAL_LIMITATION_ROUTING_VERSION = "againward-rental-visual-reading-v2"
 RETRYABLE_MODEL_CODES = {"MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_AUTH_REQUIRED",
                          "MODEL_RATE_LIMITED", "MODEL_TRANSPORT_FAILURE", "MODEL_EMPTY_RESPONSE"}
 
@@ -207,7 +210,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                "evaluation_only": evaluation_only,
                "versions": [VERSION, QA_GUIDANCE_VERSION, ADJUDICATION_VERSION,
                             REVIEW_VERSION, VISUAL_REVIEW_VERSION + "+" + MODEL_VISUAL_VERSION +
-                            "+" + VISUAL_LIMITATION_ROUTING_VERSION,
+                            "+" + VISUAL_LIMITATION_ROUTING_VERSION + "+" + VISUAL_RENDER_VERSION,
                             *current_report_versions()]}
     analysis = case / "processed"
     documents = analysis / "documents"
@@ -263,16 +266,20 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
         # Aliases may duplicate bytes; every approved byte still needs a snapshot.
         if {row["sha256"] for row in snapshot} != {doc.sha256 for doc in batch.documents}:
             raise DocumentError("SOURCE_CHANGED", "Inventory no longer matches approved folder")
-        provider = CodexCliProvider(documents, model=model, timeout_seconds=timeout_seconds)
+        provider = CodexCliProvider(documents, model=model, timeout_seconds=timeout_seconds,
+                                   evaluation_only=evaluation_only)
         for document in batch.documents:
             if document.source_id not in state["primary"]:
                 parsed = read_document(document, documents)
+                is_visual = any(unit.route != "NATIVE" for unit in parsed.units)
+                base_guidance = visual_guidance() if is_visual else guidance()
                 started = perf_counter()
                 for attempt in (1, 2):
                     try:
                         proposal = provider.propose(document, parsed,
-                            {"batch": batch, "semantic_guidance": guidance() +
-                             (RETRY_INSTRUCTIONS if attempt == 2 else "")})
+                            {"batch": batch, "semantic_guidance": base_guidance +
+                             ((VISUAL_RETRY_INSTRUCTIONS if is_visual else RETRY_INSTRUCTIONS)
+                              if attempt == 2 else "")})
                         extraction = validate_proposal(proposal, batch, documents)
                         break
                     except DocumentError as exc:
@@ -286,12 +293,15 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
         for document in batch.documents:
             if document.source_id not in state["challenger"]:
                 parsed = read_document(document, documents)
+                is_visual = any(unit.route != "NATIVE" for unit in parsed.units)
+                base_guidance = visual_guidance() if is_visual else guidance()
                 started = perf_counter()
                 for attempt in (1, 2):
                     try:
                         proposal = provider.propose(document, parsed,
-                            {"batch": batch, "semantic_guidance": guidance() + QA_INSTRUCTIONS +
-                             (RETRY_INSTRUCTIONS if attempt == 2 else "")})
+                            {"batch": batch, "semantic_guidance": base_guidance + QA_INSTRUCTIONS +
+                             ((VISUAL_RETRY_INSTRUCTIONS if is_visual else RETRY_INSTRUCTIONS)
+                              if attempt == 2 else "")})
                         extraction = validate_proposal(proposal, batch, documents)
                         break
                     except DocumentError as exc:
@@ -318,6 +328,33 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
             started = perf_counter()
             adjudication = adjudicate_with_codex(batch, primary, challenger, qa, documents,
                                                  model=model, timeout_seconds=timeout_seconds)
+            base_by_hash = {item.to_dict()["extraction_sha256"]: item for item in (*primary, *challenger)}
+            added: dict[str, dict[str, Any]] = {}
+            for decision in adjudication["decisions"]:
+                observations = decision.get("pixel_observations", [])
+                source_id = decision["source_id"]
+                if not observations or source_id not in adjudication["selected_extractions"]:
+                    continue
+                base = base_by_hash[adjudication["selected_extractions"][source_id]]
+                revised = append_adjudicator_visual_observations(
+                    base, observations, batch, documents, adjudication["adjudication_sha256"])
+                stored = persist_extraction(revised, documents)
+                augmented = revised.to_dict()["extraction_sha256"]
+                base_sha = base.to_dict()["extraction_sha256"]
+                candidate_hashes = sorted(stable_hash(candidate.to_dict()) for candidate in revised.candidates
+                                          if "ADJUDICATOR_PIXEL_OBSERVATION" in candidate.ambiguity_flags)
+                added[source_id] = {"base_extraction_sha256": base_sha,
+                    "extraction_sha256": augmented, "candidate_hashes": candidate_hashes,
+                    "path": str(stored)}
+                adjudication["selected_extractions"][source_id] = augmented
+            if added:
+                adjudication["adjudicator_extractions"] = {
+                    source_id: {key: value for key, value in row.items() if key != "path"}
+                    for source_id, row in added.items()}
+                adjudication["adjudication_sha256"] = stable_hash({k: v for k, v in adjudication.items()
+                                                                  if k != "adjudication_sha256"})
+                state["adjudicator_extractions"] = {source_id: row["path"]
+                                                     for source_id, row in added.items()}
             saved = documents / "adjudications" / (adjudication["adjudication_sha256"] + ".json")
             write_json(saved, adjudication)
             state["adjudication_receipt"] = str(saved)
@@ -335,7 +372,16 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
             return {"status": "WAITING_FOR_REQUIRED_INFORMATION", "stage": "SOURCE_ADJUDICATION",
                     "source_ids": adjudication["material_unresolved_source_ids"],
                     "job_state": str(path), "approved_for_delivery": False}
-        by_hash = {item.to_dict()["extraction_sha256"]: item for item in (*primary, *challenger)}
+        augmented_rows = []
+        for source_id, saved_path in state.get("adjudicator_extractions", {}).items():
+            stored_path = Path(saved_path).resolve()
+            if (source_id not in {doc.source_id for doc in batch.documents}
+                    or not stored_path.is_relative_to((documents / "extractions").resolve())):
+                raise DocumentError("SOURCE_UNSAFE_PATH", "Adjudicator extraction escaped its case")
+            augmented_rows.append(replay_extraction(read_json(stored_path), batch, documents))
+        augmented = tuple(augmented_rows)
+        by_hash = {item.to_dict()["extraction_sha256"]: item
+                   for item in (*primary, *challenger, *augmented)}
         selected = tuple(by_hash[adjudication["selected_extractions"][document.source_id]]
                          for document in batch.documents)
         if "native_review_receipt" not in state:
@@ -411,12 +457,14 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 return {"status": "WAITING_FOR_VISUAL_ATTESTATION", "stage": "VISUAL_FACT_REVIEW",
                         "review": str(documents / "review_templates" / (visual["receipt_sha256"] + ".json")),
                         "batch": state["batch_receipt"],
-                        "extractions": [state["primary"].get(document.source_id)
-                                        if selected_item.to_dict()["extraction_sha256"] ==
-                                        primary_item.to_dict()["extraction_sha256"] else
-                                        state["challenger"][document.source_id]
-                                        for document, selected_item, primary_item in
-                                        zip(batch.documents, selected, primary, strict=True)],
+                        "extractions": [
+                            state.get("adjudicator_extractions", {}).get(document.source_id)
+                            if document.source_id in state.get("adjudicator_extractions", {}) else
+                            (state["primary"][document.source_id]
+                             if selected_item.to_dict()["extraction_sha256"] == primary_item.to_dict()["extraction_sha256"]
+                             else state["challenger"][document.source_id])
+                            for document, selected_item, primary_item in
+                            zip(batch.documents, selected, primary, strict=True)],
                         "job_state": str(path), "approved_for_delivery": False}
             if attested is not None:
                 review, review_path = attested
