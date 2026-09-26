@@ -175,6 +175,7 @@ def test_reader_version_change_requires_explicit_extraction_revalidation(tmp_pat
 def test_missing_and_ambiguous_values_never_become_known_by_confidence(tmp_path):
     _, output, batch = source(tmp_path, "Returned 03/04/2026")
     p = proposal(batch, output, quote="03/04/2026", value="2026-04-03", kind="DATE")
+    p["candidates"][0]["semantic_type"] = "return_date"
     p["candidates"][0]["normalization_notes"] = "Proposed D/M/Y; not established"
     e = validate_proposal(p, batch, output)
     assert e.status == "NEEDS_REVIEW"

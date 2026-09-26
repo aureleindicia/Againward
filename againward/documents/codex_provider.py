@@ -17,10 +17,10 @@ import uuid
 from typing import Any
 
 from .contracts import DocumentError, SourceDocument, identifier, load_json, text
-from .extraction import SCHEMA, proposal_context
+from .extraction import SCHEMA, proposal_context, validate_semantic_value_type
 from .readers import ParsedDocument
 
-PROMPT_VERSION = "againward-source-facts-v6-native-preserved-visual-observations"
+PROMPT_VERSION = "againward-source-facts-v7-semantic-money-types"
 EXTRACTOR_VERSION = "codex-cli-source-units-v2-visual-bound"
 MAX_PROMPT_TEXT = 30_000
 MAX_UNITS = 300
@@ -253,25 +253,15 @@ def assemble_proposal(raw: dict[str, Any], document: SourceDocument,
                 raise DocumentError("SOURCE_LOCATION_INVALID", "Visual observation cited an unavailable page")
             observed = text(observation["visible_text"])
             semantic_type = identifier(observation["semantic_type"])
+            value_type = observation["value_type"]
+            validate_semantic_value_type(semantic_type, value_type)
             flags, ambiguity_notes = _visual_ambiguity(observation["ambiguity"])
             hint = text(observation["entity_hint"], maximum=240)
             entity_id = "visual-" + hashlib.sha256(
                 f"{unit.location}\0{hint}".encode("utf-8")).hexdigest()[:20]
             value = observation["value"]
-            value_type = observation["value_type"]
             comparable = str(value).lower() if type(value) is bool else str(value)
             notes = "Visual ambiguity: " + ambiguity_notes if ambiguity_notes else ""
-            if semantic_type in {"net_amount", "rate", "unit_rate", "allocated_amount"} \
-                    and value_type == "CURRENCY" and isinstance(value, str):
-                import re
-                match = re.fullmatch(r"\s*(?:EUR|USD|GBP|CHF|CAD|AUD|NZD|JPY|KWD)?\s*([+-]?\d+(?:\.\d+)?)\s*(?:EUR|USD|GBP|CHF|CAD|AUD|NZD|JPY|KWD)?\s*", value)
-                if match:
-                    value = match.group(1)
-                    value_type = "DECIMAL"
-                    comparable = value
-                    flags.append("NUMERIC_NORMALIZATION_REQUIRES_REVIEW")
-                    notes = "; ".join(part for part in (notes,
-                        "Separated the visible numeric amount from a combined amount/currency transcription; verify against pixels.") if part)
             if value is not None and comparable != observed:
                 notes = "; ".join(part for part in (notes,
                     "Normalized from the visible transcription; verify during visual review.") if part)
@@ -299,6 +289,7 @@ def assemble_proposal(raw: dict[str, Any], document: SourceDocument,
             semantic_type = identifier(row["semantic_type"])
         except DocumentError as exc:
             raise DocumentError("EXTRACTION_SCHEMA_INVALID", f"Candidate {number} semantic_type is not a safe identifier") from exc
+        validate_semantic_value_type(semantic_type, row["value_type"])
         notes = text(row["normalization_notes"], empty=True)
         if not isinstance(row["ambiguity_flags"], list):
             raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Model ambiguity flags must be a list")
@@ -456,6 +447,9 @@ class CodexCliProvider:
                 "of the named unit; include enough surrounding words to make it unique. "
                 "Use only TEXT, ENUM, IDENTIFIER, CURRENCY, DECIMAL, DATE, BOOLEAN, INTEGER or UNKNOWN "
                 "as value_type; DECIMAL must be a plain decimal string and DATE an ISO date string. "
+                "For net_amount, rate, unit_rate and allocated_amount, use DECIMAL for the numeric amount. "
+                "Use CURRENCY only for semantic_type currency, whose value must be an ISO currency code; "
+                "never label a numeric amount as CURRENCY. "
                 "entity_id, semantic_type and every ambiguity_flag must match "
                 "[A-Za-z0-9][A-Za-z0-9_.:/-]* with no spaces or accents. "
                 "Use limitations only for unreadable, omitted or genuinely ambiguous source-local content. "

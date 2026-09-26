@@ -1,6 +1,6 @@
 """Rental interpretation vocabulary supplied to a neutral source-unit provider."""
 
-GUIDANCE_VERSION = "rental-semantic-guidance-v9"
+GUIDANCE_VERSION = "rental-semantic-guidance-v10-money-types"
 
 
 def guidance() -> str:
@@ -121,7 +121,11 @@ a promised credit into an issued one, assign an unreferenced credit to a line,
 or decide legal priority between conflicting clauses. If critical fields are
 absent, leave them absent and add a limitation; do not guess. An internal
 analyst and independent source reread verify ordinary proposals; the owner
-reviews only material unresolved exceptions and the finished delivery."""
+reviews only material unresolved exceptions and the finished delivery.
+For net_amount, rate, unit_rate and allocated_amount, use value_type DECIMAL
+with the numeric amount only. Use value_type CURRENCY only for semantic_type
+currency, and give it the source's separate ISO code. Never combine amount and
+currency into one value or use CURRENCY for a number."""
 
 
 def visual_guidance() -> str:
@@ -143,8 +147,10 @@ serial_number, description, start, end, effective_from, date, quantity, rate,
 currency, billing_unit, invoice_id, invoice_line_id, net_amount, unit_rate,
 billed_units, credit_id, event_type, verification, extended_end, status,
 charge_key, charge_type, stop_event, stop_day_billable, and terms_unchanged.
-Represent a money amount or rate as DECIMAL; represent the currency as its
-own ISO code observation with semantic_type currency and value_type CURRENCY.
+Represent net_amount, rate, unit_rate and allocated_amount as DECIMAL numeric
+values; represent currency separately as an ISO-code observation with
+semantic_type currency and value_type CURRENCY. Never label a numeric amount
+as CURRENCY or combine amount and currency into one value.
 An issued invoice is document_status ISSUED; ACCEPTED describes accepted terms
 or a signed/accepted return, not the customer's acceptance of an invoice.
 Use the same entity_hint consistently for entity_kind, document_role,

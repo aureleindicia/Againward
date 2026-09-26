@@ -18,7 +18,8 @@ from typing import Any
 from againward.evidence.hashing import stable_hash
 from .codex_provider import VISUAL_SEMANTIC_TYPES, _images, _model_invocation_failure
 from .contracts import DocumentError, SourceBatch, identifier, load_json, text
-from .extraction import DocumentExtraction, visual_only_limited_extraction
+from .extraction import (DocumentExtraction, validate_semantic_value_type,
+                         visual_only_limited_extraction)
 from .independent_qa import compare_extractions
 from .readers import read_document
 from .sources import verify_batch
@@ -153,6 +154,8 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
             unit = source_units.get(location)
             if unit is None or unit.route == "NATIVE":
                 raise DocumentError("SOURCE_LOCATION_INVALID", "Adjudicator observation cited an invalid visual page")
+            semantic_type = identifier(observation["semantic_type"])
+            validate_semantic_value_type(semantic_type, observation["value_type"])
             visible_text = text(observation["visible_text"], maximum=2000)
             from .visual_fact_review import _render_hash
             with tempfile.TemporaryDirectory(prefix="againward-pixel-observation-") as directory:
@@ -165,7 +168,7 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
             bound_observations.append({"source_id": source_id, "source_sha256": source_hashes[source_id],
                 "location": location, "unit_sha256": unit.unit_sha256, "render_sha256": render_sha,
                 "origin": "ADJUDICATOR_PIXEL_OBSERVATION",
-                "semantic_type": identifier(observation["semantic_type"]),
+                "semantic_type": semantic_type,
                 "value_type": observation["value_type"], "value": observation["value"],
                 "visible_text": visible_text, "ambiguity": observation["ambiguity"],
                 "entity_hint": text(observation["entity_hint"], maximum=240)})

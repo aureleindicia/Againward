@@ -22,6 +22,18 @@ from .readers import ParsedDocument, SourceUnit, read_document
 from .sources import assert_document_action, verify_batch
 
 SCHEMA = "againward-document-extraction-v1"
+_MONETARY_DECIMAL_SEMANTICS = frozenset({"net_amount", "rate", "unit_rate", "allocated_amount"})
+
+
+def validate_semantic_value_type(semantic_type: str, value_type: str) -> None:
+    """Keep monetary amounts numeric and ISO currency codes in their own field."""
+    if semantic_type in _MONETARY_DECIMAL_SEMANTICS and value_type != "DECIMAL":
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID",
+                            f"{semantic_type} requires DECIMAL; currency is a separate semantic field")
+    if semantic_type == "currency" and value_type != "CURRENCY":
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "currency requires an ISO-code CURRENCY value")
+    if value_type == "CURRENCY" and semantic_type != "currency":
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "CURRENCY is reserved for the separate currency field")
 
 
 def visual_only_limited_extraction(extraction: "DocumentExtraction", batch: SourceBatch,
@@ -174,6 +186,7 @@ def _candidate(raw: Any, source_id: str, units: dict[str, SourceUnit]) -> FactCa
                      "ambiguity_flags", "source_span", "confidence"})
     for key in ("candidate_id", "entity_id", "semantic_type"):
         identifier(p[key])
+    validate_semantic_value_type(p["semantic_type"], p["value_type"])
     unit = units.get(p["location"]) if isinstance(p["location"], str) else None
     if unit is None or p["unit_sha256"] != unit.unit_sha256:
         raise DocumentError("SOURCE_LOCATION_INVALID", "Missing location or changed source unit")
@@ -353,6 +366,7 @@ def append_adjudicator_visual_observations(extraction: DocumentExtraction,
             raise DocumentError("SOURCE_LOCATION_INVALID", "Adjudicator observation is not bound to current pixels")
         semantic = identifier(observation["semantic_type"])
         observed = text(observation["visible_text"], maximum=2000)
+        validate_semantic_value_type(semantic, observation["value_type"])
         value = _value(observation["value"], observation["value_type"])
         ambiguity = observation["ambiguity"]
         if not isinstance(ambiguity, list) or len(ambiguity) > 20:

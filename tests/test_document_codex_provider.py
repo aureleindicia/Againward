@@ -226,6 +226,56 @@ def test_provider_fails_closed_when_all_native_quotes_are_nonexact(tmp_path, mon
             document, parsed, {"batch": batch, "semantic_guidance": "Rental"})
 
 
+def test_accounting_export_keeps_amounts_numeric_and_currency_separate(tmp_path):
+    from openpyxl import Workbook
+
+    incoming = tmp_path / "accounting-export"
+    incoming.mkdir()
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Ledger"
+    values = {"A1": "INV-900", "B1": "1", "C1": "LIFT-5", "D1": "900.00",
+              "E1": "EUR", "F1": "90.00", "G1": "100.00", "H1": "125.00"}
+    for cell, value in values.items():
+        sheet[cell] = value
+    workbook.save(incoming / "accounting_export.xlsx")
+    root = tmp_path / "documents"
+    batch = inventory_sources(incoming, root)
+    document = batch.documents[0]
+    parsed = read_document(document, root)
+    units_by_value = {unit.text: unit for unit in parsed.units}
+    fields = [
+        ("net_amount", "DECIMAL", "900.00"), ("currency", "CURRENCY", "EUR"),
+        ("unit_rate", "DECIMAL", "90.00"), ("allocated_amount", "DECIMAL", "100.00"),
+        ("rate", "DECIMAL", "125.00"),
+    ]
+    raw = {"status": "SUCCESS", "limitations": [], "candidates": []}
+    for index, (semantic, kind, value) in enumerate(fields, 1):
+        unit = units_by_value[value]
+        raw["candidates"].append({"entity_id": "ledger-line-1", "semantic_type": semantic,
+            "value_type": kind, "value": value, "raw_observed_value": value,
+            "location": unit.location, "normalization_notes": "", "ambiguity_flags": []})
+    extraction = validate_proposal(assemble_proposal(raw, document, parsed, batch.batch_id,
+                                                      "scripted-model"), batch, root)
+    assert {candidate.semantic_type: candidate.value_type for candidate in extraction.candidates} == {
+        "net_amount": "DECIMAL", "currency": "CURRENCY", "unit_rate": "DECIMAL",
+        "allocated_amount": "DECIMAL", "rate": "DECIMAL"}
+    for semantic, _, _ in fields:
+        if semantic == "currency":
+            continue
+        wrong = json.loads(json.dumps(raw))
+        next(row for row in wrong["candidates"] if row["semantic_type"] == semantic)["value_type"] = "CURRENCY"
+        with pytest.raises(DocumentError, match="EXTRACTION_SCHEMA_INVALID"):
+            assemble_proposal(wrong, document, parsed, batch.batch_id, "scripted-model")
+    wrong_currency = json.loads(json.dumps(raw))
+    currency_row = next(row for row in wrong_currency["candidates"] if row["semantic_type"] == "currency")
+    currency_row.update(value="900.00", raw_observed_value="900.00",
+                        location=units_by_value["900.00"].location)
+    with pytest.raises(DocumentError, match="CURRENCY_MISMATCH"):
+        validate_proposal(assemble_proposal(wrong_currency, document, parsed, batch.batch_id,
+                                            "scripted-model"), batch, root)
+
+
 def _visual_source(tmp_path):
     public = tmp_path / "visual-public"
     public.mkdir()
@@ -274,14 +324,18 @@ def test_visual_observation_has_no_model_locator_and_python_binds_current_300dpi
     assert candidate.value == "150.00"
     assert "VISUAL_TRANSCRIPTION_UNVERIFIED" in candidate.ambiguity_flags
     assert "COMPONENT_REVIEW_REQUIRED" in candidate.ambiguity_flags
+    raw["observations"].append({"semantic_type": "currency", "value_type": "CURRENCY",
+        "value": "EUR", "visible_text": "EUR", "page": 1, "ambiguity": [], "entity_hint": "invoice total"})
+    separated = validate_proposal(provider.propose(document, parsed,
+        {"batch": batch, "semantic_guidance": "Rental billing"}), batch, root)
+    assert {item.semantic_type: (item.value_type, item.value) for item in separated.candidates} == {
+        "net_amount": ("DECIMAL", "150.00"), "currency": ("CURRENCY", "EUR")}
     diagnostics = list((root.parent / "scratch/visual_model_diagnostics").glob("*.json"))
-    assert len(diagnostics) == 1
-    assert "raw_response" in json.loads(diagnostics[0].read_text())
+    assert len(diagnostics) == 2
+    assert all("raw_response" in json.loads(item.read_text()) for item in diagnostics)
     raw["observations"][0].update(value_type="CURRENCY", value="150.00 EUR")
-    combined = validate_proposal(provider.propose(document, parsed,
-        {"batch": batch, "semantic_guidance": "Rental billing"}), batch, root).candidates[0]
-    assert combined.value_type == "DECIMAL" and combined.value == "150.00"
-    assert "NUMERIC_NORMALIZATION_REQUIRES_REVIEW" in combined.ambiguity_flags
+    with pytest.raises(DocumentError, match="EXTRACTION_SCHEMA_INVALID"):
+        provider.propose(document, parsed, {"batch": batch, "semantic_guidance": "Rental billing"})
 
 
 def test_visual_reader_rejects_impossible_page_and_stale_source_bytes(tmp_path, monkeypatch):

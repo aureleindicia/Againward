@@ -39,6 +39,18 @@ RETRYABLE_MODEL_CODES = {"MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_AUTH_REQUI
                          "MODEL_RATE_LIMITED", "MODEL_TRANSPORT_FAILURE", "MODEL_EMPTY_RESPONSE"}
 
 
+def _visual_review_stop(visual: dict[str, Any]) -> dict[str, Any] | None:
+    """Interpret final visual-review states; the native review handoff is not final."""
+    status = visual.get("status")
+    if status == "WAITING_FOR_VISUAL_ATTESTATION":
+        return None
+    if status == "REPAIR_REQUIRED":
+        return {"status": status, "structural_gaps": visual.get("visual_structural_gaps", [])}
+    if status == "WAITING_FOR_REQUIRED_INFORMATION":
+        return {"status": status}
+    raise DocumentError("REVIEW_STALE", "Unexpected final visual-review lifecycle status")
+
+
 def _save(path: Path, state: dict[str, Any], phase: str, **details: Any) -> None:
     state["phase"] = phase
     state["events"].append({"at_utc": datetime.now(timezone.utc).isoformat(),
@@ -427,10 +439,15 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                     visual.get("review", {}).get("extraction_hashes") !=
                     sorted(item.to_dict()["extraction_sha256"] for item in selected)):
                 raise DocumentError("REVIEW_STALE", "Visual review no longer binds selected extractions")
-            if visual["status"] != "WAITING_FOR_VISUAL_ATTESTATION":
-                _save(path, state, "WAITING_FOR_REQUIRED_INFORMATION", stage="VISUAL_FACT_REVIEW")
-                return {"status": "WAITING_FOR_REQUIRED_INFORMATION", "stage": "VISUAL_FACT_REVIEW",
-                        "job_state": str(path), "approved_for_delivery": False}
+            visual_stop = _visual_review_stop(visual)
+            if visual_stop is not None:
+                stop_status = visual_stop["status"]
+                _save(path, state, stop_status, stage="VISUAL_FACT_REVIEW",
+                      visual_review_status=stop_status,
+                      **({"visual_structural_gaps": visual_stop["structural_gaps"]}
+                         if "structural_gaps" in visual_stop else {}))
+                return {**visual_stop, "stage": "VISUAL_FACT_REVIEW", "job_state": str(path),
+                        "approved_for_delivery": False}
             model_review = None
             try:
                 model_review = record_model_visual_review(batch, selected, visual, qa, adjudication,

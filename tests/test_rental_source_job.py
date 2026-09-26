@@ -3,7 +3,8 @@ import pytest
 
 from againward.core.workspace import create_client_workspace
 from againward.documents.contracts import DocumentError
-from againward.domains.rental.source_job import _source_snapshot, run_approved_sources_job
+from againward.domains.rental.source_job import (_source_snapshot, _visual_review_stop,
+    run_approved_sources_job)
 
 
 def test_real_case_waits_for_privacy_before_source_inspection(tmp_path, monkeypatch):
@@ -51,6 +52,18 @@ def test_snapshot_rejects_symlinked_source(tmp_path):
     (folder / "invoice.txt").symlink_to(external)
     with pytest.raises(DocumentError, match="SOURCE_UNSAFE_PATH"):
         _source_snapshot(folder)
+
+
+def test_visual_review_handoff_is_not_an_attestation_or_final_receipt_state():
+    # WAITING_FOR_VISUAL_REVIEW belongs to the native-review handoff. Only the
+    # later pixel review may emit WAITING_FOR_VISUAL_ATTESTATION.
+    assert _visual_review_stop({"status": "WAITING_FOR_VISUAL_ATTESTATION"}) is None
+    repair = _visual_review_stop({"status": "REPAIR_REQUIRED", "visual_structural_gaps": [{
+        "entity_id": "visual-line-1", "missing": ["document_status"]}]})
+    assert repair == {"status": "REPAIR_REQUIRED", "structural_gaps": [{
+        "entity_id": "visual-line-1", "missing": ["document_status"]}]}
+    with pytest.raises(DocumentError, match="Unexpected final visual-review lifecycle status"):
+        _visual_review_stop({"status": "WAITING_FOR_VISUAL_REVIEW"})
 
 
 def test_model_timeout_leaves_resumable_source_snapshot(tmp_path, monkeypatch):

@@ -265,3 +265,15 @@ to improve a score, or treat scripted reviews as actual human approval.
   reruns reached distinct later blockers (A: visual review waiting for required
   attestation; B: `CURRENCY_MISMATCH` from a wrongly typed accounting-export
   amount). Neither case reached calculation/report QA in this follow-up.
+
+- The next narrow correction and reruns are recorded in
+  [visual lifecycle and money types follow-up](validation/visual_review_and_money_types_followup_20260926.md).
+  The earlier live-state wording above is historical: `WAITING_FOR_VISUAL_REVIEW`
+  was the native-review handoff, not the final visual receipt. CASE A now stops
+  explicitly at `REPAIR_REQUIRED` for missing visual entity identity fields,
+  without an attestation. CASE B no longer reports `CURRENCY_MISMATCH`, but its
+  accounting extraction had no candidates and the run stops at
+  `SOURCE_ADJUDICATION` on unresolved rate-sheet and signed-return disagreements;
+  numeric live amount passage remains unverified. Focused tests (54), Ruff,
+  mypy, Rental (15/15), and privacy (19/19) pass; full-suite and CI results are
+  pending.
