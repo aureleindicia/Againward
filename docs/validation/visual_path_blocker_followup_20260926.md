@@ -62,8 +62,14 @@ failing closed. Existing exact span tests remain unchanged.
 - Configured mypy: **passed**, 16 source files.
 - Rental benchmark: **15/15** (3 TP, 0 FP, 0 FN, 12 TN).
 - Privacy benchmark: **19/19** (0 false blocks, 0 unsafe passes).
-- Full pytest: pending at artifact creation; result will be appended before
-  commit.
+- Full pytest against the uncommitted code: **852 passed, 2 failed** in 538.90 s.
+  Both failures were the expected HOLDOUT integrity guard requiring the current
+  engine to be committed, not functional test failures. After commit
+  `55f23a20c9881429f92090d6ff7c82a55ea5de14`, both exact HOLDOUT tests passed
+  (**2 passed** in 10.54 s).
+- PR #5 CI for implementation commit `55f23a20c9881429f92090d6ff7c82a55ea5de14`:
+  both push and pull-request workflows passed **8/8** pytest matrix jobs across
+  Python 3.11, 3.12, 3.13 and 3.14. PR #5 remains open and draft.
 
 ## Live known-case reruns after the fixes
 
