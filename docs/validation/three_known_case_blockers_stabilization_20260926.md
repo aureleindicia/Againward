@@ -107,12 +107,14 @@ No HUMAN attestation or other approval was fabricated in either run.
 - Configured mypy: **passed**, 16 source files.
 - Rental benchmark: **15/15**; 3 TP, 0 FP, 0 FN, 12 TN.
 - Privacy benchmark: **19/19**; 0 false blocks and 0 unsafe passes.
-- Full pytest on the dirty working tree produced **857 passed, 2 failed** in
-  499.03 seconds. Both failures are HOLDOUT integrity tests which deliberately
-  reject an engine modified relative to the commit under test; the production
-  diff was still uncommitted. Re-run the full suite after committing so these
-  tests compare the committed engine to `HEAD`. PR #5 CI is recorded after
-  completion below.
+- Full pytest on the dirty working tree initially produced **857 passed, 2
+  failed** in 499.03 seconds. Both failures were HOLDOUT integrity tests that
+  correctly reject an engine changed relative to its referenced commit. After
+  committing the engine change, full pytest passed: **859 passed** in 537.64
+  seconds.
+- PR #5 CI on commit `34bd35f3625532dfe6fc87a43a5c18277227827c`: **8/8** matrix
+  checks passed (Python 3.11–3.14 across push and pull-request workflows). PR
+  #5 remains open and draft.
 
 The benchmark results are scripted checks. These two known-case runs do not
 measure unfamiliar-case accuracy and do not support a ≥99% claim.

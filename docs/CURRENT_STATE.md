@@ -292,6 +292,8 @@ to improve a score, or treat scripted reviews as actual human approval.
   then stopped at fact review with five structural gaps in native-source
   proposals. Neither run reached calculation, report, or PDF QA; no known
   financial oracle was calculated. Targeted tests (32), Ruff, configured mypy,
-  Rental (15/15), and privacy (19/19) pass. Full pytest and PR #5 CI results are
-  pending at this commit checkpoint. These are known-case regression runs, not
-  accuracy evidence.
+  Rental (15/15), and privacy (19/19) pass. Full pytest passed 859/859 on the
+  committed engine; the first dirty-tree run's two expected HOLDOUT-integrity
+  failures disappeared after commit. PR #5 CI passed 8/8 checks on Python
+  3.11–3.14 across push and pull-request workflows. These are known-case
+  regression runs, not accuracy evidence. PR #5 remains open and draft.
