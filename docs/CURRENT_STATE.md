@@ -297,3 +297,15 @@ to improve a score, or treat scripted reviews as actual human approval.
   failures disappeared after commit. PR #5 CI passed 8/8 checks on Python
   3.11–3.14 across push and pull-request workflows. These are known-case
   regression runs, not accuracy evidence. PR #5 remains open and draft.
+
+- Follow-up for source-limitation semantics and native structural metadata is
+  recorded in [the 2026-09-26 stabilization note](validation/source_limitation_and_native_entity_stabilization_20260926.md).
+  Native extraction contracts now describe source-supported metadata for
+  correspondence, accounting-export rows, and supporting rate sheets. The
+  limitation checker distinguishes an absent additional amount from an
+  already stated net amount while retaining the limitation and visual review
+  gate. The fresh CASE A rerun passed the former false-positive check but
+  stopped at adjudication with `EXTRACTION_SCHEMA_INVALID`; fresh CASE B
+  completed 8+8 reads and QA, then stopped with `EXTRACTION_INCOMPLETE` before
+  fact review. Neither reached calculation, report, or PDF QA; neither known
+  oracle was calculated. This remains regression evidence only.
