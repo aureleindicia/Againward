@@ -79,7 +79,11 @@ def _safe_failure_diagnostic(exc: DocumentError, *, stage: str,
                  "invocation_id", "cli_version", "conflicting_field_count",
                  "limitation_count", "pixel_observation_count", "structural_gap_count",
                  "invalid_structural_field_count", "source_sha256", "extractor_version",
-                 "current_prompt_version_count"}
+                 "current_prompt_version_count", "phase", "provider", "exit_code", "timeout",
+                 "http_status", "technical_retries", "duration_seconds", "stdout_bytes",
+                 "stdout_present", "stdout_shape", "stdout_sha256", "stderr_bytes",
+                 "stderr_present", "stderr_shape", "stderr_sha256", "stage", "rejection_code",
+                 "total_duration_seconds"}
     safe = {key: value for key, value in diagnostic.items()
             if key in safe_keys and (value is None or type(value) in {str, int, bool})}
     semantic_types = diagnostic.get("conflicting_semantic_types")
@@ -87,6 +91,15 @@ def _safe_failure_diagnostic(exc: DocumentError, *, stage: str,
             and all(isinstance(item, str) and item.replace("_", "").isalnum()
                     for item in semantic_types)):
         safe["conflicting_semantic_types"] = semantic_types
+    retry_history = diagnostic.get("transient_failure_history")
+    if (isinstance(retry_history, list) and len(retry_history) <= 1
+            and all(isinstance(item, dict) and set(item) <= {
+                "error_category", "http_status", "exit_code", "duration_seconds",
+                "stdout_bytes", "stdout_shape", "stdout_sha256", "stderr_bytes",
+                "stderr_shape", "stderr_sha256"}
+                and all(value is None or type(value) in {str, int, float, bool}
+                        for value in item.values()) for item in retry_history)):
+        safe["transient_failure_history"] = retry_history
     missing_fields = diagnostic.get("missing_structural_fields")
     if (isinstance(missing_fields, list) and len(missing_fields) <= 3
             and all(item in {"entity_kind", "document_role", "document_status"}
@@ -343,7 +356,8 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                     extraction = None
                     try:
                         proposal = provider.propose(document, parsed,
-                            {"batch": batch, "semantic_guidance": attempt_guidance})
+                            {"batch": batch, "semantic_guidance": attempt_guidance,
+                             "invocation_phase": "PRIMARY_EXTRACTION"})
                         extraction = validate_proposal(proposal, batch, documents)
                         validate_rental_extraction(extraction)
                         break
@@ -392,7 +406,8 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                     extraction = None
                     try:
                         proposal = provider.propose(document, parsed,
-                            {"batch": batch, "semantic_guidance": attempt_guidance})
+                            {"batch": batch, "semantic_guidance": attempt_guidance,
+                             "invocation_phase": "INDEPENDENT_REREAD"})
                         extraction = validate_proposal(proposal, batch, documents)
                         validate_rental_extraction(extraction)
                         break

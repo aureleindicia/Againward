@@ -360,8 +360,150 @@ def test_invocation_failure_classifier_uses_stdout_and_exit_code_without_echoing
     failure = _model_invocation_failure("", stdout='{"type":"error","message":"unknown model gpt-private"}',
                                        returncode=2)
     assert failure.code == "MODEL_CONFIGURATION_ERROR"
+    assert failure.diagnostic["error_category"] == "PROVIDER_CONFIGURATION_ERROR"
+    assert failure.diagnostic["http_status"] is None
     assert "gpt-private" not in str(failure)
-    assert _model_invocation_failure("", stdout="process exited", returncode=7).code == "MODEL_INVOCATION_FAILURE"
+    unknown = _model_invocation_failure("", stdout="process exited", returncode=7)
+    assert unknown.code == "MODEL_INVOCATION_FAILURE"
+    assert unknown.diagnostic["error_category"] == "UNKNOWN_RUNTIME_FAILURE"
+    provider_status = _model_invocation_failure('{"status":503,"error":"unavailable"}')
+    assert provider_status.diagnostic["http_status"] == 503
+
+
+@pytest.mark.parametrize("stderr,category,code,status", [
+    ("401 Unauthorized: PRIVATE_SOURCE_MARKER", "AUTH_FAILURE", "MODEL_AUTH_REQUIRED", 401),
+    ("HTTP 429 Too Many Requests: PRIVATE_SOURCE_MARKER", "RATE_LIMIT", "MODEL_RATE_LIMITED", 429),
+    ("HTTP 503 Service Unavailable: PRIVATE_SOURCE_MARKER", "MODEL_UNAVAILABLE", "MODEL_UNAVAILABLE", 503),
+    ("panic: child process failed: PRIVATE_SOURCE_MARKER", "CLI_PROCESS_FAILURE", "MODEL_INVOCATION_FAILURE", None),
+    ("invalid_json_schema PRIVATE_SOURCE_MARKER", "PROVIDER_CONFIGURATION_ERROR", "MODEL_CONFIGURATION_ERROR", None),
+    ("unexpected opaque failure PRIVATE_SOURCE_MARKER", "UNKNOWN_RUNTIME_FAILURE", "MODEL_INVOCATION_FAILURE", None),
+])
+def test_runtime_failure_category_and_diagnostic_are_stable_and_safe(stderr, category, code, status):
+    failure = _model_invocation_failure(stderr, stdout="", returncode=9, phase="PRIMARY_EXTRACTION",
+        model="gpt-6-luna", cli_version="codex-cli test", duration_seconds=1.25)
+    diagnostic = failure.diagnostic
+    assert failure.code == code
+    assert diagnostic["phase"] == "PRIMARY_EXTRACTION"
+    assert diagnostic["provider"] == "codex_cli"
+    assert diagnostic["model"] == "gpt-6-luna"
+    assert diagnostic["cli_version"] == "codex-cli test"
+    assert diagnostic["exit_code"] == 9 and diagnostic["timeout"] is False
+    assert diagnostic["error_category"] == category and diagnostic["http_status"] == status
+    assert diagnostic["technical_retries"] == 0 and diagnostic["duration_seconds"] == 1.25
+    assert diagnostic["stderr_shape"] == "TEXT_LINES_1"
+    assert len(diagnostic["stderr_sha256"]) == 64
+    assert "PRIVATE_SOURCE_MARKER" not in repr(diagnostic)
+
+
+def test_provider_persists_safe_runtime_metadata_for_timeout_and_parse_failures(tmp_path, monkeypatch):
+    root, batch, document, parsed = _source(tmp_path)
+    monkeypatch.setattr("againward.documents.codex_provider._codex_cli_version", lambda: "codex-cli test")
+
+    def timeout(*args, **kwargs):
+        raise subprocess.TimeoutExpired(args[0], kwargs["timeout"], output=b"PRIVATE_SOURCE_MARKER",
+                                       stderr=b"provider timed out")
+
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run", timeout)
+    with pytest.raises(DocumentError) as caught:
+        CodexCliProvider(root, model="gpt-6-luna").propose(document, parsed,
+            {"batch": batch, "semantic_guidance": "Rental", "invocation_phase": "PRIMARY_EXTRACTION"})
+    diagnostic = caught.value.diagnostic
+    assert diagnostic["error_category"] == "TIMEOUT"
+    assert diagnostic["phase"] == "PRIMARY_EXTRACTION" and diagnostic["timeout"] is True
+    assert diagnostic["provider"] == "codex_cli" and diagnostic["model"] == "gpt-6-luna"
+    assert diagnostic["cli_version"] == "codex-cli test" and diagnostic["technical_retries"] == 0
+    assert diagnostic["stdout_sha256"] and diagnostic["stderr_shape"] == "TEXT_LINES_1"
+    files = list((tmp_path / "scratch/visual_model_diagnostics").glob("*.json"))
+    persisted = json.loads(files[0].read_text())
+    assert "PRIVATE_SOURCE_MARKER" not in json.dumps(persisted)
+    assert persisted["error_category"] == "TIMEOUT"
+
+    def malformed(command, **kwargs):
+        Path(command[command.index("--output-last-message") + 1]).write_text("not json")
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run", malformed)
+    with pytest.raises(DocumentError) as malformed_error:
+        CodexCliProvider(root, model="gpt-6-luna").propose(document, parsed,
+            {"batch": batch, "semantic_guidance": "Rental", "invocation_phase": "PRIMARY_EXTRACTION"})
+    assert malformed_error.value.diagnostic["error_category"] == "RESPONSE_PARSE_FAILURE"
+
+
+def test_provider_classifies_empty_response_separately(tmp_path, monkeypatch):
+    root, batch, document, parsed = _source(tmp_path)
+    monkeypatch.setattr("againward.documents.codex_provider._codex_cli_version", lambda: "codex-cli test")
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run",
+        lambda command, **kwargs: subprocess.CompletedProcess(command, 0, "", ""))
+    with pytest.raises(DocumentError) as caught:
+        CodexCliProvider(root, model="gpt-6-luna").propose(document, parsed,
+            {"batch": batch, "semantic_guidance": "Rental", "invocation_phase": "PRIMARY_EXTRACTION"})
+    assert caught.value.code == "MODEL_EMPTY_RESPONSE"
+    assert caught.value.diagnostic["error_category"] == "EMPTY_RESPONSE"
+    assert caught.value.diagnostic["exit_code"] == 0
+
+
+def test_provider_retries_one_recognized_transient_failure_and_records_it(tmp_path, monkeypatch):
+    root, batch, document, parsed = _source(tmp_path)
+    monkeypatch.setattr("againward.documents.codex_provider._codex_cli_version", lambda: "codex-cli test")
+    calls = []
+
+    def transient_then_success(command, **kwargs):
+        calls.append(command)
+        if len(calls) == 1:
+            return subprocess.CompletedProcess(command, 1, "", "HTTP 503 Service Unavailable")
+        Path(command[command.index("--output-last-message") + 1]).write_text(
+            json.dumps(_raw(parsed.units[0].location, "850.00")))
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run", transient_then_success)
+    proposal = CodexCliProvider(root, model="gpt-6-luna").propose(document, parsed,
+        {"batch": batch, "semantic_guidance": "Rental", "invocation_phase": "PRIMARY_EXTRACTION"})
+    assert len(calls) == 2
+    assert proposal["model"] == "gpt-6-luna"
+    diagnostics = list((tmp_path / "scratch/visual_model_diagnostics").glob("*.json"))
+    body = json.loads(diagnostics[0].read_text())
+    assert body["error_category"] == "RECOVERED_TRANSIENT_FAILURE"
+    assert body["technical_retries"] == 1
+    assert body["transient_failure_history"][0]["http_status"] == 503
+
+
+def test_transient_retry_cannot_reuse_the_first_attempt_response(tmp_path, monkeypatch):
+    root, batch, document, parsed = _source(tmp_path)
+    monkeypatch.setattr("againward.documents.codex_provider._codex_cli_version", lambda: "codex-cli test")
+    calls = []
+
+    def failed_output_then_empty(command, **kwargs):
+        calls.append(command)
+        if len(calls) == 1:
+            Path(command[command.index("--output-last-message") + 1]).write_text("stale response")
+            return subprocess.CompletedProcess(command, 1, "", "HTTP 503 Service Unavailable")
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run", failed_output_then_empty)
+    with pytest.raises(DocumentError) as caught:
+        CodexCliProvider(root, model="gpt-6-luna").propose(document, parsed,
+            {"batch": batch, "semantic_guidance": "Rental", "invocation_phase": "PRIMARY_EXTRACTION"})
+    assert len(calls) == 2
+    assert caught.value.code == "MODEL_EMPTY_RESPONSE"
+    assert caught.value.diagnostic["technical_retries"] == 1
+
+
+def test_provider_does_not_retry_auth_or_unknown_runtime_failures(tmp_path, monkeypatch):
+    root, batch, document, parsed = _source(tmp_path)
+    monkeypatch.setattr("againward.documents.codex_provider._codex_cli_version", lambda: "codex-cli test")
+    calls = []
+
+    def auth_failure(command, **kwargs):
+        calls.append(command)
+        return subprocess.CompletedProcess(command, 1, "", "401 Unauthorized")
+
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run", auth_failure)
+    with pytest.raises(DocumentError) as caught:
+        CodexCliProvider(root, model="gpt-6-luna").propose(document, parsed,
+            {"batch": batch, "semantic_guidance": "Rental", "invocation_phase": "PRIMARY_EXTRACTION"})
+    assert caught.value.diagnostic["error_category"] == "AUTH_FAILURE"
+    assert caught.value.diagnostic["technical_retries"] == 0
+    assert len(calls) == 1
 
 
 def test_provider_drops_nonexact_native_quote_without_converting_it_to_evidence(tmp_path, monkeypatch):

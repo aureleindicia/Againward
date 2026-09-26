@@ -78,6 +78,24 @@ def test_terminal_failure_receipt_diagnostic_is_structured_and_content_safe():
         "received_shape": "array(items=1)", "decision_index": 2,
         "conflicting_semantic_types": ["net_amount"]}
     assert "PRIVATE_SOURCE_MARKER" not in repr(diagnostic)
+    runtime = _safe_failure_diagnostic(DocumentError("MODEL_UNAVAILABLE", "runtime failed",
+        diagnostic={"phase": "PRIMARY_EXTRACTION", "provider": "codex_cli", "model": "gpt-6-luna",
+                    "cli_version": "codex-cli test", "exit_code": 1, "timeout": False,
+                    "error_category": "MODEL_UNAVAILABLE", "http_status": 503,
+                    "technical_retries": 1, "duration_seconds": 2.3,
+                    "stdout_shape": "EMPTY", "stdout_sha256": "a" * 64, "stdout_bytes": 0,
+                    "stderr_shape": "JSON_OBJECT", "stderr_sha256": "b" * 64, "stderr_bytes": 42,
+                    "transient_failure_history": [{"error_category": "MODEL_UNAVAILABLE",
+                        "http_status": 503, "exit_code": 1, "duration_seconds": 0.4,
+                        "stdout_bytes": 0, "stdout_shape": "EMPTY", "stdout_sha256": "c" * 64,
+                        "stderr_bytes": 42, "stderr_shape": "JSON_OBJECT", "stderr_sha256": "d" * 64}],
+                    "stderr": "PRIVATE_SOURCE_MARKER"}), stage="PRIMARY_EXTRACTION", source_id="src-safe")
+    assert runtime["phase"] == "PRIMARY_EXTRACTION"
+    assert runtime["provider"] == "codex_cli" and runtime["model"] == "gpt-6-luna"
+    assert runtime["exit_code"] == 1 and runtime["http_status"] == 503
+    assert runtime["technical_retries"] == 1
+    assert runtime["transient_failure_history"][0]["http_status"] == 503
+    assert "PRIVATE_SOURCE_MARKER" not in repr(runtime) and "stderr" not in runtime
     repair = _visual_review_stop({"status": "REPAIR_REQUIRED", "visual_structural_gaps": [{
         "entity_id": "visual-line-1", "missing": ["document_status"]}]})
     assert repair == {"status": "REPAIR_REQUIRED", "structural_gaps": [{

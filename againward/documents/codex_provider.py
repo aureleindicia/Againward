@@ -11,9 +11,11 @@ import json
 import os
 import copy
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
+from time import perf_counter, sleep
 import uuid
 from typing import Any
 
@@ -115,29 +117,99 @@ def _visual_ambiguity(ambiguity: Any) -> tuple[list[str], str]:
     return flags, "; ".join(notes)
 
 
-def _model_invocation_failure(stderr: str, *, stdout: str = "", returncode: int = 1) -> DocumentError:
-    """Classify CLI failures from both streams without exposing their contents."""
-    message = (stderr + "\n" + stdout).casefold()
-    if any(marker in message for marker in ("not logged in", "login required", "authentication required",
-                                           "401 unauthorized", "invalid api key")):
-        return DocumentError("MODEL_AUTH_REQUIRED", "Codex participant authentication failed")
-    if any(marker in message for marker in ("rate limit", "429 too many requests", "quota exceeded",
-                                           "usage limit reached")):
-        return DocumentError("MODEL_RATE_LIMITED", "Codex participant usage limit reached")
-    if any(marker in message for marker in ("connection refused", "connection reset", "network error",
-                                           "dns error", "stream disconnected")):
-        return DocumentError("MODEL_TRANSPORT_FAILURE", "Codex participant transport failed")
-    if any(marker in message for marker in ("model overloaded", "model unavailable", "service unavailable",
-                                            "temporarily unavailable", "http 503", "status 503")):
-        return DocumentError("MODEL_UNAVAILABLE", "Codex model service is temporarily unavailable")
-    if any(marker in message for marker in ("unknown model", "model not found", "invalid model",
-                                            "invalid configuration", "failed to load config",
-                                            "invalid_json_schema", "invalid_request_error", "http 400",
-                                            "status 400", "bad request", "unrecognized option",
-                                            "unexpected argument", "usage:")):
-        return DocumentError("MODEL_CONFIGURATION_ERROR", "Codex model or invocation configuration is invalid")
-    return DocumentError("MODEL_INVOCATION_FAILURE",
-                         f"Codex participant process exited unsuccessfully (exit {returncode})")
+def _stream_metadata(stream: str | bytes | None) -> dict[str, Any]:
+    raw = stream if isinstance(stream, bytes) else (stream or "").encode("utf-8", errors="replace")
+    decoded = raw.decode("utf-8", errors="replace").strip()
+    try:
+        parsed = json.loads(decoded) if decoded else None
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        parsed = None
+    if not decoded:
+        shape = "EMPTY"
+    elif isinstance(parsed, dict):
+        shape = "JSON_OBJECT"
+    elif isinstance(parsed, list):
+        shape = "JSON_ARRAY"
+    else:
+        shape = f"TEXT_LINES_{min(999, len(decoded.splitlines()))}"
+    return {"bytes": len(raw), "present": bool(raw), "shape": shape,
+            "sha256": hashlib.sha256(raw).hexdigest()}
+
+
+def _http_status(message: str) -> int | None:
+    match = re.search(r"\b(?:HTTP(?:/\d(?:\.\d)?)?\s+|status(?:\s+code)?[\"']?\s*[:= ]\s*[\"']?|^|\s)([45]\d\d)(?=\s|$|[,}])",
+                      message, re.IGNORECASE)
+    return int(match.group(1)) if match else None
+
+
+def _flat_runtime_fields(stdout: str | bytes | None, stderr: str | bytes | None) -> dict[str, Any]:
+    return {f"{name}_{key}": value for name, stream in (("stdout", stdout), ("stderr", stderr))
+            for key, value in _stream_metadata(stream).items()}
+
+
+def _model_invocation_failure(stderr: str | bytes, *, stdout: str | bytes = "",
+                              returncode: int = 1, phase: str = "MODEL_INVOCATION",
+                              model: str | None = None, cli_version: str | None = None,
+                              duration_seconds: float | None = None,
+                              technical_retries: int = 0) -> DocumentError:
+    """Classify a CLI failure and retain only safe stream metadata, never text."""
+    stderr_meta, stdout_meta = _stream_metadata(stderr), _stream_metadata(stdout)
+    message = ((stderr.decode("utf-8", errors="replace") if isinstance(stderr, bytes) else stderr or "")
+               + "\n" + (stdout.decode("utf-8", errors="replace") if isinstance(stdout, bytes) else stdout or ""))
+    folded = message.casefold()
+    status = _http_status(message)
+    if status in {401, 403} or any(marker in folded for marker in
+            ("not logged in", "login required", "authentication required", "unauthorized", "invalid api key",
+             "token expired", "sign in to continue")):
+        category, code = "AUTH_FAILURE", "MODEL_AUTH_REQUIRED"
+    elif status == 429 or any(marker in folded for marker in
+            ("rate limit", "too many requests", "quota exceeded", "usage limit reached", "rate_limit_exceeded")):
+        category, code = "RATE_LIMIT", "MODEL_RATE_LIMITED"
+    elif any(marker in folded for marker in
+            ("connection refused", "connection reset", "network error", "dns error", "stream disconnected")):
+        category, code = "MODEL_UNAVAILABLE", "MODEL_TRANSPORT_FAILURE"
+    elif status in {502, 503, 504} or any(marker in folded for marker in
+            ("model overloaded", "model unavailable", "service unavailable", "temporarily unavailable")):
+        category, code = "MODEL_UNAVAILABLE", "MODEL_UNAVAILABLE"
+    elif status == 400 or any(marker in folded for marker in
+            ("unknown model", "model not found", "invalid model", "invalid configuration",
+             "failed to load config", "invalid_json_schema", "invalid_request_error", "bad request",
+             "unrecognized option", "unexpected argument", "usage:")):
+        category, code = "PROVIDER_CONFIGURATION_ERROR", "MODEL_CONFIGURATION_ERROR"
+    elif (returncode < 0 or any(marker in folded for marker in
+            ("panic:", "fatal error", "segmentation fault", "process was killed", "failed to spawn",
+             "failed to execute", "executable not found"))):
+        category, code = "CLI_PROCESS_FAILURE", "MODEL_INVOCATION_FAILURE"
+    else:
+        category, code = "UNKNOWN_RUNTIME_FAILURE", "MODEL_INVOCATION_FAILURE"
+    diagnostic: dict[str, Any] = {
+        "phase": phase, "provider": "codex_cli", "model": model,
+        "cli_version": cli_version, "exit_code": returncode, "timeout": False,
+        "error_category": category, "http_status": status,
+        **{f"stdout_{key}": value for key, value in stdout_meta.items()},
+        **{f"stderr_{key}": value for key, value in stderr_meta.items()},
+        "technical_retries": technical_retries,
+    }
+    if duration_seconds is not None:
+        diagnostic["duration_seconds"] = round(max(0.0, duration_seconds), 3)
+    return DocumentError(code, "Codex model invocation failed", diagnostic=diagnostic)
+
+
+def _runtime_failure(code: str, category: str, *, phase: str, model: str,
+                     cli_version: str | None, started: float | None = None,
+                     duration_seconds: float | None = None,
+                     stdout: str | bytes | None = None, stderr: str | bytes | None = None,
+                     exit_code: int | None = None, timeout: bool = False,
+                     technical_retries: int = 0) -> DocumentError:
+    diagnostic = {"phase": phase, "provider": "codex_cli", "model": model,
+        "cli_version": cli_version, "exit_code": exit_code, "timeout": timeout,
+        "error_category": category, "http_status": _http_status(
+            ((stderr.decode("utf-8", errors="replace") if isinstance(stderr, bytes) else stderr or "") + " " +
+             (stdout.decode("utf-8", errors="replace") if isinstance(stdout, bytes) else stdout or ""))),
+        **_flat_runtime_fields(stdout, stderr), "technical_retries": technical_retries,
+        "duration_seconds": round(duration_seconds if duration_seconds is not None
+                                   else perf_counter() - (started or perf_counter()), 3)}
+    return DocumentError(code, "Codex model invocation failed", diagnostic=diagnostic)
 
 
 def write_model_diagnostic(root: Path, payload: dict[str, Any], *,
@@ -408,6 +480,9 @@ class CodexCliProvider:
         if sum(len(unit.text) for unit in parsed.units) > MAX_PROMPT_TEXT:
             raise DocumentError("RESOURCE_LIMIT", "Native text exceeds model context budget")
         guidance = text(context.get("semantic_guidance", ""), maximum=12_000)
+        phase = context.get("invocation_phase", "SOURCE_EXTRACTION")
+        if not isinstance(phase, str) or not re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", phase):
+            phase = "SOURCE_EXTRACTION"
         visual_route = any(unit.route != "NATIVE" for unit in parsed.units)
         prompt_version = prompt_version_for_guidance(guidance)
         invocation_id = str(uuid.uuid4()) if visual_route else None
@@ -508,27 +583,127 @@ class CodexCliProvider:
             for image in images:
                 command.extend(["--image", str(image)])
             command.append("-")
-            try:
-                result = subprocess.run(command, input=prompt, text=True, capture_output=True,
-                                        timeout=self.timeout_seconds, check=False)
-            except subprocess.TimeoutExpired as exc:
-                raise DocumentError("MODEL_TIMEOUT", "Codex participant timed out") from exc
-            except FileNotFoundError as exc:
-                raise DocumentError("MODEL_CLI_UNAVAILABLE", "Codex CLI executable is unavailable") from exc
-            if result.returncode:
+            technical_retries = 0
+            transient_failures: list[dict[str, Any]] = []
+            overall_started = perf_counter()
+            while True:
+                if output.is_file():
+                    output.unlink()
+                invocation_started = perf_counter()
+                try:
+                    result = subprocess.run(command, input=prompt, text=True, capture_output=True,
+                                            timeout=self.timeout_seconds, check=False)
+                except subprocess.TimeoutExpired as exc:
+                    duration = perf_counter() - invocation_started
+                    cli_version = _codex_cli_version()
+                    failure = _runtime_failure("MODEL_TIMEOUT", "TIMEOUT", phase=phase, model=self.model,
+                        cli_version=cli_version, duration_seconds=duration, stdout=exc.stdout,
+                        stderr=exc.stderr, timeout=True, technical_retries=technical_retries)
+                    diagnostic = {**(failure.diagnostic or {}), "stage": phase,
+                        "source_id": document.source_id, "source_sha256": document.sha256,
+                        "prompt_version": prompt_version, "invocation_id": invocation_id}
+                    failure.diagnostic = diagnostic
+                    self._diagnostic(diagnostic)
+                    raise failure from exc
+                except FileNotFoundError as exc:
+                    duration = perf_counter() - invocation_started
+                    failure = _runtime_failure("MODEL_CLI_UNAVAILABLE", "CLI_PROCESS_FAILURE", phase=phase,
+                        model=self.model, cli_version=None, duration_seconds=duration,
+                        stderr=type(exc).__name__, technical_retries=technical_retries)
+                    diagnostic = {**(failure.diagnostic or {}), "stage": phase,
+                        "source_id": document.source_id, "source_sha256": document.sha256,
+                        "prompt_version": prompt_version, "invocation_id": invocation_id}
+                    failure.diagnostic = diagnostic
+                    self._diagnostic(diagnostic)
+                    raise failure from exc
+                except OSError as exc:
+                    duration = perf_counter() - invocation_started
+                    cli_version = _codex_cli_version()
+                    failure = _runtime_failure("MODEL_INVOCATION_FAILURE", "CLI_PROCESS_FAILURE", phase=phase,
+                        model=self.model, cli_version=cli_version, duration_seconds=duration,
+                        stderr=type(exc).__name__, technical_retries=technical_retries)
+                    diagnostic = {**(failure.diagnostic or {}), "stage": phase,
+                        "source_id": document.source_id, "source_sha256": document.sha256,
+                        "prompt_version": prompt_version, "invocation_id": invocation_id}
+                    failure.diagnostic = diagnostic
+                    self._diagnostic(diagnostic)
+                    raise failure from exc
+                if not result.returncode:
+                    break
+                duration = perf_counter() - invocation_started
+                cli_version = _codex_cli_version()
                 failure = _model_invocation_failure(result.stderr, stdout=result.stdout,
-                                                    returncode=result.returncode)
-                self._diagnostic({"stage": "MODEL_INVOCATION", "model": self.model,
-                    "prompt_version": prompt_version, "invocation_id": invocation_id,
-                    "rejection_code": failure.code, "returncode": result.returncode,
-                    "stdout_bytes": len(result.stdout.encode("utf-8", errors="replace")),
-                    "stderr_bytes": len(result.stderr.encode("utf-8", errors="replace")),
-                    "stdout_present": bool(result.stdout), "stderr_present": bool(result.stderr),
-                    "cli_version": _codex_cli_version()})
+                    returncode=result.returncode, phase=phase, model=self.model,
+                    cli_version=cli_version, duration_seconds=duration,
+                    technical_retries=technical_retries)
+                diagnostic = dict(failure.diagnostic or {})
+                transient_failures.append({key: value for key, value in diagnostic.items()
+                    if key in {"error_category", "http_status", "exit_code", "duration_seconds",
+                               "stdout_bytes", "stdout_shape", "stdout_sha256", "stderr_bytes",
+                               "stderr_shape", "stderr_sha256"}})
+                retryable_transient = (diagnostic.get("error_category") == "MODEL_UNAVAILABLE"
+                    and failure.code in {"MODEL_UNAVAILABLE", "MODEL_TRANSPORT_FAILURE"})
+                if technical_retries == 0 and retryable_transient:
+                    technical_retries = 1
+                    sleep(0.5)
+                    continue
+                diagnostic.update({"stage": phase, "technical_retries": technical_retries,
+                    "source_id": document.source_id, "source_sha256": document.sha256,
+                    "transient_failure_history": transient_failures,
+                    "rejection_code": failure.code,
+                    "total_duration_seconds": round(perf_counter() - overall_started, 3)})
+                self._diagnostic({**diagnostic,
+                    "prompt_version": prompt_version, "invocation_id": invocation_id})
+                failure.diagnostic = diagnostic
                 raise failure
+            if technical_retries:
+                self._diagnostic({"stage": phase, "provider": "codex_cli", "model": self.model,
+                    "source_id": document.source_id, "source_sha256": document.sha256,
+                    "cli_version": _codex_cli_version(), "error_category": "RECOVERED_TRANSIENT_FAILURE",
+                    "technical_retries": technical_retries, "transient_failure_history": transient_failures,
+                    "duration_seconds": round(perf_counter() - overall_started, 3),
+                    "prompt_version": prompt_version, "invocation_id": invocation_id})
             if not output.is_file():
-                raise DocumentError("MODEL_EMPTY_RESPONSE", "Codex participant returned no response file")
-            raw = load_json(output.read_bytes(), maximum=2_000_000)
+                duration = perf_counter() - invocation_started
+                cli_version = _codex_cli_version()
+                failure = _runtime_failure("MODEL_EMPTY_RESPONSE", "EMPTY_RESPONSE", phase=phase,
+                    model=self.model, cli_version=cli_version, duration_seconds=duration,
+                    stdout=result.stdout, stderr=result.stderr, exit_code=result.returncode,
+                    technical_retries=technical_retries)
+                diagnostic = {**(failure.diagnostic or {}), "stage": phase,
+                    "source_id": document.source_id, "source_sha256": document.sha256,
+                    "prompt_version": prompt_version, "invocation_id": invocation_id}
+                failure.diagnostic = diagnostic
+                self._diagnostic(diagnostic)
+                raise failure
+            response_bytes = output.read_bytes()
+            if not response_bytes:
+                failure = _runtime_failure("MODEL_EMPTY_RESPONSE", "EMPTY_RESPONSE", phase=phase,
+                    model=self.model, cli_version=_codex_cli_version(),
+                    duration_seconds=perf_counter() - overall_started, stdout=response_bytes,
+                    stderr=result.stderr, exit_code=result.returncode,
+                    technical_retries=technical_retries)
+                diagnostic = {**(failure.diagnostic or {}), "stage": phase,
+                    "source_id": document.source_id, "source_sha256": document.sha256,
+                    "prompt_version": prompt_version, "invocation_id": invocation_id}
+                failure.diagnostic = diagnostic
+                self._diagnostic(diagnostic)
+                raise failure
+            try:
+                raw = load_json(response_bytes, maximum=2_000_000)
+            except DocumentError as exc:
+                duration = perf_counter() - invocation_started
+                cli_version = _codex_cli_version()
+                diagnostic = _runtime_failure("MODEL_RESPONSE_INVALID", "RESPONSE_PARSE_FAILURE",
+                    phase=phase, model=self.model, cli_version=cli_version,
+                    duration_seconds=duration, stdout=response_bytes, stderr=result.stderr,
+                    exit_code=result.returncode).diagnostic or {}
+                diagnostic.update({"stage": phase, "prompt_version": prompt_version,
+                    "source_id": document.source_id, "source_sha256": document.sha256,
+                    "technical_retries": technical_retries, "invocation_id": invocation_id})
+                self._diagnostic(diagnostic)
+                exc.diagnostic = diagnostic
+                raise
         raw_before_native_filter = raw
         raw, rejected_native_quotes = _filter_nonexact_native_quotes(raw, parsed,
                                                                       visual_route=visual_route)
