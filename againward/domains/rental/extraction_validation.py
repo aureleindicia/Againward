@@ -8,12 +8,12 @@ from againward.documents.extraction import DocumentExtraction, contradictory_sou
 
 from .entity_contract import (COMPLETENESS_TRIGGER_FIELDS, ENTITY_KINDS,
     DOCUMENT_ROLES, DOCUMENT_STATUSES, PACKAGE_SOURCE_REQUIRED)
-_STRUCTURAL_FIELDS = frozenset({"entity_kind", "document_role", "document_status"})
 
 
 def validate_rental_extraction(extraction: DocumentExtraction, *,
                                require_package_facts: bool = False,
-                               allow_incomplete: bool = False) -> None:
+                               allow_incomplete: bool = False,
+                               provisional: bool = False) -> None:
     """Check entity and source-level metadata before QA orchestration.
 
     Entity kind describes each candidate group. Document role/status describe
@@ -24,8 +24,7 @@ def validate_rental_extraction(extraction: DocumentExtraction, *,
     by_entity: dict[str, dict[str, set[object]]] = defaultdict(lambda: defaultdict(set))
     for candidate in extraction.candidates:
         fields = by_entity[candidate.entity_id]
-        if candidate.semantic_type in _STRUCTURAL_FIELDS:
-            fields[candidate.semantic_type].add(candidate.value)
+        fields[candidate.semantic_type].add(candidate.value)
 
     entity_kind_gaps: list[str] = []
     invalid: list[dict[str, str]] = []
@@ -42,6 +41,7 @@ def validate_rental_extraction(extraction: DocumentExtraction, *,
             for value in values:
                 if value not in allowed:
                     invalid.append({"entity_id": entity_id, "field": field})
+        for field, values in fields.items():
             if len(values) > 1:
                 within_entity_conflicts += 1
                 within_entity_conflicting_fields.add(field)
@@ -58,7 +58,7 @@ def validate_rental_extraction(extraction: DocumentExtraction, *,
             "validation_code": "STRUCTURAL_ENUM_INVALID", "source_id": extraction.source_id,
             "invalid_structural_field_count": len(invalid),
         })
-    if within_entity_conflicts:
+    if within_entity_conflicts and not provisional:
         raise DocumentError("EXTRACTION_CONTRADICTION", "Rental structural metadata conflicts within source",
             diagnostic={"error_category": "SEMANTIC_CONTRADICTION",
                         "schema_path": "$.candidates[]", "validation_code": "STRUCTURAL_METADATA_CONFLICT",
@@ -68,7 +68,7 @@ def validate_rental_extraction(extraction: DocumentExtraction, *,
 
     missing_source_fields = sorted(field for field, values in source_values.items() if not values)
     conflicting_source_fields = sorted(field for field, values in source_values.items() if len(values) > 1)
-    if conflicting_source_fields:
+    if conflicting_source_fields and not provisional:
         raise DocumentError("EXTRACTION_CONTRADICTION", "Rental source role/status is not unique",
             diagnostic={"error_category": "SEMANTIC_CONTRADICTION",
                         "schema_path": "$.candidates[].semantic_type/value",
@@ -77,7 +77,7 @@ def validate_rental_extraction(extraction: DocumentExtraction, *,
                         "conflicting_field_count": len(conflicting_source_fields),
                         "conflicting_semantic_types": conflicting_source_fields})
     conflicts = contradictory_source_limitations(extraction)
-    if conflicts:
+    if conflicts and not provisional:
         raise DocumentError("EXTRACTION_CONTRADICTION", "Proposal limitation conflicts with its own observation",
             diagnostic={"error_category": "SEMANTIC_CONTRADICTION",
                         "schema_path": "$.limitations[]", "validation_code": "OBSERVATION_LIMITATION_CONFLICT",
@@ -127,3 +127,12 @@ def package_source_gaps(extraction: DocumentExtraction, *,
         if missing:
             missing_by_entity[entity_id] = missing
     return missing_by_entity
+
+
+def proposal_issues(extraction: DocumentExtraction) -> dict[str, object]:
+    """Content issues route to independent reconciliation, never imply approval."""
+    try:
+        validate_rental_extraction(extraction)
+    except DocumentError as exc:
+        return {"reason_code": exc.code, **(exc.diagnostic or {})}
+    return {}

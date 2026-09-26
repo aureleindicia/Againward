@@ -2,7 +2,7 @@
 
 from .entity_contract import observation_instructions
 
-GUIDANCE_VERSION = "rental-semantic-guidance-v15-canonical-entity-contract"
+GUIDANCE_VERSION = "rental-semantic-guidance-v16-provisional-readings"
 
 STRUCTURE_RETRY_INSTRUCTIONS = (
     "Reinspect this source. Each material entity needs entity_kind, not document_role; source role/status need one supported value. "
@@ -53,9 +53,10 @@ description; do not copy its commercial meaning from another document. A
 charge_key is a technical reconciliation key resolved after reviewed source
 facts and an exact relationship; emit it only when explicitly supported by
 this source. Include charge_type RENTAL and net_amount only
-when the invoice explicitly labels the amount net or excluding tax. A
-source-local INVOICE_LINE needs invoice_id, agreement_id,
-equipment anchor, currency and a distinct entity_id per line. Do not omit
+when the invoice explicitly labels the amount net or excluding tax. Observe agreement_id and equipment anchors on each invoice line when the
+source supplies them. Keep a distinct entity_id per real line; the canonical
+contract below defines required source fields and later relationship review
+establishes cross-document links. Do not omit
 source-supported charge_type merely because "rental" feels obvious; otherwise the
 downstream ledger must STOP. Python derives a technical charge_key from a unique
 reviewed charge scope when it is not printed. An explicitly issued invoice or

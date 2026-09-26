@@ -21,7 +21,7 @@ from againward.documents.resolution import (
 )
 from againward.evidence.hashing import stable_hash
 from .semantic_guidance import STRUCTURE_RETRY_INSTRUCTIONS, guidance, visual_guidance
-from .entity_contract import ANALYTICAL_FIELDS, DOCUMENT_ROLES, PACKAGE_SOURCE_REQUIRED
+from .entity_contract import ANALYTICAL_FIELDS, DOCUMENT_ROLES, DOCUMENT_STATUSES, PACKAGE_SOURCE_REQUIRED, structural_gaps
 from .models import RentalCase, decimal_value
 
 DOCUMENT_CASE_SCHEMA = "againward-rental-document-case-v1"
@@ -107,7 +107,15 @@ def _line_identifier(entity: Entity) -> tuple[str, dict[str, str] | None]:
     if labels:
         return next(iter(labels)), {"entity_id": entity.entity_id,
                                     "field": "invoice_line_id", "rule": "REVIEWED_PRINTED_LINE_LABEL"}
-    return "local-" + entity.entity_id.removeprefix("entity-")[:20], {
+    from againward.evidence.hashing import stable_hash
+    anchors = sorted((fact.candidate.location, fact.candidate.source_span)
+                     for fact in entity.facts if fact.candidate.semantic_type == "net_amount")
+    identity = {"source_id": entity.source_id, "anchors": anchors,
+                "invoice_id": entity.values.get("invoice_id"),
+                "charge_type": entity.values.get("charge_type"),
+                "visual_occurrence": entity.local_id if any(span is None for _, span in anchors) else None,
+                "net_amount": entity.values.get("net_amount")}
+    return "local-" + stable_hash(identity)[:20], {
         "entity_id": entity.entity_id, "field": "invoice_line_id",
         "rule": "SOURCE_LOCAL_TECHNICAL_ID"}
 
@@ -165,15 +173,27 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
                for candidate_hash in required_visual_hashes):
             raise DocumentError("EXTRACTION_INCOMPLETE",
                                 "Visual-only extraction limitation needs review of every original-pixel candidate")
+    gaps = structural_gaps(
+        ((f.candidate.source_id, f.candidate.entity_id, f.candidate.semantic_type) for f in facts),
+        offered=((c.source_id, c.entity_id, c.semantic_type) for e in extractions for c in e.candidates))
+    if gaps:
+        raise DocumentError("EXTRACTION_INCOMPLETE", "Reviewed authority cannot be inherited over rejected metadata",
+            diagnostic={"stage": "DOCUMENT_PACKAGE_VALIDATION", "schema_path": "$.fact_review.decisions",
+                        "validation_code": "REVIEWED_AUTHORITY_INCOMPLETE", "error_category": "REVIEW_REQUIRED",
+                        "structural_gap_count": len(gaps), "source_id": gaps[0]["source_id"]})
     entities = entities_from_facts(facts)
     if any(e.kind not in {"RENTAL_SCOPE", "INVOICE_LINE", "RETURN", "RATE_AMENDMENT",
                           "CREDIT", "SUPPORTING_DOCUMENT", "IRRELEVANT"} for e in entities):
         raise DocumentError("EXTRACTION_INCOMPLETE", "Unsupported material entity kind")
     for entity in entities:
-        missing = PACKAGE_SOURCE_REQUIRED[entity.kind] - entity.values.keys()
+        missing = {field for field in PACKAGE_SOURCE_REQUIRED[entity.kind] if entity.values.get(field) is None}
         if missing:
             raise DocumentError("EXTRACTION_INCOMPLETE",
-                                "Reviewed entity lacks package-required source facts: " + ",".join(sorted(missing)))
+                                "Reviewed entity lacks package-required source facts: " + ",".join(sorted(missing)),
+                                diagnostic={"stage": "DOCUMENT_PACKAGE_VALIDATION",
+                                    "source_id": entity.source_id, "schema_path": "$.entities[].fields",
+                                    "validation_code": "REVIEWED_ENTITY_INCOMPLETE", "error_category": "SOURCE_EVIDENCE_MISSING",
+                                    "missing_semantic_fields": sorted(missing)})
     by_source: dict[str, list[Entity]] = {}
     for e in entities:
         by_source.setdefault(e.source_id, []).append(e)
@@ -181,7 +201,7 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
     for source in batch.documents:
         source_entities = by_source.get(source.source_id, [])
         roles, statuses = _source_document_metadata([entity.values for entity in source_entities])
-        if len(roles) != 1 or not roles <= DOCUMENT_ROLES or len(statuses) != 1:
+        if len(roles) != 1 or not roles <= DOCUMENT_ROLES or len(statuses) != 1 or not statuses <= DOCUMENT_STATUSES:
             raise DocumentError("EXTRACTION_INCOMPLETE", "Reviewed source role/status required without conflict")
         role, status = next(iter(roles)), next(iter(statuses))
         if role in {"IRRELEVANT", "UNKNOWN"} and any(e.kind != "IRRELEVANT" for e in source_entities):

@@ -36,7 +36,7 @@ from .autonomous_job import run_reviewed_package_job
 from .autonomous_report import current_report_versions
 
 
-VERSION = "againward-rental-approved-sources-job-v3-selected-completeness"
+VERSION = "againward-rental-approved-sources-job-v4-reconciled-observations"
 VISUAL_LIMITATION_ROUTING_VERSION = "againward-rental-visual-reading-v2"
 RETRYABLE_MODEL_CODES = {"MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_AUTH_REQUIRED",
                          "MODEL_RATE_LIMITED", "MODEL_TRANSPORT_FAILURE", "MODEL_EMPTY_RESPONSE"}
@@ -359,7 +359,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                             {"batch": batch, "semantic_guidance": attempt_guidance,
                              "invocation_phase": "PRIMARY_EXTRACTION"})
                         extraction = validate_proposal(proposal, batch, documents)
-                        validate_rental_extraction(extraction)
+                        validate_rental_extraction(extraction, provisional=True)
                         break
                     except DocumentError as exc:
                         _bind_extraction_attempt(exc, attempt=attempt, model=model,
@@ -367,7 +367,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                         if attempt == 2 and exc.code == "STRUCTURAL_INCOMPLETE" and extraction is not None:
                             # Keep the cited, unapproved reread for independent QA.
                             # The selected extraction is checked strictly before review.
-                            validate_rental_extraction(extraction, allow_incomplete=True)
+                            validate_rental_extraction(extraction, allow_incomplete=True, provisional=True)
                             deferred_structure = _safe_failure_diagnostic(
                                 exc, stage="PRIMARY_EXTRACTION", source_id=document.source_id)
                             break
@@ -409,13 +409,13 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                             {"batch": batch, "semantic_guidance": attempt_guidance,
                              "invocation_phase": "INDEPENDENT_REREAD"})
                         extraction = validate_proposal(proposal, batch, documents)
-                        validate_rental_extraction(extraction)
+                        validate_rental_extraction(extraction, provisional=True)
                         break
                     except DocumentError as exc:
                         _bind_extraction_attempt(exc, attempt=attempt, model=model,
                                                  semantic_guidance=attempt_guidance)
                         if attempt == 2 and exc.code == "STRUCTURAL_INCOMPLETE" and extraction is not None:
-                            validate_rental_extraction(extraction, allow_incomplete=True)
+                            validate_rental_extraction(extraction, allow_incomplete=True, provisional=True)
                             deferred_structure = _safe_failure_diagnostic(
                                 exc, stage="INDEPENDENT_REREAD", source_id=document.source_id)
                             break
@@ -437,6 +437,19 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                       model_attempts=attempt, model_wall_seconds=round(perf_counter() - started, 3),
                       deferred_structure=deferred_structure)
         challenger = _extractions(state["challenger"], batch, documents)
+        if "assembly_plan_receipt" in state:
+            from againward.documents.reconciliation import assemble_observations
+            plan = _receipt(state["assembly_plan_receipt"], documents, "adjudications", "adjudication_sha256")
+            original = {item.source_id: item for item in _extractions(state["original_primary"], batch, documents)}
+            peers = {item.source_id: item for item in challenger}
+            effective = {item.source_id: item for item in primary}
+            for decision in plan["decisions"]:
+                source_id = decision["source_id"]
+                if decision["selection"] == "ASSEMBLE":
+                    rebuilt = assemble_observations(original[source_id], peers[source_id],
+                        decision["candidate_selections"], batch, documents)
+                    if rebuilt.to_dict() != effective[source_id].to_dict():
+                        raise DocumentError("REVIEW_STALE", "Assembly lineage no longer matches current proposals")
         active_stage = "SOURCE_QA"
         active_source_id = None
         qa = compare_extractions(batch, primary, challenger, documents)
@@ -460,7 +473,39 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                                                  validate_pixel_observations=lambda extraction:
                                                      validate_rental_extraction(extraction, require_package_facts=True),
                                                  unique_required_entity=unique_pixel_entity_for_required_field,
-                                                 required_source_facts=package_source_gaps)
+                                                 required_source_facts=package_source_gaps,
+                                                 allow_assembly="assembly_plan_receipt" not in state,
+                                                 assembly_context=({"plan": read_json(Path(state["assembly_plan_receipt"])),
+                                                     "original_primary": [item.to_dict() for item in
+                                                         _extractions(state["original_primary"], batch, documents)]}
+                                                     if "assembly_plan_receipt" in state else None))
+            if adjudication.get("assembly_proposals"):
+                if "assembly_plan_receipt" in state or any(key in state for key in (
+                        "native_review_receipt", "visual_review_receipt", "package")):
+                    raise DocumentError("REVIEW_STALE", "Assembly requires fresh dependent reviews and one bounded round")
+                assembly_path = documents / "adjudications" / (adjudication["adjudication_sha256"] + ".json")
+                write_json(assembly_path, adjudication)
+                state["assembly_plan_receipt"] = str(assembly_path)
+                state["original_primary"] = dict(state["primary"])
+                state["preassembly_qa_receipt"] = state["qa_receipt"]
+                for source_id, payload in adjudication["assembly_proposals"].items():
+                    assembled = replay_extraction(payload, batch, documents)
+                    state["primary"][source_id] = str(persist_extraction(assembled, documents))
+                primary = _extractions(state["primary"], batch, documents)
+                qa = compare_extractions(batch, primary, challenger, documents)
+                qa_path = documents / "independent_qa" / (qa["qa_sha256"] + ".json")
+                write_json(qa_path, qa)
+                state["qa_receipt"] = str(qa_path)
+                _save(path, state, "ASSEMBLY_PROPOSED", facts_approved=0)
+                adjudication = adjudicate_with_codex(batch, primary, challenger, qa, documents,
+                    model=model, timeout_seconds=timeout_seconds, evaluation_only=evaluation_only,
+                    validate_pixel_observations=lambda extraction:
+                        validate_rental_extraction(extraction, require_package_facts=True),
+                    unique_required_entity=unique_pixel_entity_for_required_field,
+                    required_source_facts=package_source_gaps, allow_assembly=False,
+                    assembly_context={"plan": read_json(assembly_path),
+                        "original_primary": [item.to_dict() for item in
+                            _extractions(state["original_primary"], batch, documents)]})
             base_by_hash = {item.to_dict()["extraction_sha256"]: item for item in (*primary, *challenger)}
             added: dict[str, dict[str, Any]] = {}
             for decision in adjudication["decisions"]:
@@ -517,8 +562,15 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
         augmented = tuple(augmented_rows)
         by_hash = {item.to_dict()["extraction_sha256"]: item
                    for item in (*primary, *challenger, *augmented)}
-        selected = tuple(by_hash[adjudication["selected_extractions"][document.source_id]]
-                         for document in batch.documents)
+        selections = adjudication.get("selected_extractions", {})
+        expected_sources = {document.source_id for document in batch.documents}
+        if (not isinstance(selections, dict) or set(selections) != expected_sources
+                or any(not isinstance(value, str) or value not in by_hash
+                       or by_hash[value].source_id != source_id for source_id, value in selections.items())):
+            raise DocumentError("REVIEW_STALE", "Selection does not cover the current source proposals", diagnostic={
+                "schema_path": "$.selected_extractions", "validation_code": "SELECTED_PROPOSAL_BINDING_INVALID",
+                "error_category": "SOURCE_BINDING"})
+        selected = tuple(by_hash[selections[document.source_id]] for document in batch.documents)
         for extraction in selected:
             validate_rental_extraction(extraction, require_package_facts=True)
         if "native_review_receipt" not in state:
@@ -614,6 +666,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 review, review_path = attested
                 state["fact_review_file"] = review_path
                 _save(path, state, "VISUAL_ATTESTATION_REPLAYED")
+        active_stage = "DOCUMENT_PACKAGE_VALIDATION"
         body = {"schema_version": DOCUMENT_CASE_SCHEMA, "batch": batch.to_dict(),
                 "extractions": [item.to_dict() for item in selected], "fact_review": review,
                 "rental_relationship_review": None, "credit_relationship_review": None}
@@ -647,6 +700,16 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
     except DocumentError as exc:
         safe_diagnostic = _safe_failure_diagnostic(exc, stage=active_stage,
                                                    source_id=active_source_id)
+        protocol_error = safe_diagnostic.get("error_category") in {
+            "DECISION_COVERAGE", "SCHEMA_ERROR", "SCHEMA_SHAPE", "SCHEMA_TYPE", "SCHEMA_ENUM",
+            "SCHEMA_REQUIRED", "SCHEMA_CLOSED_OBJECT", "SOURCE_BINDING", "SOURCE_DECISION_BINDING"}
+        if (exc.code in {"EXTRACTION_INCOMPLETE", "STRUCTURAL_INCOMPLETE", "EXTRACTION_CONTRADICTION", "ENTITY_AMBIGUOUS"}
+                and not protocol_error):
+            _save(path, state, "WAITING_FOR_REQUIRED_INFORMATION", reason_code=exc.code,
+                  failure_diagnostic=safe_diagnostic)
+            return {"status": "WAITING_FOR_REQUIRED_INFORMATION", "reason_code": exc.code,
+                    "stage": active_stage, "diagnostic": safe_diagnostic,
+                    "job_state": str(path), "approved_for_delivery": False}
         if exc.code in RETRYABLE_MODEL_CODES:
             _save(path, state, "WAITING_MODEL_RETRY", reason_code=exc.code,
                   failure_diagnostic=safe_diagnostic)

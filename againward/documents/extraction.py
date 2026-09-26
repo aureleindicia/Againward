@@ -169,9 +169,12 @@ class DocumentExtraction:
     status: str
     candidates: tuple[FactCandidate, ...]
     limitations: tuple[str, ...]
+    assembly_receipt_sha256: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         body = {"schema_version": SCHEMA, **asdict(self)}
+        if self.assembly_receipt_sha256 is None:
+            body.pop("assembly_receipt_sha256")
         # Preserve the established native proposal/receipt representation byte
         # for byte. Visual bindings are an additive contract only for sources
         # that actually contain non-native units.
@@ -301,7 +304,7 @@ def validate_proposal(payload: Any, batch: SourceBatch, root: Path, *,
     p = closed(payload, {"schema_version", "source_id", "source_sha256", "batch_id", "reader_version",
                          "extractor_version", "model", "prompt_version", "created_at", "status",
                          "candidates", "limitations"},
-               optional={"visual_bindings", "invocation_id"})
+               optional={"visual_bindings", "invocation_id", "assembly_receipt_sha256"})
     p.setdefault("visual_bindings", [])
     p.setdefault("invocation_id", None)
     try:
@@ -375,10 +378,14 @@ def validate_proposal(payload: Any, batch: SourceBatch, root: Path, *,
     status = p["status"]
     if status == "SUCCESS" and (limitations or any(c.ambiguity_flags for c in candidates) or parsed.status != "SUCCESS"):
         status = "NEEDS_REVIEW"
-    return DocumentExtraction(doc.source_id, doc.sha256, batch.batch_id, parsed.reader_version,
+    result = DocumentExtraction(doc.source_id, doc.sha256, batch.batch_id, parsed.reader_version,
                               p["extractor_version"], p["model"], p["prompt_version"], p["created_at"],
                               tuple(bindings), p["invocation_id"], status, candidates,
-                              tuple(sorted(limitations)))
+                              tuple(sorted(limitations)), p.get("assembly_receipt_sha256"))
+    from .reconciliation import ASSEMBLY_VERSION, verify_assembly_extraction
+    if result.extractor_version == ASSEMBLY_VERSION or result.assembly_receipt_sha256 is not None:
+        verify_assembly_extraction(result, batch, root)
+    return result
 
 
 def persist_extraction(extraction: DocumentExtraction, root: Path) -> Path:

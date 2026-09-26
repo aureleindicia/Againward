@@ -91,7 +91,12 @@ MATERIAL_FIELDS = {
 
 def observation_instructions() -> str:
     """Render the same structural contract for native, visual and retry prompts."""
+    required = "; ".join(kind + ": " + ", ".join(sorted(fields))
+                         for kind, fields in sorted(PACKAGE_SOURCE_REQUIRED.items()) if fields)
     return (
+        "Intermediate readings may be partial. Keep omissions and conflicting readings explicit; "
+        "they require reconciliation, not invented facts. Only the selected reviewed proposal must "
+        "be complete before calculation. Required source-bound fields by entity kind: " + required + ". "
         "Rental observation contract: entity_kind is required for each distinct material entity; "
         "allowed kinds are " + ", ".join(sorted(ENTITY_KINDS)) + ". "
         "document_role and document_status classify the SOURCE, not every row. "
