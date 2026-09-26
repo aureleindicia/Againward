@@ -158,7 +158,7 @@ def test_visual_invoice_reader_keeps_structural_metadata_on_the_billed_line(tmp_
         "entity_kind", "document_role", "document_status", "invoice_id", "invoice_line_id", "net_amount"}
     assert len({candidate.entity_id for candidate in line}) == 1
     assert "each material visual entity" in captured["prompt"]
-    assert "Never split structural metadata across different entity_hint values" in captured["prompt"]
+    assert "document_role and document_status classify the source" in captured["prompt"]
     assert "Limitations must be atomic, source-local claims" in captured["prompt"]
     assert "Do not say an amount/total is not visible" in captured["prompt"]
 
@@ -267,11 +267,11 @@ def test_native_document_families_keep_structural_trio_on_each_entity(tmp_path, 
         "entity_kind", "document_role", "document_status", fact_type}
     expected_entities = {entity_id, "export-credit-1"} if family == "accounting_export" else {entity_id}
     assert {candidate.entity_id for candidate in extraction.candidates} == expected_entities
-    assert "For every material Rental entity_id, emit entity_kind, document_role and document_status" in captured["prompt"]
-    assert "same entity_id" in captured["prompt"]
+    assert "document_role and document_status classify the SOURCE" in captured["prompt"]
+    assert "same message or row" in captured["prompt"]
     if family == "accounting_export":
-        assert "PAYMENT_EXPORT and EXTRACTED describe the source document" in captured["prompt"]
-        assert "a CREDIT row type does not by itself change the document role or status" in captured["prompt"]
+        assert "mirror-only accounting/export row is SUPPORTING_DOCUMENT" in captured["prompt"]
+        assert "row type is source data, not entity_kind or document_role" in captured["prompt"]
 
     accepted = {"decisions": [{"candidate_id": candidate.candidate_id, "decision": "ACCEPT",
         "reason": "Exact source observation with complete source-supported structural metadata.",

@@ -13,6 +13,8 @@ from againward.documents.independent_qa import QA_INSTRUCTIONS
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
 from againward.domains.rental.extraction_validation import validate_rental_extraction
+from againward.domains.rental.entity_contract import (FIELD_SCOPE, PACKAGE_SOURCE_REQUIRED,
+    normalize_single_line_document_groups, structural_gaps)
 from againward.domains.rental.source_job import (RENTAL_STRUCTURE_RETRY, _bind_extraction_attempt,
     _safe_failure_diagnostic, _visual_review_stop)
 
@@ -114,6 +116,86 @@ def test_multirow_accounting_export_uses_source_level_role_and_status(tmp_path):
         "Export ledger. Invoice row 1 Mirror only: 900.00. Invoice row 2: 270.00. Credit row CN-41.",
         candidates)
     validate_rental_extraction(extraction)
+
+
+def test_canonical_scope_and_review_shape_are_route_independent():
+    assert FIELD_SCOPE["entity_kind"] == "ENTITY"
+    assert FIELD_SCOPE["document_role"] == FIELD_SCOPE["document_status"] == "SOURCE"
+    assert "invoice_line_id" not in PACKAGE_SOURCE_REQUIRED["INVOICE_LINE"]
+    assert "charge_key" not in PACKAGE_SOURCE_REQUIRED["INVOICE_LINE"]
+    assert "charge_type" in PACKAGE_SOURCE_REQUIRED["INVOICE_LINE"]
+    for source_id in ("native-source", "visual-source"):
+        accepted = [(source_id, "row-1", "entity_kind"),
+                    (source_id, "row-1", "document_role"),
+                    (source_id, "row-1", "document_status"),
+                    (source_id, "row-2", "entity_kind")]
+        assert structural_gaps(accepted) == []
+        assert structural_gaps(accepted[:-1]) == []
+        assert structural_gaps(accepted[1:]) == [{
+            "source_id": source_id, "entity_id": "row-1", "missing": ["entity_kind"]}]
+
+
+@pytest.mark.parametrize("visual", [False, True])
+def test_unique_invoice_document_envelope_groups_without_changing_evidence(visual):
+    group = "entity_hint" if visual else "entity_id"
+    rows = [
+        {group: "invoice", "semantic_type": "document_role", "value": "INVOICE"},
+        {group: "invoice", "semantic_type": "invoice_id", "value": "INV-8"},
+        {group: "line", "semantic_type": "entity_kind", "value": "INVOICE_LINE"},
+        {group: "line", "semantic_type": "net_amount", "value": "850.00"},
+    ]
+    for row in rows:
+        row["visible_text" if visual else "raw_observed_value"] = str(row["value"])
+        if visual:
+            row["page"] = 1
+    raw = {"observations" if visual else "candidates": rows}
+    normalized, moves = normalize_single_line_document_groups(raw, visual=visual)
+    assert moves == 2
+    assert {row[group] for row in normalized["observations" if visual else "candidates"]} == {"line"}
+    assert raw["observations" if visual else "candidates"][0][group] == "invoice"
+    assert [row["visible_text" if visual else "raw_observed_value"] for row in rows] == [
+        row["visible_text" if visual else "raw_observed_value"]
+        for row in normalized["observations" if visual else "candidates"]]
+
+
+def test_document_envelope_is_not_moved_across_ambiguous_invoice_lines():
+    raw = {"observations": [
+        {"entity_hint": "invoice", "semantic_type": "document_role", "value": "INVOICE", "page": 1},
+        {"entity_hint": "line-1", "semantic_type": "entity_kind", "value": "INVOICE_LINE", "page": 1},
+        {"entity_hint": "line-2", "semantic_type": "entity_kind", "value": "INVOICE_LINE", "page": 1},
+    ]}
+    assert normalize_single_line_document_groups(raw, visual=True)[1] == 0
+
+
+def test_document_envelope_does_not_override_conflict_or_cross_page_pixels():
+    rows = [
+        {"entity_hint": "invoice", "semantic_type": "document_status", "value": "ISSUED", "page": 1},
+        {"entity_hint": "line", "semantic_type": "entity_kind", "value": "INVOICE_LINE", "page": 1},
+        {"entity_hint": "line", "semantic_type": "document_status", "value": "ACCEPTED", "page": 1},
+    ]
+    normalized, moved = normalize_single_line_document_groups({"observations": rows}, visual=True)
+    assert moved == 0
+    assert normalized["observations"] == rows
+    rows[2]["semantic_type"] = "net_amount"
+    rows[2]["page"] = 2
+    assert normalize_single_line_document_groups({"observations": rows}, visual=True)[1] == 0
+
+
+def test_invoice_semantic_charge_type_is_required_on_selected_extraction_before_review(tmp_path):
+    rows = _fields() + [
+        {"entity_id": "line", "semantic_type": "invoice_id", "value_type": "IDENTIFIER",
+         "value": "INV-8", "quote": "INV-8"},
+        {"entity_id": "line", "semantic_type": "currency", "value_type": "CURRENCY",
+         "value": "EUR", "quote": "EUR"},
+        {"entity_id": "line", "semantic_type": "net_amount", "value_type": "DECIMAL",
+         "value": "850.00", "quote": "850.00"},
+    ]
+    extraction = _proposal(tmp_path, "Invoice line Issued INV-8 EUR 850.00.", rows)
+    validate_rental_extraction(extraction)  # A challenger may still recover the omitted fact.
+    with pytest.raises(DocumentError) as caught:
+        validate_rental_extraction(extraction, require_package_facts=True)
+    assert caught.value.code == "STRUCTURAL_INCOMPLETE"
+    assert caught.value.diagnostic["missing_semantic_fields"] == ["charge_type"]
 
 
 def test_multrow_accounting_export_still_requires_kind_for_each_row(tmp_path):

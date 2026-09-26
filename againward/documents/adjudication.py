@@ -27,7 +27,7 @@ from .readers import read_document
 from .sources import verify_batch
 
 
-ADJUDICATION_VERSION = "againward-source-adjudication-v9-entity-consistent-pixel-observations"
+ADJUDICATION_VERSION = "againward-source-adjudication-v10-source-scoped-metadata"
 MAX_SOURCE_TEXT = 60_000
 MAX_VISUAL_PAGES = 4
 _SCHEMA: dict[str, Any] = {
@@ -511,8 +511,8 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         "asset/quantity/date in both proposals, different phrasing or grouping alone is not a material "
         "conflict: select the source-supported proposal and emit pixel observations for any other clearly "
         "visible material fact absent from that selected set, using one consistent entity_hint per real "
-        "document/line/asset. Include source-visible RETURN metadata (entity_kind, document_role, "
-        "document_status) with the same entity_hint as its event facts when the pixels establish them. "
+        "document/line/asset. Give each new RETURN entity its own entity_kind with the same hint as "
+        "its event facts. A source-supported role and status classify the source once. "
         "A signed return record may support verification=DOCUMENTED without transcribing private signer "
         "names. Every such observation stays unapproved and must pass the existing fact review. Choose "
         "UNRESOLVED only when competing material interpretations remain, the pixels are ambiguous, or "
@@ -681,8 +681,9 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                 if exc.code == "STRUCTURAL_INCOMPLETE":
                     prompt += (
                         "\nYour prior pixel observations omitted required source-supported entity metadata. "
-                        "Reinspect the same original pixels and place entity_kind, document_role and "
-                        "document_status observations with the same entity_hint as that entity's facts. "
+                        "Reinspect the same original pixels. Give each material entity a source-supported "
+                        "entity_kind under its fact-group hint, and give the source one supported role "
+                        "and status on a representative hint. "
                         "Use only source-supported canonical values; if the source cannot establish them, "
                         "do not create the pixel observation and choose UNRESOLVED where necessary."
                     )

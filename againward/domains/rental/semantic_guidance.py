@@ -1,23 +1,21 @@
 """Rental interpretation vocabulary supplied to a neutral source-unit provider."""
 
-GUIDANCE_VERSION = "rental-semantic-guidance-v14-document-metadata-scope"
+from .entity_contract import observation_instructions
+
+GUIDANCE_VERSION = "rental-semantic-guidance-v15-canonical-entity-contract"
 
 STRUCTURE_RETRY_INSTRUCTIONS = (
-    "The local Rental contract found source/entity structure missing. Reinspect this source and emit a "
-    "canonical entity_kind for every distinct material entity. document_role and document_status describe "
-    "the source document: include source-supported values when one consistent role/status applies across "
-    "this file, and do not repeat them merely to label each row's intrinsic type. A row type such as INVOICE "
-    "or CREDIT is entity_kind, not document_role. Do not infer a role/status from a filename, another source, "
-    "or the expected calculation. If source-level role/status is genuinely absent, conflicting, or ambiguous, "
-    "leave it absent; validation will stop. Keep distinct rows under distinct entity IDs."
+    "Reinspect this source. Each material entity needs entity_kind, not document_role; source role/status need one supported value. "
+    "Mirror-only export rows are SUPPORTING_DOCUMENT even if Type says INVOICE or CREDIT. "
+    "Do not infer a role/status from a filename. "
+    "Use exact evidence for semantic facts, including charge_type; retain unknowns. "
+    "Keep material rows distinct; validation will stop if still invalid. One bounded retry."
 )
 
 
 def guidance() -> str:
     return """Rental B2B source interpretation, not authority or arithmetic.
-Classify each relevant document and material local entity. Use entity_kind values
-RENTAL_SCOPE, INVOICE_LINE, RETURN, RATE_AMENDMENT, CREDIT,
-SUPPORTING_DOCUMENT or IRRELEVANT. Use
+Classify each relevant document and material local entity. Use
 separate entity IDs for separate invoice lines, rental scopes, returns, and
 independently priced equipment rows; IDs are local to this source and never
 establish a cross-document relationship. In a multi-row rate card, do not group
@@ -25,38 +23,12 @@ all rows under one aggregate rate_card entity: each asset's description, rate,
 unit, and identifiers belong to that row's distinct entity. A semantic field
 must have only one value per entity; preserve different row values as separate
 entities rather than treating them as conflicting alternatives.
-Every distinct material entity needs its own source-supported entity_kind.
-document_role and document_status describe the source document, not each row's
-intrinsic type. Include each source-level value when it is established and
-consistent across this source; it may be attached to a source entity and need
-not be duplicated on every row. A source with no unique source-level role or
-status remains incomplete. A multi-row export may contain INVOICE and CREDIT
-entity kinds while retaining the same PAYMENT_EXPORT role and EXTRACTED status
-when the workbook itself supports that classification. Do not infer these
-values from a filename or from a row type. Do not put document identity in a
-metadata-only entity_id beside another ID for the same message, export row,
-rate row or invoice line. Never default or borrow a value from another source.
-Do not infer ACCEPTED from mere existence of a quote.
-document_role is the document type, NOT entity_kind or a free-form label. Use
-only RENTAL_AGREEMENT, RATE_CARD, QUOTE, PURCHASE_ORDER, AMENDMENT, INVOICE,
-CREDIT_NOTE, DELIVERY_NOTE, RETURN_NOTE, OFF_HIRE_NOTICE, EMAIL_EVIDENCE,
-ASSET_LIST, PAYMENT_EXPORT, TEXT_NOTE, UNKNOWN or IRRELEVANT. Thus a signed
-agreement's RENTAL_SCOPE has document_role RENTAL_AGREEMENT, an invoice line
-has INVOICE, an issued credit has CREDIT_NOTE, and a signed return has
-RETURN_NOTE. The same source must have one consistent role/status across its
-entities. Never use RENTAL_SCOPE, CREDIT or RETURN as document_role.
+Do not put document identity in a metadata-only entity_id beside another ID
+for the same message or row. Never borrow a value from another source.
+An agreement, invoice, issued credit and signed return have distinct document
+roles when the source supports them. Do not infer ACCEPTED from a mere quote.
 
-Allowed analytical semantic_type fields: entity_kind, document_role,
-document_status, agreement_id, supplier_id, client_id, item_id, description,
-asset_id, serial_number, category, site_id, cost_center_id, start, end,
-quantity, rate, charge_key, charge_type, currency, billing_unit,
-weekends_billable, minimum_days, partial_period_policy, stop_event,
-stop_day_billable, discount_fraction, percentage_of, tier_min_days,
-tier_max_days, effective_from, terms_unchanged, invoice_id,
-invoice_line_id, net_amount, unit_rate, billed_units, event_type, date,
-verification, extended_end, credit_id, status, allocated_amount.
-Do not output contact names, email addresses, phone numbers or signatures as
-analytical facts. Commercial prices and contractual IDs are relevant.
+Do not output contact details as analytical facts. Prices and IDs are relevant.
 
 For a source-supported RENTAL_SCOPE with a fixed daily price, include both
 charge_key (a stable source-backed category such as "rental"), charge_type
@@ -76,16 +48,17 @@ EXACT, STARTED or PRORATA and quote that clause. A statement that partial
 QUANTITIES are billed exactly describes unit counts, not fractional time;
 do not emit partial_period_policy for it. If no partial-time rule is stated,
 leave partial_period_policy absent. Never copy source prose into this enum.
-The same invoice-line charge_key
-must be justified by the invoice's own rental-charge description; do not copy
-it from a different document. Include charge_type RENTAL and net_amount only
+The invoice-line charge_type must be justified by the invoice's own charge
+description; do not copy its commercial meaning from another document. A
+charge_key is a technical reconciliation key resolved after reviewed source
+facts and an exact relationship; emit it only when explicitly supported by
+this source. Include charge_type RENTAL and net_amount only
 when the invoice explicitly labels the amount net or excluding tax. A
-source-local INVOICE_LINE needs invoice_id, invoice_line_id, agreement_id,
+source-local INVOICE_LINE needs invoice_id, agreement_id,
 equipment anchor, currency and a distinct entity_id per line. Do not omit
-charge_key/charge_type merely because "rental" feels obvious; otherwise the
-downstream ledger must STOP. Use canonical enum values, never a free-form
-phrase: billing_unit DAY/WEEK/MONTH/FIXED/PERCENT; document_status
-ACCEPTED/ISSUED/PROPOSED/VOID/EXTRACTED. An explicitly issued invoice or
+source-supported charge_type merely because "rental" feels obvious; otherwise the
+downstream ledger must STOP. Python derives a technical charge_key from a unique
+reviewed charge scope when it is not printed. An explicitly issued invoice or
 issued credit note has document_status ISSUED, not EXTRACTED or ACCEPTED;
 ACCEPTED is for an accepted commercial term or signed/accepted return record.
 ISSUED confirms document provenance, not the customer's acceptance of its
@@ -95,9 +68,8 @@ normalization_notes with the exact local wording. Do not assert ACCEPTED
 agreement status from a mere quote or proposal. Keep decimal quantities as
 exact strings when the source uses decimals; do not derive billed units.
 IDENTIFIER values (especially invoice_line_id) must be safe IDs without spaces.
-For "Line 1", use invoice_line_id "1" with raw quote "Line 1" and an explicit
-normalization note; never use "Line 1" as an IDENTIFIER value. If no stable
-line ID is printed, leave it absent rather than inventing one.
+For "Line 1", use invoice_line_id "1" with exact raw quote "Line 1"; if no
+stable line ID is printed, leave it absent.
 For a CREDIT, distinguish net_amount (the total issued credit) from an
 allocation. Use status ISSUED only if issued, or PROMISED if merely promised.
 Include credit_id, supplier_id, currency, net_amount and source-supported
@@ -127,12 +99,12 @@ the return note into a documented physical RETURN. The operator decides
 cross-document links and whether corroboration changes a conclusion. Keep an
 email message and its request facts under one source-local correspondence
 entity unless the source establishes a distinct document or event; each
-accepted entity still requires its own complete structural trio.
+accepted entity still requires its own source-bound entity_kind.
 When one accounting-export workbook contains both invoice and credit rows,
-PAYMENT_EXPORT and EXTRACTED describe the workbook's document role/status and
-must be repeated on each row entity if the source establishes one consistent
-export classification. The Type cell distinguishes invoice from credit; it
-does not change the workbook's role/status. Do not copy row classifications
+PAYMENT_EXPORT and EXTRACTED describe the workbook's document role/status when
+source-supported and may be observed once for the source. The Type cell is a
+row label; a mirror-only invoice or credit row remains SUPPORTING_DOCUMENT and
+must not become an issued charge or credit. Do not copy row classifications
 across entities when the document contains mixed or contradictory source roles.
 An accepted rate sheet that explicitly duplicates accepted-agreement prices
 and says it makes no amendment is a SUPPORTING_DOCUMENT with document_role
@@ -166,7 +138,7 @@ reviews only material unresolved exceptions and the finished delivery.
 For net_amount, rate, unit_rate and allocated_amount, use value_type DECIMAL
 with the numeric amount only. Use value_type CURRENCY only for semantic_type
 currency, and give it the source's separate ISO code. Never combine amount and
-currency into one value or use CURRENCY for a number."""
+currency into one value or use CURRENCY for a number.""" + "\n" + observation_instructions()
 
 
 def visual_guidance() -> str:
@@ -207,12 +179,11 @@ attached, or has a supporting heading. Keep its entity_kind and line facts
 under the same entity_hint; include the source-level INVOICE role and status
 when the page establishes them.
 Use a separate SUPPORTING_DOCUMENT entity only for a genuinely separate
-document-level statement, and give that entity its own complete structural
-metadata. If the pixels do not establish a required field, leave it absent and
+document-level statement, and give it a source-bound entity_kind. If the pixels do not establish a required field, leave it absent and
 preserve the review gap; never fill it from another source or from a default.
 
 Preserve visible wording, uncertainty, and document role. Do not decide whether
 a charge is contractually due, link different documents, compute totals, or
 infer an absent term. Use a null value when a visible value cannot be read;
 mark ambiguity instead of guessing. The runtime will bind source and pixel
-identity after your observations."""
+identity after your observations.""" + "\n" + observation_instructions()

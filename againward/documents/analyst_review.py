@@ -14,6 +14,8 @@ import tempfile
 from time import perf_counter
 from typing import Any
 
+from againward.domains.rental.entity_contract import structural_gaps as rental_structural_gaps
+
 from againward.core.artifact_store import transaction, write_json
 from againward.evidence.hashing import stable_hash
 from .codex_provider import _images, _model_invocation_failure
@@ -24,8 +26,8 @@ from .readers import read_document
 from .sources import verify_batch
 
 
-REVIEW_VERSION = "againward-codex-analyst-review-v5-support-document-classification"
-VISUAL_REVIEW_VERSION = "againward-codex-visual-analyst-v4-scoped-limitations"
+REVIEW_VERSION = "againward-codex-analyst-review-v6-source-scoped-metadata"
+VISUAL_REVIEW_VERSION = "againward-codex-visual-analyst-v5-source-scoped-metadata"
 MAX_GLOBAL_TEXT = 50_000
 _SCHEMA: dict[str, Any] = {
     "type": "object", "additionalProperties": False,
@@ -135,18 +137,14 @@ def build_analyst_review(batch: SourceBatch, extractions: tuple[DocumentExtracti
               "limitations_acknowledged": True, "decisions": decisions}
     candidates = {candidate.candidate_id: candidate for extraction in validated
                   for candidate in extraction.candidates}
-    accepted_by_entity: dict[tuple[str, str], set[str]] = {}
+    accepted: list[tuple[str, str, str]] = []
     for decision in decisions:
         if decision["decision"] == "ACCEPT":
             candidate = candidates[decision["candidate_id"]]
-            accepted_by_entity.setdefault((candidate.source_id, candidate.entity_id), set()).add(
-                candidate.semantic_type)
-    structural_gaps = []
-    for (source_id, entity_id), fields in sorted(accepted_by_entity.items()):
-        missing = [field for field in ("entity_kind", "document_role", "document_status")
-                   if field not in fields]
-        if missing:
-            structural_gaps.append({"source_id": source_id, "entity_id": entity_id, "missing": missing})
+            accepted.append((candidate.source_id, candidate.entity_id, candidate.semantic_type))
+    visual_sources = frozenset(extraction.source_id for extraction in validated
+                               if any(candidate.source_span is None for candidate in extraction.candidates))
+    structural_gaps = rental_structural_gaps(accepted, visual_sources=visual_sources)
     # An accepted orphan is never promoted, even while a bounded repair is pending.
     # The canonical gate still verifies every ID, hash, flag and visual receipt.
     facts = () if structural_gaps else promote_facts(validated, review, batch, root)
@@ -221,8 +219,9 @@ def review_with_codex(batch: SourceBatch, extractions: tuple[DocumentExtraction,
             "Compare accepted terms, source role, dates, equipment, quantities, net amounts, "
             "credits and duplicate representations across the source set. ACCEPT only when the "
             "quote, cross-source context and a complete source-local analytical entity support the "
-            "proposed value. Each accepted entity needs accepted entity_kind, document_role and "
-            "document_status candidates. A printed date in an otherwise orphan entity is not "
+            "proposed value. Each accepted entity needs an accepted entity_kind; document_role and "
+            "document_status are source-level classifications that may be accepted on one "
+            "representative entity. A printed date in an otherwise orphan entity is not "
             "an analytical fact: REJECT it if it cannot be attached to a valid entity. Preserve "
             "useful document dates on a valid document or rate-row entity. A SUPPORTING_DOCUMENT "
             "is a valid complete entity even when it does not govern a charge. For a RATE_CARD that "
@@ -388,14 +387,12 @@ def review_visual_with_codex(batch: SourceBatch, extractions: tuple[DocumentExtr
         return rows
 
     def visual_gaps(visual: list[Any]) -> list[dict[str, Any]]:
-        by_entity: dict[str, set[str]] = {}
-        for candidate in visual:
-            if by_id[candidate.candidate_id]["decision"] == "ACCEPT":
-                by_entity.setdefault(candidate.entity_id, set()).add(candidate.semantic_type)
-        return [{"source_id": visual[0].source_id, "entity_id": entity_id,
-                 "missing": sorted({"entity_kind", "document_role", "document_status"} - fields)}
-                for entity_id, fields in by_entity.items()
-                if {"entity_kind", "document_role", "document_status"} - fields]
+        source_id = visual[0].source_id
+        accepted = ((candidate.source_id, candidate.entity_id, candidate.semantic_type)
+                    for extraction in validated if extraction.source_id == source_id
+                    for candidate in extraction.candidates
+                    if by_id[candidate.candidate_id]["decision"] == "ACCEPT")
+        return rental_structural_gaps(accepted)
 
     def cached_or_model(path: Path, key: str, prompt: str, images: tuple[Path, ...],
                         source_id: str, extraction_hash: str,

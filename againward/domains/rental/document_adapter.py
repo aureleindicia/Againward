@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 from pathlib import Path
+import re
 from typing import Any
 
 from againward.documents.contracts import DocumentError, SourceBatch, closed
@@ -20,18 +21,11 @@ from againward.documents.resolution import (
 )
 from againward.evidence.hashing import stable_hash
 from .semantic_guidance import STRUCTURE_RETRY_INSTRUCTIONS, guidance, visual_guidance
-from .models import DOCUMENT_ROLES, RentalCase, decimal_value
+from .entity_contract import ANALYTICAL_FIELDS, DOCUMENT_ROLES, PACKAGE_SOURCE_REQUIRED
+from .models import RentalCase, decimal_value
 
 DOCUMENT_CASE_SCHEMA = "againward-rental-document-case-v1"
-_ANALYTICAL_FIELDS = frozenset({
-    "entity_kind", "document_role", "document_status", "agreement_id", "supplier_id", "client_id",
-    "item_id", "description", "asset_id", "serial_number", "category", "site_id", "cost_center_id",
-    "start", "end", "quantity", "rate", "charge_key", "charge_type", "currency", "billing_unit",
-    "weekends_billable", "minimum_days", "partial_period_policy", "stop_event", "stop_day_billable",
-    "discount_fraction", "percentage_of", "tier_min_days", "tier_max_days", "effective_from",
-    "terms_unchanged", "invoice_id", "invoice_line_id", "net_amount", "unit_rate", "billed_units",
-    "event_type", "date", "verification", "extended_end", "credit_id", "status", "allocated_amount",
-})
+_ANALYTICAL_FIELDS = ANALYTICAL_FIELDS
 RENTAL_MATCH = MatchPolicy(
     "SAME_RENTAL",
     (("INVOICE_LINE", "RENTAL_SCOPE"), ("RETURN", "RENTAL_SCOPE"),
@@ -100,6 +94,33 @@ def _source_document_metadata(entity_values: list[dict[str, Any]]) -> tuple[set[
     return roles, statuses
 
 
+def _line_identifier(entity: Entity) -> tuple[str, dict[str, str] | None]:
+    """Use a reviewed printed line label, else a clearly technical local ID."""
+    source_value = entity.values.get("invoice_line_id")
+    labels = {match.group(1) for fact in entity.facts
+              for match in [re.match(r"(?i)^line\s+([A-Za-z0-9_.:/-]{1,64})(?:\s|:|-|$)",
+                                     fact.candidate.raw_observed_value)] if match}
+    if len(labels) > 1 or (source_value is not None and labels and labels != {source_value}):
+        raise DocumentError("ENTITY_AMBIGUOUS", "Reviewed invoice line labels conflict")
+    if source_value is not None:
+        return str(source_value), None
+    if labels:
+        return next(iter(labels)), {"entity_id": entity.entity_id,
+                                    "field": "invoice_line_id", "rule": "REVIEWED_PRINTED_LINE_LABEL"}
+    return "local-" + entity.entity_id.removeprefix("entity-")[:20], {
+        "entity_id": entity.entity_id, "field": "invoice_line_id",
+        "rule": "SOURCE_LOCAL_TECHNICAL_ID"}
+
+
+def _unique_charge_key(terms: list[dict[str, Any]], *, period_id: str,
+                       charge_type: str, currency: str) -> str:
+    keys = {str(term["charge_key"]) for term in terms if term["period_id"] == period_id
+            and term["charge_type"] == charge_type and term["currency"] == currency}
+    if len(keys) != 1:
+        raise DocumentError("ENTITY_AMBIGUOUS", "No unique reviewed charge scope for technical key")
+    return next(iter(keys))
+
+
 def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, Any]]:
     p = closed(payload, {"schema_version", "batch", "extractions", "fact_review",
                          "rental_relationship_review", "credit_relationship_review"})
@@ -148,6 +169,11 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
     if any(e.kind not in {"RENTAL_SCOPE", "INVOICE_LINE", "RETURN", "RATE_AMENDMENT",
                           "CREDIT", "SUPPORTING_DOCUMENT", "IRRELEVANT"} for e in entities):
         raise DocumentError("EXTRACTION_INCOMPLETE", "Unsupported material entity kind")
+    for entity in entities:
+        missing = PACKAGE_SOURCE_REQUIRED[entity.kind] - entity.values.keys()
+        if missing:
+            raise DocumentError("EXTRACTION_INCOMPLETE",
+                                "Reviewed entity lacks package-required source facts: " + ",".join(sorted(missing)))
     by_source: dict[str, list[Entity]] = {}
     for e in entities:
         by_source.setdefault(e.source_id, []).append(e)
@@ -179,6 +205,7 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
                             "events": [], "actual_charges": [], "credits": []}
     parties: dict[str, dict[str, Any]] = {}
     period_ids = {}
+    technical_derivations: list[dict[str, str]] = []
     for e in entities:
         if e.kind != "RENTAL_SCOPE":
             continue
@@ -200,7 +227,13 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
         case["periods"].append({"period_id": pid, "item_id": iid, **values, "evidence_refs": _refs(e),
                                 **_optional(e, ("site_id", "cost_center_id"))})
         if any(key in e.values for key in ("rate", "billing_unit", "charge_key", "charge_type")):
-            term = _required(e, ("charge_key", "charge_type", "currency"))
+            term = _required(e, ("charge_type", "currency"))
+            if e.values.get("charge_key") is None:
+                term["charge_key"] = str(term["charge_type"]).lower()
+                technical_derivations.append({"entity_id": e.entity_id, "field": "charge_key",
+                                              "rule": "REVIEWED_TERM_CHARGE_TYPE"})
+            else:
+                term["charge_key"] = e.values["charge_key"]
             term.update(_optional(e, ("rate", "billing_unit", "weekends_billable", "minimum_days",
                                      "partial_period_policy", "stop_event", "stop_day_billable", "discount_fraction")))
             case["terms"].append({"term_id": "term-" + e.entity_id.removeprefix("entity-"),
@@ -209,11 +242,18 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
     amendments = sorted((e for e in entities if e.kind == "RATE_AMENDMENT"),
                         key=lambda e: (str(e.values.get("effective_from")), e.entity_id))
     for e in amendments:
-        change = _required(e, ("charge_key", "charge_type", "currency", "rate", "effective_from",
+        change = _required(e, ("charge_type", "currency", "rate", "effective_from",
                                "terms_unchanged"))
         if change["terms_unchanged"] is not True:
             raise DocumentError("EXTRACTION_INCOMPLETE", "Amendment must explicitly preserve prior conventions")
         pid = period_ids[links[e.entity_id]]
+        if e.values.get("charge_key") is None:
+            change["charge_key"] = _unique_charge_key(case["terms"], period_id=pid,
+                charge_type=str(change["charge_type"]), currency=str(change["currency"]))
+            technical_derivations.append({"entity_id": e.entity_id, "field": "charge_key",
+                                          "rule": "UNIQUE_REVIEWED_TERM_SCOPE"})
+        else:
+            change["charge_key"] = e.values["charge_key"]
         earlier = [t for t in case["terms"] if t["period_id"] == pid and t["charge_key"] == change["charge_key"]
                    and ("effective_from" not in t or str(t["effective_from"]) < str(change["effective_from"]))]
         if not earlier:
@@ -232,7 +272,18 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
     charges = {}
     for e in entities:
         if e.kind == "INVOICE_LINE":
-            charge = _required(e, ("invoice_id", "invoice_line_id", "charge_key", "charge_type", "currency", "net_amount"))
+            charge = _required(e, ("invoice_id", "charge_type", "currency", "net_amount"))
+            charge["invoice_line_id"], derivation = _line_identifier(e)
+            if derivation is not None:
+                technical_derivations.append(derivation)
+            if e.values.get("charge_key") is None:
+                charge["charge_key"] = _unique_charge_key(case["terms"],
+                    period_id=period_ids[links[e.entity_id]],
+                    charge_type=str(charge["charge_type"]), currency=str(charge["currency"]))
+                technical_derivations.append({"entity_id": e.entity_id, "field": "charge_key",
+                                              "rule": "UNIQUE_REVIEWED_TERM_SCOPE"})
+            else:
+                charge["charge_key"] = e.values["charge_key"]
             charge.update(_optional(e, ("start", "end", "quantity", "unit_rate", "billed_units")))
             case["actual_charges"].append({**charge, "period_id": period_ids[links[e.entity_id]], "evidence_refs": _refs(e)})
             charges[e.entity_id] = str(charge["invoice_id"]) + "/" + str(charge["invoice_line_id"])
@@ -269,6 +320,7 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
                "canonical_case_sha256": stable_hash(canonical.to_dict()),
                "facts": [f.to_dict() for f in facts], "entities": [asdict(e) for e in entities],
                "rental_resolution": resolution.to_dict(), "credit_resolution": credit_resolution.to_dict(),
+               "technical_derivations": technical_derivations,
                "limitations": sorted({limit for extraction in extractions for limit in extraction.limitations}),
                "queryable_source_units": "Native location and character span retained in every evidence reference",
                "human_delivery_approval": False}

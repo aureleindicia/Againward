@@ -13,15 +13,11 @@ from functools import cached_property
 import re
 from typing import Any
 
+from .entity_contract import BILLING_UNITS, CHARGE_TYPES, DOCUMENT_ROLES, DOCUMENT_STATUSES
+
 SCHEMA = "againward-rental-case-v1"
-DOCUMENT_ROLES = frozenset({"RENTAL_AGREEMENT", "RATE_CARD", "QUOTE", "PURCHASE_ORDER", "AMENDMENT",
-    "INVOICE", "CREDIT_NOTE", "DELIVERY_NOTE", "RETURN_NOTE", "OFF_HIRE_NOTICE", "EMAIL_EVIDENCE",
-    "ASSET_LIST", "PAYMENT_EXPORT", "TEXT_NOTE", "UNKNOWN", "IRRELEVANT"})
 EVENT_TYPES = frozenset({"BOOKED", "RESERVED", "DELIVERED", "ON_HIRE", "EXTENDED", "RATE_CHANGED",
     "OFF_HIRE_REQUESTED", "COLLECTION_REQUESTED", "COLLECTED", "RETURNED", "INVOICED", "CREDITED", "CANCELLED"})
-CHARGE_TYPES = frozenset({"RENTAL", "TRANSPORT", "DELIVERY", "COLLECTION", "FUEL", "REFUELING",
-    "DAMAGE_WAIVER", "ENVIRONMENTAL_FEE", "CONSUMABLE", "CLEANING", "SURCHARGE", "OTHER"})
-BILLING_UNITS = frozenset({"DAY", "WEEK", "MONTH", "FIXED", "PERCENT"})
 # Do not silently impose two decimal places on other currencies.
 CURRENCIES = frozenset({"EUR", "USD", "GBP", "CHF", "CAD", "AUD", "NZD"})
 
@@ -83,7 +79,7 @@ class Document:
 
     def __post_init__(self):
         _identifier(self.document_id, "document_id")
-        if self.role not in DOCUMENT_ROLES or self.status not in {"EXTRACTED", "ACCEPTED", "ISSUED", "PROPOSED", "VOID"}:
+        if self.role not in DOCUMENT_ROLES or self.status not in DOCUMENT_STATUSES:
             raise ValueError("Unknown document role/status.")
         if not isinstance(self.path, str) or not self.path.strip():
             raise ValueError("Document source path required.")

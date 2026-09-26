@@ -36,7 +36,8 @@ Net amount EUR 850.00 excluding tax.
 
 
 def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=None,
-           supporting_text=None, contact_email=None):
+           supporting_text=None, contact_email=None, omit_invoice_fields=frozenset(),
+           omit_contract_fields=frozenset()):
     """Manual semantic annotations of prose, reviewed solely as test fixtures."""
     incoming, root = tmp_path / "input", tmp_path / "documents"
     incoming.mkdir(parents=True)
@@ -87,6 +88,10 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=N
     }
     if contact_email is not None:
         annotations["invoice.txt"]["contact_email"] = (contact_email, contact_email, "TEXT")
+    for field in omit_invoice_fields:
+        annotations["invoice.txt"].pop(field)
+    for field in omit_contract_fields:
+        annotations["agreement.txt"].pop(field)
     if amendment_text is not None:
         annotations["amendment.txt"] = {
             "entity_kind": ("RATE_AMENDMENT", "rate amendment", "ENUM"),
@@ -179,6 +184,30 @@ def test_reviewed_native_facts_resolve_to_exact_rental_ledgers_and_query_rows(tm
     assert any(r.get("raw_quote") == "850.00" for r in dataset.rows)
     assert all("/chars:" in ref.location for c in case.actual_charges for ref in c.evidence_refs)
     assert load_document_case(package, source.parent)[1] == lineage
+
+
+def test_package_derives_only_technical_invoice_keys_after_review(tmp_path):
+    source, _ = packet(tmp_path, omit_invoice_fields={"invoice_line_id", "charge_key"},
+                       omit_contract_fields={"charge_key"})
+    case, inventory = load_rental_case(source)
+    assert case.actual_charges[0].invoice_line_id == "L1"
+    assert case.actual_charges[0].charge_key == "rental"
+    assert case.actual_charges[0].net_amount == "850.00"
+    derivations = inventory["document_lineage"]["technical_derivations"]
+    assert derivations == [
+        {"entity_id": derivations[0]["entity_id"],
+         "field": "charge_key", "rule": "REVIEWED_TERM_CHARGE_TYPE"},
+        {"entity_id": derivations[1]["entity_id"],
+         "field": "invoice_line_id", "rule": "REVIEWED_PRINTED_LINE_LABEL"},
+        {"entity_id": derivations[2]["entity_id"],
+         "field": "charge_key", "rule": "UNIQUE_REVIEWED_TERM_SCOPE"},
+    ]
+
+
+def test_package_never_derives_commercial_charge_type(tmp_path):
+    source, _ = packet(tmp_path, omit_invoice_fields={"charge_type"})
+    with pytest.raises(DocumentError, match="package-required source facts: charge_type"):
+        load_rental_case(source)
 
 
 def test_corroborating_rate_card_remains_evidence_without_second_rental(tmp_path):

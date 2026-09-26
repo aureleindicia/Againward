@@ -6,15 +6,13 @@ from collections import defaultdict
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import DocumentExtraction, contradictory_source_limitations
 
-from .models import DOCUMENT_ROLES
-
-_ENTITY_KINDS = frozenset({"RENTAL_SCOPE", "INVOICE_LINE", "RETURN", "RATE_AMENDMENT",
-                           "CREDIT", "SUPPORTING_DOCUMENT", "IRRELEVANT"})
-_DOCUMENT_STATUSES = frozenset({"ACCEPTED", "ISSUED", "PROPOSED", "VOID", "EXTRACTED"})
+from .entity_contract import (ENTITY_KINDS, DOCUMENT_ROLES, DOCUMENT_STATUSES,
+                              PACKAGE_SOURCE_REQUIRED)
 _STRUCTURAL_FIELDS = frozenset({"entity_kind", "document_role", "document_status"})
 
 
-def validate_rental_extraction(extraction: DocumentExtraction) -> None:
+def validate_rental_extraction(extraction: DocumentExtraction, *,
+                               require_package_facts: bool = False) -> None:
     """Check entity and source-level metadata before QA orchestration.
 
     Entity kind describes each candidate group. Document role/status describe
@@ -35,9 +33,9 @@ def validate_rental_extraction(extraction: DocumentExtraction) -> None:
     within_entity_conflicting_fields: set[str] = set()
     for entity_id, fields in sorted(by_entity.items()):
         for field, allowed in (
-            ("entity_kind", _ENTITY_KINDS),
+            ("entity_kind", ENTITY_KINDS),
             ("document_role", DOCUMENT_ROLES),
-            ("document_status", _DOCUMENT_STATUSES),
+            ("document_status", DOCUMENT_STATUSES),
         ):
             values = fields.get(field, set())
             for value in values:
@@ -93,3 +91,21 @@ def validate_rental_extraction(extraction: DocumentExtraction) -> None:
                         "schema_path": "$.limitations[]", "validation_code": "OBSERVATION_LIMITATION_CONFLICT",
                         "source_id": extraction.source_id, "conflicting_field_count": len(conflicts),
                         "conflicting_semantic_types": sorted({item["semantic_type"] for item in conflicts})})
+
+    if not require_package_facts:
+        return
+    missing_material: set[str] = set()
+    for entity_id, fields in by_entity.items():
+        kind = next(iter(fields["entity_kind"]))
+        present = {candidate.semantic_type for candidate in extraction.candidates
+                   if candidate.entity_id == entity_id and candidate.value is not None}
+        missing_material.update(PACKAGE_SOURCE_REQUIRED[kind] - present)
+        if kind == "RENTAL_SCOPE" and present & {"rate", "billing_unit", "charge_key", "charge_type"}:
+            missing_material.update({"charge_type", "currency"} - present)
+    if missing_material:
+        raise DocumentError("STRUCTURAL_INCOMPLETE", "Rental package-required source facts are missing",
+            diagnostic={"error_category": "STRUCTURAL_INCOMPLETE", "schema_path": "$.candidates[]",
+                        "validation_code": "PACKAGE_SOURCE_FACT_REQUIRED",
+                        "source_id": extraction.source_id,
+                        "structural_gap_count": len(missing_material),
+                        "missing_semantic_fields": sorted(missing_material)})

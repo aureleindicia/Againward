@@ -27,6 +27,7 @@ from againward.documents.sources import inventory_sources, safe_file, verify_bat
 from againward.documents.visual_fact_review import MODEL_VISUAL_VERSION, record_model_visual_review, verify_visual_attestations
 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
 from againward.domains.rental.extraction_validation import validate_rental_extraction
+from againward.domains.rental.entity_contract import ANALYTICAL_FIELDS
 from againward.domains.rental.semantic_guidance import (STRUCTURE_RETRY_INSTRUCTIONS as RENTAL_STRUCTURE_RETRY,
     guidance, visual_guidance)
 from againward.evidence.hashing import stable_hash
@@ -91,6 +92,10 @@ def _safe_failure_diagnostic(exc: DocumentError, *, stage: str,
             and all(item in {"entity_kind", "document_role", "document_status"}
                     for item in missing_fields)):
         safe["missing_structural_fields"] = sorted(set(missing_fields))
+    missing_semantic = diagnostic.get("missing_semantic_fields")
+    if (isinstance(missing_semantic, list) and len(missing_semantic) <= 20
+            and all(item in ANALYTICAL_FIELDS for item in missing_semantic)):
+        safe["missing_semantic_fields"] = sorted(set(missing_semantic))
     safe.update({"stage": diagnostic.get("stage", stage),
                  "source_id": diagnostic.get("source_id", source_id),
                  "reason_code": exc.code,
@@ -346,8 +351,13 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                         if attempt == 2 or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_SCHEMA_INVALID",
                                                              "STRUCTURAL_INCOMPLETE"}:
                             raise
-                        if exc.code == "STRUCTURAL_INCOMPLETE":
+                        if (exc.code == "STRUCTURAL_INCOMPLETE" or
+                                (exc.code == "EXTRACTION_SCHEMA_INVALID" and
+                                 (exc.diagnostic or {}).get("validation_code") == "STRUCTURAL_ENUM_INVALID")):
                             repair_note = RENTAL_STRUCTURE_RETRY
+                            missing = (exc.diagnostic or {}).get("missing_semantic_fields")
+                            if isinstance(missing, list):
+                                repair_note += " Check source support for: " + ", ".join(missing)[:55] + "."
                 stored = persist_extraction(extraction, documents)
                 state["primary"][document.source_id] = str(stored)
                 _save(path, state, "DOCUMENT_PARSED", source_id=document.source_id,
@@ -378,8 +388,13 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                         if attempt == 2 or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_SCHEMA_INVALID",
                                                              "STRUCTURAL_INCOMPLETE"}:
                             raise
-                        if exc.code == "STRUCTURAL_INCOMPLETE":
+                        if (exc.code == "STRUCTURAL_INCOMPLETE" or
+                                (exc.code == "EXTRACTION_SCHEMA_INVALID" and
+                                 (exc.diagnostic or {}).get("validation_code") == "STRUCTURAL_ENUM_INVALID")):
                             repair_note = RENTAL_STRUCTURE_RETRY
+                            missing = (exc.diagnostic or {}).get("missing_semantic_fields")
+                            if isinstance(missing, list):
+                                repair_note += " Check source support for: " + ", ".join(missing)[:55] + "."
                 stored = persist_extraction(extraction, documents)
                 state["challenger"][document.source_id] = str(stored)
                 _save(path, state, "QA_SOURCE_REREAD", source_id=document.source_id,
@@ -463,6 +478,8 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                    for item in (*primary, *challenger, *augmented)}
         selected = tuple(by_hash[adjudication["selected_extractions"][document.source_id]]
                          for document in batch.documents)
+        for extraction in selected:
+            validate_rental_extraction(extraction, require_package_facts=True)
         if "native_review_receipt" not in state:
             active_stage = "FACT_REVIEW"
             started = perf_counter()
