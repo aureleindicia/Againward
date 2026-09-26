@@ -9,8 +9,10 @@ rules, or promotion gates were changed.
 - Branch: `release/first-rental-client-pilot`.
 - Starting repository HEAD: `ea73fea73fefea0b2875389dd3836e328e7a4531`.
 - Production candidate under investigation: `30c4d9a8f54f075a5a0673c7c157c0926471e55c`.
+- Diagnostic implementation commit: `2969dee989eb68f419d376b0e18c71d29c8d2585`.
 - Runtime: `gpt-6-luna`; Codex CLI `0.156.1`; adjudication policy
   `againward-source-adjudication-v9-entity-consistent-pixel-observations`.
+- Extraction prompt binding: `againward-source-facts-v9-entity-structure-limits-e6da799673e9a71a`.
 - Each replay used a newly created synthetic evaluation workspace and fresh
   source/model artifacts. Source bytes were copied from the prior known-case
   workspaces and SHA-256 compared before running.
@@ -70,7 +72,11 @@ model detail; they are intentionally not checked in.
 - Configured mypy: passed (16 source files).
 - Rental benchmark: **15/15**.
 - Privacy benchmark: **19/19**.
-- Full pytest: pending clean committed-tree run.
+- Full pytest on the clean committed tree: **873 passed in 609.71 s**, no
+  failures or skips. The first dirty-tree attempt exposed six fixtures missing
+  members already required by the live response schema and two expected
+  HOLDOUT-integrity rejections. Fixtures were aligned with the existing schema;
+  the clean run then passed, including the HOLDOUT checks.
 - PR #5 CI: pending commit/push.
 
 No schema/completeness validator was relaxed, no native span or hash/source/

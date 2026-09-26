@@ -321,4 +321,7 @@ The prior raw adjudication answers were not retained, so the exact historical
 fields cannot be reconstructed. New receipts retain safe stage/source/decision/
 schema-path/code/shape/version/hash metadata; raw answers remain evaluation-only
 private scratch data. See the [diagnostic observability
-record](validation/fail_closed_diagnostic_observability_20260926.md).
+record](validation/fail_closed_diagnostic_observability_20260926.md). The
+instrumentation checkpoint passed 873 pytest tests, Ruff, configured mypy
+(16 files), Rental 15/15 and privacy 19/19. PR #5 CI is being checked after
+push. These are regression checks, not accuracy evidence.
