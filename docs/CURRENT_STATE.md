@@ -17,6 +17,12 @@ eight-document source-to-report path has completed in synthetic evaluation mode.
 measured operator rehearsal also remain open. This DEV dossier is not an
 approved client report.
 
+The later 2026-09-26 visual semantic redesign is only partially validated: its
+two known live regression runs produced bound visual observations, but neither
+reached calculation or report QA. Do not treat the earlier eight-source PDF
+pass below as an E2E result for the redesigned code; see the
+[visual redesign record](validation/visual_semantic_path_redesign_20260926.md).
+
 AGAINWARD is an asynchronous B2B analysis/advisory service whose internal
 production uses Codex and deterministic Python. The current commercial focus
 is Rental B2B: contracts,
@@ -231,3 +237,20 @@ to improve a score, or treat scripted reviews as actual human approval.
   issue. Exact raw outputs are retained in the artifact; historical rejected
   `SOURCE_LOCATION_INVALID` response bodies were not retained, so their emitted
   locations cannot be reconstructed.
+
+- Current visual redesign commit `04a2990` changes only the model-facing visual
+  semantic read and pixel-observation recovery path; native exact-span behavior
+  and serialization stay compatible. It uses 300-DPI page renders and binds
+  observations to current source/page/render hashes after model response. The
+  fresh known CASE A run (`c06894c2744f1010`) yielded 15 primary and 13
+  challenger visual candidates, including invoice ID and EUR 2,670 net; QA
+  found two material disagreements and the adjudication call ended
+  `MODEL_UNAVAILABLE`. No EUR 150 calculation, report, PDF QA or HUMAN evidence
+  resulted. The fresh eight-source CASE B run read all eight primary sources;
+  the signed-return scan yielded 16 pixel-bound candidates including a LIFT-5
+  return dated 2026-09-05 and separate LIFT-50 evidence. It failed before
+  challenger reread when native exact-span validation rejected a model quote in
+  the supplier email; no financial calculation or report resulted. These are
+  known regression results, not accuracy evidence. Focused tests passed 65/65;
+  current full-suite and CI results are recorded in the
+  [redesign artifact](validation/visual_semantic_path_redesign_20260926.md).

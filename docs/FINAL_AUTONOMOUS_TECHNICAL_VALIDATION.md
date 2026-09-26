@@ -287,3 +287,28 @@ not explain the core loss. The original-PDF direct-input path is unsupported by
 the installed CLI interface. See the [full audit record](validation/causal_visual_architecture_audit_20260926.json),
 which includes raw responses, source/render hashes, stage trace and the limits
 of reconstructing historical rejected responses.
+
+## Visual semantic redesign follow-up (2026-09-26)
+
+Implementation commit `04a299080cdfa2f4e39f4c444d8abfa8ce253fea` introduces a
+visual semantic observation interface, post-response deterministic source/page/
+render binding, 300-DPI PDF renders and unapproved new pixel observations from
+adjudication. Native exact source spans, native proposal serialization, source
+mutation checks, independent reread, promotion gates, HUMAN fallback,
+deterministic arithmetic and final QA requirements remain.
+
+Fresh known-case runs show that the redesign restores useful visual first-read
+content: CASE A returned 15 primary / 13 challenger observations; CASE B's
+signed-return scan returned 16, including the LIFT-5 return and separate
+LIFT-50 evidence. Neither run reached calculation or report QA. CASE A stopped
+at SOURCE_ADJUDICATION with `MODEL_UNAVAILABLE`; CASE B stopped during
+challenger extraction because exact native span validation rejected a
+non-exact supplier-email quote. No fact was promoted, no HUMAN evidence was
+created and neither known financial oracle was reached. Full case bindings,
+failure details and validation status are in the
+[visual redesign record](validation/visual_semantic_path_redesign_20260926.md).
+
+This follow-up is `PARTIALLY_FIXED`: visual semantic suppression was reduced,
+but end-to-end correctness through adjudication and native reread remains
+unproven. It does not supersede the historical E2E result above and is not a
+blind accuracy measurement or evidence for ≥99% correctness.
