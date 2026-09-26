@@ -77,7 +77,7 @@ model detail; they are intentionally not checked in.
   members already required by the live response schema and two expected
   HOLDOUT-integrity rejections. Fixtures were aligned with the existing schema;
   the clean run then passed, including the HOLDOUT checks.
-- PR #5 CI: pending commit/push.
+- PR #5 CI: **8/8 jobs passed** on implementation HEAD `cbb36bd75b87eaa64d8b848e15c87dcf5886b124`, across push and pull-request workflows on Python 3.11–3.14. PR #5 remains open and draft.
 
 No schema/completeness validator was relaxed, no native span or hash/source/
 render check changed, no review or attestation was bypassed, and no default

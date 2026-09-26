@@ -323,5 +323,6 @@ schema-path/code/shape/version/hash metadata; raw answers remain evaluation-only
 private scratch data. See the [diagnostic observability
 record](validation/fail_closed_diagnostic_observability_20260926.md). The
 instrumentation checkpoint passed 873 pytest tests, Ruff, configured mypy
-(16 files), Rental 15/15 and privacy 19/19. PR #5 CI is being checked after
-push. These are regression checks, not accuracy evidence.
+(16 files), Rental 15/15 and privacy 19/19. PR #5 CI passed 8/8 jobs across
+Python 3.11–3.14. These are regression checks, not accuracy evidence. PR #5
+remains open and draft.

@@ -327,4 +327,4 @@ calculation or report QA. Details and validation results are in the
 [diagnostic observability record](validation/fail_closed_diagnostic_observability_20260926.md).
 The clean committed tree passed 873 pytest tests in 609.71 seconds, Ruff,
 configured mypy (16 files), Rental benchmark 15/15 and privacy benchmark 19/19.
-PR #5 CI is being checked after push. These are regression results only.
+PR #5 CI passed 8/8 jobs across Python 3.11–3.14. These are regression results only.
