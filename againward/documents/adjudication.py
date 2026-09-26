@@ -675,7 +675,8 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                                        evaluation_raw=raw if evaluation_only else None)
                 exc.diagnostic = diagnostic
                 if attempt or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_INCOMPLETE",
-                                               "STRUCTURAL_INCOMPLETE", "REVIEW_STALE"}:
+                                               "STRUCTURAL_INCOMPLETE", "EXTRACTION_SCHEMA_INVALID",
+                                               "REVIEW_STALE"}:
                     raise
                 if exc.code == "STRUCTURAL_INCOMPLETE":
                     prompt += (
@@ -684,6 +685,12 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                         "document_status observations with the same entity_hint as that entity's facts. "
                         "Use only source-supported canonical values; if the source cannot establish them, "
                         "do not create the pixel observation and choose UNRESOLVED where necessary."
+                    )
+                elif exc.code == "EXTRACTION_SCHEMA_INVALID":
+                    prompt += (
+                        "\nYour prior response did not satisfy the closed adjudication schema. "
+                        "Return exactly the required decision fields and one allowed selection enum. "
+                        "Do not omit required members, add fields, or change the evidence requirements."
                     )
                 else:
                     prompt += ("\nYour prior response failed deterministic validation: " + str(exc) +

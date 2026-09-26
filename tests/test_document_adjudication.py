@@ -131,16 +131,40 @@ def test_adjudicator_reopens_original_sources_without_private_truth(tmp_path, mo
     result = adjudicate_with_codex(batch, primary, challenger, qa, root, model="synthetic-model")
     assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"
     assert len(calls) == 1
-    assert "selection chooses a source-local observation set" in prompts[0]
-    assert "does NOT establish contractual authority" in prompts[0]
-    assert "different phrasing or grouping alone is not a material" in prompts[0]
-    assert "Treat limitations as independent source-local claims" in prompts[0]
-    assert "choose UNRESOLVED" in prompts[0]
     stale = deepcopy(qa)
     stale["source_results"][0]["primary_status"] = "FAILED"
     with pytest.raises(DocumentError, match="REVIEW_STALE"):
         adjudicate_with_codex(batch, primary, challenger, stale, root, model="synthetic-model")
     assert len(calls) == 1
+
+
+def test_adjudicator_retries_one_invalid_closed_schema_response(tmp_path, monkeypatch):
+    root, batch, primary, challenger, qa, raw, _email = _case(tmp_path)
+    invalid = deepcopy(raw)
+    invalid["decisions"][0]["selection"] = "CHOOSE_WHATEVER"
+    responses = [invalid, raw]
+    prompts = []
+    original_run = subprocess.run
+
+    def fake_codex(command, **kwargs):
+        if "input" not in kwargs:
+            return original_run(command, **kwargs)
+        prompts.append(kwargs["input"])
+        output = Path(command[command.index("--output-last-message") + 1])
+        output.write_text(json.dumps(responses.pop(0)))
+        return SimpleNamespace(returncode=0, stderr="")
+
+    monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)
+    result = adjudicate_with_codex(batch, primary, challenger, qa, root, model="synthetic-model")
+    assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"
+    assert len(prompts) == 2
+    assert "did not satisfy the closed adjudication schema" in prompts[1]
+    assert "Do not omit required members" in prompts[1]
+    assert "selection chooses a source-local observation set" in prompts[0]
+    assert "does NOT establish contractual authority" in prompts[0]
+    assert "different phrasing or grouping alone is not a material" in prompts[0]
+    assert "Treat limitations as independent source-local claims" in prompts[0]
+    assert "choose UNRESOLVED" in prompts[0]
 
 
 def test_adjudication_runtime_failure_is_classified_and_sanitized(tmp_path, monkeypatch):
@@ -193,14 +217,15 @@ def test_adjudication_schema_failure_has_safe_exact_path_diagnostic(tmp_path, mo
     assert caught.value.diagnostic["expected_type"] == "array"
     assert caught.value.diagnostic["received_shape"].startswith("string(length=")
     diagnostics = list((root.parent / "scratch/visual_model_diagnostics").glob("*.json"))
-    assert len(diagnostics) == 1
-    serialized = diagnostics[0].read_text()
-    assert "PRIVATE_RESPONSE_MARKER" not in serialized
-    assert "raw_response" not in serialized
-    payload = json.loads(serialized)
-    assert payload["stage"] == "SOURCE_ADJUDICATION_VALIDATION"
-    assert payload["retention_scope"] == "SANITIZED_FAILURE_METADATA"
-    assert payload["response_sha256"]
+    assert len(diagnostics) == 2  # bounded schema retry, then fail closed
+    for diagnostic in diagnostics:
+        serialized = diagnostic.read_text()
+        assert "PRIVATE_RESPONSE_MARKER" not in serialized
+        assert "raw_response" not in serialized
+        payload = json.loads(serialized)
+        assert payload["stage"] == "SOURCE_ADJUDICATION_VALIDATION"
+        assert payload["retention_scope"] == "SANITIZED_FAILURE_METADATA"
+        assert payload["response_sha256"]
 
 
 def test_evaluation_only_adjudication_diagnostic_may_keep_raw_in_private_scratch(tmp_path, monkeypatch):
