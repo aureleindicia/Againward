@@ -17,7 +17,7 @@ from againward.documents.adjudication import ADJUDICATION_VERSION, adjudicate_wi
 from againward.documents.analyst_review import REVIEW_VERSION, VISUAL_REVIEW_VERSION, review_visual_with_codex, review_with_codex
 from againward.documents.codex_provider import (VISUAL_RENDER_VERSION, CodexCliProvider,
     prompt_version_for_guidance)
-from againward.documents.contracts import DocumentError, SourceBatch
+from againward.documents.contracts import DocumentError, SourceBatch, error_category
 from againward.documents.extraction import (append_adjudicator_visual_observations, persist_extraction,
     promote_facts, replay_extraction, validate_proposal)
 from againward.documents.independent_qa import (QA_GUIDANCE_VERSION, QA_INSTRUCTIONS,
@@ -26,6 +26,7 @@ from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources, safe_file, verify_batch
 from againward.documents.visual_fact_review import MODEL_VISUAL_VERSION, record_model_visual_review, verify_visual_attestations
 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
+from againward.domains.rental.extraction_validation import validate_rental_extraction
 from againward.domains.rental.semantic_guidance import guidance, visual_guidance
 from againward.evidence.hashing import stable_hash
 
@@ -37,6 +38,13 @@ VERSION = "againward-rental-approved-sources-job-v2-visual-observations"
 VISUAL_LIMITATION_ROUTING_VERSION = "againward-rental-visual-reading-v2"
 RETRYABLE_MODEL_CODES = {"MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_AUTH_REQUIRED",
                          "MODEL_RATE_LIMITED", "MODEL_TRANSPORT_FAILURE", "MODEL_EMPTY_RESPONSE"}
+RENTAL_STRUCTURE_RETRY = (
+    "The local Rental contract found structural metadata missing from one or more candidate groups. "
+    "Reinspect this source and emit entity_kind, document_role and document_status under the same "
+    "entity_id as each source-supported entity's facts. Use only the documented canonical values. "
+    "Do not infer a value from filenames, other sources, or expected calculations. If any field is "
+    "not established by this source, leave it absent; the proposal will remain incomplete and stop."
+)
 
 
 def _visual_review_stop(visual: dict[str, Any]) -> dict[str, Any] | None:
@@ -76,7 +84,8 @@ def _safe_failure_diagnostic(exc: DocumentError, *, stage: str,
                  "received_shape", "decision_index", "retry_count", "model",
                  "prompt_version", "schema_sha256", "prompt_sha256", "response_sha256",
                  "invocation_id", "cli_version", "conflicting_field_count",
-                 "limitation_count", "pixel_observation_count"}
+                 "limitation_count", "pixel_observation_count", "structural_gap_count",
+                 "invalid_structural_field_count"}
     safe = {key: value for key, value in diagnostic.items()
             if key in safe_keys and (value is None or type(value) in {str, int, bool})}
     semantic_types = diagnostic.get("conflicting_semantic_types")
@@ -84,10 +93,25 @@ def _safe_failure_diagnostic(exc: DocumentError, *, stage: str,
             and all(isinstance(item, str) and item.replace("_", "").isalnum()
                     for item in semantic_types)):
         safe["conflicting_semantic_types"] = semantic_types
+    missing_fields = diagnostic.get("missing_structural_fields")
+    if (isinstance(missing_fields, list) and len(missing_fields) <= 3
+            and all(item in {"entity_kind", "document_role", "document_status"}
+                    for item in missing_fields)):
+        safe["missing_structural_fields"] = sorted(set(missing_fields))
     safe.update({"stage": diagnostic.get("stage", stage),
                  "source_id": diagnostic.get("source_id", source_id),
-                 "reason_code": exc.code})
+                 "reason_code": exc.code,
+                 "error_category": diagnostic.get("error_category", error_category(exc.code))})
     return safe
+
+
+def _bind_extraction_attempt(exc: DocumentError, *, attempt: int, model: str,
+                             semantic_guidance: str) -> None:
+    """Add safe attempt bindings before a proposal validation error is recorded."""
+    diagnostic = dict(exc.diagnostic) if isinstance(exc.diagnostic, dict) else {}
+    diagnostic.update({"retry_count": max(0, attempt - 1), "model": model,
+                       "prompt_version": prompt_version_for_guidance(semantic_guidance)})
+    exc.diagnostic = diagnostic
 
 
 def _remaining_revision_budget(analysis: Path) -> dict | None:
@@ -312,17 +336,25 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 is_visual = any(unit.route != "NATIVE" for unit in parsed.units)
                 base_guidance = visual_guidance() if is_visual else guidance()
                 started = perf_counter()
+                repair_note = ""
                 for attempt in (1, 2):
+                    attempt_guidance = (base_guidance +
+                        ((VISUAL_RETRY_INSTRUCTIONS if is_visual else RETRY_INSTRUCTIONS)
+                         if attempt == 2 else "") + repair_note)
                     try:
                         proposal = provider.propose(document, parsed,
-                            {"batch": batch, "semantic_guidance": base_guidance +
-                             ((VISUAL_RETRY_INSTRUCTIONS if is_visual else RETRY_INSTRUCTIONS)
-                              if attempt == 2 else "")})
+                            {"batch": batch, "semantic_guidance": attempt_guidance})
                         extraction = validate_proposal(proposal, batch, documents)
+                        validate_rental_extraction(extraction)
                         break
                     except DocumentError as exc:
-                        if attempt == 2 or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_SCHEMA_INVALID"}:
+                        _bind_extraction_attempt(exc, attempt=attempt, model=model,
+                                                 semantic_guidance=attempt_guidance)
+                        if attempt == 2 or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_SCHEMA_INVALID",
+                                                             "STRUCTURAL_INCOMPLETE"}:
                             raise
+                        if exc.code == "STRUCTURAL_INCOMPLETE":
+                            repair_note = RENTAL_STRUCTURE_RETRY
                 stored = persist_extraction(extraction, documents)
                 state["primary"][document.source_id] = str(stored)
                 _save(path, state, "DOCUMENT_PARSED", source_id=document.source_id,
@@ -336,17 +368,25 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 is_visual = any(unit.route != "NATIVE" for unit in parsed.units)
                 base_guidance = visual_guidance() if is_visual else guidance()
                 started = perf_counter()
+                repair_note = ""
                 for attempt in (1, 2):
+                    attempt_guidance = (base_guidance + QA_INSTRUCTIONS +
+                        ((VISUAL_RETRY_INSTRUCTIONS if is_visual else RETRY_INSTRUCTIONS)
+                         if attempt == 2 else "") + repair_note)
                     try:
                         proposal = provider.propose(document, parsed,
-                            {"batch": batch, "semantic_guidance": base_guidance + QA_INSTRUCTIONS +
-                             ((VISUAL_RETRY_INSTRUCTIONS if is_visual else RETRY_INSTRUCTIONS)
-                              if attempt == 2 else "")})
+                            {"batch": batch, "semantic_guidance": attempt_guidance})
                         extraction = validate_proposal(proposal, batch, documents)
+                        validate_rental_extraction(extraction)
                         break
                     except DocumentError as exc:
-                        if attempt == 2 or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_SCHEMA_INVALID"}:
+                        _bind_extraction_attempt(exc, attempt=attempt, model=model,
+                                                 semantic_guidance=attempt_guidance)
+                        if attempt == 2 or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_SCHEMA_INVALID",
+                                                             "STRUCTURAL_INCOMPLETE"}:
                             raise
+                        if exc.code == "STRUCTURAL_INCOMPLETE":
+                            repair_note = RENTAL_STRUCTURE_RETRY
                 stored = persist_extraction(extraction, documents)
                 state["challenger"][document.source_id] = str(stored)
                 _save(path, state, "QA_SOURCE_REREAD", source_id=document.source_id,
@@ -371,7 +411,8 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
             started = perf_counter()
             adjudication = adjudicate_with_codex(batch, primary, challenger, qa, documents,
                                                  model=model, timeout_seconds=timeout_seconds,
-                                                 evaluation_only=evaluation_only)
+                                                 evaluation_only=evaluation_only,
+                                                 validate_pixel_observations=validate_rental_extraction)
             base_by_hash = {item.to_dict()["extraction_sha256"]: item for item in (*primary, *challenger)}
             added: dict[str, dict[str, Any]] = {}
             for decision in adjudication["decisions"]:

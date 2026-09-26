@@ -51,13 +51,13 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=N
         "supplier_id": ("VENDOR", "VENDOR", "TEXT"),
         "agreement_id": ("A-781", "A-781", "TEXT"),
         "asset_id": ("LIFT-92", "LIFT-92", "TEXT"),
-        "document_status": ("ACCEPTED", "accepted", "TEXT"),
+        "document_status": ("ACCEPTED", "accepted", "ENUM"),
         "currency": ("EUR", "EUR", "CURRENCY"),
     }
     annotations = {
         "agreement.txt": {**shared,
-            "entity_kind": ("RENTAL_SCOPE", "rental agreement", "TEXT"),
-            "document_role": ("RENTAL_AGREEMENT", "rental agreement", "TEXT"),
+            "entity_kind": ("RENTAL_SCOPE", "rental agreement", "ENUM"),
+            "document_role": ("RENTAL_AGREEMENT", "rental agreement", "ENUM"),
             "client_id": ("CLIENT", "CLIENT", "TEXT"),
             "description": ("electric lift", "electric lift", "TEXT"),
             "quantity": ("2", "2.", "DECIMAL"),
@@ -73,8 +73,8 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=N
             "stop_event": ("CONTRACT_END", "contract end", "TEXT"),
         },
         "invoice.txt": {**shared,
-            "entity_kind": ("INVOICE_LINE", "Line L1", "TEXT"),
-            "document_role": ("INVOICE", "invoice", "TEXT"),
+            "entity_kind": ("INVOICE_LINE", "Line L1", "ENUM"),
+            "document_role": ("INVOICE", "invoice", "ENUM"),
             "invoice_id": ("INV-83", "INV-83", "TEXT"),
             "invoice_line_id": ("L1", "L1", "TEXT"),
             "charge_key": ("hire", "rental", "TEXT"),
@@ -86,9 +86,9 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=N
         annotations["invoice.txt"]["contact_email"] = (contact_email, contact_email, "TEXT")
     if amendment_text is not None:
         annotations["amendment.txt"] = {
-            "entity_kind": ("RATE_AMENDMENT", "rate amendment", "TEXT"),
-            "document_role": ("AMENDMENT", "amendment", "TEXT"),
-            "document_status": ("ACCEPTED", "accepted", "TEXT"),
+            "entity_kind": ("RATE_AMENDMENT", "rate amendment", "ENUM"),
+            "document_role": ("AMENDMENT", "amendment", "ENUM"),
+            "document_status": ("ACCEPTED", "accepted", "ENUM"),
             "supplier_id": ("VENDOR", "VENDOR", "TEXT"),
             "agreement_id": ("A-781", "A-781", "TEXT"),
             "asset_id": ("LIFT-92", "LIFT-92", "TEXT"),
@@ -101,9 +101,9 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=N
         }
     if credit_text is not None:
         annotations["credit.txt"] = {
-            "entity_kind": ("CREDIT", "credit note", "TEXT"),
-            "document_role": ("CREDIT_NOTE", "credit note", "TEXT"),
-            "document_status": ("ACCEPTED", "accepted", "TEXT"),
+            "entity_kind": ("CREDIT", "credit note", "ENUM"),
+            "document_role": ("CREDIT_NOTE", "credit note", "ENUM"),
+            "document_status": ("ACCEPTED", "accepted", "ENUM"),
             "supplier_id": ("VENDOR", "VENDOR", "TEXT"),
             "invoice_id": ("INV-83", "INV-83", "TEXT"),
             "credit_id": ("CR-9", "CR-9", "TEXT"),
@@ -117,9 +117,9 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=N
             annotations["credit.txt"]["invoice_line_id"] = ("L1", "L1", "TEXT")
     if supporting_text is not None:
         annotations["rate-card.txt"] = {
-            "entity_kind": ("SUPPORTING_DOCUMENT", "duplicate rate card", "TEXT"),
-            "document_role": ("RATE_CARD", "rate card", "TEXT"),
-            "document_status": ("ACCEPTED", "Accepted", "TEXT"),
+            "entity_kind": ("SUPPORTING_DOCUMENT", "duplicate rate card", "ENUM"),
+            "document_role": ("RATE_CARD", "rate card", "ENUM"),
+            "document_status": ("ACCEPTED", "Accepted", "ENUM"),
             "agreement_id": ("A-781", "A-781", "TEXT"),
             "asset_id": ("LIFT-92", "LIFT-92", "TEXT"),
             "rate": ("50.00", "50.00", "DECIMAL"),

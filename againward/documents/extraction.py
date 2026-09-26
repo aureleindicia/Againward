@@ -71,6 +71,9 @@ def contradictory_source_limitations(extraction: "DocumentExtraction") -> list[d
 
 def validate_semantic_value_type(semantic_type: str, value_type: str) -> None:
     """Keep monetary amounts numeric and ISO currency codes in their own field."""
+    if semantic_type in {"entity_kind", "document_role", "document_status"} and value_type != "ENUM":
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID",
+                            f"{semantic_type} requires a canonical ENUM value")
     if semantic_type in _MONETARY_DECIMAL_SEMANTICS and value_type != "DECIMAL":
         raise DocumentError("EXTRACTION_SCHEMA_INVALID",
                             f"{semantic_type} requires DECIMAL; currency is a separate semantic field")

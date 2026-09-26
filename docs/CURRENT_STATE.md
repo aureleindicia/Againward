@@ -23,6 +23,14 @@ reached calculation or report QA. Do not treat the earlier eight-source PDF
 pass below as an E2E result for the redesigned code; see the
 [visual redesign record](validation/visual_semantic_path_redesign_20260926.md).
 
+The first Rental failure-family robustness pass moves structural metadata,
+canonical enum and observation/limitation checks before source QA, with one
+bounded source-bound retry. It also preflights adjudicator-created pixel facts.
+Fresh CASE A / CASE B runs still stop before calculation: CASE A most recently
+stopped on `REVIEW_STALE` during visual review; CASE B stopped on an accounting
+export entity missing structural metadata after one retry. See the
+[robustness record](validation/rental_failure_family_robustness_20260926.md).
+
 AGAINWARD is an asynchronous B2B analysis/advisory service whose internal
 production uses Codex and deterministic Python. The current commercial focus
 is Rental B2B: contracts,

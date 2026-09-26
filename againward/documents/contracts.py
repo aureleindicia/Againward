@@ -20,6 +20,54 @@ class DocumentError(ValueError):
         super().__init__(code + (": " + detail if detail else ""))
 
 
+# Stable internal categories let receipts and callers distinguish shape errors
+# from evidence gaps without changing public workflow error codes.
+ERROR_CATEGORIES = frozenset({
+    "SCHEMA_ERROR", "STRUCTURAL_INCOMPLETE", "SEMANTIC_CONTRADICTION",
+    "SOURCE_EVIDENCE_MISSING", "AMBIGUOUS_SOURCE", "MODEL_INVOCATION_ERROR",
+    "REVIEW_REQUIRED",
+})
+
+_ERROR_CATEGORY_BY_CODE = {
+    "EXTRACTION_SCHEMA_INVALID": "SCHEMA_ERROR",
+    "SOURCE_LOCATION_INVALID": "SOURCE_EVIDENCE_MISSING",
+    "SOURCE_CHANGED": "SOURCE_EVIDENCE_MISSING",
+    "UNSUPPORTED_PROMOTION": "SOURCE_EVIDENCE_MISSING",
+    "EXTRACTION_INCOMPLETE": "STRUCTURAL_INCOMPLETE",
+    "STRUCTURAL_INCOMPLETE": "STRUCTURAL_INCOMPLETE",
+    "EXTRACTION_CONTRADICTION": "SEMANTIC_CONTRADICTION",
+    "ENTITY_AMBIGUOUS": "AMBIGUOUS_SOURCE",
+    "MODEL_TIMEOUT": "MODEL_INVOCATION_ERROR",
+    "MODEL_UNAVAILABLE": "MODEL_INVOCATION_ERROR",
+    "MODEL_AUTH_REQUIRED": "MODEL_INVOCATION_ERROR",
+    "MODEL_RATE_LIMITED": "MODEL_INVOCATION_ERROR",
+    "MODEL_TRANSPORT_FAILURE": "MODEL_INVOCATION_ERROR",
+    "MODEL_CONFIGURATION_ERROR": "MODEL_INVOCATION_ERROR",
+    "MODEL_CLI_UNAVAILABLE": "MODEL_INVOCATION_ERROR",
+    "MODEL_EMPTY_RESPONSE": "MODEL_INVOCATION_ERROR",
+    "MODEL_INVOCATION_FAILURE": "MODEL_INVOCATION_ERROR",
+    "WAITING_FOR_REQUIRED_INFORMATION": "REVIEW_REQUIRED",
+    "REPAIR_REQUIRED": "REVIEW_REQUIRED",
+    "WAITING_FOR_VISUAL_REVIEW": "REVIEW_REQUIRED",
+    "WAITING_FOR_VISUAL_ATTESTATION": "REVIEW_REQUIRED",
+}
+
+
+def error_category(code: str) -> str:
+    """Map stable/legacy workflow codes to a bounded diagnostic category."""
+    if code in _ERROR_CATEGORY_BY_CODE:
+        return _ERROR_CATEGORY_BY_CODE[code]
+    if code.startswith(("MODEL_", "CODEX_")):
+        return "MODEL_INVOCATION_ERROR"
+    if code.startswith(("SOURCE_", "PRIVACY_")):
+        return "SOURCE_EVIDENCE_MISSING"
+    if code.startswith(("WAITING_", "REPAIR_", "REVIEW_")):
+        return "REVIEW_REQUIRED"
+    if code.endswith("AMBIGUOUS"):
+        return "AMBIGUOUS_SOURCE"
+    return "SCHEMA_ERROR"
+
+
 def closed(value: Any, keys: set[str], *, optional: set[str] | None = None) -> dict[str, Any]:
     if not isinstance(value, dict) or set(value) - keys - (optional or set()) or keys - set(value):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Missing or unknown object fields")

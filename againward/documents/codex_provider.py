@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import os
+import copy
 from pathlib import Path
 import shutil
 import subprocess
@@ -20,7 +21,7 @@ from .contracts import DocumentError, SourceDocument, identifier, load_json, tex
 from .extraction import SCHEMA, proposal_context, validate_semantic_value_type
 from .readers import ParsedDocument
 
-PROMPT_VERSION = "againward-source-facts-v9-entity-structure-limits"
+PROMPT_VERSION = "againward-source-facts-v10-closed-rental-structure"
 EXTRACTOR_VERSION = "codex-cli-source-units-v2-visual-bound"
 MAX_PROMPT_TEXT = 30_000
 MAX_UNITS = 300
@@ -47,7 +48,8 @@ _OUTPUT_SCHEMA: dict[str, Any] = {
     "required": ["status", "candidates", "limitations"],
     "properties": {
         "status": {"type": "string", "enum": ["SUCCESS", "PARTIAL", "FAILED", "NEEDS_REVIEW"]},
-        "limitations": {"type": "array", "items": {"type": "string"}},
+        "limitations": {"type": "array", "maxItems": 100,
+                         "items": {"type": "string", "minLength": 1, "maxLength": 4096}},
         "candidates": {"type": "array", "items": {
             "type": "object", "additionalProperties": False,
             "required": ["entity_id", "semantic_type", "value_type", "value",
@@ -514,6 +516,13 @@ class CodexCliProvider:
             has_native = any(unit.route == "NATIVE" for unit in parsed.units)
             schema_body = (_VISUAL_OUTPUT_SCHEMA if has_native else _VISUAL_ONLY_OUTPUT_SCHEMA) \
                 if visual_route else _OUTPUT_SCHEMA
+            if guidance.startswith("Rental B2B source interpretation"):
+                schema_body = copy.deepcopy(schema_body)
+                candidate_schema = (schema_body["properties"].get("native_candidates")
+                                    or schema_body["properties"].get("candidates"))
+                if candidate_schema is not None:
+                    candidate_schema["items"]["properties"]["semantic_type"] = {
+                        "type": "string", "enum": VISUAL_SEMANTIC_TYPES}
             schema.write_text(json.dumps(schema_body), encoding="utf-8")
             command = ["codex", "exec", "--ephemeral", "--skip-git-repo-check", "--sandbox", "read-only",
                        "--cd", str(temp), "--model", self.model,

@@ -13,13 +13,14 @@ import json
 from pathlib import Path
 import subprocess
 import tempfile
-from typing import Any
+from typing import Any, Callable
 import uuid
 
 from againward.evidence.hashing import stable_hash
 from .codex_provider import VISUAL_SEMANTIC_TYPES, _images, _model_invocation_failure
 from .contracts import DocumentError, SourceBatch, identifier, load_json, text
-from .extraction import (DocumentExtraction, contradictory_source_limitations, validate_semantic_value_type,
+from .extraction import (DocumentExtraction, append_adjudicator_visual_observations,
+                         contradictory_source_limitations, validate_semantic_value_type,
                          visual_only_limited_extraction)
 from .independent_qa import compare_extractions
 from .readers import read_document
@@ -453,7 +454,8 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
 def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction, ...],
                          challenger: tuple[DocumentExtraction, ...], qa: dict[str, Any],
                          root: Path, *, model: str, timeout_seconds: int = 180,
-                         evaluation_only: bool = False) -> dict[str, Any]:
+                         evaluation_only: bool = False,
+                         validate_pixel_observations: Callable[[DocumentExtraction], None] | None = None) -> dict[str, Any]:
     """Reopen the entire approved source set; no private truth or preapproved facts."""
     identifier(model)
     if not 10 <= timeout_seconds <= 600:
@@ -640,6 +642,17 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                         observation["adjudication_version"] = ADJUDICATION_VERSION
                 result["adjudication_sha256"] = stable_hash({k: v for k, v in result.items()
                                                              if k != "adjudication_sha256"})
+                if validate_pixel_observations is not None:
+                    base_by_hash = {item.to_dict()["extraction_sha256"]: item
+                                    for item in (*primary, *challenger)}
+                    for decision in result["decisions"]:
+                        observations = decision.get("pixel_observations", [])
+                        selected_hash = result["selected_extractions"].get(decision["source_id"])
+                        if observations and selected_hash in base_by_hash:
+                            augmented = append_adjudicator_visual_observations(
+                                base_by_hash[selected_hash], observations, batch, root,
+                                result["adjudication_sha256"])
+                            validate_pixel_observations(augmented)
                 return result
             except DocumentError as exc:
                 from .codex_provider import _codex_cli_version, write_model_diagnostic
@@ -661,9 +674,19 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                 write_model_diagnostic(root, diagnostic,
                                        evaluation_raw=raw if evaluation_only else None)
                 exc.diagnostic = diagnostic
-                if attempt or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_INCOMPLETE", "REVIEW_STALE"}:
+                if attempt or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_INCOMPLETE",
+                                               "STRUCTURAL_INCOMPLETE", "REVIEW_STALE"}:
                     raise
-                prompt += ("\nYour prior response failed deterministic validation: " + str(exc) +
-                           ". Reinspect attached original pixels and issue a fresh closed decision. "
-                           "Only use exact unit locations and complete candidate raw_observed_value strings.")
+                if exc.code == "STRUCTURAL_INCOMPLETE":
+                    prompt += (
+                        "\nYour prior pixel observations omitted required source-supported entity metadata. "
+                        "Reinspect the same original pixels and place entity_kind, document_role and "
+                        "document_status observations with the same entity_hint as that entity's facts. "
+                        "Use only source-supported canonical values; if the source cannot establish them, "
+                        "do not create the pixel observation and choose UNRESOLVED where necessary."
+                    )
+                else:
+                    prompt += ("\nYour prior response failed deterministic validation: " + str(exc) +
+                               ". Reinspect attached original pixels and issue a fresh closed decision. "
+                               "Only use exact unit locations and complete candidate raw_observed_value strings.")
     raise AssertionError("Bounded adjudication loop exhausted")

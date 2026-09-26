@@ -4,6 +4,7 @@ from __future__ import annotations
 from copy import deepcopy
 import json
 from pathlib import Path
+import subprocess
 import tempfile
 from types import SimpleNamespace
 
@@ -15,6 +16,7 @@ from againward.documents.codex_provider import assemble_proposal, bind_visual_pa
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
 from againward.documents.independent_qa import compare_extractions
+from againward.domains.rental.extraction_validation import validate_rental_extraction
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
 from againward.documents.visual_fact_review import _render_hash
@@ -472,3 +474,70 @@ def test_clear_signed_return_scan_resolves_grouping_only_difference_through_pixe
     assert result["facts_approved"] == 0 and result["delivery_approved"] is False
     assert result["decisions"][0]["citations"][0]["verification_method"] == "MULTIMODAL_ORIGINAL_PIXELS"
     assert result["decisions"][0]["citations"][0]["deterministic_semantic_verification"] is False
+
+
+def test_adjudicator_structural_pixel_observation_gets_one_bounded_repair(tmp_path, monkeypatch):
+    public = tmp_path / "public"
+    public.mkdir()
+    pdf(public / "invoice.pdf", ["ISSUED INVOICE INV-7.", "Net total EUR 150.00."], scan=True)
+    root = tmp_path / "documents"
+    batch = inventory_sources(public, root)
+    document = batch.documents[0]
+    parsed = read_document(document, root)
+
+    def extraction(amount: str, invocation: str):
+        prompt_version = prompt_version_for_guidance("adjudicator structure retry")
+        binding = bind_visual_pages(document, parsed, root, model="synthetic-model",
+            prompt_version=prompt_version, invocation_id=invocation)
+        observations = [
+            ("entity_kind", "ENUM", "INVOICE_LINE", "ISSUED INVOICE"),
+            ("document_role", "ENUM", "INVOICE", "ISSUED INVOICE"),
+            ("document_status", "ENUM", "ISSUED", "ISSUED"),
+            ("invoice_id", "IDENTIFIER", "INV-7", "INV-7"),
+            ("net_amount", "DECIMAL", amount, "Net total EUR " + amount),
+        ]
+        raw = {"status": "NEEDS_REVIEW", "limitations": [], "observations": [
+            {"semantic_type": semantic, "value_type": kind, "value": value,
+             "visible_text": quote, "page": 1, "ambiguity": [], "entity_hint": "invoice-line"}
+            for semantic, kind, value, quote in observations]}
+        return validate_proposal(assemble_proposal(raw, document, parsed, batch.batch_id,
+            "synthetic-model", prompt_version=prompt_version, visual_bindings=binding,
+            invocation_id=invocation), batch, root)
+
+    primary = (extraction("150.00", "primary"),)
+    challenger = (extraction("100.00", "challenger"),)
+    qa = compare_extractions(batch, primary, challenger, root)
+    with tempfile.TemporaryDirectory() as directory:
+        preview, _, _ = _render_hash(document, root, "page:1", Path(directory))
+    source_id = document.source_id
+
+    def response(*, extra_observation: bool):
+        observations = ([{"semantic_type": "date", "value_type": "DATE", "value": "2026-09-03",
+            "visible_text": "2026-09-03", "page": 1, "ambiguity": [], "entity_hint": "date-only-group"}]
+            if extra_observation else [])
+        return {"decisions": [{"source_id": source_id, "selection": "PRIMARY",
+            "rationale": "Pixel binding resolves the amount candidate for later review.",
+            "citations": [{"source_id": source_id, "location": "page:1",
+                "quote": "Net total EUR 150.00", "preview_sha256": preview}],
+            "observations": observations}]}
+
+    responses = [response(extra_observation=True), response(extra_observation=False)]
+    prompts = []
+    original_run = subprocess.run
+
+    def fake_codex(command, **kwargs):
+        if "input" not in kwargs:
+            return original_run(command, **kwargs)
+        input = kwargs["input"]
+        prompts.append(input)
+        output = Path(command[command.index("--output-last-message") + 1])
+        output.write_text(json.dumps(responses.pop(0)))
+        return SimpleNamespace(returncode=0, stderr="")
+
+    monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)
+    result = adjudicate_with_codex(batch, primary, challenger, qa, root, model="synthetic-model",
+                                   validate_pixel_observations=validate_rental_extraction)
+    assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"
+    assert len(prompts) == 2
+    assert "required source-supported entity metadata" in prompts[1]
+    assert "choose UNRESOLVED where necessary" in prompts[1]
