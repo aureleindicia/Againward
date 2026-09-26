@@ -334,3 +334,21 @@ instrumentation checkpoint passed 873 pytest tests, Ruff, configured mypy
 (16 files), Rental 15/15 and privacy 19/19. PR #5 CI passed 8/8 jobs across
 Python 3.11–3.14. These are regression checks, not accuracy evidence. PR #5
 remains open and draft.
+
+## Rental failure-family robustness (2026-09-26)
+
+The current implementation adds deterministic Rental structural and semantic
+preflight before source QA and checks new pixel observations before they enter
+the fact-review path. Structural omissions and malformed adjudication schemas
+receive at most one bounded, source-bound retry; unresolved structure remains
+fail-closed. Exact native spans, provenance and render hashes, visual review,
+attestation, HUMAN semantics, contract authority, and Rental arithmetic were
+not relaxed. The fresh known CASE A run now reaches visual review but stops at
+`REVIEW_STALE`; CASE B's one retry corrected the email entity, then the
+accounting-export entity remained structurally incomplete after its one retry.
+Neither reached calculation or report QA; the EUR 150 / LIFT-5 EUR 150 and
+LIFT-50 EUR 0 oracles remain unverified. Full pytest passed 900 tests on the
+clean follow-up commit; Ruff, configured mypy, Rental 15/15, privacy 19/19, and
+PR #5 CI 8/8 passed. See the [failure-family robustness
+record](validation/rental_failure_family_robustness_20260926.md). This is
+regression evidence only, not accuracy evidence.

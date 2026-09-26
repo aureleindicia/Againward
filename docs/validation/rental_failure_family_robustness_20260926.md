@@ -12,8 +12,9 @@ the existing typed candidate fields. `entity_kind`, `document_role`, and
 `document_status` must be `ENUM`; monetary amount fields remain `DECIMAL`, with
 currency separate as `CURRENCY`. Runtime validation also checks the structural
 values against the canonical Rental sets. Adjudication continues to use its
-closed response schema and selection enum; review lifecycle states remain
-closed and explicit.
+closed response schema and selection enum; a malformed adjudication response
+gets at most one schema-focused retry, then fails closed. Review lifecycle
+states remain closed and explicit.
 
 A new deterministic Rental preflight runs immediately after primary and
 challenger proposals are source-validated, before the source-QA workflow. It
@@ -87,12 +88,20 @@ reached.
 
 ## Checks
 
-- Failure-family and related document/adjudication/source-job suites: **98 passed**.
+- Failure-family and related document/adjudication/source-job suites: **98 passed** on the main robustness commit; the schema-retry regression tests passed on the follow-up.
 - Ruff: passed.
 - Configured mypy: passed (16 source files).
 - Rental benchmark: **15/15**.
 - Privacy benchmark: **19/19**.
-- Full pytest and PR #5 CI: recorded after the clean committed-tree rerun.
+- Clean full pytest at follow-up `41b5488`: **900 passed in 586.01 s**.
+- PR #5 CI at `41b5488`: **8/8 jobs passed**, Python 3.11–3.14 across both configured workflows.
+
+The initial dirty-tree full-suite attempt found one stale test expectation for
+the newly expected pair of sanitized diagnostics (first rejected response and
+bounded retry). Two HOLDOUT tests also correctly rejected an uncommitted engine
+tree. The assertion was updated to check both sanitized receipts; the complete
+suite was then rerun after committing the engine and passed. The HOLDOUT checks
+were not changed.
 
 The small benchmarks remain scripted policy/arithmetic fixtures. They do not
 measure model extraction accuracy or independent material correctness.
