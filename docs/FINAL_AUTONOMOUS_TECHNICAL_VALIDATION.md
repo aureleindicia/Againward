@@ -266,3 +266,24 @@ failed closed on source-location or adjudication validation. Luna is not
 currently suitable for this visual path as configured on this measured
 cohort. These 10 repeats characterize two known cases only; they are not
 independent/blind accuracy evidence and do not estimate ≥99% correctness.
+
+## Causal visual-path audit (2026-09-26)
+
+A controlled known-case audit compared the same Luna model on identical image
+bytes. Simple 120-DPI reads found the A invoice ID, quantity and EUR 2,670 net
+amount in 3/3 calls; 300 DPI made the end-date exclusion exact in 3/3 calls.
+Simple JSON at 300 DPI returned the key structured facts in 2/2. On the exact
+production 120-DPI image, the current Againward raw primary extraction returned
+no invoice candidates; its challenger returned only three cover-text metadata
+candidates, and both responses passed assembly and extraction validation. On
+case B, simple 300-DPI vision read the signed return correctly while the raw
+Againward response again contained no candidates. The first demonstrated loss
+is therefore the semantic extraction response, before deterministic
+provenance validation. Later adjudication is also candidate-locked: the saved
+A01 rationale read the invoice values but could not cite them because neither
+extraction proposed those values. Verdict: `MIXED`, with the visual path
+materially overconstrained; 120 DPI contributes to exact-date errors but does
+not explain the core loss. The original-PDF direct-input path is unsupported by
+the installed CLI interface. See the [full audit record](validation/causal_visual_architecture_audit_20260926.json),
+which includes raw responses, source/render hashes, stage trace and the limits
+of reconstructing historical rejected responses.

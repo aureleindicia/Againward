@@ -220,3 +220,14 @@ to improve a score, or treat scripted reviews as actual human approval.
   the known original scan supports the EUR 150 discrepancy, so those waits are
   recorded as oracle-unjustified misses. This is repeatability evidence on two
   known synthetic cases, not independent accuracy evidence or a ≥99% estimate.
+
+- Causal visual-path audit at `dff2905` (known cases only) is recorded in
+  [causal_visual_architecture_audit_20260926.json](validation/causal_visual_architecture_audit_20260926.json).
+  Luna read the scanned invoice at both 120 and 300 DPI and the signed return at
+  300 DPI under simple prompts. The current Againward raw primary extraction
+  returned zero candidates for both visual sources; the validators accepted
+  those empty proposals. The evidence points to a materially overconstrained
+  visual extraction/adjudication path, with 120 DPI a secondary precision
+  issue. Exact raw outputs are retained in the artifact; historical rejected
+  `SOURCE_LOCATION_INVALID` response bodies were not retained, so their emitted
+  locations cannot be reconstructed.
