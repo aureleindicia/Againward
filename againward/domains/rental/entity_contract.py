@@ -111,18 +111,34 @@ def observation_instructions() -> str:
 
 
 def structural_gaps(accepted: Iterable[tuple[str, str, str]], *,
-                    visual_sources: frozenset[str] = frozenset()) -> list[dict[str, object]]:
-    """Find missing identity/authority at its actual entity or source scope."""
+                    visual_sources: frozenset[str] = frozenset(),
+                    offered: Iterable[tuple[str, str, str]] = ()) -> list[dict[str, object]]:
+    """Find missing authority without inheriting explicitly rejected evidence."""
     by_entity: dict[tuple[str, str], set[str]] = defaultdict(set)
+    offered_entity: dict[tuple[str, str], set[str]] = defaultdict(set)
     by_source: dict[str, set[str]] = defaultdict(set)
+    for source_id, entity_id, field in offered:
+        offered_entity[(source_id, entity_id)].add(field)
     for source_id, entity_id, field in accepted:
         by_entity[(source_id, entity_id)].add(field)
         by_source[source_id].add(field)
     gaps: list[dict[str, object]] = []
     for (source_id, entity_id), fields in sorted(by_entity.items()):
-        if "entity_kind" not in fields:
+        missing = ({"entity_kind"} - fields)
+        if missing:
+            # An untyped semantic fragment cannot borrow another entity's
+            # source authority merely because it shares the document.
+            missing.update({"document_role", "document_status"} - fields)
+        else:
+            # A rejected role/status on this entity must stay rejected. Other
+            # rows may inherit source metadata only when no competing local
+            # candidate was offered for this row.
+            missing.update(((offered_entity[(source_id, entity_id)] &
+                             {"document_role", "document_status"}) - fields) & by_source[source_id])
+        if missing:
             gaps.append({"source_id": source_id, "entity_id": entity_id,
-                         "missing": ["entity_kind"]})
+                         "missing": [field for field in ("entity_kind", "document_role", "document_status")
+                                     if field in missing]})
     for source_id, fields in sorted(by_source.items()):
         if source_id in visual_sources:
             continue

@@ -26,8 +26,8 @@ from .readers import read_document
 from .sources import verify_batch
 
 
-REVIEW_VERSION = "againward-codex-analyst-review-v6-source-scoped-metadata"
-VISUAL_REVIEW_VERSION = "againward-codex-visual-analyst-v5-source-scoped-metadata"
+REVIEW_VERSION = "againward-codex-analyst-review-v7-rejected-local-authority"
+VISUAL_REVIEW_VERSION = "againward-codex-visual-analyst-v6-rejected-local-authority"
 MAX_GLOBAL_TEXT = 50_000
 _SCHEMA: dict[str, Any] = {
     "type": "object", "additionalProperties": False,
@@ -144,7 +144,9 @@ def build_analyst_review(batch: SourceBatch, extractions: tuple[DocumentExtracti
             accepted.append((candidate.source_id, candidate.entity_id, candidate.semantic_type))
     visual_sources = frozenset(extraction.source_id for extraction in validated
                                if any(candidate.source_span is None for candidate in extraction.candidates))
-    structural_gaps = rental_structural_gaps(accepted, visual_sources=visual_sources)
+    offered = ((candidate.source_id, candidate.entity_id, candidate.semantic_type)
+               for extraction in validated for candidate in extraction.candidates)
+    structural_gaps = rental_structural_gaps(accepted, visual_sources=visual_sources, offered=offered)
     # An accepted orphan is never promoted, even while a bounded repair is pending.
     # The canonical gate still verifies every ID, hash, flag and visual receipt.
     facts = () if structural_gaps else promote_facts(validated, review, batch, root)
@@ -392,7 +394,10 @@ def review_visual_with_codex(batch: SourceBatch, extractions: tuple[DocumentExtr
                     for extraction in validated if extraction.source_id == source_id
                     for candidate in extraction.candidates
                     if by_id[candidate.candidate_id]["decision"] == "ACCEPT")
-        return rental_structural_gaps(accepted)
+        offered = ((candidate.source_id, candidate.entity_id, candidate.semantic_type)
+                   for extraction in validated if extraction.source_id == source_id
+                   for candidate in extraction.candidates)
+        return rental_structural_gaps(accepted, offered=offered)
 
     def cached_or_model(path: Path, key: str, prompt: str, images: tuple[Path, ...],
                         source_id: str, extraction_hash: str,

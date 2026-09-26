@@ -27,7 +27,7 @@ from .readers import read_document
 from .sources import verify_batch
 
 
-ADJUDICATION_VERSION = "againward-source-adjudication-v11-selected-source-gaps"
+ADJUDICATION_VERSION = "againward-source-adjudication-v12-focused-source-gap-repair"
 MAX_SOURCE_TEXT = 60_000
 MAX_VISUAL_PAGES = 4
 _SCHEMA: dict[str, Any] = {
@@ -726,7 +726,11 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                     prompt += ("\nThe selected proposal still lacks source-bound fields: "
                                + ", ".join(missing)[:120] + ". Reinspect the disputed original. "
                                "Add a bound pixel observation only for fields actually visible, "
-                               "or select a complete peer; otherwise choose UNRESOLVED. "
+                               "and only for the identified missing material fields. Do not add ancillary "
+                               "description or commentary as a separate observation. A genuinely new "
+                               "entity needs its own visible entity_kind; otherwise reuse the sole "
+                               "source-supported current-page entity or choose UNRESOLVED. "
+                               "Select a complete peer when one exists. "
                                "New observations remain unapproved for later fact review.")
                 else:
                     prompt += ("\nYour prior response failed deterministic validation: " + str(exc) +
