@@ -110,8 +110,10 @@ def test_unresolved_adjudication_cannot_select_material_source(tmp_path):
 def test_adjudicator_reopens_original_sources_without_private_truth(tmp_path, monkeypatch):
     root, batch, primary, challenger, qa, raw, _email = _case(tmp_path)
     calls = []
+    prompts = []
 
     def fake_codex(command, *, input, **_kwargs):
+        prompts.append(input)
         prompt = json.loads(input.split("\n", 1)[1])
         calls.append(prompt)
         assert len(prompt["original_sources"]) == 2
@@ -126,6 +128,9 @@ def test_adjudicator_reopens_original_sources_without_private_truth(tmp_path, mo
     result = adjudicate_with_codex(batch, primary, challenger, qa, root, model="synthetic-model")
     assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"
     assert len(calls) == 1
+    assert "selection chooses a source-local observation set" in prompts[0]
+    assert "does NOT establish contractual authority" in prompts[0]
+    assert "different phrasing or grouping alone is not a material" in prompts[0]
     stale = deepcopy(qa)
     stale["source_results"][0]["primary_status"] = "FAILED"
     with pytest.raises(DocumentError, match="REVIEW_STALE"):
@@ -228,3 +233,122 @@ def test_visual_dispute_requires_current_disputed_pixels_not_other_document(tmp_
     (root / visual.blob_path).write_bytes(b"mutated source")
     with pytest.raises(DocumentError, match="SOURCE_CHANGED"):
         validate_adjudication(batch, primary, challenger, qa, raw, root)
+
+
+def test_explicit_duplicate_rate_sheet_primary_is_selected_as_unapproved_supporting_evidence(tmp_path):
+    public = tmp_path / "public"
+    public.mkdir()
+    (public / "agreement.txt").write_text("ACCEPTED agreement AG-7 governs rental terms.")
+    (public / "rate_sheet.txt").write_text(
+        "ACCEPTED NEGOTIATED RATE SHEET for agreement AG-7.\n"
+        "This duplicates daily prices in the signed agreement; no amendment.\n"
+        "LIFT-5 / SN-L5-204: net EUR 50.00 per asset per calendar day.\n"
+        "LIFT-50 / SN-L50-830: net EUR 30.00 per asset per calendar day.\n"
+        "The agreement governs start, stop, weekend and minimum conventions.")
+    root = tmp_path / "documents"
+    batch = inventory_sources(public, root)
+    docs = {doc.original_names[0]: doc for doc in batch.documents}
+    rate_doc = docs["rate_sheet.txt"]
+    parsed = read_document(rate_doc, root)
+    rows = []
+    for entity_id, row_index, asset, serial, rate in (
+            ("support-lift5", 2, "LIFT-5", "SN-L5-204", "50.00"),
+            ("support-lift50", 3, "LIFT-50", "SN-L50-830", "30.00")):
+        for semantic, kind, value, quote, line in (
+                ("entity_kind", "ENUM", "SUPPORTING_DOCUMENT", "ACCEPTED NEGOTIATED RATE SHEET", 0),
+                ("document_role", "ENUM", "RATE_CARD", "RATE SHEET", 0),
+                ("document_status", "ENUM", "ACCEPTED", "ACCEPTED", 0),
+                ("agreement_id", "IDENTIFIER", "AG-7", "agreement AG-7", 0),
+                ("asset_id", "IDENTIFIER", asset, asset, row_index),
+                ("serial_number", "IDENTIFIER", serial, serial, row_index),
+                ("currency", "CURRENCY", "EUR", "EUR", row_index),
+                ("rate", "DECIMAL", rate, rate, row_index),
+                ("billing_unit", "ENUM", "DAY", "per calendar day", row_index)):
+            rows.append({"entity_id": entity_id, "semantic_type": semantic, "value_type": kind,
+                "value": value, "raw_observed_value": quote,
+                "location": parsed.units[line].location,
+                "normalization_notes": "Exact source-local transcription", "ambiguity_flags": []})
+    primary_rate = validate_proposal(assemble_proposal({"status": "NEEDS_REVIEW", "limitations": [],
+        "candidates": rows}, rate_doc, parsed, batch.batch_id, "synthetic-model"), batch, root)
+    challenger_rate = validate_proposal(assemble_proposal({"status": "SUCCESS", "limitations": [],
+        "candidates": []}, rate_doc, parsed, batch.batch_id, "synthetic-model"), batch, root)
+    contract_doc = docs["agreement.txt"]
+    contract_units = read_document(contract_doc, root)
+    contract = validate_proposal(assemble_proposal({"status": "SUCCESS", "limitations": [],
+        "candidates": []}, contract_doc, contract_units, batch.batch_id, "synthetic-model"), batch, root)
+    primary, challenger = (contract, primary_rate), (contract, challenger_rate)
+    qa = compare_extractions(batch, primary, challenger, root)
+    row = next(item for item in qa["source_results"] if item["source_id"] == rate_doc.source_id)
+    assert row["material_needs_reconciliation"]
+    raw = {"decisions": [{"source_id": rate_doc.source_id, "selection": "PRIMARY",
+        "rationale": "The sheet explicitly says its two rates duplicate the signed agreement and makes no amendment; these are source observations, not independent tariff authority.",
+        "citations": [
+            {"source_id": rate_doc.source_id, "location": "line:2",
+             "quote": "This duplicates daily prices in the signed agreement; no amendment."},
+            {"source_id": rate_doc.source_id, "location": "line:3",
+             "quote": "LIFT-5 / SN-L5-204: net EUR 50.00 per asset per calendar day."},
+            {"source_id": rate_doc.source_id, "location": "line:4",
+             "quote": "LIFT-50 / SN-L50-830: net EUR 30.00 per asset per calendar day."}]}]}
+    adjudication = validate_adjudication(batch, primary, challenger, qa, raw, root)
+    assert adjudication["status"] == "RESOLVED_FOR_FACT_REVIEW"
+    assert adjudication["facts_approved"] == 0 and adjudication["delivery_approved"] is False
+    rates = {candidate.entity_id: candidate.value for candidate in primary_rate.candidates
+             if candidate.semantic_type == "rate"}
+    assert rates == {"support-lift5": "50.00", "support-lift50": "30.00"}
+
+
+def test_clear_signed_return_scan_resolves_grouping_only_difference_through_pixels(tmp_path):
+    public = tmp_path / "public"
+    public.mkdir()
+    pdf(public / "signed_return.pdf", [
+        "SIGNED RETURN / OFF-HIRE RECORD, agreement AG-7.",
+        "One of two LIFT-5 units, serial SN-L5-204, returned 2026-09-05.",
+        "One LIFT-5 unit remains on hire through contract end 2026-09-10.",
+        "The LIFT-50 asset is not returned by this record."], scan=True)
+    root = tmp_path / "documents"
+    batch = inventory_sources(public, root)
+    document = batch.documents[0]
+    parsed = read_document(document, root)
+    version = prompt_version_for_guidance("visual return regression")
+    binding = bind_visual_pages(document, parsed, root, model="synthetic-model",
+        prompt_version=version, invocation_id="return-regression")
+
+    def proposal(hints):
+        fields = [
+            ("entity_kind", "ENUM", "RETURN", "SIGNED RETURN / OFF-HIRE RECORD", 0),
+            ("document_role", "ENUM", "RETURN_NOTE", "SIGNED RETURN / OFF-HIRE RECORD", 0),
+            ("document_status", "ENUM", "ACCEPTED", "SIGNED RETURN / OFF-HIRE RECORD", 0),
+            ("agreement_id", "IDENTIFIER", "AG-7", "agreement AG-7", 0),
+            ("item_id", "IDENTIFIER", "LIFT-5", "LIFT-5 units", 1),
+            ("serial_number", "IDENTIFIER", "SN-L5-204", "SN-L5-204", 1),
+            ("quantity", "INTEGER", 1, "One of two LIFT-5 units", 1),
+            ("event_type", "TEXT", "returned", "returned 2026-09-05", 1),
+            ("date", "DATE", "2026-09-05", "2026-09-05", 1),
+            ("verification", "ENUM", "DOCUMENTED", "SIGNED RETURN", 0),
+            ("item_id", "IDENTIFIER", "LIFT-50", "LIFT-50 asset", 3),
+            ("event_type", "TEXT", "not returned", "not returned by this record", 3),
+        ]
+        observations = [{"semantic_type": semantic, "value_type": kind, "value": value,
+            "visible_text": quote, "page": 1, "ambiguity": [], "entity_hint": hints[group]}
+            for semantic, kind, value, quote, group in fields]
+        return validate_proposal(assemble_proposal({"status": "NEEDS_REVIEW",
+            "observations": observations, "limitations": []}, document, parsed, batch.batch_id,
+            "synthetic-model", prompt_version=version, visual_bindings=binding,
+            invocation_id="return-regression"), batch, root)
+
+    primary_return = proposal({0: "return-header", 1: "returned-unit", 3: "not-returned-asset"})
+    challenger_return = proposal({0: "return-record", 1: "return-record", 3: "return-record"})
+    primary, challenger = (primary_return,), (challenger_return,)
+    qa = compare_extractions(batch, primary, challenger, root)
+    assert qa["source_results"][0]["material_needs_reconciliation"]
+    with tempfile.TemporaryDirectory() as directory:
+        preview, _, _ = _render_hash(document, root, "page:1", Path(directory))
+    result = validate_adjudication(batch, primary, challenger, qa, {"decisions": [{
+        "source_id": document.source_id, "selection": "PRIMARY",
+        "rationale": "The current original scan clearly supports the return date and separate remaining asset; grouping differences do not change those printed facts.",
+        "citations": [{"source_id": document.source_id, "location": "page:1",
+                       "quote": "returned 2026-09-05", "preview_sha256": preview}]}]}, root)
+    assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"
+    assert result["facts_approved"] == 0 and result["delivery_approved"] is False
+    assert result["decisions"][0]["citations"][0]["verification_method"] == "MULTIMODAL_ORIGINAL_PIXELS"
+    assert result["decisions"][0]["citations"][0]["deterministic_semantic_verification"] is False

@@ -1,6 +1,6 @@
 """Rental interpretation vocabulary supplied to a neutral source-unit provider."""
 
-GUIDANCE_VERSION = "rental-semantic-guidance-v10-money-types"
+GUIDANCE_VERSION = "rental-semantic-guidance-v11-visual-entity-metadata"
 
 
 def guidance() -> str:
@@ -157,6 +157,14 @@ Use the same entity_hint consistently for entity_kind, document_role,
 document_status and fields of the same invoice line or return. On a multi-line
 invoice, group each line separately and repeat document identity/authority
 metadata on each line where it applies.
+For visual pages, each material invoice line is an INVOICE_LINE entity with
+document_role INVOICE; do not classify its billed line as SUPPORTING_DOCUMENT
+merely because it is scanned, attached, or has a supporting heading. Keep the
+three structural observations and that line's facts under the same entity_hint.
+Use a separate SUPPORTING_DOCUMENT entity only for a genuinely separate
+document-level statement, and give that entity its own complete structural
+metadata. If the pixels do not establish a required field, leave it absent and
+preserve the review gap; never fill it from another source or from a default.
 
 Preserve visible wording, uncertainty, and document role. Do not decide whether
 a charge is contractually due, link different documents, compute totals, or

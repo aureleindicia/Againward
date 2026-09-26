@@ -25,7 +25,7 @@ from .readers import read_document
 from .sources import verify_batch
 
 
-ADJUDICATION_VERSION = "againward-source-adjudication-v6-pixel-observations"
+ADJUDICATION_VERSION = "againward-source-adjudication-v7-source-local-reconciliation"
 MAX_SOURCE_TEXT = 60_000
 MAX_VISUAL_PAGES = 4
 _SCHEMA: dict[str, Any] = {
@@ -308,8 +308,25 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         "correct documentary role and necessary financial facts; explain complementary metadata and "
         "whether the governing original already supplies an omitted fact. A document explicitly "
         "duplicating governing terms without amendment must not create a second tariff or charge. "
-        "Choose UNRESOLVED when competing material interpretations remain or neither proposal "
-        "supports the necessary facts, not merely because both contain some true observations. "
+        "A proposal selection chooses a source-local observation set for further review; it does NOT "
+        "establish contractual authority, approve facts, or require this one source to reproduce a full "
+        "governing agreement. For a rate sheet that explicitly says its prices duplicate the accepted "
+        "agreement and that it makes no amendment, select the proposal that faithfully records the "
+        "source-supported rate rows as SUPPORTING_DOCUMENT observations. Those rows do not create a "
+        "second tariff, rental scope, or charge; missing agreement conventions belong to the agreement "
+        "source and later ledger review. Do not choose UNRESOLVED merely because a supporting rate sheet "
+        "does not itself restate the full agreement. Compare semantic facts, not model-local entity IDs. "
+        "For a visual return, if the current original pixels clearly support the same material returned "
+        "asset/quantity/date in both proposals, different phrasing or grouping alone is not a material "
+        "conflict: select the source-supported proposal and emit pixel observations for any other clearly "
+        "visible material fact absent from that selected set, using one consistent entity_hint per real "
+        "document/line/asset. Include source-visible RETURN metadata (entity_kind, document_role, "
+        "document_status) with the same entity_hint as its event facts when the pixels establish them. "
+        "A signed return record may support verification=DOCUMENTED without transcribing private signer "
+        "names. Every such observation stays unapproved and must pass the existing fact review. Choose "
+        "UNRESOLVED only when competing material interpretations remain, the pixels are ambiguous, or "
+        "neither proposal supports the necessary facts; never use it merely because both contain some "
+        "true observations or differ in grouping. "
         "Selection remains subject to subsequent fact review and omission QA. Cite exact unique native "
         "quotes with source_id/location and preview_sha256='' for native citations; visual observations "
         "remain probabilistic. Do not calculate money, "

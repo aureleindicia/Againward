@@ -278,3 +278,20 @@ to improve a score, or treat scripted reviews as actual human approval.
   mypy, full pytest (856 passed), Rental (15/15), and privacy (19/19) pass. PR
   #5 CI passed 8/8 jobs across Python 3.11–3.14. The full details are in the
   linked follow-up; no calculation/report result is claimed for either rerun.
+
+- The next scoped stabilization at `a95cf62` is documented in
+  [three known-case blockers stabilization](validation/three_known_case_blockers_stabilization_20260926.md).
+  Visual extraction guidance now requires complete, source-supported structural
+  observations grouped with their invoice line. Adjudication distinguishes
+  selecting source-local rate rows from approving a governing tariff, and
+  resolves grouping-only return-scan differences only when the original pixels
+  support the same event. Exact native citations and downstream review gates
+  remain strict. In fresh `gpt-6-luna` reruns, CASE A's pixel adjudication
+  resolved, then stopped before fact review on a contradictory extraction
+  limitation; CASE B resolved its rate-sheet and signed-scan disagreements,
+  then stopped at fact review with five structural gaps in native-source
+  proposals. Neither run reached calculation, report, or PDF QA; no known
+  financial oracle was calculated. Targeted tests (32), Ruff, configured mypy,
+  Rental (15/15), and privacy (19/19) pass. Full pytest and PR #5 CI results are
+  pending at this commit checkpoint. These are known-case regression runs, not
+  accuracy evidence.

@@ -11,8 +11,9 @@ from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
+from againward.documents.analyst_review import build_analyst_review, review_visual_with_codex
 from againward.domains.rental.models import DOCUMENT_ROLES
-from againward.domains.rental.semantic_guidance import guidance
+from againward.domains.rental.semantic_guidance import guidance, visual_guidance
 from benchmarking.document_renderers import pdf
 
 
@@ -113,6 +114,69 @@ def test_rental_guidance_names_every_canonical_document_role():
     instructions = guidance()
     assert all(role in instructions for role in DOCUMENT_ROLES)
     assert 'invoice_line_id "1"' in instructions
+
+
+def test_visual_invoice_reader_keeps_structural_metadata_on_the_billed_line(tmp_path, monkeypatch):
+    incoming = tmp_path / "visual-public"
+    incoming.mkdir()
+    pdf(incoming / "invoice.pdf", [
+        "ACCEPTED INVOICE INV-7, Line 1, asset LIFT-5, net EUR 150.00."], scan=True)
+    root = tmp_path / "documents"
+    batch = inventory_sources(incoming, root)
+    document = batch.documents[0]
+    parsed = read_document(document, root)
+    observed = [
+        ("entity_kind", "ENUM", "INVOICE_LINE", "ACCEPTED INVOICE"),
+        ("document_role", "ENUM", "INVOICE", "ACCEPTED INVOICE"),
+        ("document_status", "ENUM", "ACCEPTED", "ACCEPTED INVOICE"),
+        ("invoice_id", "IDENTIFIER", "INV-7", "INV-7"),
+        ("invoice_line_id", "IDENTIFIER", "1", "Line 1"),
+        ("asset_id", "IDENTIFIER", "LIFT-5", "LIFT-5"),
+        ("net_amount", "DECIMAL", "150.00", "EUR 150.00"),
+    ]
+    raw = {"status": "NEEDS_REVIEW", "limitations": [],
+           "observations": [{"semantic_type": semantic, "value_type": kind, "value": value,
+                             "visible_text": quote, "page": 1, "ambiguity": [],
+                             "entity_hint": "invoice line 1"}
+                            for semantic, kind, value, quote in observed]}
+    captured = {}
+    original_run = subprocess.run
+
+    def fake_run(command, **kwargs):
+        if "input" not in kwargs:
+            return original_run(command, **kwargs)
+        captured["prompt"] = kwargs["input"]
+        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(raw))
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run", fake_run)
+    proposal = CodexCliProvider(root, model="synthetic-model").propose(
+        document, parsed, {"batch": batch, "semantic_guidance": visual_guidance()})
+    extraction = validate_proposal(proposal, batch, root)
+    line = [candidate for candidate in extraction.candidates if candidate.semantic_type != "page"]
+    assert {candidate.semantic_type for candidate in line} >= {
+        "entity_kind", "document_role", "document_status", "invoice_id", "invoice_line_id", "net_amount"}
+    assert len({candidate.entity_id for candidate in line}) == 1
+    assert "each material visual entity" in captured["prompt"]
+    assert "Never split structural metadata across different entity_hint values" in captured["prompt"]
+
+    incomplete = dict(raw, observations=[row for row in raw["observations"]
+                                         if row["semantic_type"] != "entity_kind"])
+    incomplete_extraction = validate_proposal(assemble_proposal(
+        incomplete, document, parsed, batch.batch_id, "synthetic-model",
+        prompt_version=proposal["prompt_version"], visual_bindings=proposal["visual_bindings"],
+        invocation_id=proposal["invocation_id"]), batch, root)
+    base = build_analyst_review(batch, (incomplete_extraction,), {}, root)
+    accepted = {"decisions": [{"candidate_id": candidate.candidate_id, "decision": "ACCEPT",
+        "reason": "The pixel fact is individually legible.", "resolved_flags": []}
+        for candidate in incomplete_extraction.candidates]}
+    monkeypatch.setattr("againward.documents.analyst_review._ask_codex",
+                        lambda *args, **kwargs: (accepted, 0.1))
+    blocked = review_visual_with_codex(batch, (incomplete_extraction,), base, root,
+                                       model="synthetic-model")
+    assert blocked["status"] == "REPAIR_REQUIRED"
+    assert blocked["native_facts_accepted"] == 0
+    assert blocked["visual_structural_gaps"][0]["missing"] == ["entity_kind"]
 
 
 def test_invoice_line_label_requires_explicit_safe_identifier(tmp_path):
