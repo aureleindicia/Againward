@@ -26,8 +26,8 @@ from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources, safe_file, verify_batch
 from againward.documents.visual_fact_review import MODEL_VISUAL_VERSION, record_model_visual_review, verify_visual_attestations
 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
-from againward.domains.rental.extraction_validation import validate_rental_extraction
-from againward.domains.rental.entity_contract import ANALYTICAL_FIELDS
+from againward.domains.rental.extraction_validation import package_source_gaps, validate_rental_extraction
+from againward.domains.rental.entity_contract import ANALYTICAL_FIELDS, unique_pixel_entity_for_required_field
 from againward.domains.rental.semantic_guidance import (STRUCTURE_RETRY_INSTRUCTIONS as RENTAL_STRUCTURE_RETRY,
     guidance, visual_guidance)
 from againward.evidence.hashing import stable_hash
@@ -36,7 +36,7 @@ from .autonomous_job import run_reviewed_package_job
 from .autonomous_report import current_report_versions
 
 
-VERSION = "againward-rental-approved-sources-job-v2-visual-observations"
+VERSION = "againward-rental-approved-sources-job-v3-selected-completeness"
 VISUAL_LIMITATION_ROUTING_VERSION = "againward-rental-visual-reading-v2"
 RETRYABLE_MODEL_CODES = {"MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_AUTH_REQUIRED",
                          "MODEL_RATE_LIMITED", "MODEL_TRANSPORT_FAILURE", "MODEL_EMPTY_RESPONSE"}
@@ -335,10 +335,12 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 base_guidance = visual_guidance() if is_visual else guidance()
                 started = perf_counter()
                 repair_note = ""
+                deferred_structure = None
                 for attempt in (1, 2):
                     attempt_guidance = (base_guidance +
                         ((VISUAL_RETRY_INSTRUCTIONS if is_visual else RETRY_INSTRUCTIONS)
                          if attempt == 2 else "") + repair_note)
+                    extraction = None
                     try:
                         proposal = provider.propose(document, parsed,
                             {"batch": batch, "semantic_guidance": attempt_guidance})
@@ -348,6 +350,13 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                     except DocumentError as exc:
                         _bind_extraction_attempt(exc, attempt=attempt, model=model,
                                                  semantic_guidance=attempt_guidance)
+                        if attempt == 2 and exc.code == "STRUCTURAL_INCOMPLETE" and extraction is not None:
+                            # Keep the cited, unapproved reread for independent QA.
+                            # The selected extraction is checked strictly before review.
+                            validate_rental_extraction(extraction, allow_incomplete=True)
+                            deferred_structure = _safe_failure_diagnostic(
+                                exc, stage="PRIMARY_EXTRACTION", source_id=document.source_id)
+                            break
                         if attempt == 2 or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_SCHEMA_INVALID",
                                                              "STRUCTURAL_INCOMPLETE"}:
                             raise
@@ -358,10 +367,13 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                             missing = (exc.diagnostic or {}).get("missing_semantic_fields")
                             if isinstance(missing, list):
                                 repair_note += " Check source support for: " + ", ".join(missing)[:55] + "."
+                if extraction is None:
+                    raise DocumentError("EXTRACTION_INCOMPLETE", "No validated primary extraction")
                 stored = persist_extraction(extraction, documents)
                 state["primary"][document.source_id] = str(stored)
                 _save(path, state, "DOCUMENT_PARSED", source_id=document.source_id,
-                      model_attempts=attempt, model_wall_seconds=round(perf_counter() - started, 3))
+                      model_attempts=attempt, model_wall_seconds=round(perf_counter() - started, 3),
+                      deferred_structure=deferred_structure)
         primary = _extractions(state["primary"], batch, documents)
         active_stage = "INDEPENDENT_REREAD"
         for document in batch.documents:
@@ -372,10 +384,12 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 base_guidance = visual_guidance() if is_visual else guidance()
                 started = perf_counter()
                 repair_note = ""
+                deferred_structure = None
                 for attempt in (1, 2):
                     attempt_guidance = (base_guidance + QA_INSTRUCTIONS +
                         ((VISUAL_RETRY_INSTRUCTIONS if is_visual else RETRY_INSTRUCTIONS)
                          if attempt == 2 else "") + repair_note)
+                    extraction = None
                     try:
                         proposal = provider.propose(document, parsed,
                             {"batch": batch, "semantic_guidance": attempt_guidance})
@@ -385,6 +399,11 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                     except DocumentError as exc:
                         _bind_extraction_attempt(exc, attempt=attempt, model=model,
                                                  semantic_guidance=attempt_guidance)
+                        if attempt == 2 and exc.code == "STRUCTURAL_INCOMPLETE" and extraction is not None:
+                            validate_rental_extraction(extraction, allow_incomplete=True)
+                            deferred_structure = _safe_failure_diagnostic(
+                                exc, stage="INDEPENDENT_REREAD", source_id=document.source_id)
+                            break
                         if attempt == 2 or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_SCHEMA_INVALID",
                                                              "STRUCTURAL_INCOMPLETE"}:
                             raise
@@ -395,10 +414,13 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                             missing = (exc.diagnostic or {}).get("missing_semantic_fields")
                             if isinstance(missing, list):
                                 repair_note += " Check source support for: " + ", ".join(missing)[:55] + "."
+                if extraction is None:
+                    raise DocumentError("EXTRACTION_INCOMPLETE", "No validated independent reread")
                 stored = persist_extraction(extraction, documents)
                 state["challenger"][document.source_id] = str(stored)
                 _save(path, state, "QA_SOURCE_REREAD", source_id=document.source_id,
-                      model_attempts=attempt, model_wall_seconds=round(perf_counter() - started, 3))
+                      model_attempts=attempt, model_wall_seconds=round(perf_counter() - started, 3),
+                      deferred_structure=deferred_structure)
         challenger = _extractions(state["challenger"], batch, documents)
         active_stage = "SOURCE_QA"
         active_source_id = None
@@ -420,7 +442,10 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
             adjudication = adjudicate_with_codex(batch, primary, challenger, qa, documents,
                                                  model=model, timeout_seconds=timeout_seconds,
                                                  evaluation_only=evaluation_only,
-                                                 validate_pixel_observations=validate_rental_extraction)
+                                                 validate_pixel_observations=lambda extraction:
+                                                     validate_rental_extraction(extraction, require_package_facts=True),
+                                                 unique_required_entity=unique_pixel_entity_for_required_field,
+                                                 required_source_facts=package_source_gaps)
             base_by_hash = {item.to_dict()["extraction_sha256"]: item for item in (*primary, *challenger)}
             added: dict[str, dict[str, Any]] = {}
             for decision in adjudication["decisions"]:
@@ -430,7 +455,8 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                     continue
                 base = base_by_hash[adjudication["selected_extractions"][source_id]]
                 revised = append_adjudicator_visual_observations(
-                    base, observations, batch, documents, adjudication["adjudication_sha256"])
+                    base, observations, batch, documents, adjudication["adjudication_sha256"],
+                    unique_required_entity=unique_pixel_entity_for_required_field)
                 stored = persist_extraction(revised, documents)
                 augmented = revised.to_dict()["extraction_sha256"]
                 base_sha = base.to_dict()["extraction_sha256"]

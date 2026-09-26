@@ -16,7 +16,7 @@ from againward.documents.codex_provider import assemble_proposal, bind_visual_pa
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
 from againward.documents.independent_qa import compare_extractions
-from againward.domains.rental.extraction_validation import validate_rental_extraction
+from againward.domains.rental.extraction_validation import package_source_gaps, validate_rental_extraction
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
 from againward.documents.visual_fact_review import _render_hash
@@ -108,6 +108,43 @@ def test_unresolved_adjudication_cannot_select_material_source(tmp_path):
     assert result["status"] == "RECONCILIATION_REQUIRED"
     assert email.source_id in result["material_unresolved_source_ids"]
     assert email.source_id not in result["selected_extractions"]
+
+
+def test_matching_missing_commercial_field_cannot_be_selected_as_complete(tmp_path):
+    incoming = tmp_path / "public"
+    incoming.mkdir()
+    (incoming / "invoice.txt").write_text("Issued Invoice INV-8 rental line net 850.00 EUR.")
+    root = tmp_path / "documents"
+    batch = inventory_sources(incoming, root)
+    document = batch.documents[0]
+    parsed = read_document(document, root)
+    rows = [("entity_kind", "ENUM", "INVOICE_LINE", "rental line"),
+            ("document_role", "ENUM", "INVOICE", "Invoice"),
+            ("document_status", "ENUM", "ISSUED", "Issued"),
+            ("invoice_id", "IDENTIFIER", "INV-8", "INV-8"),
+            ("net_amount", "DECIMAL", "850.00", "850.00"),
+            ("currency", "CURRENCY", "EUR", "EUR")]
+    raw = {"status": "SUCCESS", "limitations": [], "candidates": [
+        {"entity_id": "line", "semantic_type": field, "value_type": value_type,
+         "value": value, "raw_observed_value": quote, "location": parsed.units[0].location,
+         "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+        for field, value_type, value, quote in rows]}
+    extraction = validate_proposal(assemble_proposal(raw, document, parsed, batch.batch_id,
+        "synthetic-model"), batch, root)
+    qa = compare_extractions(batch, (extraction,), (extraction,), root)
+    assert qa["source_results"][0]["primary_source_fact_gaps"]["line"] == ["charge_type"]
+    decision = {"decisions": [{"source_id": document.source_id, "selection": "PRIMARY",
+        "rationale": "The amount is visible, but the type was omitted.", "observations": [],
+        "citations": [{"source_id": document.source_id, "location": parsed.units[0].location,
+                       "quote": "rental line", "preview_sha256": ""}]}]}
+    with pytest.raises(DocumentError) as caught:
+        validate_adjudication(batch, (extraction,), (extraction,), qa, decision, root,
+                              required_source_facts=package_source_gaps)
+    assert caught.value.diagnostic["validation_code"] == "SELECTED_SOURCE_FACT_GAP"
+    assert caught.value.diagnostic["missing_semantic_fields"] == ["charge_type"]
+    decision["decisions"][0].update(selection="UNRESOLVED", citations=[])
+    unresolved = validate_adjudication(batch, (extraction,), (extraction,), qa, decision, root)
+    assert unresolved["status"] == "RECONCILIATION_REQUIRED"
 
 
 def test_adjudicator_reopens_original_sources_without_private_truth(tmp_path, monkeypatch):

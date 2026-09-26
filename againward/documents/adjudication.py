@@ -27,7 +27,7 @@ from .readers import read_document
 from .sources import verify_batch
 
 
-ADJUDICATION_VERSION = "againward-source-adjudication-v10-source-scoped-metadata"
+ADJUDICATION_VERSION = "againward-source-adjudication-v11-selected-source-gaps"
 MAX_SOURCE_TEXT = 60_000
 MAX_VISUAL_PAGES = 4
 _SCHEMA: dict[str, Any] = {
@@ -204,7 +204,9 @@ def verify_adjudication_pixels(batch: SourceBatch, receipt: dict[str, Any], root
 
 def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction, ...],
                           challenger: tuple[DocumentExtraction, ...], qa: dict[str, Any],
-                          raw: dict[str, Any], root: Path) -> dict[str, Any]:
+                          raw: dict[str, Any], root: Path, *,
+                          required_source_facts: Callable[[DocumentExtraction], dict[str, set[str]]]
+                          | None = None) -> dict[str, Any]:
     """Verify selected proposals, source quotes and QA binding before any use."""
     verify_batch(batch, root)
     current = _require_current_qa(batch, primary, challenger, qa, root)
@@ -384,6 +386,18 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
             selected.pop(source_id)
         if source_id in selected:
             chosen = extraction_by_hash[selected[source_id]]
+            missing_source_facts = (set().union(*required_source_facts(chosen).values())
+                                    if required_source_facts is not None else set())
+            observed_fields = {observation["semantic_type"] for observation in bound_observations}
+            if missing_source_facts - observed_fields:
+                raise DocumentError("EXTRACTION_INCOMPLETE",
+                    "Selected proposal still lacks source-bound material fields",
+                    diagnostic={"stage": "SOURCE_ADJUDICATION_VALIDATION",
+                        "schema_path": f"$.decisions[{decision_index}].selection",
+                        "validation_code": "SELECTED_SOURCE_FACT_GAP",
+                        "error_category": "SOURCE_COMPLETENESS",
+                        "source_id": source_id, "decision_index": decision_index,
+                        "missing_semantic_fields": sorted(missing_source_facts - observed_fields)})
             if chosen.status == "FAILED":
                 raise DocumentError("EXTRACTION_INCOMPLETE", "Failed or limited proposal cannot be selected",
                     diagnostic=_error_diagnostic("FAILED_PROPOSAL_SELECTED",
@@ -455,7 +469,10 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                          challenger: tuple[DocumentExtraction, ...], qa: dict[str, Any],
                          root: Path, *, model: str, timeout_seconds: int = 180,
                          evaluation_only: bool = False,
-                         validate_pixel_observations: Callable[[DocumentExtraction], None] | None = None) -> dict[str, Any]:
+                         validate_pixel_observations: Callable[[DocumentExtraction], None] | None = None,
+                         unique_required_entity: Callable[[str, str, list[Any]], str | None] | None = None,
+                         required_source_facts: Callable[[DocumentExtraction], dict[str, set[str]]]
+                         | None = None) -> dict[str, Any]:
     """Reopen the entire approved source set; no private truth or preapproved facts."""
     identifier(model)
     if not 10 <= timeout_seconds <= 600:
@@ -497,7 +514,14 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         "true fields are not automatically a material conflict. Compare the actual financial meaning, "
         "source authority and completeness across ALL originals. Prefer the representation with the "
         "correct documentary role and necessary financial facts; explain complementary metadata and "
-        "whether the governing original already supplies an omitted fact. A document explicitly "
+        "whether the governing original already supplies an omitted fact. "
+        "The material_disagreements records list package-required source-fact gaps for each reading. "
+        "If the selected reading lacks such a fact, reopen its original source. For visual evidence, "
+        "add a new source-bound pixel observation only when the visible wording supports the missing "
+        "semantic field, using the selected entity's fact-group where unambiguous. It remains unapproved. "
+        "If neither reading nor current pixels support the field, choose UNRESOLVED. Do not fill a "
+        "commercial classification from another document or an expected financial result. "
+        "A document explicitly "
         "duplicating governing terms without amendment must not create a second tariff or charge. "
         "A proposal selection chooses a source-local observation set for further review; it does NOT "
         "establish contractual authority, approve facts, or require this one source to reproduce a full "
@@ -634,7 +658,8 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                 exc.diagnostic = diagnostic
                 raise
             try:
-                result = validate_adjudication(batch, primary, challenger, qa, raw, root)
+                result = validate_adjudication(batch, primary, challenger, qa, raw, root,
+                    required_source_facts=required_source_facts)
                 result["model"] = model
                 for decision in result["decisions"]:
                     for observation in decision.get("pixel_observations", []):
@@ -651,7 +676,8 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                         if observations and selected_hash in base_by_hash:
                             augmented = append_adjudicator_visual_observations(
                                 base_by_hash[selected_hash], observations, batch, root,
-                                result["adjudication_sha256"])
+                                result["adjudication_sha256"],
+                                unique_required_entity=unique_required_entity)
                             validate_pixel_observations(augmented)
                 return result
             except DocumentError as exc:
@@ -693,6 +719,15 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                         "Return exactly the required decision fields and one allowed selection enum. "
                         "Do not omit required members, add fields, or change the evidence requirements."
                     )
+                elif (exc.diagnostic or {}).get("validation_code") == "SELECTED_SOURCE_FACT_GAP":
+                    missing_raw: Any = (exc.diagnostic or {}).get("missing_semantic_fields", [])
+                    missing: list[str] = ([item for item in missing_raw if isinstance(item, str)]
+                                          if isinstance(missing_raw, list) else [])
+                    prompt += ("\nThe selected proposal still lacks source-bound fields: "
+                               + ", ".join(missing)[:120] + ". Reinspect the disputed original. "
+                               "Add a bound pixel observation only for fields actually visible, "
+                               "or select a complete peer; otherwise choose UNRESOLVED. "
+                               "New observations remain unapproved for later fact review.")
                 else:
                     prompt += ("\nYour prior response failed deterministic validation: " + str(exc) +
                                ". Reinspect attached original pixels and issue a fresh closed decision. "

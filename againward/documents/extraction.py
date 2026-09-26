@@ -10,7 +10,7 @@ from datetime import date
 import json
 from pathlib import Path
 import re
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
 
 from againward.core.artifact_store import transaction, write_json
 from againward.evidence.hashing import stable_hash
@@ -400,7 +400,9 @@ def persist_extraction(extraction: DocumentExtraction, root: Path) -> Path:
 def append_adjudicator_visual_observations(extraction: DocumentExtraction,
                                            observations: list[dict[str, Any]],
                                            batch: SourceBatch, root: Path,
-                                           adjudication_sha256: str) -> DocumentExtraction:
+                                           adjudication_sha256: str, *,
+                                           unique_required_entity: Callable[[str, str, list[FactCandidate]], str | None]
+                                           | None = None) -> DocumentExtraction:
     """Bind newly read pixel observations into an unapproved extraction queue."""
     from dataclasses import replace
     from .contracts import digest
@@ -450,8 +452,10 @@ def append_adjudicator_visual_observations(extraction: DocumentExtraction,
                              if candidate.location == location
                              and candidate.semantic_type == semantic
                              and candidate.raw_observed_value == observed}
+        required_entity = (unique_required_entity(semantic, location, candidates)
+                           if not matching_entities and unique_required_entity is not None else None)
         entity_id = (next(iter(matching_entities)) if len(matching_entities) == 1 else
-                     "pixel-" + sha256(f"{location}\0{hint}".encode()).hexdigest()[:20])
+                     required_entity or "pixel-" + sha256(f"{location}\0{hint}".encode()).hexdigest()[:20])
         comparable = str(value).lower() if type(value) is bool else str(value)
         notes = "Pixel ambiguity: " + "; ".join(text(note, maximum=500) for note in ambiguity) if ambiguity else ""
         if value is not None and comparable != observed:

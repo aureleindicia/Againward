@@ -14,7 +14,7 @@ from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
 from againward.domains.rental.extraction_validation import validate_rental_extraction
 from againward.domains.rental.entity_contract import (FIELD_SCOPE, PACKAGE_SOURCE_REQUIRED,
-    normalize_single_line_document_groups, structural_gaps)
+    normalize_single_line_document_groups, structural_gaps, unique_pixel_entity_for_required_field)
 from againward.domains.rental.source_job import (RENTAL_STRUCTURE_RETRY, _bind_extraction_attempt,
     _safe_failure_diagnostic, _visual_review_stop)
 
@@ -77,6 +77,22 @@ def test_failure_family_entity_structure_is_detected_before_fact_review(tmp_path
     assert error.value.diagnostic["missing_structural_fields"] == sorted(missing)
     assert error.value.diagnostic["source_id"] == extraction.source_id
     assert error.value.diagnostic["error_category"] == "STRUCTURAL_INCOMPLETE"
+    validate_rental_extraction(extraction, allow_incomplete=True)  # QA input only; still unreviewed.
+
+
+def test_unapproved_pixel_field_targets_only_one_eligible_missing_entity():
+    from types import SimpleNamespace
+    candidates = [SimpleNamespace(entity_id="line", location="page:1",
+                    semantic_type="entity_kind", value="INVOICE_LINE"),
+                  SimpleNamespace(entity_id="line", location="page:1",
+                    semantic_type="invoice_id", value="INV-8"),
+                  SimpleNamespace(entity_id="support", location="page:1",
+                    semantic_type="entity_kind", value="SUPPORTING_DOCUMENT")]
+    assert unique_pixel_entity_for_required_field("charge_type", "page:1", candidates) == "line"
+    assert unique_pixel_entity_for_required_field("charge_type", "page:2", candidates) is None
+    candidates.append(SimpleNamespace(entity_id="second-line", location="page:1",
+                      semantic_type="entity_kind", value="INVOICE_LINE"))
+    assert unique_pixel_entity_for_required_field("charge_type", "page:1", candidates) is None
 
 
 def test_failure_family_rate_support_entity_cannot_omit_its_kind(tmp_path):

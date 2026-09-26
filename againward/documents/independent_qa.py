@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from againward.domains.rental.entity_contract import MATERIAL_FIELDS
+from againward.domains.rental.extraction_validation import package_source_gaps
 from againward.evidence.hashing import stable_hash
 from .codex_provider import CodexCliProvider
 from .contracts import DocumentError, SourceBatch
@@ -22,7 +23,7 @@ from .readers import read_document
 from .sources import verify_batch
 
 
-QA_GUIDANCE_VERSION = "rental-independent-source-reread-v3-source-scoped-metadata"
+QA_GUIDANCE_VERSION = "rental-independent-source-reread-v4-selected-completeness"
 QA_INSTRUCTIONS = """
 INDEPENDENT ADVERSARIAL SOURCE REREAD. You have not seen the first extraction.
 Read every original unit/page before answering. Search for material facts the
@@ -133,12 +134,15 @@ def compare_extractions(batch: SourceBatch, primary: tuple[DocumentExtraction, .
         b = Counter(record["bundle_sha256"] for record in q_records)
         only_primary = _unmatched(p_records, b)
         only_challenger = _unmatched(q_records, a)
+        p_gaps = package_source_gaps(p, for_comparison=True)
+        q_gaps = package_source_gaps(q, for_comparison=True)
         material_difference = (_material_bundles(p_records) != _material_bundles(q_records)
                                or _source_metadata(p_records) != _source_metadata(q_records)
+                               or bool(p_gaps) or bool(q_gaps)
                                or p.status == "FAILED" or q.status == "FAILED"
                                or bool(p.limitations) or bool(q.limitations))
         difference = bool(a != b or p.status == "FAILED" or q.status == "FAILED"
-                          or p.limitations or q.limitations)
+                          or p.limitations or q.limitations or p_gaps or q_gaps)
         rows.append({"source_id": document.source_id, "source_sha256": document.sha256,
                      "primary_extraction_sha256": p.to_dict()["extraction_sha256"],
                      "challenger_extraction_sha256": q.to_dict()["extraction_sha256"],
@@ -147,6 +151,8 @@ def compare_extractions(batch: SourceBatch, primary: tuple[DocumentExtraction, .
                      "challenger_only_entity_bundles": len(only_challenger),
                      "primary_only_entities": only_primary,
                      "challenger_only_entities": only_challenger,
+                     "primary_source_fact_gaps": {key: sorted(value) for key, value in p_gaps.items()},
+                     "challenger_source_fact_gaps": {key: sorted(value) for key, value in q_gaps.items()},
                      "material_needs_reconciliation": material_difference,
                      "primary_limitations": list(p.limitations),
                      "challenger_limitations": list(q.limitations),

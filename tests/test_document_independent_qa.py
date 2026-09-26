@@ -52,6 +52,21 @@ def test_independent_qa_agreement_is_non_authoritative(tmp_path):
     assert body["source_results"][0]["needs_reconciliation"] is False
 
 
+def test_two_matching_omissions_of_required_invoice_fact_trigger_adjudication(tmp_path):
+    root, batch, raw, validate = _case(tmp_path)
+    raw["candidates"].append({"entity_id": "line-A", "semantic_type": "entity_kind",
+        "value_type": "ENUM", "value": "INVOICE_LINE", "raw_observed_value": "line A",
+        "location": read_document(batch.documents[0], root).units[0].location,
+        "normalization_notes": "Source-bound invoice line", "ambiguity_flags": []})
+    first = validate(raw)
+    body = compare_extractions(batch, (first,), (validate(deepcopy(raw)),), root)
+    row = body["source_results"][0]
+    assert body["status"] == "RECONCILIATION_REQUIRED"
+    assert row["material_needs_reconciliation"] is True
+    assert "charge_type" in row["primary_source_fact_gaps"]["line-A"]
+    assert row["challenger_source_fact_gaps"] == row["primary_source_fact_gaps"]
+
+
 def test_independent_qa_finds_omission_and_entity_swap(tmp_path):
     root, batch, raw, validate = _case(tmp_path)
     first = validate(raw)

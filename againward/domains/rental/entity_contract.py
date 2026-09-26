@@ -56,6 +56,17 @@ PACKAGE_SOURCE_REQUIRED = {
     "IRRELEVANT": frozenset(),
 }
 
+# A classification-only source record is still checked at selected-package
+# validation. QA reopens an agreed omission only when a financial/event record
+# was actually proposed, avoiding false disputes over empty classifications.
+COMPLETENESS_TRIGGER_FIELDS = {
+    "RENTAL_SCOPE": frozenset({"start", "end", "quantity", "rate", "billing_unit", "charge_type"}),
+    "INVOICE_LINE": frozenset({"invoice_id", "net_amount", "charge_type", "currency"}),
+    "RETURN": frozenset({"event_type", "date", "quantity", "verification"}),
+    "RATE_AMENDMENT": frozenset({"rate", "effective_from"}),
+    "CREDIT": frozenset({"credit_id", "net_amount"}),
+}
+
 # Material comparison is independent of where source-level metadata happens to
 # be attached. Do not include document_role/status in entity bundles.
 MATERIAL_FIELDS = {
@@ -169,3 +180,25 @@ def normalize_single_line_document_groups(raw: dict[str, Any], *, visual: bool) 
             changed += 1
         target_fields.update({row.get("semantic_type"): row.get("value") for row in members})
     return result, changed
+
+
+def unique_pixel_entity_for_required_field(semantic: str, location: str,
+                                           candidates: list[Any]) -> str | None:
+    """Find the sole current-page entity missing a required semantic field.
+
+    This only binds a new *unapproved* pixel observation to an already cited
+    entity. It never determines the field value or grants fact authority.
+    """
+    by_entity: dict[str, dict[str, set[Any]]] = defaultdict(lambda: defaultdict(set))
+    for candidate in candidates:
+        if candidate.location == location:
+            by_entity[candidate.entity_id][candidate.semantic_type].add(candidate.value)
+    eligible = []
+    for entity_id, fields in by_entity.items():
+        kinds = fields.get("entity_kind", set())
+        if len(kinds) != 1:
+            continue
+        kind = next(iter(kinds))
+        if semantic in PACKAGE_SOURCE_REQUIRED.get(kind, frozenset()) and semantic not in fields:
+            eligible.append(entity_id)
+    return eligible[0] if len(eligible) == 1 else None
