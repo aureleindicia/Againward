@@ -112,7 +112,9 @@ responses remain evaluation-only.
   failed/skipped.
 - Rental benchmark: **15/15**, 3 TP, 0 FP, 0 FN, 12 TN.
 - Privacy benchmark: **19/19**, 0 false blocks, 0 unsafe passes.
-- PR #5 CI: pending push/check.
+- PR #5 CI on the pushed implementation/documentation checkpoint
+  `582f81558d5e84951ff72ee9caf9a1bbabd3c209`: both push and pull-request
+  workflows passed all 8 matrix jobs (Python 3.11, 3.12, 3.13 and 3.14).
 
 The first full-suite attempt before the native compatibility correction found
 that native proposals were incorrectly required to carry visual keys. The
