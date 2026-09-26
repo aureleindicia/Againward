@@ -352,3 +352,18 @@ clean follow-up commit; Ruff, configured mypy, Rental 15/15, privacy 19/19, and
 PR #5 CI 8/8 passed. See the [failure-family robustness
 record](validation/rental_failure_family_robustness_20260926.md). This is
 regression evidence only, not accuracy evidence.
+
+### Final local Luna pass
+
+The fresh known-case reruns on `380c0e8be80a48a457d252da002506f72e48c6c1`
+supersede the earlier `REVIEW_STALE` / row-scoped accounting-export status.
+CASE A now passes current prompt-version validation, completes source QA and
+MODEL visual review, then stops at document-package validation because its
+invoice-line observation lacks `invoice_line_id`, `charge_key`, and
+`charge_type`. CASE B stops at primary extraction on `accounting_export.xlsx`:
+source-level `document_role` and `document_status` remain absent after one
+bounded retry. Neither known financial oracle, calculation, report, or final
+PDF QA was reached. No HUMAN evidence was created. Full pytest passed 905,
+Ruff/mypy passed, Rental was 15/15, privacy was 19/19, and PR #5 CI passed all
+8 jobs in each of the latest two runs. Details and limitations are in the
+[final failure-family follow-up](validation/rental_failure_family_robustness_20260926.md).
