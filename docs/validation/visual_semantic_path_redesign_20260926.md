@@ -56,7 +56,12 @@ Sources: `billing.pdf` SHA256
 The primary visual read produced 15 unapproved candidates; the independent
 visual reread produced 13. Both included invoice `INV-79732`, net EUR 2,670.00,
 the LIFT-9003 asset, quantity 4 and the displayed service dates. Current pixel
-bindings were validated at 300 DPI. Independent comparison completed and found
+bindings were validated at 300 DPI: page unit SHA256
+`14f60b1db6fa2194b83e2cf6e90733f429fb1711ab66980488709502139ec9b9`, render
+SHA256 `d262736fee4ce413130c3e0eff59d28e3f367ea699b717aa857d3ca8445490f8`.
+Primary invocation `a91f926c-cc32-4d9d-957e-46bb98740f7d`; challenger
+invocation `fa378a88-07e2-4e58-8d4d-e1455e5e2a94`. Independent comparison
+completed and found
 two material source disagreements. A model adjudication call with the original
 visual attached was attempted under the normal bounded workflow; the call
 returned `MODEL_UNAVAILABLE` and no adjudication receipt was accepted. The
@@ -83,7 +88,11 @@ Source SHA256 values (all eight input files):
 All eight primary source reads completed. The signed-return scan produced 16
 unapproved visual candidates, including signed return evidence for LIFT-5 on
 2026-09-05, while keeping LIFT-50 a separate item. Its source/page/render
-binding validated at 300 DPI. The job failed before independent reread while
+binding validated at 300 DPI: unit SHA256
+`19b21ad23573f1e1ef7af75e28f0c02541c9e174c81f9254ad8631c0eb619549`, render
+SHA256 `42c3a4a41233bc1ec2ba5b050e437f5e7f96e70c9234525f94b360eb23316411`,
+primary invocation `8d622711-5a42-409d-a6b8-bae845a625e0`. The independent
+challenger had not started. The job failed before independent reread while
 processing the first challenger source (`supplier_email.eml`), with
 `SOURCE_LOCATION_INVALID`. Inspection of the private evaluation diagnostic
 showed that the native unit location existed (`part:1`), but some model-emitted
