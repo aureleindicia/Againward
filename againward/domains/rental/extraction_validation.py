@@ -15,33 +15,43 @@ _STRUCTURAL_FIELDS = frozenset({"entity_kind", "document_role", "document_status
 
 
 def validate_rental_extraction(extraction: DocumentExtraction) -> None:
-    """Reject mechanically incomplete/conflicting proposals before QA orchestration.
+    """Check entity and source-level metadata before QA orchestration.
 
-    This check does not infer missing values. It raises bounded diagnostics so
-    the caller may request one source-bound structural retry, then fail closed.
+    Entity kind describes each candidate group. Document role/status describe
+    the whole source and must each have one source-bound, non-conflicting value.
+    This check never infers a missing value; it only recognizes document-level
+    values already validated against exact source evidence.
     """
-    by_entity: dict[str, dict[str, object]] = defaultdict(dict)
+    by_entity: dict[str, dict[str, set[object]]] = defaultdict(lambda: defaultdict(set))
     for candidate in extraction.candidates:
         fields = by_entity[candidate.entity_id]
         if candidate.semantic_type in _STRUCTURAL_FIELDS:
-            fields[candidate.semantic_type] = candidate.value
+            fields[candidate.semantic_type].add(candidate.value)
 
-    gaps = []
-    invalid = []
+    entity_kind_gaps: list[str] = []
+    invalid: list[dict[str, str]] = []
+    source_values: dict[str, set[object]] = {"document_role": set(), "document_status": set()}
+    within_entity_conflicts = 0
+    within_entity_conflicting_fields: set[str] = set()
     for entity_id, fields in sorted(by_entity.items()):
-        kind = fields.get("entity_kind")
-        role = fields.get("document_role")
-        status = fields.get("document_status")
-        for field, value, allowed in (
-            ("entity_kind", kind, _ENTITY_KINDS),
-            ("document_role", role, DOCUMENT_ROLES),
-            ("document_status", status, _DOCUMENT_STATUSES),
+        for field, allowed in (
+            ("entity_kind", _ENTITY_KINDS),
+            ("document_role", DOCUMENT_ROLES),
+            ("document_status", _DOCUMENT_STATUSES),
         ):
-            if value is not None and value not in allowed:
-                invalid.append({"entity_id": entity_id, "field": field})
-        missing = sorted(_STRUCTURAL_FIELDS - fields.keys())
-        if missing:
-            gaps.append({"entity_id": entity_id, "missing": missing})
+            values = fields.get(field, set())
+            for value in values:
+                if value not in allowed:
+                    invalid.append({"entity_id": entity_id, "field": field})
+            if len(values) > 1:
+                within_entity_conflicts += 1
+                within_entity_conflicting_fields.add(field)
+        kinds = fields.get("entity_kind", set())
+        if not kinds:
+            entity_kind_gaps.append(entity_id)
+        for field in source_values:
+            values = fields.get(field, set())
+            source_values[field].update(values)
 
     if invalid:
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Rental structural enum is invalid", diagnostic={
@@ -49,12 +59,31 @@ def validate_rental_extraction(extraction: DocumentExtraction) -> None:
             "validation_code": "STRUCTURAL_ENUM_INVALID", "source_id": extraction.source_id,
             "invalid_structural_field_count": len(invalid),
         })
-    if gaps:
+    if within_entity_conflicts:
+        raise DocumentError("EXTRACTION_CONTRADICTION", "Rental structural metadata conflicts within source",
+            diagnostic={"error_category": "SEMANTIC_CONTRADICTION",
+                        "schema_path": "$.candidates[]", "validation_code": "STRUCTURAL_METADATA_CONFLICT",
+                        "source_id": extraction.source_id,
+                        "conflicting_field_count": within_entity_conflicts,
+                        "conflicting_semantic_types": sorted(within_entity_conflicting_fields)})
+
+    missing_source_fields = sorted(field for field, values in source_values.items() if not values)
+    conflicting_source_fields = sorted(field for field, values in source_values.items() if len(values) > 1)
+    if conflicting_source_fields:
+        raise DocumentError("EXTRACTION_CONTRADICTION", "Rental source role/status is not unique",
+            diagnostic={"error_category": "SEMANTIC_CONTRADICTION",
+                        "schema_path": "$.candidates[].semantic_type/value",
+                        "validation_code": "SOURCE_DOCUMENT_METADATA_CONFLICT",
+                        "source_id": extraction.source_id,
+                        "conflicting_field_count": len(conflicting_source_fields),
+                        "conflicting_semantic_types": conflicting_source_fields})
+    if entity_kind_gaps or missing_source_fields:
+        missing_fields = set(missing_source_fields) | ({"entity_kind"} if entity_kind_gaps else set())
         raise DocumentError("STRUCTURAL_INCOMPLETE", "Rental entity metadata is incomplete", diagnostic={
             "error_category": "STRUCTURAL_INCOMPLETE", "schema_path": "$.candidates[].entity_id",
             "validation_code": "ENTITY_METADATA_REQUIRED", "source_id": extraction.source_id,
-            "structural_gap_count": len(gaps),
-            "missing_structural_fields": sorted({field for gap in gaps for field in gap["missing"]}),
+            "structural_gap_count": len(entity_kind_gaps) + len(missing_source_fields),
+            "missing_structural_fields": sorted(missing_fields),
         })
 
     conflicts = contradictory_source_limitations(extraction)

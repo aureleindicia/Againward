@@ -1,6 +1,16 @@
 """Rental interpretation vocabulary supplied to a neutral source-unit provider."""
 
-GUIDANCE_VERSION = "rental-semantic-guidance-v13-document-level-entity-metadata"
+GUIDANCE_VERSION = "rental-semantic-guidance-v14-document-metadata-scope"
+
+STRUCTURE_RETRY_INSTRUCTIONS = (
+    "The local Rental contract found source/entity structure missing. Reinspect this source and emit a "
+    "canonical entity_kind for every distinct material entity. document_role and document_status describe "
+    "the source document: include source-supported values when one consistent role/status applies across "
+    "this file, and do not repeat them merely to label each row's intrinsic type. A row type such as INVOICE "
+    "or CREDIT is entity_kind, not document_role. Do not infer a role/status from a filename, another source, "
+    "or the expected calculation. If source-level role/status is genuinely absent, conflicting, or ambiguous, "
+    "leave it absent; validation will stop. Keep distinct rows under distinct entity IDs."
+)
 
 
 def guidance() -> str:
@@ -15,16 +25,18 @@ all rows under one aggregate rate_card entity: each asset's description, rate,
 unit, and identifiers belong to that row's distinct entity. A semantic field
 must have only one value per entity; preserve different row values as separate
 entities rather than treating them as conflicting alternatives.
-For each source include source-backed entity_kind, document_role and
-document_status for each material entity. Put all three structural fields and
-that entity's facts under the same entity_id. Do not put document identity in a
+Every distinct material entity needs its own source-supported entity_kind.
+document_role and document_status describe the source document, not each row's
+intrinsic type. Include each source-level value when it is established and
+consistent across this source; it may be attached to a source entity and need
+not be duplicated on every row. A source with no unique source-level role or
+status remains incomplete. A multi-row export may contain INVOICE and CREDIT
+entity kinds while retaining the same PAYMENT_EXPORT role and EXTRACTED status
+when the workbook itself supports that classification. Do not infer these
+values from a filename or from a row type. Do not put document identity in a
 metadata-only entity_id beside another ID for the same message, export row,
-rate row or invoice line. When a source contains multiple distinct entities,
-repeat source-supported document metadata on each entity. Use only values
-established by this source and the supplied domain context; if a structural
-value is not determined, leave it absent and let review fail closed. Never
-default or borrow a value from another source. Do not infer ACCEPTED from mere
-existence of a quote.
+rate row or invoice line. Never default or borrow a value from another source.
+Do not infer ACCEPTED from mere existence of a quote.
 document_role is the document type, NOT entity_kind or a free-form label. Use
 only RENTAL_AGREEMENT, RATE_CARD, QUOTE, PURCHASE_ORDER, AMENDMENT, INVOICE,
 CREDIT_NOTE, DELIVERY_NOTE, RETURN_NOTE, OFF_HIRE_NOTICE, EMAIL_EVIDENCE,
@@ -103,11 +115,12 @@ only an accepted agreement or accepted amendment defines a rental scope.
 Likewise, a rate card explicitly saying it duplicates an agreement does not
 create a second independent hire, and an accounting export marked mirror-only
 does not create a new invoice or credit. Represent these as source-local
-SUPPORTING_DOCUMENT entities with document_role RATE_CARD or PAYMENT_EXPORT,
-document_status and any exact corroborating IDs/amounts. Keep each separately
-priced rate row or mirrored export record under its own entity_id, with the
-complete source-supported structural trio repeated on that entity. These facts remain
-auditable but do not create Rental periods, charges or credits. An email that
+SUPPORTING_DOCUMENT entities with source-supported document_role RATE_CARD or
+PAYMENT_EXPORT, document_status and any exact corroborating IDs/amounts. Keep
+each separately priced rate row or mirrored export record under its own
+entity_id and source-supported entity_kind. The source-level role/status may
+be recorded once when it applies consistently to the workbook. These facts
+remain auditable but do not create Rental periods, charges or credits. An email that
 only requests off-hire and says a separate return note is proof may likewise
 be SUPPORTING_DOCUMENT with role EMAIL_EVIDENCE; do not promote its mention of
 the return note into a documented physical RETURN. The operator decides
@@ -181,14 +194,18 @@ semantic_type currency and value_type CURRENCY. Never label a numeric amount
 as CURRENCY or combine amount and currency into one value.
 An issued invoice is document_status ISSUED; ACCEPTED describes accepted terms
 or a signed/accepted return, not the customer's acceptance of an invoice.
-Use the same entity_hint consistently for entity_kind, document_role,
-document_status and fields of the same invoice line or return. On a multi-line
-invoice, group each line separately and repeat document identity/authority
-metadata on each line where it applies.
-For visual pages, each material invoice line is an INVOICE_LINE entity with
-document_role INVOICE; do not classify its billed line as SUPPORTING_DOCUMENT
-merely because it is scanned, attached, or has a supporting heading. Keep the
-three structural observations and that line's facts under the same entity_hint.
+Use the same entity_hint consistently for entity_kind and the facts of the same
+invoice line or return. document_role and document_status classify the source
+document and must each have one source-supported value when applicable; they
+may be emitted with a representative entity when the same value applies to
+the whole source. On a multi-line invoice, keep each line separate and use
+INVOICE_LINE for each billed line; do not change the source-level invoice role
+to match row type.
+For visual pages, each material invoice line is an INVOICE_LINE entity; do not
+classify its billed line as SUPPORTING_DOCUMENT merely because it is scanned,
+attached, or has a supporting heading. Keep its entity_kind and line facts
+under the same entity_hint; include the source-level INVOICE role and status
+when the page establishes them.
 Use a separate SUPPORTING_DOCUMENT entity only for a genuinely separate
 document-level statement, and give that entity its own complete structural
 metadata. If the pixels do not establish a required field, leave it absent and

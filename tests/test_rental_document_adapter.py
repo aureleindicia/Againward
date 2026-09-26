@@ -8,10 +8,13 @@ from againward.core.artifact_store import read_json, write_json
 from againward.core.workflow import prepare_investigation
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import SCHEMA, validate_proposal
-from againward.documents.codex_provider import EXTRACTOR_VERSION
+from againward.documents.codex_provider import EXTRACTOR_VERSION, prompt_version_for_guidance
 from againward.documents.readers import read_batch
 from againward.documents.sources import inventory_sources
-from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
+from againward.domains.rental.document_adapter import (DOCUMENT_CASE_SCHEMA,
+    _current_extraction_prompt_versions, _source_document_metadata, load_document_case)
+from againward.domains.rental.semantic_guidance import STRUCTURE_RETRY_INSTRUCTIONS, visual_guidance
+from againward.documents.independent_qa import QA_INSTRUCTIONS, VISUAL_RETRY_INSTRUCTIONS
 from againward.domains.rental.ingestion import build_evidence_dataset, load_rental_case
 from againward.domains.rental.reconciliation import reconcile
 from againward.domains.rental.workflow import current_calculations
@@ -200,8 +203,35 @@ def test_changed_rental_model_guidance_requires_fresh_extraction_review(tmp_path
     extraction["prompt_version"] = "old-unbound-guidance"
     extraction["extraction_sha256"] = stable_hash({key: value for key, value in extraction.items()
                                                    if key != "extraction_sha256"})
-    with pytest.raises(DocumentError, match="REVIEW_STALE"):
+    with pytest.raises(DocumentError, match="REVIEW_STALE") as caught:
         load_document_case(stale, source.parent)
+    assert caught.value.diagnostic["validation_code"] == "PROMPT_VERSION_NOT_CURRENT"
+    assert caught.value.diagnostic["schema_path"] == "$.extractions[].prompt_version"
+    assert caught.value.diagnostic["source_id"] == extraction["source_id"]
+    assert caught.value.diagnostic["source_sha256"] == extraction["source_sha256"]
+    assert caught.value.diagnostic["prompt_version"] == "old-unbound-guidance"
+
+
+def test_current_visual_and_structural_retry_prompt_versions_are_package_valid():
+    current = _current_extraction_prompt_versions()
+    assert prompt_version_for_guidance(visual_guidance()) in current
+    assert prompt_version_for_guidance(
+        visual_guidance() + QA_INSTRUCTIONS + VISUAL_RETRY_INSTRUCTIONS + STRUCTURE_RETRY_INSTRUCTIONS
+    ) in current
+
+
+def test_multientity_source_document_role_and_status_are_not_row_level_defaults():
+    roles, statuses = _source_document_metadata([
+        {"entity_kind": "SUPPORTING_DOCUMENT", "document_role": "PAYMENT_EXPORT",
+         "document_status": "EXTRACTED"},
+        {"entity_kind": "SUPPORTING_DOCUMENT"},
+        {"entity_kind": "SUPPORTING_DOCUMENT"},
+    ])
+    assert roles == {"PAYMENT_EXPORT"}
+    assert statuses == {"EXTRACTED"}
+    conflicting_roles, _ = _source_document_metadata([
+        {"document_role": "PAYMENT_EXPORT"}, {"document_role": "INVOICE"}])
+    assert conflicting_roles == {"PAYMENT_EXPORT", "INVOICE"}
 
 
 def test_adjudicated_challenger_prompt_remains_a_current_reviewed_source(tmp_path):

@@ -27,7 +27,8 @@ from againward.documents.sources import inventory_sources, safe_file, verify_bat
 from againward.documents.visual_fact_review import MODEL_VISUAL_VERSION, record_model_visual_review, verify_visual_attestations
 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
 from againward.domains.rental.extraction_validation import validate_rental_extraction
-from againward.domains.rental.semantic_guidance import guidance, visual_guidance
+from againward.domains.rental.semantic_guidance import (STRUCTURE_RETRY_INSTRUCTIONS as RENTAL_STRUCTURE_RETRY,
+    guidance, visual_guidance)
 from againward.evidence.hashing import stable_hash
 
 from .autonomous_job import run_reviewed_package_job
@@ -38,15 +39,6 @@ VERSION = "againward-rental-approved-sources-job-v2-visual-observations"
 VISUAL_LIMITATION_ROUTING_VERSION = "againward-rental-visual-reading-v2"
 RETRYABLE_MODEL_CODES = {"MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_AUTH_REQUIRED",
                          "MODEL_RATE_LIMITED", "MODEL_TRANSPORT_FAILURE", "MODEL_EMPTY_RESPONSE"}
-RENTAL_STRUCTURE_RETRY = (
-    "The local Rental contract found structural metadata missing from one or more candidate groups. "
-    "Reinspect this source and emit entity_kind, document_role and document_status under the same "
-    "entity_id as each source-supported entity's facts. Use only the documented canonical values. "
-    "Do not infer a value from filenames, other sources, or expected calculations. If any field is "
-    "not established by this source, leave it absent; the proposal will remain incomplete and stop."
-)
-
-
 def _visual_review_stop(visual: dict[str, Any]) -> dict[str, Any] | None:
     """Interpret final visual-review states; the native review handoff is not final."""
     status = visual.get("status")
@@ -85,7 +77,8 @@ def _safe_failure_diagnostic(exc: DocumentError, *, stage: str,
                  "prompt_version", "schema_sha256", "prompt_sha256", "response_sha256",
                  "invocation_id", "cli_version", "conflicting_field_count",
                  "limitation_count", "pixel_observation_count", "structural_gap_count",
-                 "invalid_structural_field_count"}
+                 "invalid_structural_field_count", "source_sha256", "extractor_version",
+                 "current_prompt_version_count"}
     safe = {key: value for key, value in diagnostic.items()
             if key in safe_keys and (value is None or type(value) in {str, int, bool})}
     semantic_types = diagnostic.get("conflicting_semantic_types")

@@ -10,13 +10,16 @@ from pathlib import Path
 from typing import Any
 
 from againward.documents.contracts import DocumentError, SourceBatch, closed
+from againward.documents.codex_provider import prompt_version_for_guidance
 from againward.documents.extraction import (promote_facts, replay_extraction,
                                             visual_only_limited_extraction)
+from againward.documents.independent_qa import QA_INSTRUCTIONS, RETRY_INSTRUCTIONS, VISUAL_RETRY_INSTRUCTIONS
 from againward.documents.resolution import (
     Entity, MatchPolicy, RelationshipState, entities_from_facts, resolve_entities,
     review_relationships,
 )
 from againward.evidence.hashing import stable_hash
+from .semantic_guidance import STRUCTURE_RETRY_INSTRUCTIONS, guidance, visual_guidance
 from .models import DOCUMENT_ROLES, RentalCase, decimal_value
 
 DOCUMENT_CASE_SCHEMA = "againward-rental-document-case-v1"
@@ -53,6 +56,19 @@ CREDIT_MATCH = MatchPolicy(
 )
 
 
+def _current_extraction_prompt_versions() -> set[str]:
+    """Enumerate only extraction prompts the current source job can issue."""
+    versions: set[str] = set()
+    for source_guidance, retry_guidance in (
+        (guidance(), RETRY_INSTRUCTIONS), (visual_guidance(), VISUAL_RETRY_INSTRUCTIONS),
+    ):
+        for qa_guidance in ("", QA_INSTRUCTIONS):
+            for retry_suffix in ("", retry_guidance,
+                                 retry_guidance + STRUCTURE_RETRY_INSTRUCTIONS):
+                versions.add(prompt_version_for_guidance(source_guidance + qa_guidance + retry_suffix))
+    return versions
+
+
 def _refs(entity: Entity, fields: set[str] | None = None) -> list[dict[str, Any]]:
     refs = []
     for fact in entity.facts:
@@ -77,6 +93,13 @@ def _optional(entity: Entity, keys: tuple[str, ...]) -> dict[str, Any]:
     return {key: entity.values[key] for key in keys if key in entity.values}
 
 
+def _source_document_metadata(entity_values: list[dict[str, Any]]) -> tuple[set[Any], set[Any]]:
+    """Collect source-scoped role/status observations, ignoring entities with no duplicate."""
+    roles = {values["document_role"] for values in entity_values if values.get("document_role") is not None}
+    statuses = {values["document_status"] for values in entity_values if values.get("document_status") is not None}
+    return roles, statuses
+
+
 def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, Any]]:
     p = closed(payload, {"schema_version", "batch", "extractions", "fact_review",
                          "rental_relationship_review", "credit_relationship_review"})
@@ -86,16 +109,18 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
     if not isinstance(p["extractions"], list):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Validated extractions required")
     extractions = tuple(replay_extraction(e, batch, root) for e in p["extractions"])
-    from againward.documents.codex_provider import EXTRACTOR_VERSION, prompt_version_for_guidance
-    from againward.documents.independent_qa import QA_INSTRUCTIONS, RETRY_INSTRUCTIONS
-    from .semantic_guidance import guidance
-    approved_prompt_versions = {prompt_version_for_guidance(guidance() + suffix)
-                                for suffix in ("", RETRY_INSTRUCTIONS, QA_INSTRUCTIONS,
-                                               QA_INSTRUCTIONS + RETRY_INSTRUCTIONS)}
+    from againward.documents.codex_provider import EXTRACTOR_VERSION
+    approved_prompt_versions = _current_extraction_prompt_versions()
     for extraction in extractions:
         if (extraction.extractor_version == EXTRACTOR_VERSION
                 and extraction.prompt_version not in approved_prompt_versions):
-            raise DocumentError("REVIEW_STALE", "Rental Codex guidance changed; re-extract and review source")
+            raise DocumentError("REVIEW_STALE", "Rental extraction prompt is not current", diagnostic={
+                "stage": "RENTAL_DOCUMENT_PACKAGE_VALIDATION", "source_id": extraction.source_id,
+                "source_sha256": extraction.source_sha256, "extractor_version": extraction.extractor_version,
+                "prompt_version": extraction.prompt_version, "schema_path": "$.extractions[].prompt_version",
+                "validation_code": "PROMPT_VERSION_NOT_CURRENT",
+                "current_prompt_version_count": len(approved_prompt_versions),
+            })
     if (len(extractions) != len(batch.documents)
             or {e.source_id for e in extractions} != {d.source_id for d in batch.documents}):
         raise DocumentError("EXTRACTION_INCOMPLETE", "Every source requires one explicit extraction/classification")
@@ -129,8 +154,7 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
     documents = []
     for source in batch.documents:
         source_entities = by_source.get(source.source_id, [])
-        roles = {e.values.get("document_role") for e in source_entities}
-        statuses = {e.values.get("document_status") for e in source_entities}
+        roles, statuses = _source_document_metadata([entity.values for entity in source_entities])
         if len(roles) != 1 or not roles <= DOCUMENT_ROLES or len(statuses) != 1:
             raise DocumentError("EXTRACTION_INCOMPLETE", "Reviewed source role/status required without conflict")
         role, status = next(iter(roles)), next(iter(statuses))

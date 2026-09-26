@@ -91,6 +91,71 @@ def test_failure_family_rate_support_entity_cannot_omit_its_kind(tmp_path):
         validate_rental_extraction(extraction)
 
 
+def test_multirow_accounting_export_uses_source_level_role_and_status(tmp_path):
+    candidates = [
+        {"entity_id": "invoice-1", "semantic_type": "entity_kind", "value_type": "ENUM",
+         "value": "SUPPORTING_DOCUMENT", "quote": "Invoice row 1"},
+        {"entity_id": "invoice-1", "semantic_type": "document_role", "value_type": "ENUM",
+         "value": "PAYMENT_EXPORT", "quote": "Export ledger"},
+        {"entity_id": "invoice-1", "semantic_type": "document_status", "value_type": "ENUM",
+         "value": "EXTRACTED", "quote": "Mirror only"},
+        {"entity_id": "invoice-1", "semantic_type": "net_amount", "value_type": "DECIMAL",
+         "value": "900.00", "quote": "900.00"},
+        {"entity_id": "invoice-2", "semantic_type": "entity_kind", "value_type": "ENUM",
+         "value": "SUPPORTING_DOCUMENT", "quote": "Invoice row 2"},
+        {"entity_id": "invoice-2", "semantic_type": "net_amount", "value_type": "DECIMAL",
+         "value": "270.00", "quote": "270.00"},
+        {"entity_id": "credit-1", "semantic_type": "entity_kind", "value_type": "ENUM",
+         "value": "SUPPORTING_DOCUMENT", "quote": "Credit row"},
+        {"entity_id": "credit-1", "semantic_type": "credit_id", "value_type": "IDENTIFIER",
+         "value": "CN-41", "quote": "CN-41"},
+    ]
+    extraction = _proposal(tmp_path,
+        "Export ledger. Invoice row 1 Mirror only: 900.00. Invoice row 2: 270.00. Credit row CN-41.",
+        candidates)
+    validate_rental_extraction(extraction)
+
+
+def test_multrow_accounting_export_still_requires_kind_for_each_row(tmp_path):
+    candidates = [
+        {"entity_id": "invoice-1", "semantic_type": "entity_kind", "value_type": "ENUM",
+         "value": "SUPPORTING_DOCUMENT", "quote": "Invoice row 1"},
+        {"entity_id": "invoice-1", "semantic_type": "document_role", "value_type": "ENUM",
+         "value": "PAYMENT_EXPORT", "quote": "Export ledger"},
+        {"entity_id": "invoice-1", "semantic_type": "document_status", "value_type": "ENUM",
+         "value": "EXTRACTED", "quote": "Mirror only"},
+        {"entity_id": "invoice-2", "semantic_type": "net_amount", "value_type": "DECIMAL",
+         "value": "270.00", "quote": "270.00"},
+    ]
+    extraction = _proposal(tmp_path, "Export ledger. Invoice row 1 Mirror only. 270.00.", candidates)
+    with pytest.raises(DocumentError) as caught:
+        validate_rental_extraction(extraction)
+    assert caught.value.code == "STRUCTURAL_INCOMPLETE"
+    assert caught.value.diagnostic["missing_structural_fields"] == ["entity_kind"]
+
+
+def test_conflicting_source_level_document_metadata_fails_closed(tmp_path):
+    candidates = [
+        {"entity_id": "invoice-1", "semantic_type": "entity_kind", "value_type": "ENUM",
+         "value": "SUPPORTING_DOCUMENT", "quote": "Rental scope"},
+        {"entity_id": "invoice-1", "semantic_type": "document_role", "value_type": "ENUM",
+         "value": "INVOICE", "quote": "Invoice document"},
+        {"entity_id": "invoice-1", "semantic_type": "document_status", "value_type": "ENUM",
+         "value": "ISSUED", "quote": "Issued status"},
+        {"entity_id": "invoice-2", "semantic_type": "entity_kind", "value_type": "ENUM",
+         "value": "SUPPORTING_DOCUMENT", "quote": "Invoice row 2"},
+        {"entity_id": "invoice-2", "semantic_type": "document_role", "value_type": "ENUM",
+         "value": "PAYMENT_EXPORT", "quote": "Export ledger"},
+    ]
+    extraction = _proposal(tmp_path,
+        "Rental scope. Invoice document. Issued status. Invoice row 2 Export ledger.", candidates)
+    with pytest.raises(DocumentError) as caught:
+        validate_rental_extraction(extraction)
+    assert caught.value.code == "EXTRACTION_CONTRADICTION"
+    assert caught.value.diagnostic["validation_code"] == "SOURCE_DOCUMENT_METADATA_CONFLICT"
+    assert caught.value.diagnostic["conflicting_semantic_types"] == ["document_role"]
+
+
 def test_failure_family_structural_metadata_value_must_be_canonical_enum(tmp_path):
     candidates = _fields()
     candidates[0]["value"] = "INVOICE-LIKE"
@@ -148,8 +213,9 @@ def test_failure_family_taxonomy_is_stable(code, category):
 
 def test_structural_retry_is_one_bounded_source_bound_request():
     assert "Reinspect this source" in RENTAL_STRUCTURE_RETRY
-    assert "Do not infer a value from filenames" in RENTAL_STRUCTURE_RETRY
-    assert "the proposal will remain incomplete and stop" in RENTAL_STRUCTURE_RETRY
+    assert "Do not infer a role/status from a filename" in RENTAL_STRUCTURE_RETRY
+    assert "validation will stop" in RENTAL_STRUCTURE_RETRY
+    assert "entity_kind, not document_role" in RENTAL_STRUCTURE_RETRY
     assert "Do not guess missing fields" in QA_INSTRUCTIONS
 
 
@@ -157,11 +223,16 @@ def test_terminal_structural_diagnostic_records_one_retry_without_entity_content
     error = DocumentError("STRUCTURAL_INCOMPLETE", diagnostic={
         "error_category": "STRUCTURAL_INCOMPLETE", "schema_path": "$.candidates[].entity_id",
         "validation_code": "ENTITY_METADATA_REQUIRED", "structural_gap_count": 1,
-        "missing_structural_fields": ["entity_kind"], "entity_id": "private-model-label"})
+        "missing_structural_fields": ["entity_kind"], "source_sha256": "a" * 64,
+        "extractor_version": "reader-v2", "current_prompt_version_count": 12,
+        "entity_id": "private-model-label"})
     _bind_extraction_attempt(error, attempt=2, model="gpt-6-luna", semantic_guidance="rental source task")
     receipt = _safe_failure_diagnostic(error, stage="PRIMARY_EXTRACTION", source_id="src-abc")
     assert receipt["retry_count"] == 1
     assert receipt["model"] == "gpt-6-luna"
     assert receipt["error_category"] == "STRUCTURAL_INCOMPLETE"
     assert receipt["missing_structural_fields"] == ["entity_kind"]
+    assert receipt["source_sha256"] == "a" * 64
+    assert receipt["extractor_version"] == "reader-v2"
+    assert receipt["current_prompt_version_count"] == 12
     assert "entity_id" not in receipt and "private-model-label" not in repr(receipt)
