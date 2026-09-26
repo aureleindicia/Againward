@@ -68,6 +68,28 @@ def _load_state(path: Path) -> dict[str, Any]:
     return state
 
 
+def _safe_failure_diagnostic(exc: DocumentError, *, stage: str,
+                             source_id: str | None) -> dict[str, Any]:
+    """Keep only bounded structural failure metadata in ordinary job receipts."""
+    diagnostic = exc.diagnostic if isinstance(exc.diagnostic, dict) else {}
+    safe_keys = {"schema_path", "validation_code", "error_category", "expected_type",
+                 "received_shape", "decision_index", "retry_count", "model",
+                 "prompt_version", "schema_sha256", "prompt_sha256", "response_sha256",
+                 "invocation_id", "cli_version", "conflicting_field_count",
+                 "limitation_count", "pixel_observation_count"}
+    safe = {key: value for key, value in diagnostic.items()
+            if key in safe_keys and (value is None or type(value) in {str, int, bool})}
+    semantic_types = diagnostic.get("conflicting_semantic_types")
+    if (isinstance(semantic_types, list) and len(semantic_types) <= 12
+            and all(isinstance(item, str) and item.replace("_", "").isalnum()
+                    for item in semantic_types)):
+        safe["conflicting_semantic_types"] = semantic_types
+    safe.update({"stage": diagnostic.get("stage", stage),
+                 "source_id": diagnostic.get("source_id", source_id),
+                 "reason_code": exc.code})
+    return safe
+
+
 def _remaining_revision_budget(analysis: Path) -> dict | None:
     from dataclasses import asdict
     from againward.evidence.cli import validate_session_artifacts
@@ -267,6 +289,8 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                  "human_approval": False, "approved_for_delivery": False}
         _save(path, state, "INTAKE", source_count=len(snapshot))
 
+    active_stage = "SOURCE_INTAKE"
+    active_source_id: str | None = None
     try:
         if "batch_receipt" not in state:
             batch = inventory_sources(source, documents)
@@ -280,7 +304,9 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
             raise DocumentError("SOURCE_CHANGED", "Inventory no longer matches approved folder")
         provider = CodexCliProvider(documents, model=model, timeout_seconds=timeout_seconds,
                                    evaluation_only=evaluation_only)
+        active_stage = "PRIMARY_EXTRACTION"
         for document in batch.documents:
+            active_source_id = document.source_id
             if document.source_id not in state["primary"]:
                 parsed = read_document(document, documents)
                 is_visual = any(unit.route != "NATIVE" for unit in parsed.units)
@@ -302,7 +328,9 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 _save(path, state, "DOCUMENT_PARSED", source_id=document.source_id,
                       model_attempts=attempt, model_wall_seconds=round(perf_counter() - started, 3))
         primary = _extractions(state["primary"], batch, documents)
+        active_stage = "INDEPENDENT_REREAD"
         for document in batch.documents:
+            active_source_id = document.source_id
             if document.source_id not in state["challenger"]:
                 parsed = read_document(document, documents)
                 is_visual = any(unit.route != "NATIVE" for unit in parsed.units)
@@ -324,6 +352,8 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 _save(path, state, "QA_SOURCE_REREAD", source_id=document.source_id,
                       model_attempts=attempt, model_wall_seconds=round(perf_counter() - started, 3))
         challenger = _extractions(state["challenger"], batch, documents)
+        active_stage = "SOURCE_QA"
+        active_source_id = None
         qa = compare_extractions(batch, primary, challenger, documents)
         if "qa_receipt" not in state:
             qa_path = documents / "independent_qa" / (qa["qa_sha256"] + ".json")
@@ -337,6 +367,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 raise DocumentError("REVIEW_STALE", "QA comparison changed")
             qa = saved_qa
         if "adjudication_receipt" not in state:
+            active_stage = "SOURCE_ADJUDICATION"
             started = perf_counter()
             adjudication = adjudicate_with_codex(batch, primary, challenger, qa, documents,
                                                  model=model, timeout_seconds=timeout_seconds,
@@ -376,6 +407,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 model_wall_seconds=round(perf_counter() - started, 3))
         adjudication = _receipt(state["adjudication_receipt"], documents,
                                 "adjudications", "adjudication_sha256")
+        active_stage = "SOURCE_ADJUDICATION_REPLAY"
         if adjudication.get("batch_id") != batch.batch_id or adjudication.get("qa_sha256") != qa["qa_sha256"]:
             raise DocumentError("REVIEW_STALE", "Adjudication no longer binds the current source QA")
         verify_adjudication_pixels(batch, adjudication, documents)
@@ -398,6 +430,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
         selected = tuple(by_hash[adjudication["selected_extractions"][document.source_id]]
                          for document in batch.documents)
         if "native_review_receipt" not in state:
+            active_stage = "FACT_REVIEW"
             started = perf_counter()
             native = review_with_codex(batch, selected, documents, model=model,
                                        timeout_seconds=timeout_seconds)
@@ -421,6 +454,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
         review = native["review"]
         if native["visual_candidates_deferred"]:
             if "visual_review_receipt" not in state:
+                active_stage = "VISUAL_FACT_REVIEW"
                 started = perf_counter()
                 visual = review_visual_with_codex(batch, selected, native, documents,
                                                   model=model, timeout_seconds=timeout_seconds)
@@ -519,11 +553,15 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
         _save(path, state, result["status"], pdf_sha256=result.get("pdf_sha256"))
         return {**result, "source_job_state": str(path)}
     except DocumentError as exc:
+        safe_diagnostic = _safe_failure_diagnostic(exc, stage=active_stage,
+                                                   source_id=active_source_id)
         if exc.code in RETRYABLE_MODEL_CODES:
-            _save(path, state, "WAITING_MODEL_RETRY", reason_code=exc.code)
+            _save(path, state, "WAITING_MODEL_RETRY", reason_code=exc.code,
+                  failure_diagnostic=safe_diagnostic)
             return {"status": "WAITING_MODEL_RETRY", "reason_code": exc.code,
                     "job_state": str(path), "approved_for_delivery": False}
-        _save(path, state, "FAILED", reason_code=exc.code)
+        _save(path, state, "FAILED", reason_code=exc.code,
+              failure_diagnostic=safe_diagnostic)
         return {"status": "FAILED", "reason_code": exc.code,
                 "job_state": str(path), "approved_for_delivery": False}
 

@@ -82,6 +82,7 @@ def _case(tmp_path: Path):
     preview, _, _ = _render_hash(visual_doc, root, visual_location, preview_dir)
     decision = {"source_id": visual_doc.source_id, "selection": "PRIMARY",
                 "rationale": "Original pixels support the visual candidate values.",
+                "observations": [],
                 "citations": [{"source_id": visual_doc.source_id,
                                "location": visual_location,
                                "quote": rows[-1][3], "preview_sha256": preview}]}
@@ -177,8 +178,9 @@ def test_missing_pixel_binding_and_source_render_mutation_fail_closed(tmp_path, 
     root, batch, _visual_doc, primary, challenger, qa, raw = _case(tmp_path)
     missing = deepcopy(raw)
     missing["decisions"][0]["citations"][0].pop("preview_sha256")
-    with pytest.raises(DocumentError, match="REVIEW_STALE"):
+    with pytest.raises(DocumentError, match="EXTRACTION_SCHEMA_INVALID") as caught:
         validate_adjudication(batch, primary, challenger, qa, missing, root)
+    assert caught.value.diagnostic["schema_path"] == "$.decisions[0].citations[0].preview_sha256"
     result = validate_adjudication(batch, primary, challenger, qa, raw, root)
     verify_adjudication_pixels(batch, result, root)
     monkeypatch.setattr("againward.documents.visual_fact_review._render_hash",

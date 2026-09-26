@@ -13,8 +13,10 @@ from againward.evidence.hashing import stable_hash
 
 
 class DocumentError(ValueError):
-    def __init__(self, code: str, detail: str = ""):
+    def __init__(self, code: str, detail: str = "", *,
+                 diagnostic: dict[str, Any] | None = None):
         self.code = code
+        self.diagnostic = diagnostic
         super().__init__(code + (": " + detail if detail else ""))
 
 

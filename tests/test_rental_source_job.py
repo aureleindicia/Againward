@@ -3,7 +3,7 @@ import pytest
 
 from againward.core.workspace import create_client_workspace
 from againward.documents.contracts import DocumentError
-from againward.domains.rental.source_job import (_source_snapshot, _visual_review_stop,
+from againward.domains.rental.source_job import (_safe_failure_diagnostic, _source_snapshot, _visual_review_stop,
     run_approved_sources_job)
 
 
@@ -58,6 +58,26 @@ def test_visual_review_handoff_is_not_an_attestation_or_final_receipt_state():
     # WAITING_FOR_VISUAL_REVIEW belongs to the native-review handoff. Only the
     # later pixel review may emit WAITING_FOR_VISUAL_ATTESTATION.
     assert _visual_review_stop({"status": "WAITING_FOR_VISUAL_ATTESTATION"}) is None
+
+
+def test_terminal_failure_receipt_diagnostic_is_structured_and_content_safe():
+    error = DocumentError("EXTRACTION_INCOMPLETE", "private source quote must not persist",
+        diagnostic={"stage": "SOURCE_ADJUDICATION_VALIDATION",
+                    "schema_path": "$.decisions[2].citations",
+                    "validation_code": "DISPUTED_SOURCE_NOT_REOPENED",
+                    "error_category": "SOURCE_COVERAGE", "expected_type": "source citation",
+                    "received_shape": "array(items=1)", "decision_index": 2,
+                    "conflicting_semantic_types": ["net_amount"],
+                    "source_id": "src-safe-id", "quote": "PRIVATE_SOURCE_MARKER"})
+    diagnostic = _safe_failure_diagnostic(error, stage="SOURCE_ADJUDICATION", source_id=None)
+    assert diagnostic == {"stage": "SOURCE_ADJUDICATION_VALIDATION",
+        "source_id": "src-safe-id", "reason_code": "EXTRACTION_INCOMPLETE",
+        "schema_path": "$.decisions[2].citations",
+        "validation_code": "DISPUTED_SOURCE_NOT_REOPENED",
+        "error_category": "SOURCE_COVERAGE", "expected_type": "source citation",
+        "received_shape": "array(items=1)", "decision_index": 2,
+        "conflicting_semantic_types": ["net_amount"]}
+    assert "PRIVATE_SOURCE_MARKER" not in repr(diagnostic)
     repair = _visual_review_stop({"status": "REPAIR_REQUIRED", "visual_structural_gaps": [{
         "entity_id": "visual-line-1", "missing": ["document_status"]}]})
     assert repair == {"status": "REPAIR_REQUIRED", "structural_gaps": [{

@@ -309,3 +309,16 @@ to improve a score, or treat scripted reviews as actual human approval.
   completed 8+8 reads and QA, then stopped with `EXTRACTION_INCOMPLETE` before
   fact review. Neither reached calculation, report, or PDF QA; neither known
   oracle was calculated. This remains regression evidence only.
+
+## Diagnostic observability follow-up (2026-09-26)
+
+Fresh instrumented reruns did not reproduce the prior opaque adjudication stops.
+CASE A instead stopped fail-closed on a source-completeness contradiction at
+`$.decisions[0].selection` involving `net_amount`. CASE B resolved all 7 source
+disagreements and reached FACT_REVIEW, where `supplier_email.eml` entity
+`email-1` is missing `entity_kind`. Neither reached calculation or report QA.
+The prior raw adjudication answers were not retained, so the exact historical
+fields cannot be reconstructed. New receipts retain safe stage/source/decision/
+schema-path/code/shape/version/hash metadata; raw answers remain evaluation-only
+private scratch data. See the [diagnostic observability
+record](validation/fail_closed_diagnostic_observability_20260926.md).

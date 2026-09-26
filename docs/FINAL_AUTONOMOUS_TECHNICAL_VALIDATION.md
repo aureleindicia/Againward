@@ -312,3 +312,16 @@ This follow-up is `PARTIALLY_FIXED`: visual semantic suppression was reduced,
 but end-to-end correctness through adjudication and native reread remains
 unproven. It does not supersede the historical E2E result above and is not a
 blind accuracy measurement or evidence for ≥99% correctness.
+
+## Adjudication stop observability follow-up (2026-09-26)
+
+New fresh `gpt-6-luna` runs with structured failure receipts produced a
+specific CASE A contradiction at `$.decisions[0].selection` (`net_amount`) and
+showed CASE B resolving all 7 disagreements before FACT_REVIEW requested the
+missing `entity_kind` on supplier-email entity `email-1`. The former historical
+`EXTRACTION_SCHEMA_INVALID` and `EXTRACTION_INCOMPLETE` results were not
+reproduced, and their discarded historical responses cannot now be diagnosed.
+Ordinary receipts retain only safe structured fields and response hashes;
+evaluation-only raw responses stay in private scratch. Neither case reached
+calculation or report QA. Details and validation results are in the
+[diagnostic observability record](validation/fail_closed_diagnostic_observability_20260926.md).

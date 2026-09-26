@@ -14,6 +14,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 from typing import Any
+import uuid
 
 from againward.evidence.hashing import stable_hash
 from .codex_provider import VISUAL_SEMANTIC_TYPES, _images, _model_invocation_failure
@@ -61,6 +62,96 @@ _SCHEMA: dict[str, Any] = {
         },
     }}},
 }
+
+
+def _received_shape(value: Any) -> str:
+    """Describe an untrusted value without retaining its contents."""
+    if isinstance(value, dict):
+        return f"object(properties={len(value)})"
+    if isinstance(value, list):
+        return f"array(items={len(value)})"
+    if value is None:
+        return "null"
+    if type(value) is bool:
+        return "boolean"
+    if type(value) is int:
+        return "integer"
+    if isinstance(value, float):
+        return "number"
+    if isinstance(value, str):
+        return f"string(length={len(value)})"
+    return "unsupported"
+
+
+def _schema_diagnostic(value: Any, schema: dict[str, Any], path: str = "$") -> dict[str, Any] | None:
+    """Return the first closed-schema failure with content-safe shape metadata."""
+    expected = schema.get("type")
+    if isinstance(expected, str):
+        expected_types: list[str] = [expected]
+    elif isinstance(expected, list):
+        expected_types = [kind for kind in expected if isinstance(kind, str)]
+    else:
+        expected_types = []
+
+    def matches(kind: str) -> bool:
+        return ((kind == "object" and isinstance(value, dict))
+                or (kind == "array" and isinstance(value, list))
+                or (kind == "string" and isinstance(value, str))
+                or (kind == "integer" and type(value) is int)
+                or (kind == "boolean" and type(value) is bool)
+                or (kind == "number" and type(value) in {int, float})
+                or (kind == "null" and value is None))
+
+    if expected_types and not any(matches(kind) for kind in expected_types):
+        return {"schema_path": path, "validation_code": "TYPE_MISMATCH",
+                "error_category": "SCHEMA_TYPE", "expected_type": "|".join(expected_types),
+                "received_shape": _received_shape(value)}
+    if "enum" in schema and value not in schema["enum"]:
+        return {"schema_path": path, "validation_code": "ENUM_MISMATCH",
+                "error_category": "SCHEMA_ENUM", "expected_type": "enum",
+                "received_shape": _received_shape(value)}
+    if isinstance(value, dict):
+        properties = schema.get("properties", {})
+        for required in schema.get("required", []):
+            if required not in value:
+                return {"schema_path": f"{path}.{required}", "validation_code": "REQUIRED_FIELD_MISSING",
+                        "error_category": "SCHEMA_REQUIRED", "expected_type": "present",
+                        "received_shape": "missing"}
+        if schema.get("additionalProperties") is False:
+            unknown_count = len(set(value) - set(properties))
+            if unknown_count:
+                return {"schema_path": path, "validation_code": "UNKNOWN_FIELD",
+                        "error_category": "SCHEMA_CLOSED_OBJECT", "expected_type": "declared properties only",
+                        "received_shape": f"object(unknown_properties={unknown_count})"}
+        for key, child in properties.items():
+            if key in value:
+                failure = _schema_diagnostic(value[key], child, f"{path}.{key}")
+                if failure:
+                    return failure
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            failure = _schema_diagnostic(item, schema.get("items", {}), f"{path}[{index}]")
+            if failure:
+                return failure
+    if type(value) is int and "minimum" in schema and value < schema["minimum"]:
+        return {"schema_path": path, "validation_code": "BELOW_MINIMUM",
+                "error_category": "SCHEMA_BOUND", "expected_type": f">={schema['minimum']}",
+                "received_shape": "integer"}
+    if isinstance(value, str) and "maxLength" in schema and len(value) > schema["maxLength"]:
+        return {"schema_path": path, "validation_code": "MAX_LENGTH_EXCEEDED",
+                "error_category": "SCHEMA_BOUND", "expected_type": f"string(length<={schema['maxLength']})",
+                "received_shape": _received_shape(value)}
+    return None
+
+
+def _error_diagnostic(code: str, path: str, category: str, expected: str,
+                      received: Any, *, source_id: str | None = None,
+                      decision_index: int | None = None) -> dict[str, Any]:
+    return {"stage": "SOURCE_ADJUDICATION_VALIDATION", "schema_path": path,
+            "validation_code": code, "error_category": category,
+            "expected_type": expected, "received_shape": _received_shape(received),
+            **({"source_id": source_id} if source_id else {}),
+            **({"decision_index": decision_index} if decision_index is not None else {})}
 
 
 def _require_current_qa(batch: SourceBatch, primary: tuple[DocumentExtraction, ...],
@@ -118,10 +209,26 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
     current = _require_current_qa(batch, primary, challenger, qa, root)
     disputed = {row["source_id"]: row for row in current["source_results"]
                 if row["material_needs_reconciliation"]}
-    if not isinstance(raw, dict) or set(raw) != {"decisions"} or not isinstance(raw["decisions"], list):
-        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Closed adjudication decisions required")
+    schema_failure = _schema_diagnostic(raw, _SCHEMA)
+    if schema_failure:
+        import re
+        match = re.search(r"\$\.decisions\[(\d+)\]", schema_failure["schema_path"])
+        decision_index = int(match.group(1)) if match else None
+        source_id = None
+        if decision_index is not None and isinstance(raw, dict) and isinstance(raw.get("decisions"), list):
+            rows = raw["decisions"]
+            if decision_index < len(rows) and isinstance(rows[decision_index], dict):
+                candidate_source = rows[decision_index].get("source_id")
+                if isinstance(candidate_source, str) and candidate_source in disputed:
+                    source_id = candidate_source
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Closed adjudication response required",
+            diagnostic={"stage": "SOURCE_ADJUDICATION_VALIDATION", **schema_failure,
+                        **({"decision_index": decision_index} if decision_index is not None else {}),
+                        **({"source_id": source_id} if source_id else {})})
     if len(raw["decisions"]) != len(disputed):
-        raise DocumentError("EXTRACTION_INCOMPLETE", "Every material disagreement needs one decision")
+        raise DocumentError("EXTRACTION_INCOMPLETE", "Every material disagreement needs one decision",
+            diagnostic=_error_diagnostic("DECISION_COUNT_MISMATCH", "$.decisions", "DECISION_COVERAGE",
+                                         f"array(items={len(disputed)})", raw["decisions"]))
     units = {document.source_id: {unit.location: unit for unit in read_document(document, root).units}
              for document in batch.documents}
     source_hashes = {document.source_id: document.sha256 for document in batch.documents}
@@ -131,29 +238,46 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
                           for extraction in (*primary, *challenger)}
     decisions: list[dict[str, Any]] = []
     seen: set[str] = set()
-    for decision in raw["decisions"]:
+    for decision_index, decision in enumerate(raw["decisions"]):
         if (not isinstance(decision, dict)
                 or set(decision) - {"source_id", "selection", "rationale", "citations", "observations"}
                 or not {"source_id", "selection", "rationale", "citations"} <= set(decision)):
-            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Adjudication decision fields invalid")
+            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Adjudication decision fields invalid",
+                diagnostic=_error_diagnostic("DECISION_SHAPE_INVALID", f"$.decisions[{decision_index}]",
+                                             "SCHEMA_SHAPE", "closed decision object", decision,
+                                             decision_index=decision_index))
         source_id = identifier(decision["source_id"])
         if source_id not in disputed or source_id in seen:
-            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown or duplicate disputed source")
+            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown or duplicate disputed source",
+                diagnostic=_error_diagnostic("UNKNOWN_OR_DUPLICATE_SOURCE", f"$.decisions[{decision_index}].source_id",
+                                             "SOURCE_DECISION_BINDING", "one current disputed source_id",
+                                             decision["source_id"], source_id=source_id,
+                                             decision_index=decision_index))
         seen.add(source_id)
         selection = decision["selection"]
         if selection not in {"PRIMARY", "CHALLENGER", "UNRESOLVED"}:
-            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown adjudication selection")
+            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown adjudication selection",
+                diagnostic=_error_diagnostic("SELECTION_INVALID", f"$.decisions[{decision_index}].selection",
+                                             "SCHEMA_ENUM", "PRIMARY|CHALLENGER|UNRESOLVED", selection,
+                                             source_id=source_id, decision_index=decision_index))
         rationale = text(decision["rationale"], maximum=2000)
         citations = decision["citations"]
         raw_observations = decision.get("observations", [])
         if not isinstance(raw_observations, list) or len(raw_observations) > 100:
-            raise DocumentError("RESOURCE_LIMIT", "Bounded adjudicator visual observations required")
+            raise DocumentError("RESOURCE_LIMIT", "Bounded adjudicator visual observations required",
+                diagnostic=_error_diagnostic("OBSERVATION_LIMIT", f"$.decisions[{decision_index}].observations",
+                                             "RESOURCE_BOUND", "array(items<=100)", raw_observations,
+                                             source_id=source_id, decision_index=decision_index))
         observed_by_location: dict[str, set[str]] = {}
         bound_observations: list[dict[str, Any]] = []
         for observation in raw_observations:
             required = {"semantic_type", "value_type", "value", "visible_text", "page", "ambiguity", "entity_hint"}
             if not isinstance(observation, dict) or set(observation) != required:
-                raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Adjudicator visual observation shape invalid")
+                raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Adjudicator visual observation shape invalid",
+                    diagnostic=_error_diagnostic("OBSERVATION_SHAPE_INVALID",
+                        f"$.decisions[{decision_index}].observations[{len(bound_observations)}]",
+                        "SCHEMA_SHAPE", "complete visual observation object", observation,
+                        source_id=source_id, decision_index=decision_index))
             page = observation["page"]
             source_units = units.get(source_id, {})
             location = f"page:{page}" if type(page) is int else ""
@@ -163,7 +287,11 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
                     location = visual[0].location
             unit = source_units.get(location)
             if unit is None or unit.route == "NATIVE":
-                raise DocumentError("SOURCE_LOCATION_INVALID", "Adjudicator observation cited an invalid visual page")
+                raise DocumentError("SOURCE_LOCATION_INVALID", "Adjudicator observation cited an invalid visual page",
+                    diagnostic=_error_diagnostic("VISUAL_PAGE_NOT_BOUND",
+                        f"$.decisions[{decision_index}].observations[{len(bound_observations)}].page",
+                        "SOURCE_BINDING", "existing visual page", page,
+                        source_id=source_id, decision_index=decision_index))
             semantic_type = identifier(observation["semantic_type"])
             validate_semantic_value_type(semantic_type, observation["value_type"])
             visible_text = text(observation["visible_text"], maximum=2000)
@@ -183,22 +311,41 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
                 "visible_text": visible_text, "ambiguity": observation["ambiguity"],
                 "entity_hint": text(observation["entity_hint"], maximum=240)})
         if not isinstance(citations, list) or len(citations) > 12:
-            raise DocumentError("RESOURCE_LIMIT", "Bounded original-source citations required")
+            raise DocumentError("RESOURCE_LIMIT", "Bounded original-source citations required",
+                diagnostic=_error_diagnostic("CITATION_LIMIT", f"$.decisions[{decision_index}].citations",
+                                             "RESOURCE_BOUND", "array(items<=12)", citations,
+                                             source_id=source_id, decision_index=decision_index))
         if selection != "UNRESOLVED" and not citations:
-            raise DocumentError("EXTRACTION_INCOMPLETE", "Resolved disagreement needs original evidence")
+            raise DocumentError("EXTRACTION_INCOMPLETE", "Resolved disagreement needs original evidence",
+                diagnostic=_error_diagnostic("RESOLUTION_WITHOUT_CITATION",
+                    f"$.decisions[{decision_index}].citations", "MISSING_SOURCE_EVIDENCE",
+                    "one or more original-source citations", citations,
+                    source_id=source_id, decision_index=decision_index))
         verified: list[dict[str, Any]] = []
         for citation in citations:
             if not isinstance(citation, dict) or not {"source_id", "location", "quote"} <= set(citation) or set(citation) - {"source_id", "location", "quote", "preview_sha256"}:
-                raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Citation fields invalid")
+                raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Citation fields invalid",
+                    diagnostic=_error_diagnostic("CITATION_SHAPE_INVALID",
+                        f"$.decisions[{decision_index}].citations[{len(verified)}]",
+                        "SCHEMA_SHAPE", "closed citation object", citation,
+                        source_id=source_id, decision_index=decision_index))
             cited_source = identifier(citation["source_id"])
             location = text(citation["location"], maximum=160)
             quote = text(citation["quote"], maximum=1000)
             unit = units.get(cited_source, {}).get(location)
             if unit is None:
-                raise DocumentError("SOURCE_LOCATION_INVALID", "Adjudication cited a nonexistent source unit")
+                raise DocumentError("SOURCE_LOCATION_INVALID", "Adjudication cited a nonexistent source unit",
+                    diagnostic=_error_diagnostic("CITATION_UNIT_NOT_FOUND",
+                        f"$.decisions[{decision_index}].citations[{len(verified)}].location",
+                        "SOURCE_BINDING", "existing unit location", location,
+                        source_id=source_id, decision_index=decision_index))
             if unit.route == "NATIVE":
                 if citation.get("preview_sha256", "") != "" or unit.text.count(quote) != 1:
-                    raise DocumentError("SOURCE_LOCATION_INVALID", "Native quote absent or nonunique")
+                    raise DocumentError("SOURCE_LOCATION_INVALID", "Native quote absent or nonunique",
+                        diagnostic=_error_diagnostic("NATIVE_QUOTE_NOT_EXACT_UNIQUE",
+                            f"$.decisions[{decision_index}].citations[{len(verified)}].quote",
+                            "EXACT_SOURCE_SPAN", "one exact unique source substring", quote,
+                            source_id=source_id, decision_index=decision_index))
                 start = unit.text.index(quote)
                 verified.append({"source_id": cited_source, "source_sha256": source_hashes[cited_source],
                                  "location": location, "unit_sha256": unit.unit_sha256,
@@ -225,7 +372,11 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
                                  "verification_method": "MULTIMODAL_ORIGINAL_PIXELS",
                                  "deterministic_semantic_verification": False})
         if selection != "UNRESOLVED" and source_id not in {citation["source_id"] for citation in verified}:
-            raise DocumentError("EXTRACTION_INCOMPLETE", "Decision must reopen its disputed original source")
+            raise DocumentError("EXTRACTION_INCOMPLETE", "Decision must reopen its disputed original source",
+                diagnostic=_error_diagnostic("DISPUTED_SOURCE_NOT_REOPENED",
+                    f"$.decisions[{decision_index}].citations", "SOURCE_COVERAGE",
+                    f"citation bound to source {source_id}", citations,
+                    source_id=source_id, decision_index=decision_index))
         if selection == "CHALLENGER":
             selected[source_id] = disputed[source_id]["challenger_extraction_sha256"]
         elif selection == "UNRESOLVED":
@@ -233,11 +384,22 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
         if source_id in selected:
             chosen = extraction_by_hash[selected[source_id]]
             if chosen.status == "FAILED":
-                raise DocumentError("EXTRACTION_INCOMPLETE", "Failed or limited proposal cannot be selected")
+                raise DocumentError("EXTRACTION_INCOMPLETE", "Failed or limited proposal cannot be selected",
+                    diagnostic=_error_diagnostic("FAILED_PROPOSAL_SELECTED",
+                        f"$.decisions[{decision_index}].selection", "PROPOSAL_COMPLETENESS",
+                        "complete primary or challenger proposal", selection,
+                        source_id=source_id, decision_index=decision_index))
             conflicts = _contradictory_limitations(chosen)
             if conflicts:
                 raise DocumentError("EXTRACTION_CONTRADICTION",
-                                    "Selected proposal contradicts its own source-local absence limitation")
+                    "Selected proposal contradicts its own source-local absence limitation",
+                    diagnostic={"stage": "SOURCE_ADJUDICATION_VALIDATION",
+                        "schema_path": f"$.decisions[{decision_index}].selection",
+                        "validation_code": "SELECTED_PROPOSAL_SELF_CONTRADICTION",
+                        "error_category": "SOURCE_COMPLETENESS_CONTRADICTION",
+                        "source_id": source_id, "decision_index": decision_index,
+                        "conflicting_field_count": len(conflicts),
+                        "conflicting_semantic_types": sorted({item["semantic_type"] for item in conflicts})})
             if chosen.limitations:
                 pixel_recovered = bool(bound_observations) and all(
                     observation["location"] in {citation["location"] for citation in verified
@@ -245,13 +407,26 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
                     for observation in bound_observations)
                 if not pixel_recovered and not visual_only_limited_extraction(chosen, batch, root):
                     raise DocumentError("EXTRACTION_INCOMPLETE",
-                                        "Failed or non-visual-limited proposal cannot be selected")
+                        "Failed or non-visual-limited proposal cannot be selected",
+                        diagnostic={"stage": "SOURCE_ADJUDICATION_VALIDATION",
+                            "schema_path": f"$.decisions[{decision_index}].selection",
+                            "validation_code": "LIMITED_PROPOSAL_NOT_RECOVERED",
+                            "error_category": "PROPOSAL_COMPLETENESS", "source_id": source_id,
+                            "decision_index": decision_index,
+                            "limitation_count": len(chosen.limitations),
+                            "pixel_observation_count": len(bound_observations)})
                 visual_locations = ({candidate.location for candidate in chosen.candidates}
                                     | {observation["location"] for observation in bound_observations})
                 if not any(citation.get("source_id") == source_id and citation.get("preview_sha256")
                            and citation.get("location") in visual_locations for citation in verified):
                     raise DocumentError("EXTRACTION_INCOMPLETE",
-                                        "Visual-only limitation needs cited original-pixel adjudication")
+                        "Visual-only limitation needs cited original-pixel adjudication",
+                        diagnostic={"stage": "SOURCE_ADJUDICATION_VALIDATION",
+                            "schema_path": f"$.decisions[{decision_index}].citations",
+                            "validation_code": "VISUAL_LIMITATION_WITHOUT_PIXEL_CITATION",
+                            "error_category": "PIXEL_EVIDENCE_REQUIRED", "source_id": source_id,
+                            "decision_index": decision_index,
+                            "limitation_count": len(chosen.limitations)})
         decisions.append({"source_id": source_id, "selection": selection,
                           "rationale": rationale, "citations": verified,
                           "pixel_observations": bound_observations,
@@ -390,6 +565,7 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
             prompt += "\nATTACHED_ORIGINAL_VISUALS=" + json.dumps(visual_manifest)
         command.append("-")
         for attempt in range(2):
+            invocation_id = str(uuid.uuid4())
             try:
                 response = subprocess.run(command, input=prompt, text=True, capture_output=True,
                                           timeout=timeout_seconds, check=False)
@@ -430,7 +606,31 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                     "visual_bindings": [{"source_id": row["source_id"], "location": row["location"],
                         "preview_sha256": row["preview_sha256"]} for row in visual_manifest]})
                 raise DocumentError("MODEL_EMPTY_RESPONSE", "Codex adjudicator returned no response file")
-            raw = load_json(output.read_bytes(), maximum=200_000)
+            response_bytes = output.read_bytes()
+            try:
+                raw = load_json(response_bytes, maximum=200_000)
+            except DocumentError as exc:
+                from .codex_provider import _codex_cli_version, write_model_diagnostic
+                diagnostic = {"stage": "SOURCE_ADJUDICATION_VALIDATION",
+                    "schema_version": "source-adjudication-diagnostic-v1",
+                    "source_id": None, "decision_index": None, "schema_path": "$",
+                    "validation_code": exc.code, "error_category": "JSON_PARSE_OR_BOUNDARY",
+                    "expected_type": "closed adjudication JSON object",
+                    "received_shape": f"bytes(length={len(response_bytes)})",
+                    "retry_count": attempt, "model": model,
+                    "prompt_version": ADJUDICATION_VERSION,
+                    "schema_sha256": stable_hash(schema_body),
+                    "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
+                    "response_sha256": hashlib.sha256(response_bytes).hexdigest(),
+                    "invocation_id": invocation_id, "cli_version": _codex_cli_version(),
+                    "retention_scope": "DEV_EVALUATION_ONLY_PRIVATE_SCRATCH" if evaluation_only
+                                       else "SANITIZED_FAILURE_METADATA"}
+                write_model_diagnostic(root, diagnostic,
+                    evaluation_raw={"unparsed_response": response_bytes[:200_000].decode(
+                        "utf-8", errors="replace")}
+                        if evaluation_only else None)
+                exc.diagnostic = diagnostic
+                raise
             try:
                 result = validate_adjudication(batch, primary, challenger, qa, raw, root)
                 result["model"] = model
@@ -442,6 +642,25 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                                                              if k != "adjudication_sha256"})
                 return result
             except DocumentError as exc:
+                from .codex_provider import _codex_cli_version, write_model_diagnostic
+                safe_error = exc.diagnostic or {
+                    "stage": "SOURCE_ADJUDICATION_VALIDATION", "schema_path": "$",
+                    "validation_code": exc.code, "error_category": "DETERMINISTIC_VALIDATION",
+                    "expected_type": "valid adjudication decision", "received_shape": _received_shape(raw)}
+                diagnostic = {**safe_error,
+                    "schema_version": "source-adjudication-diagnostic-v1",
+                    "retry_count": attempt, "model": model,
+                    "prompt_version": ADJUDICATION_VERSION,
+                    "schema_sha256": stable_hash(schema_body),
+                    "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
+                    "response_sha256": hashlib.sha256(response_bytes).hexdigest(),
+                    "invocation_id": invocation_id, "cli_version": _codex_cli_version(),
+                    "source_id": safe_error.get("source_id"),
+                    "retention_scope": "DEV_EVALUATION_ONLY_PRIVATE_SCRATCH" if evaluation_only
+                                       else "SANITIZED_FAILURE_METADATA"}
+                write_model_diagnostic(root, diagnostic,
+                                       evaluation_raw=raw if evaluation_only else None)
+                exc.diagnostic = diagnostic
                 if attempt or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_INCOMPLETE", "REVIEW_STALE"}:
                     raise
                 prompt += ("\nYour prior response failed deterministic validation: " + str(exc) +

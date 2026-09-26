@@ -59,11 +59,12 @@ def _case(tmp_path):
     contract = by_name["agreement.txt"]
     raw = {"decisions": [{"source_id": email.source_id, "selection": "PRIMARY",
                           "rationale": "The accepted rule and email both distinguish request from return.",
+                          "observations": [],
                           "citations": [
                               {"source_id": email.source_id, "location": "line:1",
-                               "quote": "This email is not proof of physical return."},
+                               "quote": "This email is not proof of physical return.", "preview_sha256": ""},
                               {"source_id": contract.source_id, "location": "line:1",
-                               "quote": "an off-hire request alone does not stop billing."},
+                               "quote": "an off-hire request alone does not stop billing.", "preview_sha256": ""},
                           ]}]}
     return root, batch, primary, challenger, qa, raw, email
 
@@ -169,6 +170,69 @@ def test_adjudication_response_schema_requires_every_declared_decision_field():
     assert "observations" in decision["required"]
 
 
+def test_adjudication_schema_failure_has_safe_exact_path_diagnostic(tmp_path, monkeypatch):
+    root, batch, primary, challenger, qa, raw, _email = _case(tmp_path)
+    raw["decisions"][0]["observations"] = "PRIVATE_RESPONSE_MARKER"
+
+    def fake_codex(command, **_kwargs):
+        output = Path(command[command.index("--output-last-message") + 1])
+        output.write_text(json.dumps(raw))
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)
+    monkeypatch.setattr("againward.documents.codex_provider._codex_cli_version",
+                        lambda: "codex-test-version")
+    with pytest.raises(DocumentError) as caught:
+        adjudicate_with_codex(batch, primary, challenger, qa, root, model="synthetic-model",
+                              evaluation_only=False)
+    assert caught.value.code == "EXTRACTION_SCHEMA_INVALID"
+    assert caught.value.diagnostic["schema_path"] == "$.decisions[0].observations"
+    assert caught.value.diagnostic["validation_code"] == "TYPE_MISMATCH"
+    assert caught.value.diagnostic["expected_type"] == "array"
+    assert caught.value.diagnostic["received_shape"].startswith("string(length=")
+    diagnostics = list((root.parent / "scratch/visual_model_diagnostics").glob("*.json"))
+    assert len(diagnostics) == 1
+    serialized = diagnostics[0].read_text()
+    assert "PRIVATE_RESPONSE_MARKER" not in serialized
+    assert "raw_response" not in serialized
+    payload = json.loads(serialized)
+    assert payload["stage"] == "SOURCE_ADJUDICATION_VALIDATION"
+    assert payload["retention_scope"] == "SANITIZED_FAILURE_METADATA"
+    assert payload["response_sha256"]
+
+
+def test_evaluation_only_adjudication_diagnostic_may_keep_raw_in_private_scratch(tmp_path, monkeypatch):
+    root, batch, primary, challenger, qa, raw, _email = _case(tmp_path)
+    raw["decisions"][0]["observations"] = "PRIVATE_EVAL_DETAIL"
+
+    def fake_codex(command, **_kwargs):
+        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(raw))
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)
+    monkeypatch.setattr("againward.documents.codex_provider._codex_cli_version",
+                        lambda: "codex-test-version")
+    with pytest.raises(DocumentError):
+        adjudicate_with_codex(batch, primary, challenger, qa, root, model="synthetic-model",
+                              evaluation_only=True)
+    diagnostic_path = next((root.parent / "scratch/visual_model_diagnostics").glob("*.json"))
+    payload = json.loads(diagnostic_path.read_text())
+    assert payload["retention_scope"] == "DEV_EVALUATION_ONLY_PRIVATE_SCRATCH"
+    assert "PRIVATE_EVAL_DETAIL" in json.dumps(payload["raw_response"])
+    assert diagnostic_path.stat().st_mode & 0o077 == 0
+
+
+def test_adjudication_incomplete_resolution_names_missing_source_evidence(tmp_path):
+    root, batch, primary, challenger, qa, raw, email = _case(tmp_path)
+    raw["decisions"][0]["citations"] = []
+    with pytest.raises(DocumentError) as caught:
+        validate_adjudication(batch, primary, challenger, qa, raw, root)
+    assert caught.value.code == "EXTRACTION_INCOMPLETE"
+    assert caught.value.diagnostic["schema_path"] == "$.decisions[0].citations"
+    assert caught.value.diagnostic["source_id"] == email.source_id
+    assert caught.value.diagnostic["validation_code"] == "RESOLUTION_WITHOUT_CITATION"
+
+
 def test_visual_dispute_requires_current_disputed_pixels_not_other_document(tmp_path, monkeypatch):
     public = tmp_path / "public"
     public.mkdir()
@@ -208,6 +272,7 @@ def test_visual_dispute_requires_current_disputed_pixels_not_other_document(tmp_
         preview, _, _ = _render_hash(visual, root, "page:1", Path(directory))
     raw = {"decisions": [{"source_id": visual.source_id, "selection": "PRIMARY",
                           "rationale": "Pixel reading supports a signed return; model judgment, not deterministic proof.",
+                          "observations": [],
                           "citations": [{"source_id": visual.source_id, "location": "page:1",
                                          "quote": "Signed return: LIFT-5 serial 204 returned September 5.",
                                          "preview_sha256": preview}]}]}
@@ -273,6 +338,7 @@ def test_visual_absence_limitation_cannot_be_selected_against_pixel_supported_fa
         preview, _, _ = _render_hash(document, root, "page:1", Path(directory))
     decision = {"source_id": document.source_id, "selection": "CHALLENGER",
         "rationale": "Pixels show the net total; the challenger has no contradictory absence limitation.",
+        "observations": [],
         "citations": [{"source_id": document.source_id, "location": "page:1",
                        "quote": "Net total EUR 150.00", "preview_sha256": preview}]}
     resolved = validate_adjudication(batch, primary, challenger, qa,
@@ -334,13 +400,14 @@ def test_explicit_duplicate_rate_sheet_primary_is_selected_as_unapproved_support
     assert row["material_needs_reconciliation"]
     raw = {"decisions": [{"source_id": rate_doc.source_id, "selection": "PRIMARY",
         "rationale": "The sheet explicitly says its two rates duplicate the signed agreement and makes no amendment; these are source observations, not independent tariff authority.",
+        "observations": [],
         "citations": [
             {"source_id": rate_doc.source_id, "location": "line:2",
-             "quote": "This duplicates daily prices in the signed agreement; no amendment."},
+             "quote": "This duplicates daily prices in the signed agreement; no amendment.", "preview_sha256": ""},
             {"source_id": rate_doc.source_id, "location": "line:3",
-             "quote": "LIFT-5 / SN-L5-204: net EUR 50.00 per asset per calendar day."},
+             "quote": "LIFT-5 / SN-L5-204: net EUR 50.00 per asset per calendar day.", "preview_sha256": ""},
             {"source_id": rate_doc.source_id, "location": "line:4",
-             "quote": "LIFT-50 / SN-L50-830: net EUR 30.00 per asset per calendar day."}]}]}
+             "quote": "LIFT-50 / SN-L50-830: net EUR 30.00 per asset per calendar day.", "preview_sha256": ""}]}]}
     adjudication = validate_adjudication(batch, primary, challenger, qa, raw, root)
     assert adjudication["status"] == "RESOLVED_FOR_FACT_REVIEW"
     assert adjudication["facts_approved"] == 0 and adjudication["delivery_approved"] is False
@@ -398,6 +465,7 @@ def test_clear_signed_return_scan_resolves_grouping_only_difference_through_pixe
     result = validate_adjudication(batch, primary, challenger, qa, {"decisions": [{
         "source_id": document.source_id, "selection": "PRIMARY",
         "rationale": "The current original scan clearly supports the return date and separate remaining asset; grouping differences do not change those printed facts.",
+        "observations": [],
         "citations": [{"source_id": document.source_id, "location": "page:1",
                        "quote": "returned 2026-09-05", "preview_sha256": preview}]}]}, root)
     assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"
