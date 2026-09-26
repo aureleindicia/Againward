@@ -131,6 +131,8 @@ def test_adjudicator_reopens_original_sources_without_private_truth(tmp_path, mo
     assert "selection chooses a source-local observation set" in prompts[0]
     assert "does NOT establish contractual authority" in prompts[0]
     assert "different phrasing or grouping alone is not a material" in prompts[0]
+    assert "Treat limitations as independent source-local claims" in prompts[0]
+    assert "choose UNRESOLVED" in prompts[0]
     stale = deepcopy(qa)
     stale["source_results"][0]["primary_status"] = "FAILED"
     with pytest.raises(DocumentError, match="REVIEW_STALE"):
@@ -233,6 +235,56 @@ def test_visual_dispute_requires_current_disputed_pixels_not_other_document(tmp_
     (root / visual.blob_path).write_bytes(b"mutated source")
     with pytest.raises(DocumentError, match="SOURCE_CHANGED"):
         validate_adjudication(batch, primary, challenger, qa, raw, root)
+
+
+def test_visual_absence_limitation_cannot_be_selected_against_pixel_supported_fact(tmp_path):
+    public = tmp_path / "public"
+    public.mkdir()
+    pdf(public / "invoice.pdf", ["ACCEPTED INVOICE INV-7.", "Net total EUR 150.00."], scan=True)
+    root = tmp_path / "documents"
+    batch = inventory_sources(public, root)
+    document = batch.documents[0]
+    parsed = read_document(document, root)
+    prompt_version = prompt_version_for_guidance("limitation conflict regression")
+    binding = bind_visual_pages(document, parsed, root, model="synthetic-model",
+        prompt_version=prompt_version, invocation_id="limitation-conflict")
+    observations = [
+        ("entity_kind", "ENUM", "INVOICE_LINE", "ACCEPTED INVOICE"),
+        ("document_role", "ENUM", "INVOICE", "ACCEPTED INVOICE"),
+        ("document_status", "ENUM", "ISSUED", "ACCEPTED INVOICE"),
+        ("invoice_id", "IDENTIFIER", "INV-7", "INV-7"),
+        ("net_amount", "DECIMAL", "150.00", "Net total EUR 150.00"),
+    ]
+
+    def extract(limitations):
+        raw = {"status": "NEEDS_REVIEW", "limitations": limitations,
+               "observations": [{"semantic_type": semantic, "value_type": kind, "value": value,
+                   "visible_text": quote, "page": 1, "ambiguity": [], "entity_hint": "invoice line 1"}
+                   for semantic, kind, value, quote in observations]}
+        payload = assemble_proposal(raw, document, parsed, batch.batch_id, "synthetic-model",
+            prompt_version=prompt_version, visual_bindings=binding, invocation_id="limitation-conflict")
+        return validate_proposal(payload, batch, root)
+
+    primary = (extract(["No invoice total is visible."]),)
+    challenger = (extract([]),)
+    qa = compare_extractions(batch, primary, challenger, root)
+    assert qa["source_results"][0]["material_needs_reconciliation"] is True
+    with tempfile.TemporaryDirectory() as directory:
+        preview, _, _ = _render_hash(document, root, "page:1", Path(directory))
+    decision = {"source_id": document.source_id, "selection": "CHALLENGER",
+        "rationale": "Pixels show the net total; the challenger has no contradictory absence limitation.",
+        "citations": [{"source_id": document.source_id, "location": "page:1",
+                       "quote": "Net total EUR 150.00", "preview_sha256": preview}]}
+    resolved = validate_adjudication(batch, primary, challenger, qa,
+                                     {"decisions": [decision]}, root)
+    assert resolved["selected_extractions"][document.source_id] == challenger[0].to_dict()["extraction_sha256"]
+    assert resolved["facts_approved"] == 0 and resolved["delivery_approved"] is False
+
+    contradictory_selection = deepcopy(decision)
+    contradictory_selection["selection"] = "PRIMARY"
+    with pytest.raises(DocumentError, match="EXTRACTION_CONTRADICTION"):
+        validate_adjudication(batch, primary, challenger, qa,
+                              {"decisions": [contradictory_selection]}, root)
 
 
 def test_explicit_duplicate_rate_sheet_primary_is_selected_as_unapproved_supporting_evidence(tmp_path):

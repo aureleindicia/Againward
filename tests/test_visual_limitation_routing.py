@@ -203,6 +203,62 @@ def test_nonvisual_extraction_limit_remains_a_hard_stop(tmp_path):
         validate_adjudication(batch, primary, challenger, qa, raw, root)
 
 
+def test_page_scoped_visual_field_absence_is_retained_for_pixel_review(tmp_path):
+    root, batch, visual_doc, primary, _challenger, _qa, _raw = _case(tmp_path)
+    invoice = next(item for item in primary if item.source_id == visual_doc.source_id)
+    limitation = "Page 1 states the line quantity and net amount but does not show a separate invoice total."
+    invoice = replace(invoice, limitations=(limitation,))
+
+    assert visual_only_limited_extraction(invoice, batch, root)
+    selected = tuple(invoice if item.source_id == visual_doc.source_id else item for item in primary)
+    review = build_analyst_review(batch, selected, {}, root)
+    assert review["visual_candidates_deferred"] == len(invoice.candidates)
+    assert review["native_facts_accepted"] == 0
+    assert limitation in invoice.limitations
+
+
+def test_page_scoped_limit_does_not_mask_missing_source_pages(tmp_path):
+    root, batch, visual_doc, primary, _challenger, _qa, _raw = _case(tmp_path)
+    invoice = next(item for item in primary if item.source_id == visual_doc.source_id)
+    invoice = replace(invoice, limitations=("Only page 1 was provided; the return date is unreadable.",))
+    assert not visual_only_limited_extraction(invoice, batch, root)
+
+
+def test_adjudicator_duplicate_structural_observations_keep_the_existing_entity_binding(tmp_path):
+    root, batch, visual_doc, primary, _challenger, _qa, _raw = _case(tmp_path)
+    extraction = next(item for item in primary if item.source_id == visual_doc.source_id)
+    binding = extraction.visual_bindings[0]
+    unit = next(unit for unit in read_document(visual_doc, root).units if unit.location == binding["location"])
+    existing = {(candidate.semantic_type, candidate.raw_observed_value): candidate.entity_id
+                for candidate in extraction.candidates}
+    observations = [
+        {"source_id": visual_doc.source_id, "source_sha256": visual_doc.sha256,
+         "location": binding["location"], "unit_sha256": unit.unit_sha256,
+         "render_sha256": binding["render_sha256"], "origin": "ADJUDICATOR_PIXEL_OBSERVATION",
+         "semantic_type": semantic, "value_type": value_type, "value": value,
+         "visible_text": quote, "ambiguity": [], "entity_hint": hint}
+        for semantic, value_type, value, quote, hint in (
+            ("entity_kind", "ENUM", "INVOICE_LINE", "Line 1 - Rental agreement AG-1", "invoice-line"),
+            ("document_status", "ENUM", "ACCEPTED", "ACCEPTED INVOICE", "invoice-header"),
+        )]
+    augmented = append_adjudicator_visual_observations(
+        extraction, observations, batch, root, "a" * 64)
+    pixel_rows = [candidate for candidate in augmented.candidates
+                  if "ADJUDICATOR_PIXEL_OBSERVATION" in candidate.ambiguity_flags]
+    assert len(pixel_rows) == 2
+    for candidate in pixel_rows:
+        assert candidate.entity_id == existing[(candidate.semantic_type, candidate.raw_observed_value)]
+        assert "ADJUDICATOR_PIXEL_OBSERVATION" in candidate.ambiguity_flags
+
+
+def test_direct_visual_absence_claim_conflict_fails_before_fact_review(tmp_path):
+    root, batch, visual_doc, primary, _challenger, _qa, _raw = _case(tmp_path)
+    invoice = next(item for item in primary if item.source_id == visual_doc.source_id)
+    contradictory = replace(invoice, limitations=("No net amount is visible on page 1.",))
+    with pytest.raises(DocumentError, match="EXTRACTION_CONTRADICTION"):
+        visual_only_limited_extraction(contradictory, batch, root)
+
+
 def test_pixel_adjudicator_recovers_new_unapproved_observation_after_both_readers_miss(tmp_path):
     root, batch, visual_doc, _primary, _challenger, _qa, _raw = _case(tmp_path)
     visual_source = read_document(visual_doc, root)

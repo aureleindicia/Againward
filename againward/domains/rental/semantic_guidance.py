@@ -1,6 +1,6 @@
 """Rental interpretation vocabulary supplied to a neutral source-unit provider."""
 
-GUIDANCE_VERSION = "rental-semantic-guidance-v11-visual-entity-metadata"
+GUIDANCE_VERSION = "rental-semantic-guidance-v13-document-level-entity-metadata"
 
 
 def guidance() -> str:
@@ -15,8 +15,16 @@ all rows under one aggregate rate_card entity: each asset's description, rate,
 unit, and identifiers belong to that row's distinct entity. A semantic field
 must have only one value per entity; preserve different row values as separate
 entities rather than treating them as conflicting alternatives.
-For each source include source-backed document_role and document_status for
-each material entity. Do not infer ACCEPTED from mere existence of a quote.
+For each source include source-backed entity_kind, document_role and
+document_status for each material entity. Put all three structural fields and
+that entity's facts under the same entity_id. Do not put document identity in a
+metadata-only entity_id beside another ID for the same message, export row,
+rate row or invoice line. When a source contains multiple distinct entities,
+repeat source-supported document metadata on each entity. Use only values
+established by this source and the supplied domain context; if a structural
+value is not determined, leave it absent and let review fail closed. Never
+default or borrow a value from another source. Do not infer ACCEPTED from mere
+existence of a quote.
 document_role is the document type, NOT entity_kind or a free-form label. Use
 only RENTAL_AGREEMENT, RATE_CARD, QUOTE, PURCHASE_ORDER, AMENDMENT, INVOICE,
 CREDIT_NOTE, DELIVERY_NOTE, RETURN_NOTE, OFF_HIRE_NOTICE, EMAIL_EVIDENCE,
@@ -96,17 +104,37 @@ Likewise, a rate card explicitly saying it duplicates an agreement does not
 create a second independent hire, and an accounting export marked mirror-only
 does not create a new invoice or credit. Represent these as source-local
 SUPPORTING_DOCUMENT entities with document_role RATE_CARD or PAYMENT_EXPORT,
-document_status and any exact corroborating IDs/amounts. These facts remain
+document_status and any exact corroborating IDs/amounts. Keep each separately
+priced rate row or mirrored export record under its own entity_id, with the
+complete source-supported structural trio repeated on that entity. These facts remain
 auditable but do not create Rental periods, charges or credits. An email that
 only requests off-hire and says a separate return note is proof may likewise
 be SUPPORTING_DOCUMENT with role EMAIL_EVIDENCE; do not promote its mention of
 the return note into a documented physical RETURN. The operator decides
-cross-document links and whether corroboration changes a conclusion.
+cross-document links and whether corroboration changes a conclusion. Keep an
+email message and its request facts under one source-local correspondence
+entity unless the source establishes a distinct document or event; each
+accepted entity still requires its own complete structural trio.
+When one accounting-export workbook contains both invoice and credit rows,
+PAYMENT_EXPORT and EXTRACTED describe the workbook's document role/status and
+must be repeated on each row entity if the source establishes one consistent
+export classification. The Type cell distinguishes invoice from credit; it
+does not change the workbook's role/status. Do not copy row classifications
+across entities when the document contains mixed or contradictory source roles.
+An accepted rate sheet that explicitly duplicates accepted-agreement prices
+and says it makes no amendment is a SUPPORTING_DOCUMENT with document_role
+RATE_CARD and document_status ACCEPTED. That classifies evidentiary role only;
+the signed agreement remains governing.
 An invoice without the contract's daily rate or stop clause is a normal
 separate document, not an extraction limitation. Keep such absent fields
 absent; only report a limitation when this source itself is unreadable,
 incomplete or internally ambiguous. Do not claim source spans were omitted;
 the deterministic validator adds exact native spans or refuses the proposal.
+Limitations must be atomic, source-local claims. Do not state that a value is
+absent or not visible when an observation in the same response reports that
+value. Do not combine a true omission (such as a rate not present) with a
+contradictory claim about a visible amount; independent adjudication must
+explicitly resolve any conflict.
 
 Distinguish invoice date from rental start, return, collection, off-hire request
 and accepted rate-effective date. A quoted amount may be net or gross; do not

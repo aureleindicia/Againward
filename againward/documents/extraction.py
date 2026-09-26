@@ -25,6 +25,39 @@ SCHEMA = "againward-document-extraction-v1"
 _MONETARY_DECIMAL_SEMANTICS = frozenset({"net_amount", "rate", "unit_rate", "allocated_amount"})
 
 
+def contradictory_source_limitations(extraction: "DocumentExtraction") -> list[dict[str, str]]:
+    """Find explicit source-absence claims that conflict with emitted facts.
+
+    A separate invoice total is distinct from a line net amount; preserve that
+    distinction while treating a direct absence claim about the emitted amount
+    as a contradiction that requires independent reconciliation.
+    """
+    absence_markers = ("no ", "not visible", "not present", "absent", "missing",
+                       "unreadable", "unavailable", "cannot read", "can't read",
+                       "does not show", "doesn't show", "not shown")
+    aliases = {
+        "net_amount": ("net amount", "net total", "invoice total", "total amount"),
+        "rate": ("rate", "rates", "price", "prices"),
+        "invoice_id": ("invoice id", "invoice number", "invoice identifier"),
+        "date": ("date", "dates"),
+        "asset_id": ("asset id", "asset identifier"),
+        "serial_number": ("serial number", "serial"),
+    }
+    present = {candidate.semantic_type for candidate in extraction.candidates}
+    conflicts: list[dict[str, str]] = []
+    for limitation in extraction.limitations:
+        lowered = limitation.casefold()
+        if not any(marker in lowered for marker in absence_markers):
+            continue
+        for semantic_type, phrases in aliases.items():
+            if semantic_type not in present or not any(phrase in lowered for phrase in phrases):
+                continue
+            if semantic_type == "net_amount" and "separate invoice total" in lowered:
+                continue
+            conflicts.append({"semantic_type": semantic_type, "limitation": limitation})
+    return conflicts
+
+
 def validate_semantic_value_type(semantic_type: str, value_type: str) -> None:
     """Keep monetary amounts numeric and ISO currency codes in their own field."""
     if semantic_type in _MONETARY_DECIMAL_SEMANTICS and value_type != "DECIMAL":
@@ -42,11 +75,18 @@ def visual_only_limited_extraction(extraction: "DocumentExtraction", batch: Sour
 
     This is deliberately narrower than general completeness: the proposal must
     contain only candidates sourced from rendered units, and every declared
-    limitation must describe the native-text/pixel boundary. Missing pages,
-    unreadable sources, and other extraction limits remain hard stops.
+    limitation must either describe the native-text/pixel boundary or make a
+    page-scoped visual-content claim about pages that were actually rendered.
+    Missing pages, unreadable sources, and other extraction limits remain hard
+    stops. Limitations are retained and all visual candidates still require the
+    existing original-pixel review before downstream use.
     """
     if not extraction.limitations or extraction.status == "FAILED" or not extraction.candidates:
         return False
+    conflicts = contradictory_source_limitations(extraction)
+    if conflicts:
+        raise DocumentError("EXTRACTION_CONTRADICTION",
+                            "Visual proposal has a source limitation conflicting with its own observation")
     document = next((item for item in batch.documents if item.source_id == extraction.source_id), None)
     if document is None or document.sha256 != extraction.source_sha256:
         raise DocumentError("SOURCE_CHANGED", "Visual limitation does not bind the current source")
@@ -64,7 +104,18 @@ def visual_only_limited_extraction(extraction: "DocumentExtraction", batch: Sour
         native_gap = ("visible" in value and "native" in value
                       and any(word in value for word in ("text", "quote", "substring", "citation"))
                       and any(word in value for word in ("absent", "omitted", "cannot", "not in", "unavailable")))
-        if not visual_scope or not (requires_pixels or native_gap):
+        page_numbers = {int(number) for number in re.findall(r"\bpage\s*(?:#|:)?\s*(\d+)\b", value)}
+        page_scoped_content_limit = (
+            bool(page_numbers)
+            and all(f"page:{number}" in visual_locations for number in page_numbers)
+            and any(phrase in value for phrase in (
+                "does not show", "doesn't show", "not shown", "not visible", "no separate ",
+                "no ", "unreadable", "cannot read", "can't read"))
+            and not any(phrase in value for phrase in (
+                "only page", "missing page", "page missing", "page omitted", "not provided",
+                "cropped", "cut off", "source is unreadable"))
+        )
+        if not ((visual_scope and (requires_pixels or native_gap)) or page_scoped_content_limit):
             return False
     return True
 
@@ -376,7 +427,17 @@ def append_adjudicator_visual_observations(extraction: DocumentExtraction,
         flags.update({"VISUAL_TRANSCRIPTION_UNVERIFIED", "COMPONENT_REVIEW_REQUIRED",
                       "ADJUDICATOR_PIXEL_OBSERVATION"})
         hint = text(observation["entity_hint"], maximum=240)
-        entity_id = "pixel-" + sha256(f"{location}\0{hint}".encode()).hexdigest()[:20]
+        # If the adjudicator reobserves the exact same source quote for an
+        # already-proposed semantic field on this page, keep it on that
+        # proposal's entity. A new entity hint must not split a corroborating
+        # observation away from its structural metadata. Ambiguous or genuinely
+        # different observations retain their own pixel-derived entity ID.
+        matching_entities = {candidate.entity_id for candidate in candidates
+                             if candidate.location == location
+                             and candidate.semantic_type == semantic
+                             and candidate.raw_observed_value == observed}
+        entity_id = (next(iter(matching_entities)) if len(matching_entities) == 1 else
+                     "pixel-" + sha256(f"{location}\0{hint}".encode()).hexdigest()[:20])
         comparable = str(value).lower() if type(value) is bool else str(value)
         notes = "Pixel ambiguity: " + "; ".join(text(note, maximum=500) for note in ambiguity) if ambiguity else ""
         if value is not None and comparable != observed:

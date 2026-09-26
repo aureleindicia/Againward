@@ -159,6 +159,8 @@ def test_visual_invoice_reader_keeps_structural_metadata_on_the_billed_line(tmp_
     assert len({candidate.entity_id for candidate in line}) == 1
     assert "each material visual entity" in captured["prompt"]
     assert "Never split structural metadata across different entity_hint values" in captured["prompt"]
+    assert "Limitations must be atomic, source-local claims" in captured["prompt"]
+    assert "Do not say an amount/total is not visible" in captured["prompt"]
 
     incomplete = dict(raw, observations=[row for row in raw["observations"]
                                          if row["semantic_type"] != "entity_kind"])
@@ -177,6 +179,122 @@ def test_visual_invoice_reader_keeps_structural_metadata_on_the_billed_line(tmp_
     assert blocked["status"] == "REPAIR_REQUIRED"
     assert blocked["native_facts_accepted"] == 0
     assert blocked["visual_structural_gaps"][0]["missing"] == ["entity_kind"]
+
+
+@pytest.mark.parametrize("family", ["correspondence", "accounting_export", "rate_sheet"])
+def test_native_document_families_keep_structural_trio_on_each_entity(tmp_path, monkeypatch, family):
+    from openpyxl import Workbook
+
+    incoming = tmp_path / family
+    incoming.mkdir()
+    if family == "correspondence":
+        (incoming / "source.eml").write_text(
+            "Subject: Off-hire request AG-9\nMIME-Version: 1.0\n"
+            "Content-Type: text/plain; charset=utf-8\n\nWe request off-hire for one LIFT-5 unit.\n")
+        kind, role, status = "SUPPORTING_DOCUMENT", "EMAIL_EVIDENCE", "EXTRACTED"
+        fact_type, fact_value, fact_quote = "item_id", "LIFT-5", "LIFT-5"
+        structural_quote = "Off-hire request AG-9"
+    elif family == "accounting_export":
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Export"
+        sheet.append(["Type", "Invoice", "Reference", "Net EUR"])
+        sheet.append(["INVOICE", "INV-9", "Mirror only", "900.00"])
+        sheet.append(["CREDIT", "CN-9", "INV-9/L1", "100.00"])
+        workbook.save(incoming / "source.xlsx")
+        kind, role, status = "SUPPORTING_DOCUMENT", "PAYMENT_EXPORT", "EXTRACTED"
+        fact_type, fact_value, fact_quote = "invoice_id", "INV-9", "INV-9"
+        structural_quote = "Mirror only"
+    else:
+        pdf(incoming / "source.pdf", ["ACCEPTED RATE SHEET.", "LIFT-5 net EUR 50.00 per day."])
+        kind, role, status = "SUPPORTING_DOCUMENT", "RATE_CARD", "ACCEPTED"
+        fact_type, fact_value, fact_quote = "rate", "50.00", "50.00"
+        structural_quote = "ACCEPTED RATE SHEET"
+
+    root = tmp_path / "documents"
+    batch = inventory_sources(incoming, root)
+    document = batch.documents[0]
+    parsed = read_document(document, root)
+    assert all(unit.route == "NATIVE" for unit in parsed.units)
+
+    def location_for(quote):
+        matches = [unit for unit in parsed.units if unit.text == quote]
+        if not matches:
+            matches = [unit for unit in parsed.units if quote in unit.text]
+        assert len(matches) == 1
+        return matches[0].location
+
+    entity_id = "source-entity-1"
+    values = [("entity_kind", "ENUM", kind, structural_quote),
+              ("document_role", "ENUM", role, structural_quote),
+              ("document_status", "ENUM", status, structural_quote),
+              (fact_type, "DECIMAL" if fact_type == "rate" else "IDENTIFIER",
+               fact_value, fact_quote)]
+    raw = {"status": "SUCCESS", "limitations": [], "candidates": [
+        {"entity_id": entity_id, "semantic_type": semantic, "value_type": value_type,
+         "value": value, "raw_observed_value": quote, "location": location_for(quote),
+         "normalization_notes": "Source-supported structural classification or exact value.",
+         "ambiguity_flags": []}
+        for semantic, value_type, value, quote in values]}
+    if family == "accounting_export":
+        for semantic, value_type, value, quote in (
+                ("entity_kind", "ENUM", "SUPPORTING_DOCUMENT", "CREDIT"),
+                ("document_role", "ENUM", "PAYMENT_EXPORT", "Type"),
+                ("document_status", "ENUM", "EXTRACTED", "Type"),
+                ("credit_id", "IDENTIFIER", "CN-9", "CN-9"),
+                ("net_amount", "DECIMAL", "100.00", "100.00")):
+            raw["candidates"].append({"entity_id": "export-credit-1", "semantic_type": semantic,
+                "value_type": value_type, "value": value, "raw_observed_value": quote,
+                "location": location_for(quote),
+                "normalization_notes": "Source-local exported credit row; review remains required.",
+                "ambiguity_flags": []})
+    captured = {}
+
+    original_run = subprocess.run
+
+    def fake_run(command, **kwargs):
+        if "input" not in kwargs:
+            return original_run(command, **kwargs)
+        captured["prompt"] = kwargs["input"]
+        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(raw))
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run", fake_run)
+    provider = CodexCliProvider(root, model="synthetic-model")
+    payload = provider.propose(document, parsed, {"batch": batch, "semantic_guidance": guidance()})
+    extraction = validate_proposal(payload, batch, root)
+    assert {candidate.semantic_type for candidate in extraction.candidates} >= {
+        "entity_kind", "document_role", "document_status", fact_type}
+    expected_entities = {entity_id, "export-credit-1"} if family == "accounting_export" else {entity_id}
+    assert {candidate.entity_id for candidate in extraction.candidates} == expected_entities
+    assert "For every material Rental entity_id, emit entity_kind, document_role and document_status" in captured["prompt"]
+    assert "same entity_id" in captured["prompt"]
+    if family == "accounting_export":
+        assert "PAYMENT_EXPORT and EXTRACTED describe the source document" in captured["prompt"]
+        assert "a CREDIT row type does not by itself change the document role or status" in captured["prompt"]
+
+    accepted = {"decisions": [{"candidate_id": candidate.candidate_id, "decision": "ACCEPT",
+        "reason": "Exact source observation with complete source-supported structural metadata.",
+        "resolved_flags": []} for candidate in extraction.candidates]}
+    ready = build_analyst_review(batch, (extraction,), {document.source_id: accepted}, root)
+    assert ready["status"] == "READY_FOR_PACKAGE"
+    assert ready["native_facts_accepted"] == len(extraction.candidates)
+
+    incomplete_raw = json.loads(json.dumps(raw))
+    incomplete_raw["candidates"] = [row for row in incomplete_raw["candidates"]
+                                    if row["semantic_type"] != "entity_kind"]
+    incomplete = validate_proposal(assemble_proposal(incomplete_raw, document, parsed, batch.batch_id,
+        "synthetic-model", prompt_version=payload["prompt_version"]), batch, root)
+    incomplete_decisions = {"decisions": [{"candidate_id": candidate.candidate_id,
+        "decision": "ACCEPT", "reason": "Exact source observation.", "resolved_flags": []}
+        for candidate in incomplete.candidates]}
+    blocked = build_analyst_review(batch, (incomplete,),
+                                  {document.source_id: incomplete_decisions}, root)
+    assert blocked["status"] == "REPAIR_REQUIRED"
+    assert blocked["native_facts_accepted"] == 0
+    assert blocked["structural_gaps"] == [{"source_id": document.source_id,
+        "entity_id": expected_entity, "missing": ["entity_kind"]}
+        for expected_entity in sorted(expected_entities)]
 
 
 def test_invoice_line_label_requires_explicit_safe_identifier(tmp_path):

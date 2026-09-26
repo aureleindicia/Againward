@@ -128,6 +128,27 @@ def test_native_repair_rejects_orphan_without_losing_valid_rate_dates(tmp_path, 
     assert receipt["repair_history"][0]["after"][-1]["decision"] == "REJECT"
 
 
+def test_rate_card_supporting_entity_is_not_rejected_for_non_governing_role(tmp_path, monkeypatch):
+    root, batch, extraction = _rate_sheet_with_orphan(tmp_path)
+    prompts = []
+
+    def model(command, *, input, **_kwargs):
+        prompts.append(input)
+        proposal = _native_decisions((extraction,))[extraction.source_id]
+        orphan = next(c for c in extraction.candidates if c.entity_id == "rate_sheet")
+        next(d for d in proposal["decisions"] if d["candidate_id"] == orphan.candidate_id).update(
+            decision="REJECT", reason="The date is not attached to a material rate-row entity.")
+        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(proposal))
+        return SimpleNamespace(returncode=0, stderr="")
+
+    monkeypatch.setattr("againward.documents.analyst_review.subprocess.run", model)
+    receipt = review_with_codex(batch, (extraction,), root, model="synthetic-model")
+    assert receipt["status"] == "READY_FOR_PACKAGE"
+    assert len(prompts) == 1
+    assert "A SUPPORTING_DOCUMENT is a valid complete entity even when it does not govern a charge" in prompts[0]
+    assert "do not reject its entity_kind merely because the signed agreement remains governing" in prompts[0]
+
+
 def test_native_analyst_review_promotes_current_facts_without_human_role(tmp_path):
     root, batch, extractions, _challenger, _qa, _raw, _email = _case(tmp_path)
     receipt = build_analyst_review(batch, extractions, _native_decisions(extractions), root)

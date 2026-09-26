@@ -18,14 +18,14 @@ from typing import Any
 from againward.evidence.hashing import stable_hash
 from .codex_provider import VISUAL_SEMANTIC_TYPES, _images, _model_invocation_failure
 from .contracts import DocumentError, SourceBatch, identifier, load_json, text
-from .extraction import (DocumentExtraction, validate_semantic_value_type,
+from .extraction import (DocumentExtraction, contradictory_source_limitations, validate_semantic_value_type,
                          visual_only_limited_extraction)
 from .independent_qa import compare_extractions
 from .readers import read_document
 from .sources import verify_batch
 
 
-ADJUDICATION_VERSION = "againward-source-adjudication-v7-source-local-reconciliation"
+ADJUDICATION_VERSION = "againward-source-adjudication-v9-entity-consistent-pixel-observations"
 MAX_SOURCE_TEXT = 60_000
 MAX_VISUAL_PAGES = 4
 _SCHEMA: dict[str, Any] = {
@@ -72,6 +72,16 @@ def _require_current_qa(batch: SourceBatch, primary: tuple[DocumentExtraction, .
             or qa.get("source_results") != current["source_results"]):
         raise DocumentError("REVIEW_STALE", "Independent QA receipt does not match current source passes")
     return current
+
+
+def _contradictory_limitations(extraction: DocumentExtraction) -> list[dict[str, str]]:
+    """Detect explicit absence claims conflicting with this proposal's own facts.
+
+    This check never removes a limitation or approves a value. It prevents
+    adjudication from selecting a self-contradictory proposal; a clean peer may
+    be selected only after the disputed original source is reopened.
+    """
+    return contradictory_source_limitations(extraction)
 
 
 def verify_adjudication_pixels(batch: SourceBatch, receipt: dict[str, Any], root: Path) -> None:
@@ -224,6 +234,10 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
             chosen = extraction_by_hash[selected[source_id]]
             if chosen.status == "FAILED":
                 raise DocumentError("EXTRACTION_INCOMPLETE", "Failed or limited proposal cannot be selected")
+            conflicts = _contradictory_limitations(chosen)
+            if conflicts:
+                raise DocumentError("EXTRACTION_CONTRADICTION",
+                                    "Selected proposal contradicts its own source-local absence limitation")
             if chosen.limitations:
                 pixel_recovered = bool(bound_observations) and all(
                     observation["location"] in {citation["location"] for citation in verified
@@ -327,6 +341,13 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         "UNRESOLVED only when competing material interpretations remain, the pixels are ambiguous, or "
         "neither proposal supports the necessary facts; never use it merely because both contain some "
         "true observations or differ in grouping. "
+        "Treat limitations as independent source-local claims, not as blanket authority to discard "
+        "observations. If one proposal says a field is absent/not visible while either proposal contains "
+        "a source-bound observation of that same field, reopen the exact original pixels. If the pixels "
+        "clearly establish the field and the other proposal records it without the contradicted limitation, "
+        "select that clean proposal and cite the supporting pixels. Do not silently remove or ignore a "
+        "limitation from the selected extraction. If both proposals retain the contradiction, the field "
+        "cannot be matched to the limitation, or the pixels do not resolve it, choose UNRESOLVED. "
         "Selection remains subject to subsequent fact review and omission QA. Cite exact unique native "
         "quotes with source_id/location and preview_sha256='' for native citations; visual observations "
         "remain probabilistic. Do not calculate money, "

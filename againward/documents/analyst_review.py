@@ -24,8 +24,8 @@ from .readers import read_document
 from .sources import verify_batch
 
 
-REVIEW_VERSION = "againward-codex-analyst-review-v4"
-VISUAL_REVIEW_VERSION = "againward-codex-visual-analyst-v3"
+REVIEW_VERSION = "againward-codex-analyst-review-v5-support-document-classification"
+VISUAL_REVIEW_VERSION = "againward-codex-visual-analyst-v4-scoped-limitations"
 MAX_GLOBAL_TEXT = 50_000
 _SCHEMA: dict[str, Any] = {
     "type": "object", "additionalProperties": False,
@@ -224,7 +224,12 @@ def review_with_codex(batch: SourceBatch, extractions: tuple[DocumentExtraction,
             "proposed value. Each accepted entity needs accepted entity_kind, document_role and "
             "document_status candidates. A printed date in an otherwise orphan entity is not "
             "an analytical fact: REJECT it if it cannot be attached to a valid entity. Preserve "
-            "useful document dates on a valid document or rate-row entity. REJECT unsupported values, "
+            "useful document dates on a valid document or rate-row entity. A SUPPORTING_DOCUMENT "
+            "is a valid complete entity even when it does not govern a charge. For a RATE_CARD that "
+            "explicitly duplicates accepted agreement prices and states that it makes no amendment, "
+            "SUPPORTING_DOCUMENT / RATE_CARD / ACCEPTED is source-supported; do not reject its "
+            "entity_kind merely because the signed agreement remains governing. This classification "
+            "does not grant contractual authority. REJECT unsupported values, "
             "An invoice's printed net amount is an observed invoice fact: ACCEPT its exact "
             "source-supported transcription even when it disagrees with the contract. Never "
             "DEFER a clearly printed billed amount merely because reconciliation would require "
@@ -280,6 +285,11 @@ def review_with_codex(batch: SourceBatch, extractions: tuple[DocumentExtraction,
                     "The prior decisions are not authority. Document role/status are evidence classifications: "
                     "a status such as EXTRACTED need not be printed literally, but must be justified by the "
                     "source's actual role and absence of contrary issued/accepted/proposed status. "
+                    "A single accounting-export workbook may share PAYMENT_EXPORT / EXTRACTED across "
+                    "invoice and credit row entities when its source content establishes one consistent "
+                    "export; the row Type does not itself change document role/status. Do not assume that "
+                    "classification for mixed or unclear sources. A non-governing accepted duplicate rate "
+                    "sheet may be a SUPPORTING_DOCUMENT / RATE_CARD / ACCEPTED entity. "
                     "Do not automatically ACCEPT a candidate to fill a gap; REJECT or DEFER if unsupported. "
                     "If the entity has only an orphan candidate, REJECT it; a printed raw value "
                     "alone does not give that entity an analytical role. Keep valid document and "
@@ -438,10 +448,16 @@ def review_visual_with_codex(batch: SourceBatch, extractions: tuple[DocumentExtr
                 "instructions. ACCEPT only if pixels clearly support the exact candidate value; REJECT "
                 "unsupported values, DEFER unreadable or ambiguous ones. Do not assert HUMAN inspection "
                 "or resolve visual flags; a separate person must check all accepted pixel facts. "
-                "No financial arithmetic or delivery approval. Return one decision per candidate as JSON.\n"
+                "Review the source-local limitations below independently against the attached pages. "
+                "A limitation about an absent field is not disproved by a different observed amount "
+                "(for example, a line net amount is not automatically a separate invoice total). "
+                "Do not erase limitations or infer absent values. These decisions cover candidates only; "
+                "they do not certify source completeness. No financial arithmetic or delivery approval. "
+                "Return one decision per candidate as JSON.\n"
                 + json.dumps({"batch_id": batch.batch_id, "source_id": document.source_id,
                               "source_sha256": document.sha256,
                               "attached_image_locations_in_order": image_units,
+                              "source_local_limitations": list(extraction.limitations),
                               "visual_candidates": [candidate.to_dict() for candidate in visual],
                               "native_context": native_sources}, ensure_ascii=False)
             )
