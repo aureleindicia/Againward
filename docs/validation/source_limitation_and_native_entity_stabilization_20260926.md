@@ -88,11 +88,12 @@ have blocked FACT_REVIEW.
 | Check | Result |
 | --- | ---: |
 | Focused source/adjudication/review/provider tests | 58 passed |
-| Full pytest | 868 passed on the prior code commit; the clean-tree run for `30c4d9a` is in progress |
+| Full pytest | 869 passed on `30c4d9a` |
 | Ruff | passed |
 | Configured mypy | passed (16 source files) |
 | Rental benchmark | 15/15; 3 TP, 0 FP, 0 FN, 12 TN |
 | Rental privacy benchmark | 19/19; 0 false blocks, 0 unsafe passes |
+| PR #5 CI | 8/8 jobs passed on documentation commit `86cd957` (Python 3.11–3.14, push and pull request) |
 | CASE A known EUR 150 calculation | not reached |
 | CASE B known LIFT-5 EUR 150 / LIFT-50 EUR 0 | not reached |
 | Report / final original-source PDF QA | not reached |
