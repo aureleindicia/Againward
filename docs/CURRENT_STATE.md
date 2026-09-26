@@ -274,6 +274,7 @@ to improve a score, or treat scripted reviews as actual human approval.
   without an attestation. CASE B no longer reports `CURRENCY_MISMATCH`, but its
   accounting extraction had no candidates and the run stops at
   `SOURCE_ADJUDICATION` on unresolved rate-sheet and signed-return disagreements;
-  numeric live amount passage remains unverified. Focused tests (54), Ruff,
-  mypy, Rental (15/15), and privacy (19/19) pass; full-suite and CI results are
-  pending.
+  numeric live amount passage remains unverified. Focused tests (91), Ruff,
+  mypy, full pytest (856 passed), Rental (15/15), and privacy (19/19) pass. PR
+  #5 CI passed 8/8 jobs across Python 3.11–3.14. The full details are in the
+  linked follow-up; no calculation/report result is claimed for either rerun.

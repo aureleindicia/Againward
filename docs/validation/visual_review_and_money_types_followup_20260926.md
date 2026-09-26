@@ -91,7 +91,10 @@ calculated in this run.
 - Configured mypy: **passed**, 16 source files.
 - Rental benchmark: **15/15**; 3 TP, 0 FP, 0 FN, 12 TN.
 - Privacy benchmark: **19/19**; 0 false blocks, 0 unsafe passes.
-- Full pytest and PR #5 CI results are added after the run completes.
+- Full pytest on fix commit `281ef6e1b2e3f6f89e4dde0e15e2cd588589d5ad`:
+  **856 passed** in 788.34 seconds.
+- PR #5 CI on that commit: **8/8** Python matrix jobs passed across push and
+  pull-request workflows (Python 3.11–3.14). PR #5 remains open and draft.
 
 These benchmark fixtures are scripted regression checks. The two live runs are
 known-case diagnostics only, not independent accuracy evidence.
