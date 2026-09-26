@@ -9,7 +9,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from againward.documents.adjudication import adjudicate_with_codex, validate_adjudication, verify_adjudication_pixels
+from againward.documents.adjudication import (_SCHEMA, adjudicate_with_codex,
+    validate_adjudication, verify_adjudication_pixels)
 from againward.documents.codex_provider import assemble_proposal, bind_visual_pages, prompt_version_for_guidance
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
@@ -130,6 +131,35 @@ def test_adjudicator_reopens_original_sources_without_private_truth(tmp_path, mo
     with pytest.raises(DocumentError, match="REVIEW_STALE"):
         adjudicate_with_codex(batch, primary, challenger, stale, root, model="synthetic-model")
     assert len(calls) == 1
+
+
+def test_adjudication_runtime_failure_is_classified_and_sanitized(tmp_path, monkeypatch):
+    root, batch, primary, challenger, qa, _raw, _email = _case(tmp_path)
+
+    def failed_call(command, **_kwargs):
+        return SimpleNamespace(returncode=2, stdout='{"type":"error","code":"invalid_json_schema"}',
+                               stderr="PRIVATE_SOURCE_MARKER")
+
+    monkeypatch.setattr("againward.documents.adjudication.subprocess.run", failed_call)
+    with pytest.raises(DocumentError) as caught:
+        adjudicate_with_codex(batch, primary, challenger, qa, root, model="synthetic-model",
+                              evaluation_only=False)
+    assert caught.value.code == "MODEL_CONFIGURATION_ERROR"
+    assert "PRIVATE_SOURCE_MARKER" not in str(caught.value)
+    diagnostic_path = next((root.parent / "scratch/visual_model_diagnostics").glob("*.json"))
+    diagnostic = json.loads(diagnostic_path.read_text())
+    assert diagnostic["stage"] == "SOURCE_ADJUDICATION_MODEL_INVOCATION"
+    assert diagnostic["failure_category"] == "MODEL_CONFIGURATION_ERROR"
+    assert diagnostic["returncode"] == 2
+    assert diagnostic["stdout_bytes"] > 0 and diagnostic["stderr_bytes"] > 0
+    assert diagnostic["retention_scope"] == "SANITIZED_FAILURE_METADATA"
+    assert "PRIVATE_SOURCE_MARKER" not in diagnostic_path.read_text()
+
+
+def test_adjudication_response_schema_requires_every_declared_decision_field():
+    decision = _SCHEMA["properties"]["decisions"]["items"]
+    assert set(decision["required"]) == set(decision["properties"])
+    assert "observations" in decision["required"]
 
 
 def test_visual_dispute_requires_current_disputed_pixels_not_other_document(tmp_path, monkeypatch):

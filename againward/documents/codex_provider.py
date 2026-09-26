@@ -117,9 +117,9 @@ def _visual_ambiguity(ambiguity: Any) -> tuple[list[str], str]:
     return flags, "; ".join(notes)
 
 
-def _model_invocation_failure(stderr: str) -> DocumentError:
-    """Report only a fixed diagnostic category; never leak CLI stderr/source text."""
-    message = stderr.casefold()
+def _model_invocation_failure(stderr: str, *, stdout: str = "", returncode: int = 1) -> DocumentError:
+    """Classify CLI failures from both streams without exposing their contents."""
+    message = (stderr + "\n" + stdout).casefold()
     if any(marker in message for marker in ("not logged in", "login required", "authentication required",
                                            "401 unauthorized", "invalid api key")):
         return DocumentError("MODEL_AUTH_REQUIRED", "Codex participant authentication failed")
@@ -129,7 +129,78 @@ def _model_invocation_failure(stderr: str) -> DocumentError:
     if any(marker in message for marker in ("connection refused", "connection reset", "network error",
                                            "dns error", "stream disconnected")):
         return DocumentError("MODEL_TRANSPORT_FAILURE", "Codex participant transport failed")
-    return DocumentError("MODEL_UNAVAILABLE", "Codex participant did not produce a valid response")
+    if any(marker in message for marker in ("model overloaded", "model unavailable", "service unavailable",
+                                            "temporarily unavailable", "http 503", "status 503")):
+        return DocumentError("MODEL_UNAVAILABLE", "Codex model service is temporarily unavailable")
+    if any(marker in message for marker in ("unknown model", "model not found", "invalid model",
+                                            "invalid configuration", "failed to load config",
+                                            "invalid_json_schema", "invalid_request_error", "http 400",
+                                            "status 400", "bad request", "unrecognized option",
+                                            "unexpected argument", "usage:")):
+        return DocumentError("MODEL_CONFIGURATION_ERROR", "Codex model or invocation configuration is invalid")
+    return DocumentError("MODEL_INVOCATION_FAILURE",
+                         f"Codex participant process exited unsuccessfully (exit {returncode})")
+
+
+def write_model_diagnostic(root: Path, payload: dict[str, Any], *,
+                           evaluation_stderr: str | None = None,
+                           evaluation_raw: dict[str, Any] | None = None) -> None:
+    """Persist only bounded, sanitized runtime metadata in private workspace scratch."""
+    root = Path(root)
+    workspace = (root.parent.parent if root.name == "documents"
+                 and root.parent.name == "processed" else root.parent)
+    scratch = workspace / "scratch"
+    directory = scratch / "visual_model_diagnostics"
+    if scratch.is_symlink() or directory.is_symlink():
+        raise DocumentError("SOURCE_UNSAFE_PATH", "Model diagnostic directory is linked")
+    directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+    invocation = payload.get("invocation_id") or str(uuid.uuid4())
+    destination = directory / (invocation + ".json")
+    if destination.exists() or destination.is_symlink():
+        raise DocumentError("REVIEW_STALE", "Model diagnostic identifier already exists")
+    body = {**payload, "retention_scope": "SANITIZED_FAILURE_METADATA"}
+    if evaluation_raw is not None:
+        body["raw_response"] = evaluation_raw
+        body["retention_scope"] = "DEV_EVALUATION_ONLY_PRIVATE_SCRATCH"
+    if evaluation_stderr is not None:
+        body["runtime_stderr"] = evaluation_stderr[:100_000]
+        body["retention_scope"] = "DEV_EVALUATION_ONLY_PRIVATE_SCRATCH"
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(destination, flags, 0o600)
+    with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+        json.dump(body, stream, ensure_ascii=False, sort_keys=True)
+
+
+def _filter_nonexact_native_quotes(raw: dict[str, Any], parsed: ParsedDocument,
+                                   *, visual_route: bool) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Exclude paraphrased native citations; never normalize them into evidence."""
+    key = "native_candidates" if visual_route else "candidates"
+    if key not in raw or not isinstance(raw[key], list):
+        return raw, []
+    units = {unit.location: unit for unit in parsed.units if unit.route == "NATIVE"}
+    kept, rejected = [], []
+    for index, row in enumerate(raw[key], 1):
+        # Leave malformed structure and invalid locations to the closed validator.
+        if not isinstance(row, dict) or not isinstance(row.get("location"), str):
+            kept.append(row)
+            continue
+        unit = units.get(row["location"])
+        quote = row.get("raw_observed_value")
+        if unit is None or not isinstance(quote, str):
+            kept.append(row)
+            continue
+        if unit.text.count(quote) == 1:
+            kept.append(row)
+            continue
+        rejected.append({"candidate_index": index, "location": row["location"],
+                         "semantic_type": row.get("semantic_type") if isinstance(row.get("semantic_type"), str) else None,
+                         "quote_sha256": hashlib.sha256(quote.encode("utf-8")).hexdigest(),
+                         "rejection_code": "SOURCE_LOCATION_INVALID"})
+    if rejected:
+        raw = dict(raw)
+        raw[key] = kept
+        raw["status"] = "PARTIAL"
+    return raw, rejected
 
 
 def assemble_proposal(raw: dict[str, Any], document: SourceDocument,
@@ -330,27 +401,8 @@ class CodexCliProvider:
         self.evaluation_only = evaluation_only
 
     def _diagnostic(self, payload: dict[str, Any], *, raw: dict[str, Any] | None = None) -> None:
-        workspace = (self.root.parent.parent if self.root.name == "documents"
-                     and self.root.parent.name == "processed" else self.root.parent)
-        scratch = workspace / "scratch"
-        directory = scratch / "visual_model_diagnostics"
-        if scratch.is_symlink() or directory.is_symlink():
-            raise DocumentError("SOURCE_UNSAFE_PATH", "Visual diagnostic directory is linked")
-        directory.mkdir(parents=True, exist_ok=True, mode=0o700)
-        invocation = payload.get("invocation_id") or str(uuid.uuid4())
-        destination = directory / (invocation + ".json")
-        if destination.exists() or destination.is_symlink():
-            raise DocumentError("REVIEW_STALE", "Visual diagnostic identifier already exists")
-        body = dict(payload)
-        if self.evaluation_only and raw is not None:
-            body["raw_response"] = raw
-            body["retention_scope"] = "DEV_EVALUATION_ONLY_PRIVATE_SCRATCH"
-        else:
-            body["retention_scope"] = "SANITIZED_FAILURE_METADATA"
-        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
-        descriptor = os.open(destination, flags, 0o600)
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            json.dump(body, stream, ensure_ascii=False, sort_keys=True)
+        write_model_diagnostic(self.root, payload,
+                               evaluation_raw=raw if self.evaluation_only else None)
 
     def propose(self, document: SourceDocument, parsed: ParsedDocument,
                 context: dict[str, Any]) -> dict[str, Any]:
@@ -446,12 +498,39 @@ class CodexCliProvider:
             except subprocess.TimeoutExpired as exc:
                 raise DocumentError("MODEL_TIMEOUT", "Codex participant timed out") from exc
             except FileNotFoundError as exc:
-                raise DocumentError("MODEL_UNAVAILABLE", "Codex CLI executable is unavailable") from exc
+                raise DocumentError("MODEL_CLI_UNAVAILABLE", "Codex CLI executable is unavailable") from exc
             if result.returncode:
-                raise _model_invocation_failure(result.stderr)
+                failure = _model_invocation_failure(result.stderr, stdout=result.stdout,
+                                                    returncode=result.returncode)
+                self._diagnostic({"stage": "MODEL_INVOCATION", "model": self.model,
+                    "prompt_version": prompt_version, "invocation_id": invocation_id,
+                    "rejection_code": failure.code, "returncode": result.returncode,
+                    "stdout_bytes": len(result.stdout.encode("utf-8", errors="replace")),
+                    "stderr_bytes": len(result.stderr.encode("utf-8", errors="replace")),
+                    "stdout_present": bool(result.stdout), "stderr_present": bool(result.stderr),
+                    "cli_version": _codex_cli_version()})
+                raise failure
             if not output.is_file():
                 raise DocumentError("MODEL_EMPTY_RESPONSE", "Codex participant returned no response file")
             raw = load_json(output.read_bytes(), maximum=2_000_000)
+        raw_before_native_filter = raw
+        raw, rejected_native_quotes = _filter_nonexact_native_quotes(raw, parsed,
+                                                                      visual_route=visual_route)
+        if rejected_native_quotes:
+            native_rows = raw.get("native_candidates", raw.get("candidates", []))
+            self._diagnostic({"stage": "NATIVE_CITATION_FILTER", "schema_version": "source-facts-v1",
+                "source_id": document.source_id, "source_sha256": document.sha256,
+                "valid_locations": [unit.location for unit in parsed.units if unit.route == "NATIVE"],
+                "rejected_candidates": rejected_native_quotes,
+                "rejected_count": len(rejected_native_quotes),
+                "accepted_exact_candidate_count": len(native_rows) if isinstance(native_rows, list) else 0,
+                "semantic_values_present_before_rejection": True,
+                "rejection_code": "SOURCE_LOCATION_INVALID", "model": self.model,
+                "prompt_version": prompt_version, "invocation_id": invocation_id},
+                raw=raw_before_native_filter)
+            if not native_rows:
+                raise DocumentError("SOURCE_LOCATION_INVALID",
+                                    "All native candidate quotes were absent or nonunique in their named units")
         try:
             proposal = assemble_proposal(raw, document, parsed, batch.batch_id, self.model,
                                          prompt_version=prompt_version, visual_bindings=bindings,
@@ -481,3 +560,18 @@ class CodexCliProvider:
                 "model": self.model, "prompt_version": prompt_version,
                 "invocation_id": invocation_id}, raw=raw)
         return proposal
+
+
+def _codex_cli_version() -> str | None:
+    """Best-effort version metadata, with no source or response content retained."""
+    executable = shutil.which("codex")
+    if executable is None:
+        return None
+    try:
+        result = subprocess.run([executable, "--version"], capture_output=True, text=True,
+                                timeout=5, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode:
+        return None
+    return result.stdout.strip()[:80] or None

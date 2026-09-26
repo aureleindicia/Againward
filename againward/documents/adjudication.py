@@ -32,7 +32,7 @@ _SCHEMA: dict[str, Any] = {
     "required": ["decisions"],
     "properties": {"decisions": {"type": "array", "items": {
         "type": "object", "additionalProperties": False,
-        "required": ["source_id", "selection", "rationale", "citations"],
+        "required": ["source_id", "selection", "rationale", "citations", "observations"],
         "properties": {
             "source_id": {"type": "string"},
             "selection": {"type": "string", "enum": ["PRIMARY", "CHALLENGER", "UNRESOLVED"]},
@@ -260,7 +260,8 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
 
 def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction, ...],
                          challenger: tuple[DocumentExtraction, ...], qa: dict[str, Any],
-                         root: Path, *, model: str, timeout_seconds: int = 180) -> dict[str, Any]:
+                         root: Path, *, model: str, timeout_seconds: int = 180,
+                         evaluation_only: bool = False) -> dict[str, Any]:
     """Reopen the entire approved source set; no private truth or preapproved facts."""
     identifier(model)
     if not 10 <= timeout_seconds <= 600:
@@ -354,10 +355,39 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
             except subprocess.TimeoutExpired as exc:
                 raise DocumentError("MODEL_TIMEOUT", "Codex adjudicator timed out") from exc
             except FileNotFoundError as exc:
-                raise DocumentError("MODEL_UNAVAILABLE", "Codex CLI executable is unavailable") from exc
+                raise DocumentError("MODEL_CLI_UNAVAILABLE", "Codex CLI executable is unavailable") from exc
             if response.returncode:
-                raise _model_invocation_failure(response.stderr)
+                failure = _model_invocation_failure(response.stderr, stdout=response.stdout,
+                                                    returncode=response.returncode)
+                from .codex_provider import _codex_cli_version, write_model_diagnostic
+                write_model_diagnostic(root, {"stage": "SOURCE_ADJUDICATION_MODEL_INVOCATION",
+                    "schema_version": "source-adjudication-v1", "model": model,
+                    "adjudication_version": ADJUDICATION_VERSION,
+                    "cli_version": _codex_cli_version(), "returncode": response.returncode,
+                    "stdout_bytes": len(response.stdout.encode("utf-8", errors="replace")),
+                    "stderr_bytes": len(response.stderr.encode("utf-8", errors="replace")),
+                    "stdout_present": bool(response.stdout), "stderr_present": bool(response.stderr),
+                    "failure_category": failure.code,
+                    "attached_visual_page_count": len(visual_manifest),
+                    "visual_bindings": [{"source_id": row["source_id"], "location": row["location"],
+                        "preview_sha256": row["preview_sha256"]} for row in visual_manifest],
+                    "retention_scope": "DEV_EVALUATION_ONLY_PRIVATE_SCRATCH" if evaluation_only
+                                       else "SANITIZED_FAILURE_METADATA"},
+                    evaluation_stderr=response.stderr if evaluation_only else None)
+                raise failure
             if not output.is_file():
+                from .codex_provider import _codex_cli_version, write_model_diagnostic
+                write_model_diagnostic(root, {"stage": "SOURCE_ADJUDICATION_MODEL_INVOCATION",
+                    "schema_version": "source-adjudication-v1", "model": model,
+                    "adjudication_version": ADJUDICATION_VERSION,
+                    "cli_version": _codex_cli_version(), "returncode": response.returncode,
+                    "stdout_bytes": len(response.stdout.encode("utf-8", errors="replace")),
+                    "stderr_bytes": len(response.stderr.encode("utf-8", errors="replace")),
+                    "stdout_present": bool(response.stdout), "stderr_present": bool(response.stderr),
+                    "failure_category": "MODEL_EMPTY_RESPONSE",
+                    "attached_visual_page_count": len(visual_manifest),
+                    "visual_bindings": [{"source_id": row["source_id"], "location": row["location"],
+                        "preview_sha256": row["preview_sha256"]} for row in visual_manifest]})
                 raise DocumentError("MODEL_EMPTY_RESPONSE", "Codex adjudicator returned no response file")
             raw = load_json(output.read_bytes(), maximum=200_000)
             try:

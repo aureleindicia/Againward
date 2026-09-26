@@ -327,7 +327,8 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
         if "adjudication_receipt" not in state:
             started = perf_counter()
             adjudication = adjudicate_with_codex(batch, primary, challenger, qa, documents,
-                                                 model=model, timeout_seconds=timeout_seconds)
+                                                 model=model, timeout_seconds=timeout_seconds,
+                                                 evaluation_only=evaluation_only)
             base_by_hash = {item.to_dict()["extraction_sha256"]: item for item in (*primary, *challenger)}
             added: dict[str, dict[str, Any]] = {}
             for decision in adjudication["decisions"]:

@@ -6,7 +6,7 @@ import subprocess
 import pytest
 
 from againward.documents.codex_provider import (CodexCliProvider, VISUAL_RENDER_DPI,
-    VISUAL_RENDER_VERSION, assemble_proposal, prompt_version_for_guidance)
+    VISUAL_RENDER_VERSION, _model_invocation_failure, assemble_proposal, prompt_version_for_guidance)
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
 from againward.documents.readers import read_document
@@ -137,7 +137,9 @@ def test_invoice_line_label_requires_explicit_safe_identifier(tmp_path):
     ("Authentication required: PRIVATE_SOURCE_MARKER", "MODEL_AUTH_REQUIRED"),
     ("429 Too Many Requests: PRIVATE_SOURCE_MARKER", "MODEL_RATE_LIMITED"),
     ("stream disconnected before completion: PRIVATE_SOURCE_MARKER", "MODEL_TRANSPORT_FAILURE"),
-    ("unrecognized failure: PRIVATE_SOURCE_MARKER", "MODEL_UNAVAILABLE"),
+    ("unrecognized failure: PRIVATE_SOURCE_MARKER", "MODEL_INVOCATION_FAILURE"),
+    ("Invalid configuration: PRIVATE_SOURCE_MARKER", "MODEL_CONFIGURATION_ERROR"),
+    ("model overloaded: PRIVATE_SOURCE_MARKER", "MODEL_UNAVAILABLE"),
 ])
 def test_cli_failure_is_categorized_without_leaking_stderr(tmp_path, monkeypatch, stderr, code):
     root, batch, document, parsed = _source(tmp_path)
@@ -160,7 +162,7 @@ def test_cli_missing_binary_and_empty_success_fail_closed(tmp_path, monkeypatch)
         raise FileNotFoundError("PRIVATE_SOURCE_MARKER")
 
     monkeypatch.setattr("againward.documents.codex_provider.subprocess.run", absent)
-    with pytest.raises(DocumentError, match="MODEL_UNAVAILABLE") as caught:
+    with pytest.raises(DocumentError, match="MODEL_CLI_UNAVAILABLE") as caught:
         CodexCliProvider(root, model="gpt-6-sol").propose(
             document, parsed, {"batch": batch, "semantic_guidance": "Rental"})
     assert "PRIVATE_SOURCE_MARKER" not in str(caught.value)
@@ -169,6 +171,58 @@ def test_cli_missing_binary_and_empty_success_fail_closed(tmp_path, monkeypatch)
                         lambda command, **kwargs: subprocess.CompletedProcess(command, 0, "", ""))
     with pytest.raises(DocumentError, match="MODEL_EMPTY_RESPONSE"):
         CodexCliProvider(root, model="gpt-6-sol").propose(
+            document, parsed, {"batch": batch, "semantic_guidance": "Rental"})
+
+
+def test_invocation_failure_classifier_uses_stdout_and_exit_code_without_echoing_output():
+    failure = _model_invocation_failure("", stdout='{"type":"error","message":"unknown model gpt-private"}',
+                                       returncode=2)
+    assert failure.code == "MODEL_CONFIGURATION_ERROR"
+    assert "gpt-private" not in str(failure)
+    assert _model_invocation_failure("", stdout="process exited", returncode=7).code == "MODEL_INVOCATION_FAILURE"
+
+
+def test_provider_drops_nonexact_native_quote_without_converting_it_to_evidence(tmp_path, monkeypatch):
+    root, batch, document, parsed = _source(tmp_path,
+        "Email says: Please return the lift. This is not proof of physical return.")
+    exact = _raw(parsed.units[0].location, "Please return the lift.")["candidates"][0]
+    paraphrase = dict(exact, entity_id="email-proof", semantic_type="verification",
+                      value="NOT_PROOF", raw_observed_value="The email itself is not proof of an earlier physical return.")
+    raw = {"status": "SUCCESS", "limitations": [], "candidates": [exact, paraphrase]}
+
+    def fake_run(command, **kwargs):
+        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(raw))
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run", fake_run)
+    proposal = CodexCliProvider(root, model="gpt-6-luna").propose(
+        document, parsed, {"batch": batch, "semantic_guidance": "Rental"})
+    accepted = validate_proposal(proposal, batch, root)
+    assert accepted.status == "PARTIAL"
+    assert len(accepted.candidates) == 1
+    assert accepted.candidates[0].raw_observed_value == "Please return the lift."
+    assert accepted.candidates[0].source_span == (12, 35)
+    diagnostic_path = next((root.parent / "scratch/visual_model_diagnostics").glob("*.json"))
+    diagnostic = json.loads(diagnostic_path.read_text())
+    assert diagnostic["stage"] == "NATIVE_CITATION_FILTER"
+    assert diagnostic["rejection_code"] == "SOURCE_LOCATION_INVALID"
+    assert diagnostic["rejected_count"] == 1
+    assert diagnostic["semantic_values_present_before_rejection"] is True
+    assert "raw_response" not in diagnostic
+    assert "The email itself" not in diagnostic_path.read_text()
+
+
+def test_provider_fails_closed_when_all_native_quotes_are_nonexact(tmp_path, monkeypatch):
+    root, batch, document, parsed = _source(tmp_path)
+    raw = _raw(parsed.units[0].location, "A plausible paraphrase of the invoice.")
+
+    def fake_run(command, **kwargs):
+        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(raw))
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run", fake_run)
+    with pytest.raises(DocumentError, match="SOURCE_LOCATION_INVALID"):
+        CodexCliProvider(root, model="gpt-6-luna").propose(
             document, parsed, {"batch": batch, "semantic_guidance": "Rental"})
 
 

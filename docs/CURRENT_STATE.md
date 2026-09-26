@@ -254,3 +254,14 @@ to improve a score, or treat scripted reviews as actual human approval.
   known regression results, not accuracy evidence. Focused tests passed 65/65;
   current full-suite and CI results are recorded in the
   [redesign artifact](validation/visual_semantic_path_redesign_20260926.md).
+
+- Follow-up to those two blockers is recorded separately in
+  [visual path blocker follow-up](validation/visual_path_blocker_followup_20260926.md).
+  Runtime inspection traced A's reported `MODEL_UNAVAILABLE` to an HTTP 400
+  strict-schema error (`observations` missing from adjudication's required
+  fields); that schema and failure classification are fixed. B's non-exact
+  email citations are now excluded individually without altering exact-span
+  validation; both primary and challenger email passes completed. The known
+  reruns reached distinct later blockers (A: visual review waiting for required
+  attestation; B: `CURRENCY_MISMATCH` from a wrongly typed accounting-export
+  amount). Neither case reached calculation/report QA in this follow-up.
