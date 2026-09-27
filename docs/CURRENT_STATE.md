@@ -44,7 +44,9 @@ partial readers enter QA, assembly defers unselected observations with complete
 lineage, and adjudication can recover exact native facts as well as pixels.
 No new A/B E2E campaign is run in this change. See the
 [observation protocol record](validation/rental_observation_protocol_20260927.md)
-for software checks and residual risks. Historical live results are not superseded.
+for software checks and residual risks. Implementation `3de8ea9` passes 994 tests,
+Ruff, configured mypy, Rental 15/15, privacy 19/19 and CI 8/8. Historical live
+results are not superseded; independent Luna A×3/B×3 remains required.
 
 AGAINWARD is an asynchronous B2B analysis/advisory service whose internal
 production uses Codex and deterministic Python. The current commercial focus

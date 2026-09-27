@@ -82,7 +82,29 @@ observations, distinct accounting rows, commercial conflicts and missing require
 facts. Existing tests for generated adjudication schemas now assert a single
 source-bound decision object rather than a model-authored array/source ID.
 
-Validation results are recorded below after the clean committed-code checks.
+Validated implementation commit: `3de8ea9e19fb988642e37848c6703abce534913f`.
+
+| Check | Result |
+| --- | --- |
+| Focused protocol/source/adjudication/architecture/failure-family suite | 149 passed before the final small defensive additions |
+| Latest protocol + source-job tests | 52 passed |
+| Invalid decision-container regression | 3 passed; null/integer/string containers produce a diagnosed schema stop after the existing bounded retry, never a Python exception |
+| Full pytest on committed engine, Termux Python 3.14 | **994 passed**, 742.28 seconds |
+| Ruff | Passed |
+| Configured mypy | Passed, 18 source files |
+| Rental benchmark on committed engine | **15/15**, TP 3 / FP 0 / FN 0 / TN 12 |
+| Privacy benchmark on committed engine | **19/19**, zero false blocks and unsafe passes |
+| GitHub CI, implementation commit | **8/8 passed**, push + draft PR #5, Python 3.11–3.14 |
+
+CI evidence: [push run](https://github.com/aureleindicia/Againward/actions/runs/36345875583)
+and [PR run](https://github.com/aureleindicia/Againward/actions/runs/36345879084).
+Each CI interpreter passed all 994 tests plus Ruff and configured mypy.
+The focused counts overlap; they are not additional independent measurements.
+Local logs and benchmark outputs are outside the checkout under the Termux
+temporary directory (`againward-protocol-full-3de8ea9.log`,
+`againward-rental-3de8ea9/validation.json`, `againward-privacy-3de8ea9/validation.json`).
+This documentation-only follow-up does not alter the validated engine or prompts.
+
 An initial suite executed during edits had 946 passes and 3 repository-integrity
 failures: those tests require the engine to match Git HEAD. It is not a clean
 baseline or a validation certificate; no integrity check was relaxed.
