@@ -27,7 +27,7 @@ from .readers import read_document
 from .sources import verify_batch
 
 
-ADJUDICATION_VERSION = "againward-source-adjudication-v13-source-scoped-assembly"
+ADJUDICATION_VERSION = "againward-source-adjudication-v14-runtime-pixel-binding"
 MAX_SOURCE_TEXT = 60_000
 MAX_VISUAL_PAGES = 4
 _SCHEMA: dict[str, Any] = {
@@ -77,6 +77,54 @@ _SCHEMA: dict[str, Any] = {
 _MODEL_SCHEMA = json.loads(json.dumps(_SCHEMA))
 _MODEL_SCHEMA["properties"]["decisions"]["items"]["required"].append("candidate_selections")
 del _SCHEMA["properties"]["decisions"]["items"]["properties"]["candidate_selections"]
+
+
+def bind_model_citations(raw: dict[str, Any], visual_manifest: list[dict[str, Any]], *,
+                         primary: tuple[DocumentExtraction, ...] = (),
+                         challenger: tuple[DocumentExtraction, ...] = ()) -> dict[str, Any]:
+    """Bind citation hashes to the actual invocation attachments, never model text.
+
+    No semantic value, citation, source or location is repaired. The durable
+    validator re-renders and rejects stale hashes and non-exact native quotes.
+    """
+    bound = json.loads(json.dumps(raw))
+    manifests = {(row["source_id"], row["location"]): row["preview_sha256"]
+                 for row in visual_manifest}
+    if not isinstance(bound, dict) or not isinstance(bound.get("decisions"), list):
+        return bound
+    parents = {"PRIMARY": {item.source_id: item for item in primary},
+               "CHALLENGER": {item.source_id: item for item in challenger}}
+    for decision in bound["decisions"]:
+        if isinstance(decision, dict) and isinstance(decision.get("candidate_selections"), list):
+            for index, row in enumerate(decision["candidate_selections"]):
+                if not isinstance(row, dict) or "reader" not in row:
+                    continue  # Legacy durable receipt; full validator still checks it.
+                source_id = decision.get("source_id")
+                reader, number = row.get("reader"), row.get("candidate_index")
+                parent = parents.get(reader, {}).get(source_id) if isinstance(reader, str) and isinstance(source_id, str) else None
+                if (set(row) != {"reader", "candidate_index", "decision", "entity_id"}
+                        or parent is None or type(number) is not int
+                        or not 1 <= number <= len(parent.candidates)):
+                    raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Invalid assembly candidate reference",
+                        diagnostic={"stage": "SOURCE_ADJUDICATION_VALIDATION",
+                            "validation_code": "ASSEMBLY_REFERENCE_INVALID",
+                            "schema_path": f"$.decisions[].candidate_selections[{index}]",
+                            "error_category": "SCHEMA_ERROR"})
+                row.pop("reader")
+                row.pop("candidate_index")
+                row.update(extraction_sha256=parent.to_dict()["extraction_sha256"],
+                           candidate_id=parent.candidates[number - 1].candidate_id)
+        if not isinstance(decision, dict) or not isinstance(decision.get("citations"), list):
+            continue
+        for citation in decision["citations"]:
+            if not isinstance(citation, dict):
+                continue
+            source, location = citation.get("source_id"), citation.get("location")
+            if not isinstance(source, str) or not isinstance(location, str):
+                continue
+            # Legacy callers may supply a hash, but it is never silently replaced.
+            citation.setdefault("preview_sha256", manifests.get((source, location), ""))
+    return bound
 
 
 def _received_shape(value: Any) -> str:
@@ -293,7 +341,6 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
                 diagnostic=_error_diagnostic("OBSERVATION_LIMIT", f"$.decisions[{decision_index}].observations",
                                              "RESOURCE_BOUND", "array(items<=100)", raw_observations,
                                              source_id=source_id, decision_index=decision_index))
-        observed_by_location: dict[str, set[str]] = {}
         bound_observations: list[dict[str, Any]] = []
         for observation in raw_observations:
             required = {"semantic_type", "value_type", "value", "visible_text", "page", "ambiguity", "entity_hint"}
@@ -327,7 +374,6 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
                     root, location, Path(directory))
             if current_unit_sha != unit.unit_sha256:
                 raise DocumentError("REVIEW_STALE", "Adjudicator page changed during pixel observation")
-            observed_by_location.setdefault(location, set()).add(visible_text)
             bound_observations.append({"source_id": source_id, "source_sha256": source_hashes[source_id],
                 "location": location, "unit_sha256": unit.unit_sha256, "render_sha256": render_sha,
                 "origin": "ADJUDICATOR_PIXEL_OBSERVATION",
@@ -385,12 +431,10 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
                         root, location, Path(directory))
                 if citation.get("preview_sha256") != preview_hash or unit_hash != unit.unit_sha256:
                     raise DocumentError("REVIEW_STALE", "Visual citation is not bound to current rendered pixels")
-                proposals = (extraction_by_hash[disputed[source_id]["primary_extraction_sha256"]],
-                             extraction_by_hash[disputed[source_id]["challenger_extraction_sha256"]])
-                if (quote not in {candidate.raw_observed_value for proposal in proposals
-                                  for candidate in proposal.candidates if candidate.location == location}
-                        and quote not in observed_by_location.get(location, set())):
-                    raise DocumentError("SOURCE_LOCATION_INVALID", "Visual observation absent from disputed proposals")
+                # A visual citation is a fresh transcription of these pixels, not
+                # a native substring or a claim already approved by either reader.
+                # It cannot create/promote a fact. Observations and selected facts
+                # still require the separate original-pixel and fact-review gates.
                 verified.append({"source_id": cited_source, "source_sha256": source_hashes[cited_source],
                                  "location": location, "unit_sha256": unit.unit_sha256,
                                  "preview_sha256": preview_hash, "quote": quote,
@@ -513,7 +557,8 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                          | None = None,
                          allow_assembly: bool = True,
                          decision_source_id: str | None = None,
-                         assembly_context: dict[str, Any] | None = None) -> dict[str, Any]:
+                         assembly_context: dict[str, Any] | None = None,
+                         semantic_guidance: str = "") -> dict[str, Any]:
     """Reopen the entire approved source set; no private truth or preapproved facts."""
     identifier(model)
     if not 10 <= timeout_seconds <= 600:
@@ -526,7 +571,7 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
             validate_pixel_observations=validate_pixel_observations,
             unique_required_entity=unique_required_entity, required_source_facts=required_source_facts,
             allow_assembly=allow_assembly, decision_source_id=row["source_id"],
-            assembly_context=assembly_context) for row in disputes]
+            assembly_context=assembly_context, semantic_guidance=semantic_guidance) for row in disputes]
         merged = dict(receipts[0])
         merged["decisions"] = [decision for receipt in receipts for decision in receipt["decisions"]]
         merged["assembly_proposals"] = {key: value for receipt in receipts
@@ -567,7 +612,8 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         "All other originals are context, not additional decision requests. "
         "For complementary partial readings you may choose ASSEMBLE, supplying candidate_selections "
         "with an explicit INCLUDE or REJECT disposition for EVERY candidate in BOTH input extractions. "
-        "Reference its extraction_sha256 and candidate_id; assign INCLUDE entries a consistent entity_id "
+        "Reference reader PRIMARY/CHALLENGER and candidate_index (one-based position in that reader's candidates); "
+        "Python binds the exact parent hash and candidate ID. Assign INCLUDE entries a consistent entity_id "
         "for the real source-local entity, and REJECT entries an empty entity_id. Do not create values. "
         "An assembly receives a new hash, fresh QA/adjudication and entirely new reviews; it approves nothing. "
         "Keep candidate_selections empty for all other selections. Only visual original pages permit "
@@ -579,8 +625,8 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         "only if original evidence supports a defensible pass. The decision must reopen and cite "
         "the disputed original source itself; evidence from a different document alone cannot "
         "resolve a document-specific disagreement. For a visual citation, inspect the attached image "
-        "for the disputed source and cite its exact location, supplied preview_sha256 and a relevant "
-        "observed value from the disputed proposals. You may also report NEW PIXEL OBSERVATIONS when a "
+        "for the disputed source and cite its exact location and a relevant "
+        "visible transcription. Python binds its render hash; never emit preview_sha256. You may also report NEW PIXEL OBSERVATIONS when a "
         "material fact is clear in the disputed original pixels but absent from both proposals. Give a "
         "typed value, exact visible wording, page number, ambiguity, and a short descriptive local entity_hint "
         "(not an internal ID). These observations are unapproved "
@@ -599,27 +645,13 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         "semantic field, using the selected entity's fact-group where unambiguous. It remains unapproved. "
         "If neither reading nor current pixels support the field, choose UNRESOLVED. Do not fill a "
         "commercial classification from another document or an expected financial result. "
-        "A document explicitly "
-        "duplicating governing terms without amendment must not create a second tariff or charge. "
-        "A proposal selection chooses a source-local observation set for further review; it does NOT "
-        "establish contractual authority, approve facts, or require this one source to reproduce a full "
-        "governing agreement. For a rate sheet that explicitly says its prices duplicate the accepted "
-        "agreement and that it makes no amendment, select the proposal that faithfully records the "
-        "source-supported rate rows as SUPPORTING_DOCUMENT observations. Those rows do not create a "
-        "second tariff, rental scope, or charge; missing agreement conventions belong to the agreement "
-        "source and later ledger review. Do not choose UNRESOLVED merely because a supporting rate sheet "
-        "does not itself restate the full agreement. Compare semantic facts, not model-local entity IDs. "
-        "For a visual return, if the current original pixels clearly support the same material returned "
-        "asset/quantity/date in both proposals, different phrasing or grouping alone is not a material "
-        "conflict: select the source-supported proposal and emit pixel observations for any other clearly "
-        "visible material fact absent from that selected set, using one consistent entity_hint per real "
-        "document/line/asset. Give each new RETURN entity its own entity_kind with the same hint as "
-        "its event facts. A source-supported role and status classify the source once. "
-        "A signed return record may support verification=DOCUMENTED without transcribing private signer "
-        "names. Every such observation stays unapproved and must pass the existing fact review. Choose "
-        "UNRESOLVED only when competing material interpretations remain, the pixels are ambiguous, or "
-        "neither proposal supports the necessary facts; never use it merely because both contain some "
-        "true observations or differ in grouping. "
+        "A proposal selection chooses a source-local observation set for further review; it "
+        "does NOT establish contractual authority or approve facts. Use the shared semantic_guidance "
+        "to interpret domain classifications. Compare semantic facts, not model-local entity IDs: "
+        "different phrasing or grouping alone is not a material conflict. Reconcile complementary "
+        "readings explicitly with ASSEMBLE; choose UNRESOLVED for unsupported material interpretations. "
+        "New pixel observations need a consistent entity_hint and source-supported entity_kind; "
+        "source role/status classify the document once, not every fact. "
         "Treat limitations as independent source-local claims, not as blanket authority to discard "
         "observations. If one proposal says a field is absent/not visible while either proposal contains "
         "a source-bound observation of that same field, reopen the exact original pixels. If the pixels "
@@ -628,10 +660,10 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         "limitation from the selected extraction. If both proposals retain the contradiction, the field "
         "cannot be matched to the limitation, or the pixels do not resolve it, choose UNRESOLVED. "
         "Selection remains subject to subsequent fact review and omission QA. Cite exact unique native "
-        "quotes with source_id/location and preview_sha256='' for native citations; visual observations "
+        "quotes with source_id/location; Python binds native spans and visual hashes. Visual observations "
         "remain probabilistic. Do not calculate money, "
         "approve facts or claim delivery. Return only the required JSON.\n"
-        + json.dumps({"batch_id": batch.batch_id, "material_disagreements": disputes,
+        + json.dumps({"batch_id": batch.batch_id, "semantic_guidance": semantic_guidance, "material_disagreements": disputes,
                       "disputed_proposals": [{"source_id": row["source_id"],
                           "primary": next(item.to_dict() for item in primary if item.source_id == row["source_id"]),
                           "challenger": next(item.to_dict() for item in challenger if item.source_id == row["source_id"])}
@@ -657,6 +689,15 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         schema = temp / "response_schema.json"
         output = temp / "model_response.json"
         schema_body = json.loads(json.dumps(_MODEL_SCHEMA))
+        citation_schema = schema_body["properties"]["decisions"]["items"]["properties"]["citations"]["items"]
+        citation_schema["required"].remove("preview_sha256")
+        del citation_schema["properties"]["preview_sha256"]
+        reference = schema_body["properties"]["decisions"]["items"]["properties"]["candidate_selections"]["items"]
+        reference["required"] = ["reader", "candidate_index", "decision", "entity_id"]
+        del reference["properties"]["extraction_sha256"]
+        del reference["properties"]["candidate_id"]
+        reference["properties"].update(reader={"type": "string", "enum": ["PRIMARY", "CHALLENGER"]},
+                                       candidate_index={"type": "integer", "minimum": 1})
         decision_schema = schema_body["properties"]["decisions"]
         decision_schema.update(minItems=1, maxItems=1)
         item_schema = decision_schema["items"]
@@ -755,7 +796,8 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                 exc.diagnostic = diagnostic
                 raise
             try:
-                result = validate_adjudication(batch, primary, challenger, qa, raw, root,
+                bound_raw = bind_model_citations(raw, visual_manifest, primary=primary, challenger=challenger)
+                result = validate_adjudication(batch, primary, challenger, qa, bound_raw, root,
                     required_source_facts=required_source_facts, decision_source_id=decision_source_id)
                 if result.get("assembly_proposals") and not allow_assembly:
                     raise DocumentError("EXTRACTION_INCOMPLETE", "Reconciliation assembly budget exhausted")

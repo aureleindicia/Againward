@@ -158,7 +158,7 @@ def test_visual_invoice_reader_keeps_structural_metadata_on_the_billed_line(tmp_
         "entity_kind", "document_role", "document_status", "invoice_id", "invoice_line_id", "net_amount"}
     assert len({candidate.entity_id for candidate in line}) == 1
     assert "each material visual entity" in captured["prompt"]
-    assert "document_role and document_status classify the source" in captured["prompt"]
+    assert "document_role and document_status classify the source" in captured["prompt"].replace("SOURCE", "source")
     assert "Limitations must be atomic, source-local claims" in captured["prompt"]
     assert "Do not say an amount/total is not visible" in captured["prompt"]
 
@@ -696,3 +696,50 @@ def test_visual_reader_rejects_impossible_page_and_stale_source_bytes(tmp_path, 
     (root / document.blob_path).write_bytes(b"mutated original")
     with pytest.raises(DocumentError, match="SOURCE_CHANGED"):
         validate_proposal(proposal, batch, root)
+
+
+def test_oversized_instructions_are_configuration_failure_without_invocation(tmp_path, monkeypatch):
+    root, batch, document, parsed = _source(tmp_path)
+    monkeypatch.setattr("againward.documents.codex_provider.subprocess.run",
+                        lambda *a, **k: pytest.fail("No subprocess for invalid local instructions"))
+    with pytest.raises(DocumentError) as exc:
+        CodexCliProvider(root, model="synthetic-model").propose(document, parsed,
+            {"batch": batch, "semantic_guidance": "x" * 12001})
+    assert exc.value.code == "MODEL_CONFIGURATION_ERROR"
+    assert exc.value.diagnostic["stage"] == "PROMPT_CONSTRUCTION"
+    assert exc.value.diagnostic["model_invoked"] is False
+    assert "x" * 100 not in json.dumps(exc.value.diagnostic)
+
+
+def test_private_evaluation_capture_is_restrictive_and_excludes_secret_environment(tmp_path, monkeypatch):
+    import stat
+    from againward.documents.codex_provider import _write_evaluation_invocation_artifacts
+    schema, output = tmp_path / "schema.json", tmp_path / "response.json"
+    schema.write_text('{}')
+    output.write_text('{"sensitive": "private-response"}')
+    monkeypatch.setenv("OPENAI_API_KEY", "never-retain-secret")
+    _write_evaluation_invocation_artifacts(tmp_path / "documents", "evaluation-invocation", 1,
+        command=["codex", "exec"], cwd=str(tmp_path), schema=schema, output=output,
+        stdout="private-stdout", stderr="private-stderr", returncode=1)
+    directory = tmp_path / "scratch/evaluation_provider_invocations/evaluation-invocation/attempt-1"
+    assert stat.S_IMODE(directory.stat().st_mode) == 0o700
+    for path in directory.iterdir():
+        assert stat.S_IMODE(path.stat().st_mode) == 0o600
+        assert "never-retain-secret" not in path.read_text()
+    assert (directory / "stderr.txt").read_text() == "private-stderr"
+    assert (directory / "model_response.json").read_bytes() == output.read_bytes()
+    with pytest.raises(FileExistsError):
+        _write_evaluation_invocation_artifacts(tmp_path / "documents", "evaluation-invocation", 1,
+            command=[], cwd=str(tmp_path), schema=schema, output=output, stdout="", stderr="", returncode=1)
+
+
+def test_evaluation_capture_rejects_linked_private_directory(tmp_path):
+    from againward.documents.codex_provider import _write_evaluation_invocation_artifacts
+    target = tmp_path / "outside"
+    target.mkdir()
+    (tmp_path / "scratch").symlink_to(target, target_is_directory=True)
+    with pytest.raises(DocumentError, match="SOURCE_UNSAFE_PATH"):
+        _write_evaluation_invocation_artifacts(tmp_path / "documents", "evaluation-invocation", 1,
+            command=[], cwd=str(tmp_path), schema=tmp_path / "schema", output=tmp_path / "output",
+            stdout="", stderr="", returncode=1)
+    assert not list(target.iterdir())

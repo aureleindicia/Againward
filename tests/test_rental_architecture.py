@@ -368,3 +368,92 @@ def test_visual_partial_assembly_keeps_unapproved_pixel_flags_and_parent_binding
     assert all("VISUAL_TRANSCRIPTION_UNVERIFIED" in c.ambiguity_flags for c in assembled.candidates)
     base = build_analyst_review(batch, (assembled,), {}, root)
     assert promote_facts((assembled,), base["review"], batch, root) == ()
+
+
+def test_every_reader_retry_contract_fits_provider_budget_and_current_registry():
+    from againward.documents.independent_qa import QA_INSTRUCTIONS, RETRY_INSTRUCTIONS, VISUAL_RETRY_INSTRUCTIONS
+    from againward.domains.rental.semantic_guidance import guidance, visual_guidance, STRUCTURE_RETRY_INSTRUCTIONS
+    from againward.domains.rental.document_adapter import _current_extraction_prompt_versions
+    from againward.domains.rental.entity_contract import observation_instructions
+    for base, retry in ((guidance(), RETRY_INSTRUCTIONS), (visual_guidance(), VISUAL_RETRY_INSTRUCTIONS)):
+        assert base.count(observation_instructions()) == 1
+        for peer in ("", QA_INSTRUCTIONS):
+            for suffix in ("", retry, retry + STRUCTURE_RETRY_INSTRUCTIONS):
+                composed = base + peer + suffix
+                assert len(composed) + 100 < 12_000  # room for bounded diagnostic hints
+                assert prompt_version_for_guidance(composed) in _current_extraction_prompt_versions()
+    assert guidance() in visual_guidance()
+
+
+def test_assembly_references_bound_by_runtime_preserve_explicit_dispositions(tmp_path):
+    from againward.documents.adjudication import bind_model_citations
+    root, batch, read = _fixture(tmp_path)
+    p, q = read(range(5)), read([0, 1, 2, 5, 6], "peer")
+    old = _dispositions(p, q)
+    by_hash = {item.to_dict()["extraction_sha256"]: (name, item)
+               for name, item in (("PRIMARY", p), ("CHALLENGER", q))}
+    refs = []
+    for row in old:
+        name, parent = by_hash[row["extraction_sha256"]]
+        refs.append({"reader": name, "candidate_index": next(i for i, c in enumerate(parent.candidates, 1)
+                    if c.candidate_id == row["candidate_id"]),
+                    "decision": row["decision"], "entity_id": row["entity_id"]})
+    raw = {"decisions": [{"source_id": p.source_id, "selection": "ASSEMBLE", "rationale": "Complementary evidence",
+        "candidate_selections": refs, "observations": [],
+        "citations": [{"source_id": p.source_id, "location": "line:1", "quote": CONTENT}]}]}
+    bound = bind_model_citations(raw, [], primary=(p,), challenger=(q,))
+    assert bound["decisions"][0]["candidate_selections"] == old
+    assert "extraction_sha256" not in raw["decisions"][0]["candidate_selections"][0]
+    qa = compare_extractions(batch, (p,), (q,), root)
+    result = validate_adjudication(batch, (p,), (q,), qa, bound, root, required_source_facts=package_source_gaps)
+    assert result["facts_approved"] == 0
+    assert result["assembly_proposals"]
+    for bad_index in (0, -1, 1000, True, "1"):
+        invalid = deepcopy(raw)
+        invalid["decisions"][0]["candidate_selections"][0]["candidate_index"] = bad_index
+        with pytest.raises(DocumentError) as exc:
+            bind_model_citations(invalid, [], primary=(p,), challenger=(q,))
+        assert exc.value.diagnostic["validation_code"] == "ASSEMBLY_REFERENCE_INVALID"
+
+
+def test_fresh_pixel_citation_not_candidate_locked_but_does_not_approve_facts(tmp_path):
+    from againward.documents.adjudication import bind_model_citations, verify_adjudication_pixels
+    from againward.documents.visual_fact_review import _render_hash
+    import tempfile
+    root, batch, read = _fixture(tmp_path, visual=True)
+    p, q = read(range(7)), read(range(5), "peer")
+    qa = compare_extractions(batch, (p,), (q,), root)
+    with tempfile.TemporaryDirectory() as directory:
+        render, _, _ = _render_hash(batch.documents[0], root, "page:1", Path(directory))
+    raw = {"decisions": [{"source_id": p.source_id, "selection": "PRIMARY", "rationale": "Read original pixels",
+        "candidate_selections": [], "observations": [],
+        "citations": [{"source_id": p.source_id, "location": "page:1", "quote": CONTENT}]}]}
+    assert CONTENT not in {c.raw_observed_value for c in (*p.candidates, *q.candidates)}
+    bound = bind_model_citations(raw, [{"source_id": p.source_id, "location": "page:1", "preview_sha256": render}])
+    result = validate_adjudication(batch, (p,), (q,), qa, bound, root)
+    assert result["facts_approved"] == 0 and result["delivery_approved"] is False
+    assert result["decisions"][0]["pixel_observations"] == []
+    verify_adjudication_pixels(batch, result, root)
+    native_review = build_analyst_review(batch, (p,), {}, root)
+    assert native_review["native_facts_accepted"] == 0
+    assert not promote_facts((p,), native_review["review"], batch, root)
+    wrong_page = deepcopy(raw)
+    wrong_page["decisions"][0]["citations"][0]["location"] = "page:99"
+    with pytest.raises(DocumentError, match="SOURCE_LOCATION_INVALID"):
+        validate_adjudication(batch, (p,), (q,), qa, bind_model_citations(wrong_page, []), root)
+    stale = deepcopy(bound)
+    stale["decisions"][0]["citations"][0]["preview_sha256"] = "0" * 64
+    with pytest.raises(DocumentError, match="REVIEW_STALE"):
+        validate_adjudication(batch, (p,), (q,), qa, bind_model_citations(stale, []), root)
+
+
+def test_runtime_binding_never_converts_native_paraphrase_to_evidence(tmp_path):
+    from againward.documents.adjudication import bind_model_citations
+    root, batch, read = _fixture(tmp_path)
+    p, q = read(range(7)), read(range(5))
+    qa = compare_extractions(batch, (p,), (q,), root)
+    raw = {"decisions": [{"source_id": p.source_id, "selection": "PRIMARY", "rationale": "Wrong quote",
+        "candidate_selections": [], "observations": [],
+        "citations": [{"source_id": p.source_id, "location": "line:1", "quote": "rental totals 730 euros"}]}]}
+    with pytest.raises(DocumentError, match="SOURCE_LOCATION_INVALID"):
+        validate_adjudication(batch, (p,), (q,), qa, bind_model_citations(raw, []), root)

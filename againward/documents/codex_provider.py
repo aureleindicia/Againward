@@ -14,6 +14,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import shlex
 import tempfile
 from time import perf_counter, sleep
 import uuid
@@ -239,6 +240,37 @@ def write_model_diagnostic(root: Path, payload: dict[str, Any], *,
     descriptor = os.open(destination, flags, 0o600)
     with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
         json.dump(body, stream, ensure_ascii=False, sort_keys=True)
+
+
+def _write_evaluation_invocation_artifacts(root: Path, invocation_id: str, attempt: int,
+                                           *, command: list[str], cwd: str, schema: Path,
+                                           output: Path, stdout: str | bytes | None,
+                                           stderr: str | bytes | None, returncode: int | None,
+                                           timed_out: bool = False) -> None:
+    """Keep raw provider material only in an evaluation-only, private scratch area."""
+    root = Path(root)
+    workspace = root.parent.parent if root.name == "documents" and root.parent.name == "processed" else root.parent
+    identifier(invocation_id)
+    base = workspace
+    for component in ("scratch", "evaluation_provider_invocations", invocation_id, f"attempt-{attempt}"):
+        base = base / component
+        if base.is_symlink():
+            raise DocumentError("SOURCE_UNSAFE_PATH", "Evaluation artifact directory is linked")
+        base.mkdir(exist_ok=True, mode=0o700)
+        os.chmod(base, 0o700)
+    metadata = {"argv": command, "shell_quoted": shlex.join(command), "cwd": cwd,
+        "environment": {key: os.environ[key] for key in ("PATH", "LANG", "LC_ALL", "TERM", "CODEX_HOME")
+                        if key in os.environ}, "returncode": returncode, "timeout": timed_out}
+    files = {"command.json": json.dumps(metadata, ensure_ascii=False, indent=2).encode(),
+             "response_schema.json": schema.read_bytes(),
+             "stdout.txt": stdout if isinstance(stdout, bytes) else (stdout or "").encode("utf-8", errors="replace"),
+             "stderr.txt": stderr if isinstance(stderr, bytes) else (stderr or "").encode("utf-8", errors="replace")}
+    if output.is_file():
+        files["model_response.json"] = output.read_bytes()
+    for name, content in files.items():
+        descriptor = os.open(base / name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(content)
 
 
 def _filter_nonexact_native_quotes(raw: dict[str, Any], parsed: ParsedDocument,
@@ -479,7 +511,15 @@ class CodexCliProvider:
             raise DocumentError("RESOURCE_LIMIT", "Parsed source identity/unit budget invalid")
         if sum(len(unit.text) for unit in parsed.units) > MAX_PROMPT_TEXT:
             raise DocumentError("RESOURCE_LIMIT", "Native text exceeds model context budget")
-        guidance = text(context.get("semantic_guidance", ""), maximum=12_000)
+        guidance = context.get("semantic_guidance", "")
+        if not isinstance(guidance, str) or not guidance.strip() or len(guidance) > 12_000:
+            raise DocumentError("MODEL_CONFIGURATION_ERROR", "Semantic instruction budget invalid",
+                diagnostic={"stage": "PROMPT_CONSTRUCTION", "schema_path": "$.semantic_guidance",
+                    "validation_code": "SEMANTIC_GUIDANCE_BUDGET_INVALID",
+                    "error_category": "MODEL_INVOCATION_ERROR", "model_invoked": False,
+                    "expected_type": "nonempty string(length<=12000)",
+                    "received_shape": f"string(length={len(guidance)})" if isinstance(guidance, str)
+                                      else type(guidance).__name__})
         phase = context.get("invocation_phase", "SOURCE_EXTRACTION")
         if not isinstance(phase, str) or not re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", phase):
             phase = "SOURCE_EXTRACTION"
@@ -584,6 +624,7 @@ class CodexCliProvider:
                 command.extend(["--image", str(image)])
             command.append("-")
             technical_retries = 0
+            invocation_attempt = 0
             transient_failures: list[dict[str, Any]] = []
             overall_started = perf_counter()
             while True:
@@ -591,9 +632,15 @@ class CodexCliProvider:
                     output.unlink()
                 invocation_started = perf_counter()
                 try:
+                    invocation_attempt += 1
                     result = subprocess.run(command, input=prompt, text=True, capture_output=True,
                                             timeout=self.timeout_seconds, check=False)
                 except subprocess.TimeoutExpired as exc:
+                    if self.evaluation_only:
+                        _write_evaluation_invocation_artifacts(
+                            self.root, invocation_id or str(uuid.uuid4()), invocation_attempt,
+                            command=command, cwd=os.getcwd(), schema=schema, output=output,
+                            stdout=exc.stdout, stderr=exc.stderr, returncode=None, timed_out=True)
                     duration = perf_counter() - invocation_started
                     cli_version = _codex_cli_version()
                     failure = _runtime_failure("MODEL_TIMEOUT", "TIMEOUT", phase=phase, model=self.model,
@@ -628,6 +675,15 @@ class CodexCliProvider:
                     failure.diagnostic = diagnostic
                     self._diagnostic(diagnostic)
                     raise failure from exc
+                if self.evaluation_only:
+                    try:
+                        _write_evaluation_invocation_artifacts(
+                            self.root, invocation_id or str(uuid.uuid4()), invocation_attempt,
+                            command=command, cwd=os.getcwd(), schema=schema, output=output,
+                            stdout=result.stdout, stderr=result.stderr, returncode=result.returncode)
+                    except OSError as exc:
+                        raise DocumentError("MODEL_CONFIGURATION_ERROR", "Private evaluation artifact write failed") from exc
+
                 if not result.returncode:
                     break
                 duration = perf_counter() - invocation_started

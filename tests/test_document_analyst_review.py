@@ -320,3 +320,23 @@ def test_interrupted_model_call_resumes_from_first_source_receipt(tmp_path, monk
     receipt = review_with_codex(batch, extractions, root, model="synthetic-model")
     assert receipt["status"] == "READY_FOR_PACKAGE"
     assert receipt["cached_sources"] == 1 and receipt["model_calls"] == 1
+
+
+def test_shared_semantics_change_invalidates_native_review_cache(tmp_path, monkeypatch):
+    root, batch, primary, _, _, _, _ = _case(tmp_path)
+    calls = []
+
+    def fake_model(prompt, **kwargs):
+        # Review receives semantics as policy context, never as source evidence.
+        data = json.loads(prompt.split("\n", 1)[1])
+        calls.append(data["semantic_guidance"])
+        return {"decisions": [{"candidate_id": row["candidate_id"], "decision": "ACCEPT",
+            "reason": "Supported by the original source", "resolved_flags": []} for row in data["candidates"]]}, 0.01
+
+    monkeypatch.setattr("againward.documents.analyst_review._ask_codex", fake_model)
+    first = review_with_codex(batch, primary, root, model="synthetic-model", semantic_guidance="contract-one")
+    cached = review_with_codex(batch, primary, root, model="synthetic-model", semantic_guidance="contract-one")
+    assert first == cached and len(calls) == 2
+    revised = review_with_codex(batch, primary, root, model="synthetic-model", semantic_guidance="contract-two")
+    assert revised["run_key"] != first["run_key"]
+    assert calls == ["contract-one", "contract-one", "contract-two", "contract-two"]

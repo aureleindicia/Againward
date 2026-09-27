@@ -31,6 +31,13 @@ stopped on `REVIEW_STALE` during visual review; CASE B stopped on an accounting
 export entity missing structural metadata after one retry. See the
 [robustness record](validation/rental_failure_family_robustness_20260926.md).
 
+The 2026-09-27 architecture follow-up corrects a pre-invocation retry prompt
+budget error, shares Rental semantics across readers/adjudication/reviews, and
+moves adjudication hash binding to Python. It removes candidate-string locking
+for visual citations while retaining original-pixel fact review and all promotion
+gates. No new live A/B run was executed; the historical 0/6 calculation result
+is not superseded. See [the causal architecture record](validation/rental_runtime_owned_evidence_contract_20260927.md).
+
 AGAINWARD is an asynchronous B2B analysis/advisory service whose internal
 production uses Codex and deterministic Python. The current commercial focus
 is Rental B2B: contracts,

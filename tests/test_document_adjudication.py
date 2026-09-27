@@ -603,3 +603,29 @@ def test_adjudicator_structural_pixel_observation_gets_one_bounded_repair(tmp_pa
     assert len(prompts) == 2
     assert "required source-supported entity metadata" in prompts[1]
     assert "choose UNRESOLVED where necessary" in prompts[1]
+
+
+def test_live_interface_binds_hashes_and_preserves_semantic_guidance(tmp_path, monkeypatch):
+    root, batch, primary, challenger, qa, raw, _ = _case(tmp_path)
+    model_raw = deepcopy(raw)
+    for decision in model_raw["decisions"]:
+        decision["candidate_selections"] = []
+        for citation in decision["citations"]:
+            citation.pop("preview_sha256")
+
+    def fake_codex(command, *, input, **kwargs):
+        schema = json.loads(Path(command[command.index("--output-schema") + 1]).read_text())
+        fields = schema["properties"]["decisions"]["items"]["properties"]
+        assert "preview_sha256" not in fields["citations"]["items"]["properties"]
+        assert set(fields["candidate_selections"]["items"]["required"]) == {
+            "reader", "candidate_index", "decision", "entity_id"}
+        assert '"semantic_guidance": "Shared domain semantics"' in input
+        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(model_raw))
+        return SimpleNamespace(returncode=0, stderr="")
+
+    monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)
+    result = adjudicate_with_codex(batch, primary, challenger, qa, root, model="synthetic-model",
+                                  semantic_guidance="Shared domain semantics")
+    assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"
+    assert result["facts_approved"] == 0
+    assert all(c["source_span"] for c in result["decisions"][0]["citations"])

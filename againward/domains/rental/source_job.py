@@ -83,7 +83,7 @@ def _safe_failure_diagnostic(exc: DocumentError, *, stage: str,
                  "http_status", "technical_retries", "duration_seconds", "stdout_bytes",
                  "stdout_present", "stdout_shape", "stdout_sha256", "stderr_bytes",
                  "stderr_present", "stderr_shape", "stderr_sha256", "stage", "rejection_code",
-                 "total_duration_seconds"}
+                 "total_duration_seconds", "model_invoked"}
     safe = {key: value for key, value in diagnostic.items()
             if key in safe_keys and (value is None or type(value) in {str, int, bool})}
     semantic_types = diagnostic.get("conflicting_semantic_types")
@@ -467,7 +467,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
         if "adjudication_receipt" not in state:
             active_stage = "SOURCE_ADJUDICATION"
             started = perf_counter()
-            adjudication = adjudicate_with_codex(batch, primary, challenger, qa, documents,
+            adjudication = adjudicate_with_codex(batch, primary, challenger, qa, documents, semantic_guidance=guidance(),
                                                  model=model, timeout_seconds=timeout_seconds,
                                                  evaluation_only=evaluation_only,
                                                  validate_pixel_observations=lambda extraction:
@@ -497,7 +497,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 write_json(qa_path, qa)
                 state["qa_receipt"] = str(qa_path)
                 _save(path, state, "ASSEMBLY_PROPOSED", facts_approved=0)
-                adjudication = adjudicate_with_codex(batch, primary, challenger, qa, documents,
+                adjudication = adjudicate_with_codex(batch, primary, challenger, qa, documents, semantic_guidance=guidance(),
                     model=model, timeout_seconds=timeout_seconds, evaluation_only=evaluation_only,
                     validate_pixel_observations=lambda extraction:
                         validate_rental_extraction(extraction, require_package_facts=True),
@@ -576,7 +576,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
         if "native_review_receipt" not in state:
             active_stage = "FACT_REVIEW"
             started = perf_counter()
-            native = review_with_codex(batch, selected, documents, model=model,
+            native = review_with_codex(batch, selected, documents, model=model, semantic_guidance=guidance(),
                                        timeout_seconds=timeout_seconds)
             saved = documents / "analyst_reviews" / (native["receipt_sha256"] + ".json")
             write_json(saved, native)
@@ -600,7 +600,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
             if "visual_review_receipt" not in state:
                 active_stage = "VISUAL_FACT_REVIEW"
                 started = perf_counter()
-                visual = review_visual_with_codex(batch, selected, native, documents,
+                visual = review_visual_with_codex(batch, selected, native, documents, semantic_guidance=guidance(),
                                                   model=model, timeout_seconds=timeout_seconds)
                 saved = documents / "analyst_reviews" / (visual["receipt_sha256"] + ".json")
                 write_json(saved, visual)
