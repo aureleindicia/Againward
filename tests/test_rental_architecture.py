@@ -181,10 +181,10 @@ def test_focused_adjudication_schema_binds_one_source_and_disallows_native_pixel
     calls = []
     def respond(command, **kwargs):
         schema = json.loads(Path(command[command.index("--output-schema") + 1]).read_text())
-        decisions = schema["properties"]["decisions"]
-        assert decisions["minItems"] == decisions["maxItems"] == 1
-        assert decisions["items"]["properties"]["source_id"]["enum"] == [p.source_id]
-        assert decisions["items"]["properties"]["observations"]["maxItems"] == 0
+        assert schema["type"] == "object" and "source_id" not in schema["properties"]
+        context = json.JSONDecoder().raw_decode(kwargs["input"].split("\n", 1)[1])[0]
+        assert [d["source_id"] for d in context["material_disagreements"]] == [p.source_id]
+        assert schema["properties"]["observations"]["maxItems"] == 0
         body = {"decisions": [{"source_id": p.source_id, "selection": "PRIMARY", "rationale": "Read source",
                 "candidate_selections": [], "observations": [], "citations": [{"source_id": p.source_id,
                 "location": "line:1", "quote": CONTENT, "preview_sha256": ""}]}]}
@@ -287,7 +287,9 @@ def test_global_adjudication_collects_exactly_one_validated_decision_per_dispute
     calls = []
     def respond(command, **kwargs):
         schema = json.loads(Path(command[command.index("--output-schema") + 1]).read_text())
-        source_ids = schema["properties"]["decisions"]["items"]["properties"]["source_id"]["enum"]
+        assert "source_id" not in schema["properties"]
+        context = json.JSONDecoder().raw_decode(kwargs["input"].split("\n", 1)[1])[0]
+        source_ids = [d["source_id"] for d in context["material_disagreements"]]
         assert len(source_ids) == 1
         calls.append(source_ids[0])
         Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps({"decisions": [{

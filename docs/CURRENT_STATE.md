@@ -38,6 +38,14 @@ for visual citations while retaining original-pixel fact review and all promotio
 gates. No new live A/B run was executed; the historical 0/6 calculation result
 is not superseded. See [the causal architecture record](validation/rental_runtime_owned_evidence_contract_20260927.md).
 
+The next 2026-09-27 architecture change separates fresh model notation from
+strict durable evidence. Rental types/aliases and technical IDs are runtime-owned;
+partial readers enter QA, assembly defers unselected observations with complete
+lineage, and adjudication can recover exact native facts as well as pixels.
+No new A/B E2E campaign is run in this change. See the
+[observation protocol record](validation/rental_observation_protocol_20260927.md)
+for software checks and residual risks. Historical live results are not superseded.
+
 AGAINWARD is an asynchronous B2B analysis/advisory service whose internal
 production uses Codex and deterministic Python. The current commercial focus
 is Rental B2B: contracts,

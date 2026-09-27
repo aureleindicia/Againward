@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from againward.documents.adjudication import (_SCHEMA, adjudicate_with_codex,
+from againward.documents.adjudication import (adjudicate_with_codex,
     validate_adjudication, verify_adjudication_pixels)
 from againward.documents.codex_provider import assemble_proposal, bind_visual_pages, prompt_version_for_guidance
 from againward.documents.contracts import DocumentError
@@ -204,6 +204,26 @@ def test_adjudicator_retries_one_invalid_closed_schema_response(tmp_path, monkey
     assert "choose UNRESOLVED" in prompts[0]
 
 
+@pytest.mark.parametrize("container", [None, 7, "invalid"])
+def test_invalid_decision_container_is_a_bounded_schema_stop(tmp_path, monkeypatch, container):
+    root, batch, primary, challenger, qa, _raw, _email = _case(tmp_path)
+    calls = []
+
+    def fake_codex(command, **kwargs):
+        calls.append(command)
+        output = Path(command[command.index("--output-last-message") + 1])
+        output.write_text(json.dumps({"decisions": container}))
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)
+    monkeypatch.setattr("againward.documents.codex_provider._codex_cli_version", lambda: "test")
+    with pytest.raises(DocumentError) as caught:
+        adjudicate_with_codex(batch, primary, challenger, qa, root, model="synthetic-model")
+    assert caught.value.code == "EXTRACTION_SCHEMA_INVALID"
+    assert caught.value.diagnostic["schema_path"] == "$.decisions"
+    assert len(calls) == 2
+
+
 def test_adjudication_runtime_failure_is_classified_and_sanitized(tmp_path, monkeypatch):
     root, batch, primary, challenger, qa, _raw, _email = _case(tmp_path)
 
@@ -228,7 +248,8 @@ def test_adjudication_runtime_failure_is_classified_and_sanitized(tmp_path, monk
 
 
 def test_adjudication_response_schema_requires_every_declared_decision_field():
-    decision = _SCHEMA["properties"]["decisions"]["items"]
+    from againward.documents.adjudication import _MODEL_SCHEMA
+    decision = _MODEL_SCHEMA["properties"]["decisions"]["items"]
     assert set(decision["required"]) == set(decision["properties"])
     assert "observations" in decision["required"]
 
@@ -615,7 +636,8 @@ def test_live_interface_binds_hashes_and_preserves_semantic_guidance(tmp_path, m
 
     def fake_codex(command, *, input, **kwargs):
         schema = json.loads(Path(command[command.index("--output-schema") + 1]).read_text())
-        fields = schema["properties"]["decisions"]["items"]["properties"]
+        fields = schema["properties"]
+        assert "source_id" not in fields
         assert "preview_sha256" not in fields["citations"]["items"]["properties"]
         assert set(fields["candidate_selections"]["items"]["required"]) == {
             "reader", "candidate_index", "decision", "entity_id"}

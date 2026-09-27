@@ -462,7 +462,7 @@ def append_adjudicator_visual_observations(extraction: DocumentExtraction,
         required_entity = (unique_required_entity(semantic, location, candidates)
                            if not matching_entities and unique_required_entity is not None else None)
         entity_id = (next(iter(matching_entities)) if len(matching_entities) == 1 else
-                     required_entity or "pixel-" + sha256(f"{location}\0{hint}".encode()).hexdigest()[:20])
+                     (hint if hint in {c.entity_id for c in candidates} else None) or required_entity or "pixel-" + sha256(f"{location}\0{hint}".encode()).hexdigest()[:20])
         comparable = str(value).lower() if type(value) is bool else str(value)
         notes = "Pixel ambiguity: " + "; ".join(text(note, maximum=500) for note in ambiguity) if ambiguity else ""
         if value is not None and comparable != observed:
@@ -589,3 +589,38 @@ def promote_facts(extractions: tuple[DocumentExtraction, ...], review: Any,
     if any(len(values) > 1 for values in by_field.values()):
         raise DocumentError("UNSUPPORTED_PROMOTION", "Conflicting candidate values must stay disputed")
     return tuple(facts)
+
+
+def append_adjudicator_native_observations(extraction: DocumentExtraction,
+                                           observations: list[dict[str, Any]],
+                                           batch: SourceBatch, root: Path,
+                                           adjudication_sha256: str, *,
+                                           unique_required_entity: Callable[[str, str, list[FactCandidate]], str | None]
+                                           | None = None) -> DocumentExtraction:
+    """Recover exact native observations into a fresh unreviewed extraction."""
+    from dataclasses import replace
+    digest(adjudication_sha256)
+    verify_batch(batch, root)
+    document = next((d for d in batch.documents if d.source_id == extraction.source_id), None)
+    if document is None or document.sha256 != extraction.source_sha256:
+        raise DocumentError("SOURCE_CHANGED", "Recovered observation source changed")
+    units = {u.location: u for u in read_document(document, root).units if u.route == "NATIVE"}
+    candidates = list(extraction.candidates)
+    for observation in observations:
+        payload = dict(observation)
+        if payload.pop("source_id", None) != document.source_id:
+            raise DocumentError("SOURCE_CHANGED", "Recovered candidate source mismatch")
+        candidate = _candidate(payload, document.source_id, units)
+        if candidate.source_span is None:
+            raise DocumentError("SOURCE_LOCATION_INVALID", "Recovered native fact needs an exact span")
+        existing = {c.entity_id for c in candidates if c.semantic_type == candidate.semantic_type
+                    and c.raw_observed_value == candidate.raw_observed_value and c.location == candidate.location}
+        target = (next(iter(existing)) if len(existing) == 1 else
+                  unique_required_entity(candidate.semantic_type, candidate.location, candidates)
+                  if not existing and unique_required_entity else None)
+        candidates.append(replace(candidate,
+            entity_id=target or candidate.entity_id,
+            candidate_id="native-" + stable_hash({"adjudication": adjudication_sha256,
+                                                  "observation": observation})[:28],
+            ambiguity_flags=tuple(sorted(set(candidate.ambiguity_flags) | {"ADJUDICATOR_NATIVE_OBSERVATION"}))))
+    return replace(extraction, candidates=tuple(candidates), status="NEEDS_REVIEW")

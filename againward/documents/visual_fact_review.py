@@ -39,7 +39,24 @@ def _selection_is_qa_bound(source_id: str, selected_sha: str, qa_row: dict,
     if not isinstance(extension, dict) or extraction is None:
         return False
     candidate_hashes = sorted(stable_hash(candidate.to_dict()) for candidate in extraction.candidates
-                              if "ADJUDICATOR_PIXEL_OBSERVATION" in candidate.ambiguity_flags)
+                              if {"ADJUDICATOR_PIXEL_OBSERVATION", "ADJUDICATOR_NATIVE_OBSERVATION"}
+                              & set(candidate.ambiguity_flags))
+    native_observed = [observation for decision in adjudication.get("decisions", [])
+                       if decision.get("source_id") == source_id
+                       for observation in decision.get("native_observations", [])]
+    native_candidates = [candidate for candidate in extraction.candidates
+                         if "ADJUDICATOR_NATIVE_OBSERVATION" in candidate.ambiguity_flags]
+    native_bound = len(native_observed) == len(native_candidates) and all(any(
+        candidate.source_id == observation.get("source_id") == source_id
+        and candidate.location == observation.get("location")
+        and candidate.unit_sha256 == observation.get("unit_sha256")
+        and candidate.semantic_type == observation.get("semantic_type")
+        and candidate.value_type == observation.get("value_type")
+        and candidate.value == observation.get("value")
+        and candidate.raw_observed_value == observation.get("raw_observed_value")
+        and candidate.source_span is not None
+        and list(candidate.source_span) == observation.get("source_span")
+        for observation in native_observed) for candidate in native_candidates)
     base_hashes = {qa_row["primary_extraction_sha256"], qa_row["challenger_extraction_sha256"]}
     observed = [observation for decision in adjudication.get("decisions", [])
                 if decision.get("source_id") == source_id
@@ -61,7 +78,7 @@ def _selection_is_qa_bound(source_id: str, selected_sha: str, qa_row: dict,
     return (extension.get("extraction_sha256") == selected_sha
             and extension.get("base_extraction_sha256") in base_hashes
             and extension.get("candidate_hashes") == candidate_hashes and bool(candidate_hashes)
-            and len(observed) == len(candidate_hashes) and bound_match
+            and len(observed) + len(native_observed) == len(candidate_hashes) and bound_match and native_bound
             and all(candidate.source_span is None
                     and "ADJUDICATOR_PIXEL_OBSERVATION" in candidate.ambiguity_flags
                     and "VISUAL_TRANSCRIPTION_UNVERIFIED" in candidate.ambiguity_flags

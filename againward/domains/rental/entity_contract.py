@@ -223,3 +223,80 @@ def unique_pixel_entity_for_required_field(semantic: str, location: str,
         if semantic in PACKAGE_SOURCE_REQUIRED.get(kind, frozenset()) and semantic not in fields:
             eligible.append(entity_id)
     return eligible[0] if len(eligible) == 1 else None
+
+
+def normalize_document_envelopes(raw: dict[str, Any], *, visual: bool) -> dict[str, Any]:
+    """Merge only a uniquely compatible document envelope into its material row.
+
+    Multiple rate/line/event rows are never coalesced by shared document IDs.
+    Evidence values and source locations remain unchanged and need review.
+    """
+    result = deepcopy(raw)
+    key, group_key = ("observations", "entity_hint") if visual else ("candidates", "entity_id")
+    rows = result.get(key)
+    if not isinstance(rows, list) or not all(isinstance(row, dict) for row in rows):
+        return result
+    groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        group = row.get(group_key)
+        if not isinstance(group, str):
+            return result
+        groups[group].append(row)
+    envelope_fields = DOCUMENT_ENVELOPE_FIELDS | {"entity_kind", "agreement_id", "client_id"}
+    targets = {name: members for name, members in groups.items()
+               if any(row.get("semantic_type") not in envelope_fields for row in members)}
+    for name, members in groups.items():
+        if name in targets or not members:
+            continue
+        kinds = {row.get("value") for row in members if row.get("semantic_type") == "entity_kind"}
+        if kinds and not kinds <= {"RENTAL_SCOPE", "INVOICE_LINE"}:
+            continue
+        eligible = []
+        for target, material in targets.items():
+            combined: dict[str, set[str]] = defaultdict(set)
+            for row in members + material:
+                field = row.get("semantic_type")
+                if field in envelope_fields:
+                    combined[field].add(str(row.get("value")))
+            if any(len(values) != 1 for values in combined.values()):
+                continue
+            # A document classification can accompany a unique row. An explicit
+            # entity kind must agree; role/status alone never confer that kind.
+            if visual and {row.get("page") for row in members} != {row.get("page") for row in material}:
+                continue
+            eligible.append(target)
+        if len(eligible) == 1:
+            for row in members:
+                row[group_key] = eligible[0]
+    return result
+
+
+# Synonyms only. No accepted/issued, requested/returned, or document-authority inference.
+ENUM_ALIASES = {
+    "billing_unit": {"DAILY": "DAY", "DAYS": "DAY", "CALENDAR_DAY": "DAY",
+                     "WEEKLY": "WEEK", "WEEKS": "WEEK", "MONTHLY": "MONTH", "MONTHS": "MONTH",
+                     "FIXED_FEE": "FIXED", "PERCENTAGE": "PERCENT"},
+    "entity_kind": {"RENTAL_PERIOD": "RENTAL_SCOPE", "INVOICE_ITEM": "INVOICE_LINE",
+                    "SUPPORTING_RECORD": "SUPPORTING_DOCUMENT"},
+    "document_role": {"CREDIT_MEMO": "CREDIT_NOTE", "EMAIL": "EMAIL_EVIDENCE",
+                      "CORRESPONDENCE": "EMAIL_EVIDENCE", "RATE_SHEET": "RATE_CARD"},
+    "charge_type": {"EQUIPMENT_RENTAL": "RENTAL"},
+}
+ENUM_FIELDS = frozenset({"entity_kind", "document_role", "document_status", "charge_type", "billing_unit"})
+DECIMAL_FIELDS = frozenset({"net_amount", "rate", "unit_rate", "allocated_amount", "quantity", "billed_units",
+                            "discount_fraction"})
+DATE_FIELDS = frozenset({"start", "end", "date", "effective_from", "extended_end"})
+BOOLEAN_FIELDS = frozenset({"weekends_billable", "stop_day_billable", "terms_unchanged"})
+
+
+# Complete type ownership for this vocabulary: no financial value is computed.
+MODEL_VALUE_TYPES = {field: "TEXT" for field in ANALYTICAL_FIELDS}
+MODEL_VALUE_TYPES.update({field: "ENUM" for field in ENUM_FIELDS | {
+    "event_type", "status", "partial_period_policy", "stop_event"}})
+MODEL_VALUE_TYPES.update({field: "DECIMAL" for field in DECIMAL_FIELDS})
+MODEL_VALUE_TYPES.update({field: "DATE" for field in DATE_FIELDS})
+MODEL_VALUE_TYPES.update({field: "BOOLEAN" for field in BOOLEAN_FIELDS})
+MODEL_VALUE_TYPES.update({field: "INTEGER" for field in {"minimum_days", "tier_min_days", "tier_max_days"}})
+MODEL_VALUE_TYPES.update({field: "IDENTIFIER" for field in ANALYTICAL_FIELDS
+                         if field.endswith("_id") or field in {"serial_number", "charge_key", "percentage_of"}})
+MODEL_VALUE_TYPES["currency"] = "CURRENCY"

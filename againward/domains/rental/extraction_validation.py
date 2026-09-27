@@ -52,7 +52,7 @@ def validate_rental_extraction(extraction: DocumentExtraction, *,
             values = fields.get(field, set())
             source_values[field].update(values)
 
-    if invalid:
+    if invalid and not provisional:
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Rental structural enum is invalid", diagnostic={
             "error_category": "SCHEMA_ERROR", "schema_path": "$.candidates[].semantic_type/value",
             "validation_code": "STRUCTURAL_ENUM_INVALID", "source_id": extraction.source_id,

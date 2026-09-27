@@ -21,13 +21,14 @@ import uuid
 from typing import Any
 
 from againward.domains.rental.entity_contract import (ANALYTICAL_FIELDS,
-    normalize_single_line_document_groups)
+    normalize_single_line_document_groups, normalize_document_envelopes)
 
-from .contracts import DocumentError, SourceDocument, identifier, load_json, text
+from .contracts import DocumentError, SourceDocument, identifier, text
 from .extraction import SCHEMA, proposal_context, validate_semantic_value_type
 from .readers import ParsedDocument
+from .model_protocol import load_model_json, normalize_read, VERSION as PROTOCOL_VERSION
 
-PROMPT_VERSION = "againward-source-facts-v12-canonical-rental-groups"
+PROMPT_VERSION = "againward-source-facts-v13-normalized-observations"
 EXTRACTOR_VERSION = "codex-cli-source-units-v2-visual-bound"
 MAX_PROMPT_TEXT = 30_000
 MAX_UNITS = 300
@@ -330,7 +331,7 @@ def assemble_proposal(raw: dict[str, Any], document: SourceDocument,
         raw = {**raw, "observations": []}
     if set(raw) != expected_fields:
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Model output fields differ from response schema")
-    if (raw["status"] not in {"SUCCESS", "PARTIAL", "FAILED", "NEEDS_REVIEW"}
+    if (not isinstance(raw["status"], str) or raw["status"] not in {"SUCCESS", "PARTIAL", "FAILED", "NEEDS_REVIEW"}
             or (visual_route and native_units_present and not isinstance(raw["native_candidates"], list))
             or (not visual_route and not isinstance(raw["candidates"], list))
             or not isinstance(raw["limitations"], list)):
@@ -615,6 +616,18 @@ class CodexCliProvider:
                 if candidate_schema is not None:
                     candidate_schema["items"]["properties"]["semantic_type"] = {
                         "type": "string", "enum": VISUAL_SEMANTIC_TYPES}
+            if guidance.startswith(("Rental B2B source interpretation", "Rental document observation vocabulary")):
+                schema_body = copy.deepcopy(schema_body)
+                for name in ("candidates", "native_candidates", "observations"):
+                    rows_schema = schema_body["properties"].get(name)
+                    if rows_schema:
+                        rows_schema["items"]["required"].remove("value_type")
+                        del rows_schema["items"]["properties"]["value_type"]
+                        if name != "observations":
+                            rows_schema["items"]["required"].remove("entity_id")
+                            rows_schema["items"]["required"].append("entity_hint")
+                            rows_schema["items"]["properties"]["entity_hint"] = rows_schema["items"]["properties"].pop("entity_id")
+                prompt += "\nPython assigns value_type from semantic_type. Use entity_hint as a descriptive group label. Python assigns technical IDs and value_type. Read the value and its source evidence; do not emit value_type or entity_id."
             schema.write_text(json.dumps(schema_body), encoding="utf-8")
             command = ["codex", "exec", "--ephemeral", "--skip-git-repo-check", "--sandbox", "read-only",
                        "--cd", str(temp), "--model", self.model,
@@ -746,7 +759,7 @@ class CodexCliProvider:
                 self._diagnostic(diagnostic)
                 raise failure
             try:
-                raw = load_json(response_bytes, maximum=2_000_000)
+                raw = load_model_json(response_bytes, maximum=2_000_000)
             except DocumentError as exc:
                 duration = perf_counter() - invocation_started
                 cli_version = _codex_cli_version()
@@ -760,6 +773,16 @@ class CodexCliProvider:
                 self._diagnostic(diagnostic)
                 exc.diagnostic = diagnostic
                 raise
+        unnormalized = raw
+        rental = guidance.startswith(("Rental B2B source interpretation", "Rental document observation vocabulary"))
+        raw = normalize_read(raw, parsed, rental=rental)
+        if raw != unnormalized:
+            self._diagnostic({"stage": "MODEL_PROTOCOL_NORMALIZATION",
+                "source_id": document.source_id, "schema_version": PROTOCOL_VERSION,
+                "unknown_observations_withheld": sum(1 for key in ("candidates", "native_candidates", "observations")
+                    for row in (unnormalized.get(key, []) if isinstance(unnormalized.get(key, []), list) else []) if isinstance(row, dict) and "value" in row and row["value"] is None),
+                "model": self.model, "prompt_version": prompt_version,
+                "semantic_values_present": bool(raw.get("candidates") or raw.get("observations"))})
         raw_before_native_filter = raw
         raw, rejected_native_quotes = _filter_nonexact_native_quotes(raw, parsed,
                                                                       visual_route=visual_route)
@@ -782,6 +805,7 @@ class CodexCliProvider:
         group_moves = 0
         if guidance.startswith(("Rental B2B source interpretation", "Rental document observation vocabulary")):
             raw, group_moves = normalize_single_line_document_groups(raw, visual=visual_route)
+            raw = normalize_document_envelopes(raw, visual=visual_route)
         try:
             proposal = assemble_proposal(raw, document, parsed, batch.batch_id, self.model,
                                          prompt_version=prompt_version, visual_bindings=bindings,

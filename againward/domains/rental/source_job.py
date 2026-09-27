@@ -18,7 +18,7 @@ from againward.documents.analyst_review import REVIEW_VERSION, VISUAL_REVIEW_VER
 from againward.documents.codex_provider import (VISUAL_RENDER_VERSION, CodexCliProvider,
     prompt_version_for_guidance)
 from againward.documents.contracts import DocumentError, SourceBatch, error_category
-from againward.documents.extraction import (append_adjudicator_visual_observations, persist_extraction,
+from againward.documents.extraction import (append_adjudicator_visual_observations, append_adjudicator_native_observations, persist_extraction,
     promote_facts, replay_extraction, validate_proposal)
 from againward.documents.independent_qa import (QA_GUIDANCE_VERSION, QA_INSTRUCTIONS,
     RETRY_INSTRUCTIONS, VISUAL_RETRY_INSTRUCTIONS, compare_extractions)
@@ -26,7 +26,7 @@ from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources, safe_file, verify_batch
 from againward.documents.visual_fact_review import MODEL_VISUAL_VERSION, record_model_visual_review, verify_visual_attestations
 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
-from againward.domains.rental.extraction_validation import package_source_gaps, validate_rental_extraction
+from againward.domains.rental.extraction_validation import package_source_gaps, validate_rental_extraction, proposal_issues
 from againward.domains.rental.entity_contract import ANALYTICAL_FIELDS, unique_pixel_entity_for_required_field
 from againward.domains.rental.semantic_guidance import (STRUCTURE_RETRY_INSTRUCTIONS as RENTAL_STRUCTURE_RETRY,
     guidance, visual_guidance)
@@ -359,7 +359,8 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                             {"batch": batch, "semantic_guidance": attempt_guidance,
                              "invocation_phase": "PRIMARY_EXTRACTION"})
                         extraction = validate_proposal(proposal, batch, documents)
-                        validate_rental_extraction(extraction, provisional=True)
+                        validate_rental_extraction(extraction, provisional=True, allow_incomplete=True)
+                        deferred_structure = proposal_issues(extraction) or None
                         break
                     except DocumentError as exc:
                         _bind_extraction_attempt(exc, attempt=attempt, model=model,
@@ -409,7 +410,8 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                             {"batch": batch, "semantic_guidance": attempt_guidance,
                              "invocation_phase": "INDEPENDENT_REREAD"})
                         extraction = validate_proposal(proposal, batch, documents)
-                        validate_rental_extraction(extraction, provisional=True)
+                        validate_rental_extraction(extraction, provisional=True, allow_incomplete=True)
+                        deferred_structure = proposal_issues(extraction) or None
                         break
                     except DocumentError as exc:
                         _bind_extraction_attempt(exc, attempt=attempt, model=model,
@@ -447,7 +449,9 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 source_id = decision["source_id"]
                 if decision["selection"] == "ASSEMBLE":
                     rebuilt = assemble_observations(original[source_id], peers[source_id],
-                        decision["candidate_selections"], batch, documents)
+                        decision["candidate_selections"], batch, documents,
+                        native_observations=decision.get("native_observations", []),
+                        pixel_observations=decision.get("pixel_observations", []))
                     if rebuilt.to_dict() != effective[source_id].to_dict():
                         raise DocumentError("REVIEW_STALE", "Assembly lineage no longer matches current proposals")
         active_stage = "SOURCE_QA"
@@ -511,17 +515,21 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
             for decision in adjudication["decisions"]:
                 observations = decision.get("pixel_observations", [])
                 source_id = decision["source_id"]
-                if not observations or source_id not in adjudication["selected_extractions"]:
+                if (not observations and not decision.get("native_observations")) or source_id not in adjudication["selected_extractions"]:
                     continue
                 base = base_by_hash[adjudication["selected_extractions"][source_id]]
                 revised = append_adjudicator_visual_observations(
                     base, observations, batch, documents, adjudication["adjudication_sha256"],
                     unique_required_entity=unique_pixel_entity_for_required_field)
+                if decision.get("native_observations"):
+                    revised = append_adjudicator_native_observations(revised, decision["native_observations"],
+                        batch, documents, adjudication["adjudication_sha256"],
+                        unique_required_entity=unique_pixel_entity_for_required_field)
                 stored = persist_extraction(revised, documents)
                 augmented = revised.to_dict()["extraction_sha256"]
                 base_sha = base.to_dict()["extraction_sha256"]
                 candidate_hashes = sorted(stable_hash(candidate.to_dict()) for candidate in revised.candidates
-                                          if "ADJUDICATOR_PIXEL_OBSERVATION" in candidate.ambiguity_flags)
+                                          if {"ADJUDICATOR_PIXEL_OBSERVATION", "ADJUDICATOR_NATIVE_OBSERVATION"} & set(candidate.ambiguity_flags))
                 added[source_id] = {"base_extraction_sha256": base_sha,
                     "extraction_sha256": augmented, "candidate_hashes": candidate_hashes,
                     "path": str(stored)}
