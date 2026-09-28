@@ -78,11 +78,33 @@ _SCHEMA: dict[str, Any] = {
 _SCHEMA["properties"]["decisions"]["items"]["properties"]["native_observations"] = \
     _OUTPUT_SCHEMA["properties"]["candidates"]
 
-# Stored legacy decisions remain readable; every new model invocation uses the
-# closed assembly-capable schema, with all declared properties required.
+# Stored legacy decisions remain readable. The current schema keeps optional
+# assembly dispositions typed and closed; the selected operation determines
+# whether deterministic validation requires them.
 _MODEL_SCHEMA = json.loads(json.dumps(_SCHEMA))
-_MODEL_SCHEMA["properties"]["decisions"]["items"]["required"].extend(["candidate_selections", "native_observations"])
+# Candidate dispositions are meaningful only for ASSEMBLE. Making them
+# unconditionally required taught the model to emit them for ordinary
+# PRIMARY/CHALLENGER selections, while the deterministic validator correctly
+# rejects non-empty dispositions on those selections. Keep the property closed
+# and typed, but optional; the validator and assembly builder enforce when it is
+# required.
+_MODEL_SCHEMA["properties"]["decisions"]["items"]["required"].append("native_observations")
 del _SCHEMA["properties"]["decisions"]["items"]["properties"]["candidate_selections"]
+
+
+def _model_response_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    """Project the strict bound schema onto fields the model may provide.
+
+    Citation source identity and rendered-preview hashes are runtime-owned.
+    They stay required in ``_MODEL_SCHEMA`` for deterministic validation after
+    binding, but are deliberately absent from the model-facing response schema.
+    """
+    projected = json.loads(json.dumps(schema))
+    citation = projected["properties"]["decisions"]["items"]["properties"]["citations"]["items"]
+    for field in ("source_id", "preview_sha256"):
+        citation["required"].remove(field)
+        citation["properties"].pop(field)
+    return projected
 
 
 def bind_model_citations(raw: dict[str, Any], visual_manifest: list[dict[str, Any]], *,
@@ -90,20 +112,49 @@ def bind_model_citations(raw: dict[str, Any], visual_manifest: list[dict[str, An
                          challenger: tuple[DocumentExtraction, ...] = (),
                          sparse_assembly: bool = False,
                          focused_source_id: str | None = None) -> dict[str, Any]:
-    """Bind citation hashes to the actual invocation attachments, never model text.
+    """Bind runtime-owned citation identity and hashes, never semantic evidence.
 
-    No semantic value, citation, source or location is repaired. The durable
-    validator re-renders and rejects stale hashes and non-exact native quotes.
+    Missing source identity is supplied only for a focused source-local call;
+    missing render hashes come only from the current attachment manifest.
+    Quotes and locations are never repaired. The durable validator re-renders
+    and rejects stale hashes, foreign sources and non-exact native quotes.
     """
     bound = json.loads(json.dumps(raw))
-    manifests = {(row["source_id"], row["location"]): row["preview_sha256"]
-                 for row in visual_manifest}
+    manifests: dict[tuple[str, str], str] = {}
+    for index, row in enumerate(visual_manifest):
+        if (not isinstance(row, dict)
+                or not isinstance(row.get("source_id"), str)
+                or not isinstance(row.get("location"), str)
+                or not isinstance(row.get("preview_sha256"), str)
+                or len(row["preview_sha256"]) != 64
+                or any(char not in "0123456789abcdef" for char in row["preview_sha256"])):
+            raise DocumentError("REVIEW_STALE", "Malformed runtime visual citation manifest",
+                diagnostic={"stage": "SOURCE_ADJUDICATION_VALIDATION",
+                    "schema_path": f"$.visual_manifest[{index}]",
+                    "validation_code": "VISUAL_BINDING_INVALID",
+                    "error_category": "SOURCE_BINDING"})
+        key = (row["source_id"], row["location"])
+        if key in manifests:
+            raise DocumentError("REVIEW_STALE", "Duplicate runtime visual citation binding",
+                diagnostic={"stage": "SOURCE_ADJUDICATION_VALIDATION",
+                    "schema_path": f"$.visual_manifest[{index}]",
+                    "validation_code": "VISUAL_BINDING_DUPLICATE",
+                    "error_category": "SOURCE_BINDING"})
+        manifests[key] = row["preview_sha256"]
     if not isinstance(bound, dict) or not isinstance(bound.get("decisions"), list):
         return bound
     parents = {"PRIMARY": {item.source_id: item for item in primary},
                "CHALLENGER": {item.source_id: item for item in challenger}}
     for decision in bound["decisions"]:
-        if isinstance(decision, dict) and isinstance(decision.get("candidate_selections"), list):
+        if (isinstance(decision, dict) and decision.get("selection") != "ASSEMBLE"
+                and isinstance(decision.get("candidate_selections"), list)):
+            # Candidate dispositions have no effect unless ASSEMBLE is the
+            # selected operation. Do not let a model-required-looking but
+            # semantically inapplicable list invalidate an otherwise explicit
+            # PRIMARY/CHALLENGER/UNRESOLVED choice.
+            decision.pop("candidate_selections")
+        if (isinstance(decision, dict) and decision.get("selection") == "ASSEMBLE"
+                and isinstance(decision.get("candidate_selections"), list)):
             for index, row in enumerate(decision["candidate_selections"]):
                 if not isinstance(row, dict) or "reader" not in row:
                     continue  # Legacy durable receipt; full validator still checks it.
@@ -135,6 +186,9 @@ def bind_model_citations(raw: dict[str, Any], visual_manifest: list[dict[str, An
             if not isinstance(citation, dict):
                 continue
             source, location = citation.get("source_id"), citation.get("location")
+            if source is None and focused_source_id is not None:
+                source = focused_source_id
+                citation["source_id"] = source
             if focused_source_id is not None and source != focused_source_id:
                 raise DocumentError("SOURCE_LOCATION_INVALID", "Foreign citation in source-local adjudication",
                     diagnostic={"stage": "SOURCE_ADJUDICATION_VALIDATION",
@@ -142,7 +196,9 @@ def bind_model_citations(raw: dict[str, Any], visual_manifest: list[dict[str, An
                         "validation_code": "FOREIGN_SOURCE_CITATION", "error_category": "SOURCE_BINDING"})
             if not isinstance(source, str) or not isinstance(location, str):
                 continue
-            # Legacy callers may supply a hash, but it is never silently replaced.
+            # Hashes omitted by the model are bound from the invocation's
+            # current render manifest. A supplied value is retained so the
+            # validator can reject stale or fabricated bindings.
             citation.setdefault("preview_sha256", manifests.get((source, location), ""))
     return bound
 
@@ -742,12 +798,7 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
             raise DocumentError("RESOURCE_LIMIT", "Adjudication visual-page budget exceeded")
         schema = temp / "response_schema.json"
         output = temp / "model_response.json"
-        schema_body = json.loads(json.dumps(_MODEL_SCHEMA))
-        citation_schema = schema_body["properties"]["decisions"]["items"]["properties"]["citations"]["items"]
-        citation_schema["required"].remove("preview_sha256")
-        citation_schema["required"].remove("source_id")
-        del citation_schema["properties"]["source_id"]
-        del citation_schema["properties"]["preview_sha256"]
+        schema_body = _model_response_schema(_MODEL_SCHEMA)
         reference = schema_body["properties"]["decisions"]["items"]["properties"]["candidate_selections"]["items"]
         reference["required"] = ["reader", "candidate_index", "decision", "entity_id"]
         del reference["properties"]["extraction_sha256"]
@@ -781,7 +832,9 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         item_schema["required"].remove("source_id")
         del item_schema["properties"]["source_id"]
         schema_body = item_schema
-        prompt = "Return one decision object, without source_id or a decisions wrapper; Python binds the focused source. " + prompt
+        prompt = ("Return one decision object, without source_id or a decisions wrapper; Python binds the "
+                  "focused source. In each citation, provide only the listed location and exact quote; Python "
+                  "binds source_id and preview_sha256 from the focused source and current render manifest. " + prompt)
         schema.write_text(json.dumps(schema_body), encoding="utf-8")
         command = ["codex", "exec", "--ephemeral", "--skip-git-repo-check", "--sandbox", "read-only",
                    "--cd", str(temp), "--model", model, "--config", "model_reasoning_effort=low",
@@ -789,7 +842,12 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         for image in images:
             command.extend(["--image", str(image)])
         if visual_manifest:
-            prompt += "\nATTACHED_ORIGINAL_VISUALS=" + json.dumps(visual_manifest)
+            # Give the model only the page-to-attachment map needed to describe
+            # what it inspected. Source identity and pixel hashes remain private
+            # runtime metadata and are bound after the response.
+            prompt += "\nATTACHED_ORIGINAL_VISUALS=" + json.dumps([
+                {"location": row["location"], "attached_image_index": row["attached_image_index"]}
+                for row in visual_manifest])
         command.append("-")
         for attempt in range(2):
             invocation_id = str(uuid.uuid4())

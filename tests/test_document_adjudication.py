@@ -75,7 +75,10 @@ def _local_model_answer(raw):
     """New model protocol sees one source; legacy receipt tests keep context citations."""
     result = deepcopy(raw)
     for row in result["decisions"]:
-        row["citations"] = [c for c in row["citations"] if c["source_id"] == row["source_id"]]
+        source_id = row.get("source_id")
+        if source_id is not None:
+            row["citations"] = [c for c in row["citations"]
+                                if c.get("source_id", source_id) == source_id]
     return result
 
 
@@ -255,11 +258,18 @@ def test_adjudication_runtime_failure_is_classified_and_sanitized(tmp_path, monk
     assert "PRIVATE_SOURCE_MARKER" not in diagnostic_path.read_text()
 
 
-def test_adjudication_response_schema_requires_every_declared_decision_field():
-    from againward.documents.adjudication import _MODEL_SCHEMA
+def test_adjudication_response_schema_separates_runtime_owned_citation_bindings():
+    from againward.documents.adjudication import _MODEL_SCHEMA, _model_response_schema
     decision = _MODEL_SCHEMA["properties"]["decisions"]["items"]
-    assert set(decision["required"]) == set(decision["properties"])
+    assert set(decision["required"]) == set(decision["properties"]) - {"candidate_selections"}
     assert "observations" in decision["required"]
+    citation = decision["properties"]["citations"]["items"]
+    assert {"source_id", "preview_sha256"} <= set(citation["required"])
+
+    model_decision = _model_response_schema(_MODEL_SCHEMA)["properties"]["decisions"]["items"]
+    model_citation = model_decision["properties"]["citations"]["items"]
+    assert not ({"source_id", "preview_sha256"} & set(model_citation["properties"]))
+    assert not ({"source_id", "preview_sha256"} & set(model_citation["required"]))
 
 
 def test_adjudication_schema_failure_has_safe_exact_path_diagnostic(tmp_path, monkeypatch):
@@ -635,18 +645,29 @@ def test_adjudicator_structural_pixel_observation_gets_one_bounded_repair(tmp_pa
 
 
 def test_live_interface_binds_hashes_and_preserves_semantic_guidance(tmp_path, monkeypatch):
+    import subprocess
     root, batch, primary, challenger, qa, raw, _ = _case(tmp_path)
     model_raw = deepcopy(raw)
     for decision in model_raw["decisions"]:
-        decision["candidate_selections"] = []
+        decision.pop("candidate_selections", None)
+        focused_source = decision["source_id"]
+        decision["citations"] = [citation for citation in decision["citations"]
+                                  if citation.get("source_id") == focused_source]
+        decision.pop("source_id")
         for citation in decision["citations"]:
             citation.pop("preview_sha256")
+            citation.pop("source_id")
+    original_run = subprocess.run
 
-    def fake_codex(command, *, input, **kwargs):
+    def fake_codex(command, **kwargs):
+        if "input" not in kwargs:
+            return original_run(command, **kwargs)
+        input = kwargs["input"]
         schema = json.loads(Path(command[command.index("--output-schema") + 1]).read_text())
         fields = schema["properties"]
         assert "source_id" not in fields
         assert "preview_sha256" not in fields["citations"]["items"]["properties"]
+        assert "candidate_selections" not in schema["required"]
         assert set(fields["candidate_selections"]["items"]["required"]) == {
             "reader", "candidate_index", "decision", "entity_id"}
         assert '"semantic_guidance": "Shared domain semantics"' in input
@@ -659,3 +680,30 @@ def test_live_interface_binds_hashes_and_preserves_semantic_guidance(tmp_path, m
     assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"
     assert result["facts_approved"] == 0
     assert all(c["source_span"] for c in result["decisions"][0]["citations"])
+
+
+def test_native_citation_binds_runtime_identity_without_model_preview_hash(tmp_path):
+    from againward.documents.adjudication import bind_model_citations
+    root, batch, primary, challenger, qa, _raw, email = _case(tmp_path)
+    model_response = {"decisions": [{"source_id": email.source_id, "selection": "PRIMARY",
+        "rationale": "Exact native source supports the selected proposal.", "observations": [],
+        "citations": [{"location": "line:1", "quote": "This email is not proof of physical return."}]}]}
+    bound = bind_model_citations(model_response, [], focused_source_id=email.source_id)
+    citation = bound["decisions"][0]["citations"][0]
+    assert citation["source_id"] == email.source_id
+    assert citation["preview_sha256"] == ""
+    result = validate_adjudication(batch, primary, challenger, qa, bound, root)
+    assert result["decisions"][0]["citations"][0]["source_span"]
+
+
+def test_nonassembly_selection_discards_inapplicable_candidate_dispositions(tmp_path):
+    from againward.documents.adjudication import bind_model_citations
+    root, batch, primary, challenger, qa, raw, _email = _case(tmp_path)
+    raw["decisions"][0]["selection"] = "CHALLENGER"
+    raw["decisions"][0]["candidate_selections"] = [
+        {"reader": "CHALLENGER", "candidate_index": 1, "decision": "INCLUDE", "entity_id": "scope"},
+    ]
+    bound = bind_model_citations(raw, [], primary=primary, challenger=challenger)
+    assert "candidate_selections" not in bound["decisions"][0]
+    result = validate_adjudication(batch, primary, challenger, qa, bound, root)
+    assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"

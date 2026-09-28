@@ -3,12 +3,16 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import replace
+import json
 from pathlib import Path
+import subprocess
+from types import SimpleNamespace
 
 import pytest
 
 from againward.core.artifact_store import write_json
-from againward.documents.adjudication import validate_adjudication, verify_adjudication_pixels
+from againward.documents.adjudication import (adjudicate_with_codex, bind_model_citations,
+    validate_adjudication, verify_adjudication_pixels)
 from againward.documents.analyst_review import build_analyst_review
 from againward.documents.codex_provider import assemble_proposal, bind_visual_pages, prompt_version_for_guidance
 from againward.documents.contracts import DocumentError
@@ -107,6 +111,87 @@ def test_visual_only_disagreement_routes_to_original_pixel_adjudication(tmp_path
     assert result["selected_extractions"][visual_doc.source_id] == selected.to_dict()["extraction_sha256"]
     assert result["decisions"][0]["citations"][0]["verification_method"] == "MULTIMODAL_ORIGINAL_PIXELS"
     assert result["facts_approved"] == 0 and result["delivery_approved"] is False
+
+
+def test_live_visual_adjudication_binds_omitted_preview_hash_from_current_manifest(tmp_path, monkeypatch):
+    root, batch, visual_doc, primary, challenger, qa, full = _case(tmp_path)
+    decision = deepcopy(full["decisions"][0])
+    expected_preview = decision["citations"][0]["preview_sha256"]
+    decision.pop("source_id")
+    decision["candidate_selections"] = []
+    decision["native_observations"] = []
+    for citation in decision["citations"]:
+        citation.pop("source_id")
+        citation.pop("preview_sha256")
+    prompts = []
+    original_run = subprocess.run
+
+    def fake_codex(command, **kwargs):
+        if "input" not in kwargs:
+            return original_run(command, **kwargs)
+        input = kwargs["input"]
+        prompts.append(input)
+        schema = json.loads(Path(command[command.index("--output-schema") + 1]).read_text())
+        assert "source_id" not in schema["properties"]
+        assert "source_id" not in schema["properties"]["citations"]["items"]["properties"]
+        assert "preview_sha256" not in schema["properties"]["citations"]["items"]["properties"]
+        assert expected_preview not in input
+        attached = json.loads(input.rsplit("\nATTACHED_ORIGINAL_VISUALS=", 1)[1])
+        assert attached == [{"location": citation["location"], "attached_image_index": 1}
+                            for citation in full["decisions"][0]["citations"][:1]]
+        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(decision))
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)
+    result = adjudicate_with_codex(batch, primary, challenger, qa, root, model="synthetic-model")
+    assert len(prompts) == 1
+    citation = result["decisions"][0]["citations"][0]
+    assert citation["source_id"] == visual_doc.source_id
+    assert citation["preview_sha256"] == full["decisions"][0]["citations"][0]["preview_sha256"]
+    assert citation["verification_method"] == "MULTIMODAL_ORIGINAL_PIXELS"
+    assert result["facts_approved"] == 0
+    verify_adjudication_pixels(batch, result, root)
+
+
+def test_runtime_citation_binding_rejects_foreign_stale_and_malformed_visual_evidence(tmp_path):
+    root, batch, visual_doc, primary, challenger, qa, full = _case(tmp_path)
+    raw = deepcopy(full)
+    citation = raw["decisions"][0]["citations"][0]
+    expected_preview = citation.pop("preview_sha256")
+    foreign = next(doc for doc in batch.documents if doc.source_id != visual_doc.source_id)
+    foreign_raw = deepcopy(raw)
+    foreign_raw["decisions"][0]["citations"][0]["source_id"] = foreign.source_id
+    with pytest.raises(DocumentError, match="SOURCE_LOCATION_INVALID"):
+        bind_model_citations(foreign_raw, [], focused_source_id=visual_doc.source_id,
+                             primary=primary, challenger=challenger)
+
+    wrong_manifest = [{"source_id": visual_doc.source_id, "location": citation["location"],
+                       "preview_sha256": "0" * 64}]
+    bound_stale = bind_model_citations(raw, wrong_manifest, primary=primary, challenger=challenger,
+                                       focused_source_id=visual_doc.source_id)
+    with pytest.raises(DocumentError, match="REVIEW_STALE"):
+        validate_adjudication(batch, primary, challenger, qa, bound_stale, root)
+
+    bad_manifest = [{"source_id": visual_doc.source_id, "location": citation["location"],
+                     "preview_sha256": "not-a-hash"}]
+    with pytest.raises(DocumentError, match="REVIEW_STALE"):
+        bind_model_citations(raw, bad_manifest, focused_source_id=visual_doc.source_id)
+
+    unknown_location = deepcopy(raw)
+    unknown_location["decisions"][0]["citations"][0]["location"] = "page:99"
+    bound_unknown = bind_model_citations(unknown_location, [], focused_source_id=visual_doc.source_id)
+    with pytest.raises(DocumentError, match="SOURCE_LOCATION_INVALID"):
+        validate_adjudication(batch, primary, challenger, qa, bound_unknown, root)
+
+    # A fully correct manifest is still tied to current pixels, not a model
+    # supplied value or a cached prior rendering.
+    current_manifest = [{"source_id": visual_doc.source_id,
+                         "location": citation["location"], "preview_sha256": expected_preview}]
+    bound = bind_model_citations(raw, current_manifest, focused_source_id=visual_doc.source_id)
+    assert bound["decisions"][0]["citations"][0]["preview_sha256"] == expected_preview
+    (root / visual_doc.blob_path).write_bytes(b"mutated original pixels")
+    with pytest.raises(DocumentError, match="SOURCE_CHANGED"):
+        validate_adjudication(batch, primary, challenger, qa, bound, root)
 
 
 def test_resolved_pixels_can_continue_to_visual_review_as_model_evidence(tmp_path):
