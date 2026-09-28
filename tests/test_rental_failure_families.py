@@ -1,6 +1,7 @@
 """Generic regression cases for Rental failures previously found in live runs."""
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -23,7 +24,7 @@ from againward.domains.rental.source_job import (RENTAL_STRUCTURE_RETRY, _bind_e
 
 def _proposal(tmp_path: Path, content: str, candidates: list[dict], limitations: list[str] | None = None):
     incoming = tmp_path / "incoming"
-    incoming.mkdir()
+    incoming.mkdir(parents=True)
     (incoming / "source.txt").write_text(content)
     root = tmp_path / "documents"
     batch = inventory_sources(incoming, root)
@@ -129,6 +130,113 @@ def test_source_metadata_and_reference_groups_do_not_need_an_invented_entity_kin
         "source-header", "invoice-reference-positive", "invoice-reference-negative"}
     assert all(row["source_id"] == extraction.source_id for row in fragments)
     assert sum(len(row["fact_ids"]) for row in fragments) == 5
+
+
+def test_credit_target_references_are_not_merged_into_credit_entity(tmp_path):
+    from againward.documents.extraction import CanonicalFact
+    from againward.documents.resolution import entities_from_facts, non_entity_reference_groups
+    from againward.domains.rental.entity_contract import (CREDIT_REFERENCE_FIELDS,
+        NON_ENTITY_OBSERVATION_FIELDS)
+
+    content = ("Credit CN-91 EUR 81.00 issued. It references invoice INV-91 line ROW-A "
+               "asset ASSET-A and invoice INV-92 line ROW-B asset ASSET-B.")
+    rows = [
+        {"entity_id": "credit-record", "semantic_type": "entity_kind", "value_type": "ENUM",
+         "value": "CREDIT", "quote": "Credit CN-91"},
+        {"entity_id": "credit-record", "semantic_type": "document_role", "value_type": "ENUM",
+         "value": "CREDIT_NOTE", "quote": "Credit CN-91"},
+        {"entity_id": "credit-record", "semantic_type": "document_status", "value_type": "ENUM",
+         "value": "ISSUED", "quote": "issued"},
+        {"entity_id": "credit-record", "semantic_type": "credit_id", "value_type": "IDENTIFIER",
+         "value": "CN-91", "quote": "CN-91"},
+        {"entity_id": "credit-record", "semantic_type": "currency", "value_type": "CURRENCY",
+         "value": "EUR", "quote": "EUR"},
+        {"entity_id": "credit-record", "semantic_type": "net_amount", "value_type": "DECIMAL",
+         "value": "81.00", "quote": "81.00"},
+        {"entity_id": "credit-record", "semantic_type": "status", "value_type": "ENUM",
+         "value": "ISSUED", "quote": "issued"},
+        {"entity_id": "credit-record", "semantic_type": "invoice_id", "value_type": "IDENTIFIER",
+         "value": "INV-91", "quote": "INV-91"},
+        {"entity_id": "credit-record", "semantic_type": "invoice_id", "value_type": "IDENTIFIER",
+         "value": "INV-92", "quote": "INV-92"},
+        {"entity_id": "credit-record", "semantic_type": "invoice_line_id", "value_type": "IDENTIFIER",
+         "value": "ROW-A", "quote": "ROW-A"},
+        {"entity_id": "credit-record", "semantic_type": "invoice_line_id", "value_type": "IDENTIFIER",
+         "value": "ROW-B", "quote": "ROW-B"},
+        {"entity_id": "credit-record", "semantic_type": "asset_id", "value_type": "IDENTIFIER",
+         "value": "ASSET-A", "quote": "ASSET-A"},
+        {"entity_id": "credit-record", "semantic_type": "asset_id", "value_type": "IDENTIFIER",
+         "value": "ASSET-B", "quote": "ASSET-B"},
+    ]
+    extraction = _proposal(tmp_path, content, rows)
+    validate_rental_extraction(extraction, require_package_facts=True)
+    facts = tuple(CanonicalFact(f"fact-{index}", candidate, "extraction-hash",
+                                "review-hash", "source fact review")
+                  for index, candidate in enumerate(extraction.candidates))
+    references = {"CREDIT": CREDIT_REFERENCE_FIELDS}
+    entities = entities_from_facts(facts, non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS,
+                                   reference_fields_by_kind=references)
+    credit, = entities
+    assert credit.kind == "CREDIT"
+    assert {"invoice_id", "invoice_line_id", "asset_id"}.isdisjoint(credit.values)
+    fragments = non_entity_reference_groups(
+        facts, non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS,
+        reference_fields_by_kind=references)
+    target_fragments = [row for row in fragments if row["record_type"] == "SOURCE_REFERENCE_FRAGMENT"]
+    assert len(target_fragments) == 6
+    assert len({row["local_id"] for row in target_fragments}) == 6
+    assert all(row["source_id"] == extraction.source_id and len(row["fact_ids"]) == 1
+               for row in target_fragments)
+
+    negative_fact_ids = {fact.fact_id for fact in facts
+        if fact.candidate.value in {"INV-92", "ROW-B", "ASSET-B"}}
+    excluded = tuple(replace(fact, candidate=replace(fact.candidate,
+        ambiguity_flags=("excluded_target",))) if fact.fact_id in negative_fact_ids else fact
+        for fact in facts)
+    positive_credit, = entities_from_facts(excluded,
+        non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS,
+        reference_fields_by_kind=references)
+    assert {field: positive_credit.values[field] for field in CREDIT_REFERENCE_FIELDS} == {
+        "invoice_id": "INV-91", "invoice_line_id": "ROW-A", "asset_id": "ASSET-A"}
+
+
+def test_same_field_conflict_remains_structural_error_for_invoice_entity(tmp_path):
+    content = "Invoice line INV-91 Issued; corrected invoice INV-92."
+    rows = _fields("line") + [
+        {"entity_id": "line", "semantic_type": "invoice_id", "value_type": "IDENTIFIER",
+         "value": "INV-91", "quote": "INV-91"},
+        {"entity_id": "line", "semantic_type": "invoice_id", "value_type": "IDENTIFIER",
+         "value": "INV-92", "quote": "INV-92"},
+    ]
+    extraction = _proposal(tmp_path, content, rows)
+    with pytest.raises(DocumentError) as caught:
+        validate_rental_extraction(extraction)
+    assert caught.value.code == "EXTRACTION_CONTRADICTION"
+    assert caught.value.diagnostic["validation_code"] == "STRUCTURAL_METADATA_CONFLICT"
+    assert caught.value.diagnostic["conflicting_semantic_types"] == ["invoice_id"]
+
+
+def test_untyped_reference_group_needs_invoice_anchor_but_asset_alone_still_stops(tmp_path):
+    content = "Invoice line INV-91 Issued; line ROW-A concerns asset ASSET-91."
+    rows = _fields("header") + [
+        {"entity_id": "references", "semantic_type": "invoice_id", "value_type": "IDENTIFIER",
+         "value": "INV-91", "quote": "INV-91"},
+        {"entity_id": "references", "semantic_type": "invoice_line_id", "value_type": "IDENTIFIER",
+         "value": "ROW-A", "quote": "ROW-A"},
+        {"entity_id": "references", "semantic_type": "asset_id", "value_type": "IDENTIFIER",
+         "value": "ASSET-91", "quote": "ASSET-91"},
+    ]
+    extraction = _proposal(tmp_path, content, rows)
+    validate_rental_extraction(extraction)
+
+    other = tmp_path / "asset-only"
+    asset_only = _proposal(other, "Invoice line Issued. Asset ASSET-91.", _fields("header") + [
+        {"entity_id": "reference", "semantic_type": "asset_id", "value_type": "IDENTIFIER",
+         "value": "ASSET-91", "quote": "ASSET-91"},
+    ])
+    with pytest.raises(DocumentError) as caught:
+        validate_rental_extraction(asset_only)
+    assert caught.value.diagnostic["missing_structural_fields"] == ["entity_kind"]
 
 
 @pytest.mark.parametrize("fields", [

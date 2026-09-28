@@ -31,7 +31,7 @@ def supported(request, value='RENTAL'):
 
 
 def test_cross_source_classification_keeps_both_provenances_and_requires_review(tmp_path):
-    source, package = packet(tmp_path, omit_invoice_fields={'charge_type'})
+    source, package = packet(tmp_path, omit_invoice_fields={'charge_type', 'supplier_id'})
     batch, extractions, entities = reviewed(package, source.parent)
     requests = classification_plan(entities, extractions)
     assert len(requests) == 1
@@ -107,9 +107,10 @@ def test_scope_review_binds_current_evidence_and_requires_local_premise(tmp_path
 
 
 def test_independent_scope_calls_do_not_see_other_answer(tmp_path, monkeypatch):
-    source, package = packet(tmp_path, omit_invoice_fields={'charge_type'})
+    source, package = packet(tmp_path, omit_invoice_fields={'charge_type', 'supplier_id'})
     batch, es, entities = reviewed(package, source.parent)
     request, = classification_plan(entities, es)
+    assert len({fact['candidate']['source_id'] for fact in request['facts']}) == 2
     prompts = []
     def ask(prompt, images, **kwargs):
         assert 'secret-first-answer' not in prompt
@@ -242,6 +243,21 @@ def test_conflicting_entity_identifiers_do_not_supply_cross_source_proof(tmp_pat
     request, = classification_plan(revised, es)
     assert not request['relationships']
     assert {f['candidate']['source_id'] for f in request['facts']} == {request['source_id']}
+
+
+def test_ambiguous_exact_scope_matches_do_not_supply_cross_source_classification(tmp_path):
+    source, package = packet(tmp_path, omit_invoice_fields={'charge_type', 'supplier_id'})
+    _, extractions, entities = reviewed(package, source.parent)
+    contract = next(entity for entity in entities if entity.kind == 'RENTAL_SCOPE')
+    second = replace(contract, entity_id=contract.entity_id + '-second', local_id='second-scope',
+        facts=tuple(replace(fact, fact_id=fact.fact_id + '-second', candidate=replace(
+            fact.candidate, candidate_id=fact.candidate.candidate_id + '-second',
+            entity_id='second-scope')) for fact in contract.facts))
+    requests = classification_plan((*entities, second), extractions)
+    invoice_request = next(request for request in requests if request['entity_kind'] == 'INVOICE_LINE')
+    assert not invoice_request['relationships']
+    assert {fact['candidate']['source_id'] for fact in invoice_request['facts']} == {
+        invoice_request['source_id']}
 
 
 def test_distinct_quantity_bases_use_explicit_quantities_without_changing_rate():

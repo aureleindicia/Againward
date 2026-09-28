@@ -17,7 +17,8 @@ from againward.documents.sources import verify_batch
 from againward.documents.readers import read_document
 from againward.documents.codex_provider import _images
 from againward.evidence.hashing import stable_hash
-from .entity_contract import CHARGE_TYPES, ENUM_ALIASES, NON_ENTITY_OBSERVATION_FIELDS
+from .entity_contract import (CHARGE_TYPES, CREDIT_REFERENCE_FIELDS, ENUM_ALIASES,
+    NON_ENTITY_OBSERVATION_FIELDS)
 from .autonomous_review import _ask
 
 VERSION = "rental-package-scope-review-v1"
@@ -187,7 +188,8 @@ def review_package_scope(batch, extractions, fact_review, root: Path, *, model: 
     extractions = tuple(replay_extraction(e.to_dict(), batch, root) for e in extractions)
     entities = entities_from_facts(
         promote_facts(extractions, fact_review, batch, root),
-        non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS)
+        non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS,
+        reference_fields_by_kind={"CREDIT": CREDIT_REFERENCE_FIELDS})
     requests = classification_plan(entities, extractions)
     answers = []
     for request in requests:

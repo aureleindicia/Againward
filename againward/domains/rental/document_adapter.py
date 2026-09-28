@@ -22,7 +22,8 @@ from againward.documents.resolution import (
 from againward.evidence.hashing import stable_hash
 from .semantic_guidance import STRUCTURE_RETRY_INSTRUCTIONS, guidance, visual_guidance
 from .entity_contract import (ANALYTICAL_FIELDS, DOCUMENT_ROLES, DOCUMENT_STATUSES,
-    NON_ENTITY_OBSERVATION_FIELDS, PACKAGE_SOURCE_REQUIRED, structural_gaps)
+    CREDIT_REFERENCE_FIELDS, NON_ENTITY_OBSERVATION_FIELDS, PACKAGE_SOURCE_REQUIRED,
+    structural_gaps)
 from .models import RentalCase, decimal_value
 
 DOCUMENT_CASE_SCHEMA = "againward-rental-document-case-v1"
@@ -37,9 +38,10 @@ RENTAL_MATCH = MatchPolicy(
     required_scope_keys=("supplier_id",),
     exclusive_left_kinds=("INVOICE_LINE", "RETURN", "RATE_AMENDMENT"),
     prefix_blocking_keys=("agreement_id",),
-    # A signed return often omits the supplier. Exact agreement+asset/serial
-    # may still identify one scope; invoices/amendments still need supplier.
-    scope_optional_left_kinds=("RETURN",),
+    # A signed return or invoice may omit supplier identity. Exact
+    # agreement+asset/serial remains mandatory, contradictory supplied IDs
+    # still reject the edge, and multiple plausible scopes remain ambiguous.
+    scope_optional_left_kinds=("RETURN", "INVOICE_LINE"),
 )
 CREDIT_MATCH = MatchPolicy(
     "CREDIT_FOR", (("CREDIT", "INVOICE_LINE"),),
@@ -184,9 +186,12 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
             diagnostic={"stage": "DOCUMENT_PACKAGE_VALIDATION", "schema_path": "$.fact_review.decisions",
                         "validation_code": "REVIEWED_AUTHORITY_INCOMPLETE", "error_category": "REVIEW_REQUIRED",
                         "structural_gap_count": len(gaps), "source_id": gaps[0]["source_id"]})
-    entities = entities_from_facts(facts, non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS)
+    reference_fields_by_kind = {"CREDIT": CREDIT_REFERENCE_FIELDS}
+    entities = entities_from_facts(facts, non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS,
+                                   reference_fields_by_kind=reference_fields_by_kind)
     source_reference_fragments = non_entity_reference_groups(
-        facts, non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS)
+        facts, non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS,
+        reference_fields_by_kind=reference_fields_by_kind)
     if any(e.kind not in {"RENTAL_SCOPE", "INVOICE_LINE", "RETURN", "RATE_AMENDMENT",
                           "CREDIT", "SUPPORTING_DOCUMENT", "IRRELEVANT"} for e in entities):
         raise DocumentError("EXTRACTION_INCOMPLETE", "Unsupported material entity kind")

@@ -49,8 +49,13 @@ DOCUMENT_ENVELOPE_FIELDS = frozenset({"document_role", "document_status", "invoi
 # note). They remain source-bound observations and are retained in lineage, but
 # must not be assigned a guessed entity_kind just to satisfy entity validation.
 NON_ENTITY_OBSERVATION_FIELDS = frozenset({
-    "document_role", "document_status", "invoice_id", "invoice_line_id",
+    "document_role", "document_status", "invoice_id", "invoice_line_id", "asset_id",
 })
+
+# These identifiers describe the target of a credit, rather than attributes of
+# the credit instrument itself. Keep them as independently source-bound
+# references; a model-local entity label does not turn them into credit fields.
+CREDIT_REFERENCE_FIELDS = frozenset({"invoice_id", "invoice_line_id", "asset_id"})
 
 
 def is_non_entity_observation(fields: Iterable[str]) -> bool:
@@ -61,7 +66,14 @@ def is_non_entity_observation(fields: Iterable[str]) -> bool:
     entity kind.
     """
     values = set(fields)
-    return bool(values) and values <= NON_ENTITY_OBSERVATION_FIELDS
+    if not values or not values <= NON_ENTITY_OBSERVATION_FIELDS:
+        return False
+    # An asset identifier alone can describe a business-bearing rental entity.
+    # Only an explicit invoice target makes this narrow group a reference.
+    references = values & CREDIT_REFERENCE_FIELDS
+    if references:
+        return bool(references & {"invoice_id", "invoice_line_id"})
+    return values <= {"document_role", "document_status"}
 
 # Intrinsic source observations required before source selection/fact review.
 # Charge meaning can instead be established by an explicit package-scope review;

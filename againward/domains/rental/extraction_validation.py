@@ -8,7 +8,7 @@ from againward.documents.extraction import DocumentExtraction, contradictory_sou
 
 from .entity_contract import (COMPLETENESS_TRIGGER_FIELDS, ENTITY_KINDS,
     DOCUMENT_ROLES, DOCUMENT_STATUSES, PACKAGE_SOURCE_REQUIRED,
-    is_non_entity_observation)
+    CREDIT_REFERENCE_FIELDS, is_non_entity_observation)
 
 
 def validate_rental_extraction(extraction: DocumentExtraction, *,
@@ -33,6 +33,12 @@ def validate_rental_extraction(extraction: DocumentExtraction, *,
     within_entity_conflicts = 0
     within_entity_conflicting_fields: set[str] = set()
     for entity_id, fields in sorted(by_entity.items()):
+        kinds = fields.get("entity_kind", set())
+        # A credit may cite several invoice/line/asset targets. These are
+        # relationship references, not mutually exclusive values of the
+        # credit's own identity. They are preserved separately for downstream
+        # relationship handling; all intrinsic fields remain conflict checked.
+        reference_fields = CREDIT_REFERENCE_FIELDS if kinds == {"CREDIT"} else frozenset()
         for field, allowed in (
             ("entity_kind", ENTITY_KINDS),
             ("document_role", DOCUMENT_ROLES),
@@ -43,10 +49,9 @@ def validate_rental_extraction(extraction: DocumentExtraction, *,
                 if value not in allowed:
                     invalid.append({"entity_id": entity_id, "field": field})
         for field, values in fields.items():
-            if len(values) > 1:
+            if len(values) > 1 and field not in reference_fields:
                 within_entity_conflicts += 1
                 within_entity_conflicting_fields.add(field)
-        kinds = fields.get("entity_kind", set())
         if not kinds and not is_non_entity_observation(fields):
             entity_kind_gaps.append(entity_id)
         for field in source_values:

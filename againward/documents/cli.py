@@ -288,11 +288,13 @@ def main(argv: list[str] | None = None) -> int:
                 from .resolution import entities_from_facts, resolve_entities, RelationshipState
                 from .review_template import relationship_review_template
                 from againward.domains.rental.document_adapter import RENTAL_MATCH, CREDIT_MATCH
+                from againward.domains.rental.entity_contract import CREDIT_REFERENCE_FIELDS
                 assert_document_action(args.root, mutation=True)
                 extractions = tuple(replay_extraction(_load(path, args.root), batch, args.root)
                                     for path in args.extractions)
                 facts = promote_facts(extractions, _load(args.fact_review, args.root), batch, args.root)
-                entities = entities_from_facts(facts)
+                entities = entities_from_facts(
+                    facts, reference_fields_by_kind={"CREDIT": CREDIT_REFERENCE_FIELDS})
                 views = []
                 planned = []
                 for policy in (RENTAL_MATCH, CREDIT_MATCH):

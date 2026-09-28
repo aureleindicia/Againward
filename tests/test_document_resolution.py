@@ -105,7 +105,8 @@ def test_rental_return_without_supplier_links_only_on_unique_exact_anchors():
     invoice_without_supplier = facts("invoice-sparse", entity_kind="INVOICE_LINE",
                                      agreement_id="A-7", serial_number="SN-5")
     invoice_match = resolve_entities(entities_from_facts((*contract, *invoice_without_supplier)), RENTAL_MATCH)
-    assert invoice_match.relationships[0].state == RelationshipState.CANDIDATE
+    assert invoice_match.relationships[0].state == RelationshipState.CONFIRMED
+    assert invoice_match.relationships[0].support == ("agreement_id", "serial_number")
 
 
 def test_two_plausible_rentals_abstain_and_do_not_raise_grade_with_more_evidence():
