@@ -63,7 +63,10 @@ def test_two_matching_omissions_of_required_invoice_fact_trigger_adjudication(tm
     row = body["source_results"][0]
     assert body["status"] == "RECONCILIATION_REQUIRED"
     assert row["material_needs_reconciliation"] is True
-    assert "charge_type" in row["primary_source_fact_gaps"]["line-A"]
+    assert set(row["primary_source_fact_gaps"]["line-A"]) == {"currency", "invoice_id"}
+    # Charge meaning may be proved by reviewed package relations; intrinsic
+    # source omissions must still force reconciliation even when readers agree.
+    assert "charge_type" not in row["primary_source_fact_gaps"]["line-A"]
     assert row["challenger_source_fact_gaps"] == row["primary_source_fact_gaps"]
 
 

@@ -262,6 +262,31 @@ def test_distinct_quantity_bases_use_explicit_quantities_without_changing_rate()
     assert entry['amount'] is None and 'scope_rate_quantity_conflict' in entry['limitations']
 
 
+@pytest.mark.parametrize('basis', ['PER_ITEM', 'PER_SCOPE'])
+def test_percentage_cannot_silently_discard_explicit_quantity_basis(basis):
+    from tests.rental_fixtures import rental_packet
+    from tests.test_rental_pricing import expected
+    body = rental_packet()
+    body['terms'].append({**body['terms'][0], 'term_id': 'fee', 'charge_key': 'fee',
+        'charge_type': 'DAMAGE_WAIVER', 'billing_unit': 'PERCENT', 'rate': '8',
+        'percentage_of': 'hire', 'quantity_basis': basis})
+    fee = next(e for e in expected(body) if e['charge_key'] == 'fee')
+    assert fee['amount'] is None
+    assert 'percentage_quantity_basis_requires_review' in fee['limitations']
+
+
+def test_partial_return_cannot_convert_scope_rate_to_per_item_rate():
+    from tests.rental_fixtures import rental_packet
+    from tests.test_rental_pricing import expected, add_return
+    body = rental_packet()
+    body['periods'][0]['quantity'] = '3'
+    body['terms'][0].update(billing_unit='DAY', quantity_basis='PER_SCOPE', quantity='1')
+    add_return(body, quantity='1')
+    entry = expected(body)[0]
+    assert entry['amount'] is None
+    assert 'scope_rate_daily_segments_requires_review' in entry['limitations']
+
+
 def test_controlled_internal_value_error_persists_sanitized_stage(tmp_path, monkeypatch):
     from againward.core.workspace import create_client_workspace
     from againward.domains.rental.source_job import run_approved_sources_job

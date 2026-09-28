@@ -203,6 +203,9 @@ def build_expected_ledger(case: RentalCase) -> dict:
         if timeline["contradictions"] or timeline["limitations"]:
             continue
         if term.billing_unit == "PERCENT":
+            if term.quantity_basis is not None:
+                entry["limitations"].append("percentage_quantity_basis_requires_review")
+                continue
             pending_percentages.append((scope, term))
             continue
         units, gaps = billable_units(timeline["start"], timeline["end"], term)
