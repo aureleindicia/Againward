@@ -43,6 +43,26 @@ FIELD_SCOPE = {"charge_type": "ENTITY_OR_REVIEWED_RELATION", "billing_unit": "TE
 TECHNICAL_DERIVATIONS = frozenset({"invoice_line_id", "charge_key"})
 DOCUMENT_ENVELOPE_FIELDS = frozenset({"document_role", "document_status", "invoice_id", "supplier_id"})
 
+# Some source-local observations are not entities. Source role/status live at
+# document scope; identifiers in a group by themselves can be references to
+# entities described elsewhere (for example, an invoice referenced by a credit
+# note). They remain source-bound observations and are retained in lineage, but
+# must not be assigned a guessed entity_kind just to satisfy entity validation.
+NON_ENTITY_OBSERVATION_FIELDS = frozenset({
+    "document_role", "document_status", "invoice_id", "invoice_line_id",
+})
+
+
+def is_non_entity_observation(fields: Iterable[str]) -> bool:
+    """Whether an untyped source-local group contains only metadata/references.
+
+    This does not promote or merge observations. Any commercial datum outside
+    the narrow source-metadata/reference vocabulary still requires an explicit
+    entity kind.
+    """
+    values = set(fields)
+    return bool(values) and values <= NON_ENTITY_OBSERVATION_FIELDS
+
 # Intrinsic source observations required before source selection/fact review.
 # Charge meaning can instead be established by an explicit package-scope review;
 # canonical financial records still require it. Keys are derived after review.
@@ -136,6 +156,10 @@ def structural_gaps(accepted: Iterable[tuple[str, str, str]], *,
         by_source[source_id].add(field)
     gaps: list[dict[str, object]] = []
     for (source_id, entity_id), fields in sorted(by_entity.items()):
+        if "entity_kind" not in fields and is_non_entity_observation(fields):
+            # Keep source metadata and relationship references in the offered /
+            # accepted fact set, but do not misclassify them as an entity.
+            continue
         missing = ({"entity_kind"} - fields)
         if missing:
             # An untyped semantic fragment cannot borrow another entity's

@@ -250,16 +250,20 @@ def test_current_visual_and_structural_retry_prompt_versions_are_package_valid()
 
 
 def test_multientity_source_document_role_and_status_are_not_row_level_defaults():
-    roles, statuses = _source_document_metadata([
-        {"entity_kind": "SUPPORTING_DOCUMENT", "document_role": "PAYMENT_EXPORT",
-         "document_status": "EXTRACTED"},
-        {"entity_kind": "SUPPORTING_DOCUMENT"},
-        {"entity_kind": "SUPPORTING_DOCUMENT"},
-    ])
+    from types import SimpleNamespace
+
+    def facts(**values):
+        return [SimpleNamespace(candidate=SimpleNamespace(semantic_type=key, value=value))
+                for key, value in values.items()]
+
+    roles, statuses = _source_document_metadata(
+        facts(document_role="PAYMENT_EXPORT", document_status="EXTRACTED")
+        + facts(entity_kind="SUPPORTING_DOCUMENT")
+        + facts(entity_kind="SUPPORTING_DOCUMENT"))
     assert roles == {"PAYMENT_EXPORT"}
     assert statuses == {"EXTRACTED"}
-    conflicting_roles, _ = _source_document_metadata([
-        {"document_role": "PAYMENT_EXPORT"}, {"document_role": "INVOICE"}])
+    conflicting_roles, _ = _source_document_metadata(
+        facts(document_role="PAYMENT_EXPORT") + facts(document_role="INVOICE"))
     assert conflicting_roles == {"PAYMENT_EXPORT", "INVOICE"}
 
 

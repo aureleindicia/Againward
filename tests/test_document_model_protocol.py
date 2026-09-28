@@ -33,6 +33,98 @@ def test_unit_aliases_have_identical_canonical_meaning_and_unchanged_evidence(al
     assert normalized['location'] == row['location']
 
 
+@pytest.mark.parametrize('visual', [False, True])
+def test_split_rate_dimensions_are_reconciled_from_their_same_exact_quote(visual):
+    quote = 'per asset per calendar day'
+    group_key = 'entity_hint'
+    rows = [
+        {group_key: 'commercial-term', 'semantic_type': 'billing_unit', 'value': 'DAY',
+         'raw_observed_value': quote, 'visible_text': quote, 'location': 'line:4', 'page': 1},
+        {group_key: 'commercial-term', 'semantic_type': 'quantity_basis', 'value': 'PER_ASSET',
+         'raw_observed_value': quote, 'visible_text': quote, 'location': 'line:4', 'page': 1},
+    ]
+    if visual:
+        raw, parsed = {'observations': rows}, SimpleNamespace(units=[
+            SimpleNamespace(route='VISUAL', location='page:1', text='')])
+        key = 'observations'
+    else:
+        raw, parsed = {'candidates': rows}, SimpleNamespace(units=[
+            SimpleNamespace(route='NATIVE', location='line:4', text=quote)])
+        key = 'candidates'
+    normalized = normalize_read(raw, parsed, rental=True)[key]
+    dimensions = {row['semantic_type']: row['value'] for row in normalized}
+    assert dimensions == {'billing_unit': 'DAY', 'quantity_basis': 'PER_ITEM',
+                          'weekends_billable': True}
+    assert all(row.get('visible_text', row.get('raw_observed_value')) == quote for row in normalized)
+    assert all(row.get('page') == 1 for row in normalized) if visual else all(
+        row.get('location') == 'line:4' for row in normalized)
+
+
+def test_rate_dimension_quote_conflict_is_not_repaired_to_a_supported_basis():
+    parsed = SimpleNamespace(units=[SimpleNamespace(route='NATIVE', location='line:4',
+                                                      text='per asset per calendar day')])
+    raw = {'candidates': [
+        {'entity_hint': 'term', 'semantic_type': 'billing_unit', 'value': 'DAY',
+         'raw_observed_value': 'per asset per calendar day', 'location': 'line:4'},
+        {'entity_hint': 'term', 'semantic_type': 'quantity_basis', 'value': 'PER_SCOPE',
+         'raw_observed_value': 'per asset per calendar day', 'location': 'line:4'},
+    ]}
+    with pytest.raises(DocumentError, match='conflicts with its exact source wording'):
+        normalize_read(raw, parsed, rental=True)
+
+
+def test_composite_value_cannot_override_a_different_supported_source_quote():
+    quote = 'per fleet per calendar day'
+    parsed = SimpleNamespace(units=[SimpleNamespace(route='NATIVE', location='line:8', text=quote)])
+    raw = {'candidates': [{'entity_id': 'term', 'semantic_type': 'billing_unit',
+        'value': 'per item per calendar day', 'raw_observed_value': quote, 'location': 'line:8'}]}
+    with pytest.raises(DocumentError, match='conflicts with its exact source wording'):
+        normalize_read(raw, parsed, rental=True)
+
+
+@pytest.mark.parametrize('visual', [False, True])
+def test_unsupported_calendar_week_convention_fails_closed_even_if_model_decomposes_it(visual):
+    quote = 'per asset per calendar week'
+    rows = [
+        {'entity_hint': 'term', 'semantic_type': 'billing_unit', 'value': 'WEEK',
+         'raw_observed_value': quote, 'visible_text': quote, 'location': 'line:8', 'page': 1},
+        {'entity_hint': 'term', 'semantic_type': 'quantity_basis', 'value': 'PER_ITEM',
+         'raw_observed_value': quote, 'visible_text': quote, 'location': 'line:8', 'page': 1},
+        {'entity_hint': 'term', 'semantic_type': 'weekends_billable', 'value': True,
+         'raw_observed_value': quote, 'visible_text': quote, 'location': 'line:8', 'page': 1},
+    ]
+    key = 'observations' if visual else 'candidates'
+    parsed = SimpleNamespace(units=[SimpleNamespace(
+        route='VISUAL' if visual else 'NATIVE', location='line:8', text=quote)])
+    with pytest.raises(DocumentError, match='unsupported calendar rate convention'):
+        normalize_read({key: rows}, parsed, rental=True)
+
+
+def test_unparsed_per_asset_enum_is_not_a_global_alias():
+    parsed = SimpleNamespace(units=[SimpleNamespace(route='NATIVE', location='line:4', text='per asset')])
+    raw = {'candidates': [{'entity_hint': 'term', 'semantic_type': 'quantity_basis',
+        'value': 'PER_ASSET', 'raw_observed_value': 'per asset', 'location': 'line:4'}]}
+    normalized = normalize_read(raw, parsed, rental=True)['candidates'][0]
+    assert normalized['value'] == 'PER_ASSET'
+
+
+@pytest.mark.parametrize(('field', 'value', 'quote', 'expected'), [
+    ('billing_unit', 'DAY', 'per fleet per calendar day',
+     {'billing_unit': 'DAY', 'quantity_basis': 'PER_SCOPE', 'weekends_billable': True}),
+    ('quantity_basis', 'PER_SCOPE', 'per lot per month',
+     {'billing_unit': 'MONTH', 'quantity_basis': 'PER_SCOPE'}),
+])
+def test_single_rate_observation_recovers_only_dimensions_in_its_exact_quote(
+        field, value, quote, expected):
+    parsed = SimpleNamespace(units=[SimpleNamespace(route='NATIVE', location='line:8', text=quote)])
+    normalized = normalize_read({'candidates': [{
+        'entity_id': 'term', 'semantic_type': field, 'value': value,
+        'raw_observed_value': quote, 'location': 'line:8'}]}, parsed, rental=True)['candidates']
+    assert {row['semantic_type']: row['value'] for row in normalized} == expected
+    assert all(row['raw_observed_value'] == quote and row['location'] == 'line:8'
+               for row in normalized)
+
+
 @pytest.mark.parametrize('alias,canonical', [('credit_memo', 'CREDIT_NOTE'), ('rate-sheet', 'RATE_CARD'),
                                           ('email', 'EMAIL_EVIDENCE'), ('correspondence', 'EMAIL_EVIDENCE')])
 def test_document_role_synonyms_never_infer_acceptance(alias, canonical):

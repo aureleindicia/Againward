@@ -9,6 +9,18 @@ import re
 from typing import Any
 
 QUANTITY_BASES = frozenset({"PER_ITEM", "PER_SCOPE"})
+_UNSUPPORTED_CALENDAR_RATE = re.compile(
+    r"\bper\s+(?:(?:whole\s+)?(?:asset|item|unit|equipment item|fleet|scope|lot)\s+per\s+)?"
+    r"calendar\s+(?:week|month)s?\b")
+
+
+def has_unsupported_calendar_rate_convention(value: Any) -> bool:
+    """Detect explicit calendar-week/month pricing outside the supported model."""
+    if not isinstance(value, str):
+        return False
+    words = re.sub(r"[_-]+", " ", value.strip().lower())
+    words = re.sub(r"\s+", " ", words)
+    return _UNSUPPORTED_CALENDAR_RATE.search(words) is not None
 
 
 def rate_dimensions(value: Any) -> dict[str, Any] | None:

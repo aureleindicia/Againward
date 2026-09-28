@@ -7,7 +7,8 @@ from againward.documents.contracts import DocumentError
 from againward.documents.extraction import DocumentExtraction, contradictory_source_limitations
 
 from .entity_contract import (COMPLETENESS_TRIGGER_FIELDS, ENTITY_KINDS,
-    DOCUMENT_ROLES, DOCUMENT_STATUSES, PACKAGE_SOURCE_REQUIRED)
+    DOCUMENT_ROLES, DOCUMENT_STATUSES, PACKAGE_SOURCE_REQUIRED,
+    is_non_entity_observation)
 
 
 def validate_rental_extraction(extraction: DocumentExtraction, *,
@@ -46,7 +47,7 @@ def validate_rental_extraction(extraction: DocumentExtraction, *,
                 within_entity_conflicts += 1
                 within_entity_conflicting_fields.add(field)
         kinds = fields.get("entity_kind", set())
-        if not kinds:
+        if not kinds and not is_non_entity_observation(fields):
             entity_kind_gaps.append(entity_id)
         for field in source_values:
             values = fields.get(field, set())

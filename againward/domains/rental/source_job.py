@@ -27,7 +27,8 @@ from againward.documents.sources import inventory_sources, safe_file, verify_bat
 from againward.documents.visual_fact_review import MODEL_VISUAL_VERSION, record_model_visual_review, verify_visual_attestations
 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
 from againward.domains.rental.extraction_validation import package_source_gaps, validate_rental_extraction, proposal_issues
-from againward.domains.rental.entity_contract import ANALYTICAL_FIELDS, unique_pixel_entity_for_required_field
+from againward.domains.rental.entity_contract import (ANALYTICAL_FIELDS,
+    NON_ENTITY_OBSERVATION_FIELDS, unique_pixel_entity_for_required_field)
 from againward.domains.rental.semantic_guidance import (STRUCTURE_RETRY_INSTRUCTIONS as RENTAL_STRUCTURE_RETRY,
     guidance, visual_guidance)
 from againward.evidence.hashing import stable_hash
@@ -677,7 +678,9 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
         active_stage = "PACKAGE_SCOPE_REVIEW"
         from .scope_review import classification_plan, review_package_scope
         from againward.documents.resolution import entities_from_facts
-        reviewed_entities = entities_from_facts(promote_facts(selected, review, batch, documents))
+        reviewed_entities = entities_from_facts(
+            promote_facts(selected, review, batch, documents),
+            non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS)
         if classification_plan(reviewed_entities, selected) and "scope_review_receipt" not in state:
             scoped = review_package_scope(batch, selected, review, documents,
                                           model=model, timeout_seconds=timeout_seconds)

@@ -82,6 +82,74 @@ def test_failure_family_entity_structure_is_detected_before_fact_review(tmp_path
     validate_rental_extraction(extraction, allow_incomplete=True)  # QA input only; still unreviewed.
 
 
+def test_source_metadata_and_reference_groups_do_not_need_an_invented_entity_kind(tmp_path):
+    from againward.documents.extraction import CanonicalFact
+    from againward.documents.resolution import entities_from_facts, non_entity_reference_groups
+    from againward.domains.rental.entity_contract import NON_ENTITY_OBSERVATION_FIELDS
+
+    rows = [
+        {"entity_id": "credit-core", "semantic_type": "entity_kind", "value_type": "ENUM",
+         "value": "CREDIT", "quote": "Credit record"},
+        {"entity_id": "credit-core", "semantic_type": "credit_id", "value_type": "IDENTIFIER",
+         "value": "CN-71", "quote": "credit CN-71"},
+        {"entity_id": "credit-core", "semantic_type": "currency", "value_type": "CURRENCY",
+         "value": "EUR", "quote": "EUR"},
+        {"entity_id": "credit-core", "semantic_type": "net_amount", "value_type": "DECIMAL",
+         "value": "81.00", "quote": "81.00"},
+        {"entity_id": "credit-core", "semantic_type": "status", "value_type": "ENUM",
+         "value": "ISSUED", "quote": "Credit state: Issued"},
+        {"entity_id": "source-header", "semantic_type": "document_role", "value_type": "ENUM",
+         "value": "CREDIT_NOTE", "quote": "Credit note"},
+        {"entity_id": "source-header", "semantic_type": "document_status", "value_type": "ENUM",
+         "value": "ISSUED", "quote": "Document status: Issued"},
+        {"entity_id": "invoice-reference-positive", "semantic_type": "invoice_id",
+         "value_type": "IDENTIFIER", "value": "INV-71", "quote": "Invoice INV-71"},
+        {"entity_id": "invoice-reference-positive", "semantic_type": "invoice_line_id",
+         "value_type": "IDENTIFIER", "value": "ROW-A", "quote": "line ROW-A"},
+        {"entity_id": "invoice-reference-negative", "semantic_type": "invoice_id",
+         "value_type": "IDENTIFIER", "value": "INV-72", "quote": "No part applies to INV-72"},
+    ]
+    content = ("Credit record credit CN-71 EUR 81.00. Credit state: Issued. Credit note. "
+               "Document status: Issued. "
+               "Invoice INV-71 line ROW-A. No part applies to INV-72.")
+    extraction = _proposal(tmp_path, content, rows)
+    validate_rental_extraction(extraction, require_package_facts=True)
+    candidates = extraction.candidates
+    accepted = [(candidate.source_id, candidate.entity_id, candidate.semantic_type)
+                for candidate in candidates]
+    assert structural_gaps(accepted, offered=accepted) == []
+
+    facts = tuple(CanonicalFact(f"fact-{index}", candidate, "extraction-hash",
+                                "review-hash", "source fact review")
+                  for index, candidate in enumerate(candidates))
+    entities = entities_from_facts(facts, non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS)
+    assert [(entity.kind, entity.local_id) for entity in entities] == [("CREDIT", "credit-core")]
+    fragments = non_entity_reference_groups(facts, non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS)
+    assert {row["local_id"] for row in fragments} == {
+        "source-header", "invoice-reference-positive", "invoice-reference-negative"}
+    assert all(row["source_id"] == extraction.source_id for row in fragments)
+    assert sum(len(row["fact_ids"]) for row in fragments) == 5
+
+
+@pytest.mark.parametrize("fields", [
+    [("credit_id", "CN-91")],
+    [("invoice_id", "INV-91"), ("net_amount", "81.00")],
+    [("asset_id", "ASSET-91")],
+])
+def test_untyped_business_observation_still_requires_entity_kind(tmp_path, fields):
+    rows = _fields() + [
+        {"entity_id": "untyped", "semantic_type": field,
+         "value_type": "IDENTIFIER" if field.endswith("_id") else "DECIMAL",
+         "value": value, "quote": value}
+        for field, value in fields
+    ]
+    extraction = _proposal(tmp_path, "Invoice line Issued INV-91 81.00 CN-91 ASSET-91.", rows)
+    with pytest.raises(DocumentError) as caught:
+        validate_rental_extraction(extraction)
+    assert caught.value.code == "STRUCTURAL_INCOMPLETE"
+    assert caught.value.diagnostic["missing_structural_fields"] == ["entity_kind"]
+
+
 def test_unapproved_pixel_field_targets_only_one_eligible_missing_entity():
     from types import SimpleNamespace
     candidates = [SimpleNamespace(entity_id="line", location="page:1",
@@ -151,8 +219,7 @@ def test_canonical_scope_and_review_shape_are_route_independent():
                     (source_id, "row-2", "entity_kind")]
         assert structural_gaps(accepted) == []
         assert structural_gaps(accepted[:-1]) == []
-        assert structural_gaps(accepted[1:]) == [{
-            "source_id": source_id, "entity_id": "row-1", "missing": ["entity_kind"]}]
+        assert structural_gaps(accepted[1:]) == []
 
 
 @pytest.mark.parametrize("visual", [False, True])

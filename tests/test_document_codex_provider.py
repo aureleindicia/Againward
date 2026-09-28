@@ -292,9 +292,14 @@ def test_native_document_families_keep_structural_trio_on_each_entity(tmp_path, 
                                   {document.source_id: incomplete_decisions}, root)
     assert blocked["status"] == "REPAIR_REQUIRED"
     assert blocked["native_facts_accepted"] == 0
+    # The accounting header/reference group is source metadata plus an invoice
+    # pointer, not a financial entity. The separate credit row remains a
+    # material group and still fails closed without its own kind.
+    expected_gap_entities = ({"export-credit-1"} if family == "accounting_export"
+                             else expected_entities)
     assert blocked["structural_gaps"] == [{"source_id": document.source_id,
         "entity_id": expected_entity, "missing": ["entity_kind"]}
-        for expected_entity in sorted(expected_entities)]
+        for expected_entity in sorted(expected_gap_entities)]
 
 
 def test_invoice_line_label_requires_explicit_safe_identifier(tmp_path):

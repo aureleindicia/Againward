@@ -51,6 +51,11 @@ def test_exact_reviewed_anchors_confirm_without_copying_attributes():
     assert result.considered_pairs == 1
 
 
+def test_untyped_entity_group_fails_closed_without_business_pack_policy():
+    with pytest.raises(DocumentError, match="ENTITY_AMBIGUOUS"):
+        entities_from_facts(facts("source", invoice_id="INV-991"))
+
+
 def test_same_local_model_label_does_not_merge_source_entities():
     entities = pair()
     assert len(entities) == 2

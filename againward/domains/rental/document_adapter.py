@@ -16,12 +16,13 @@ from againward.documents.extraction import (promote_facts, replay_extraction,
                                             visual_only_limited_extraction)
 from againward.documents.independent_qa import QA_INSTRUCTIONS, RETRY_INSTRUCTIONS, VISUAL_RETRY_INSTRUCTIONS
 from againward.documents.resolution import (
-    Entity, MatchPolicy, RelationshipState, entities_from_facts, resolve_entities,
-    review_relationships,
+    Entity, MatchPolicy, RelationshipState, entities_from_facts, non_entity_reference_groups,
+    resolve_entities, review_relationships,
 )
 from againward.evidence.hashing import stable_hash
 from .semantic_guidance import STRUCTURE_RETRY_INSTRUCTIONS, guidance, visual_guidance
-from .entity_contract import ANALYTICAL_FIELDS, DOCUMENT_ROLES, DOCUMENT_STATUSES, PACKAGE_SOURCE_REQUIRED, structural_gaps
+from .entity_contract import (ANALYTICAL_FIELDS, DOCUMENT_ROLES, DOCUMENT_STATUSES,
+    NON_ENTITY_OBSERVATION_FIELDS, PACKAGE_SOURCE_REQUIRED, structural_gaps)
 from .models import RentalCase, decimal_value
 
 DOCUMENT_CASE_SCHEMA = "againward-rental-document-case-v1"
@@ -87,10 +88,12 @@ def _optional(entity: Entity, keys: tuple[str, ...]) -> dict[str, Any]:
     return {key: entity.values[key] for key in keys if key in entity.values}
 
 
-def _source_document_metadata(entity_values: list[dict[str, Any]]) -> tuple[set[Any], set[Any]]:
-    """Collect source-scoped role/status observations, ignoring entities with no duplicate."""
-    roles = {values["document_role"] for values in entity_values if values.get("document_role") is not None}
-    statuses = {values["document_status"] for values in entity_values if values.get("document_status") is not None}
+def _source_document_metadata(source_facts) -> tuple[set[Any], set[Any]]:
+    """Read role/status at their declared source scope, independent of grouping."""
+    roles = {fact.candidate.value for fact in source_facts
+             if fact.candidate.semantic_type == "document_role"}
+    statuses = {fact.candidate.value for fact in source_facts
+                if fact.candidate.semantic_type == "document_status"}
     return roles, statuses
 
 
@@ -181,7 +184,9 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
             diagnostic={"stage": "DOCUMENT_PACKAGE_VALIDATION", "schema_path": "$.fact_review.decisions",
                         "validation_code": "REVIEWED_AUTHORITY_INCOMPLETE", "error_category": "REVIEW_REQUIRED",
                         "structural_gap_count": len(gaps), "source_id": gaps[0]["source_id"]})
-    entities = entities_from_facts(facts)
+    entities = entities_from_facts(facts, non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS)
+    source_reference_fragments = non_entity_reference_groups(
+        facts, non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS)
     if any(e.kind not in {"RENTAL_SCOPE", "INVOICE_LINE", "RETURN", "RATE_AMENDMENT",
                           "CREDIT", "SUPPORTING_DOCUMENT", "IRRELEVANT"} for e in entities):
         raise DocumentError("EXTRACTION_INCOMPLETE", "Unsupported material entity kind")
@@ -225,7 +230,8 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
     documents = []
     for source in batch.documents:
         source_entities = by_source.get(source.source_id, [])
-        roles, statuses = _source_document_metadata([entity.values for entity in source_entities])
+        source_facts = [fact for fact in facts if fact.candidate.source_id == source.source_id]
+        roles, statuses = _source_document_metadata(source_facts)
         if len(roles) != 1 or not roles <= DOCUMENT_ROLES or len(statuses) != 1 or not statuses <= DOCUMENT_STATUSES:
             raise DocumentError("EXTRACTION_INCOMPLETE", "Reviewed source role/status required without conflict")
         role, status = next(iter(roles)), next(iter(statuses))
@@ -395,6 +401,8 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
                "technical_derivations": technical_derivations,
                "rate_normalizations": rate_normalizations,
                "package_classifications": classification_decisions,
+               "unassigned_source_reference_fragments": [row for row in source_reference_fragments
+                   if row["source_id"] in {document.source_id for document in batch.documents}],
                "limitations": sorted({limit for extraction in extractions for limit in extraction.limitations}),
                "queryable_source_units": "Native location and character span retained in every evidence reference",
                "human_delivery_approval": False}

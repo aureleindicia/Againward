@@ -45,8 +45,14 @@ class Entity:
         return stable_hash([f.to_dict() for f in self.facts])
 
 
-def entities_from_facts(facts: tuple[CanonicalFact, ...]) -> tuple[Entity, ...]:
-    """Local labels never join documents, even if a model reuses the same label."""
+def entities_from_facts(facts: tuple[CanonicalFact, ...], *,
+                        non_entity_fields: frozenset[str] = frozenset()) -> tuple[Entity, ...]:
+    """Build typed entities without promoting metadata/reference fragments.
+
+    Local labels never join documents, even if a model reuses the same label.
+    Source metadata and identifier-only references stay as reviewed facts in
+    lineage but are not mislabeled as material entities.
+    """
     grouped: dict[tuple[str, str], list[CanonicalFact]] = defaultdict(list)
     for fact in facts:
         grouped[(fact.candidate.source_id, fact.candidate.entity_id)].append(fact)
@@ -60,10 +66,29 @@ def entities_from_facts(facts: tuple[CanonicalFact, ...]) -> tuple[Entity, ...]:
             values[key] = value
         kind = values.get("entity_kind")
         if not isinstance(kind, str):
+            fields = set(values)
+            if fields and fields <= non_entity_fields:
+                continue
             raise DocumentError("ENTITY_AMBIGUOUS", "Reviewed entity_kind required")
         entities.append(Entity("entity-" + stable_hash({"source": source, "local": local}),
                                local, source, kind, tuple(sorted(group, key=lambda f: f.fact_id))))
     return tuple(entities)
+
+
+def non_entity_reference_groups(facts: tuple[CanonicalFact, ...], *,
+                                non_entity_fields: frozenset[str] = frozenset()) -> list[dict[str, Any]]:
+    """Return reviewed source-local metadata/reference groups kept outside entities."""
+    grouped: dict[tuple[str, str], list[CanonicalFact]] = defaultdict(list)
+    for fact in facts:
+        grouped[(fact.candidate.source_id, fact.candidate.entity_id)].append(fact)
+    rows = []
+    for (source_id, local_id), group in sorted(grouped.items()):
+        fields = {fact.candidate.semantic_type for fact in group}
+        if "entity_kind" not in fields and fields and fields <= non_entity_fields:
+            rows.append({"source_id": source_id, "local_id": local_id,
+                         "record_type": "SOURCE_METADATA_OR_REFERENCE_FRAGMENT",
+                         "fact_ids": sorted(fact.fact_id for fact in group)})
+    return rows
 
 
 @dataclass(frozen=True)
