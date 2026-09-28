@@ -149,8 +149,17 @@ micro-fixtures. The historical report supplied failure shapes, not financial tru
 
 ## Frozen software validation
 
-Implementation commit and final full-suite/benchmark/CI results will be recorded
-after the checks on committed code. No integrity test is disabled to obtain green.
+The implementation is committed as `754e0649c7a7cbef49cbeebb4b15994e5651a2e1`
+and pushed to `release/first-rental-client-pilot`. No integrity test was
+disabled to obtain green. The final local suite on that exact commit reports
+**1027 passed** in 13m39s. Ruff and configured mypy pass, Rental is **15/15**,
+and privacy is **19/19** with zero false blocks and zero unsafe passes.
+
+GitHub Actions was triggered for both push and draft PR checks, but every job
+was refused before starting. GitHub's check-run annotation states that recent
+account payments failed or the spending limit must be increased. This is an
+external Actions billing/runner blocker, not a test failure; no CI result is
+claimed as green.
 
 - Latest focused scope/failure-family/adjudication suites: **85 passed**.
 - Ruff configured tree plus all changed Rental modules/new tests: passed.
