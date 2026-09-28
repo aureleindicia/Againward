@@ -14,7 +14,9 @@ from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
 from againward.domains.rental.extraction_validation import validate_rental_extraction
 from againward.domains.rental.entity_contract import (FIELD_SCOPE, PACKAGE_SOURCE_REQUIRED,
-    normalize_single_line_document_groups, structural_gaps, unique_pixel_entity_for_required_field)
+    normalize_document_envelopes, normalize_single_line_document_groups, structural_gaps,
+    unique_pixel_entity_for_required_field)
+from againward.domains.rental.extraction_validation import package_source_gaps
 from againward.domains.rental.source_job import (RENTAL_STRUCTURE_RETRY, _bind_extraction_attempt,
     _safe_failure_diagnostic, _visual_review_stop)
 
@@ -197,6 +199,157 @@ def test_document_envelope_does_not_override_conflict_or_cross_page_pixels():
     rows[2]["semantic_type"] = "net_amount"
     rows[2]["page"] = 2
     assert normalize_single_line_document_groups({"observations": rows}, visual=True)[1] == 0
+
+
+def test_unique_source_invoice_identity_binds_to_line_without_losing_exact_evidence(tmp_path):
+    raw = {"candidates": [
+        {"entity_id": "document", "semantic_type": "entity_kind", "value": "SUPPORTING_DOCUMENT",
+         "value_type": "ENUM", "raw_observed_value": "attachment", "location": "part:1"},
+        {"entity_id": "document", "semantic_type": "document_role", "value": "INVOICE",
+         "value_type": "ENUM", "raw_observed_value": "invoice document", "location": "part:1"},
+        {"entity_id": "document", "semantic_type": "document_status", "value": "ISSUED",
+         "value_type": "ENUM", "raw_observed_value": "issued", "location": "part:1"},
+        {"entity_id": "document", "semantic_type": "invoice_id", "value": "INV-8",
+         "value_type": "IDENTIFIER", "raw_observed_value": "INV-8", "location": "part:1"},
+        {"entity_id": "line", "semantic_type": "entity_kind", "value": "INVOICE_LINE",
+         "value_type": "ENUM", "raw_observed_value": "line item", "location": "part:1"},
+        {"entity_id": "line", "semantic_type": "currency", "value": "EUR",
+         "value_type": "CURRENCY", "raw_observed_value": "EUR", "location": "part:1"},
+        {"entity_id": "line", "semantic_type": "net_amount", "value": "20.00",
+         "value_type": "DECIMAL", "raw_observed_value": "20.00", "location": "part:1"},
+    ]}
+    normalized = normalize_document_envelopes(raw, visual=False)
+    line_id = next(row for row in normalized["candidates"]
+                   if row["entity_id"] == "line" and row["semantic_type"] == "invoice_id")
+    assert line_id["value"] == "INV-8"
+    assert line_id["raw_observed_value"] == "INV-8"
+    assert line_id["location"] == "part:1"
+    assert raw["candidates"][-1]["semantic_type"] == "net_amount"  # input remains unchanged
+
+    model_candidates = [{"entity_id": row["entity_id"], "semantic_type": row["semantic_type"],
+        "value_type": row["value_type"], "value": row["value"], "quote": row["raw_observed_value"]}
+        for row in normalized["candidates"]]
+    extraction = _proposal(tmp_path, "attachment invoice document issued INV-8 line item EUR 20.00",
+                           model_candidates)
+    validate_rental_extraction(extraction, require_package_facts=True)
+    assert not package_source_gaps(extraction)
+    bound = next(row for row in extraction.candidates
+                 if row.entity_id == "line" and row.semantic_type == "invoice_id")
+    assert bound.source_id == extraction.source_id
+    assert bound.raw_observed_value == "INV-8"
+
+
+def test_document_identity_is_not_borrowed_from_a_different_source(tmp_path):
+    left = {"candidates": [
+        {"entity_id": "line", "semantic_type": "entity_kind", "value": "INVOICE_LINE"},
+        {"entity_id": "line", "semantic_type": "net_amount", "value": "20.00"},
+    ]}
+    right = {"candidates": [
+        {"entity_id": "other", "semantic_type": "document_role", "value": "INVOICE"},
+        {"entity_id": "other", "semantic_type": "invoice_id", "value": "INV-8"},
+    ]}
+    normalized_left = normalize_document_envelopes(left, visual=False)
+    normalized_right = normalize_document_envelopes(right, visual=False)
+    assert not any(row["semantic_type"] == "invoice_id" for row in normalized_left["candidates"])
+    assert any(row["semantic_type"] == "invoice_id" for row in normalized_right["candidates"])
+
+
+@pytest.mark.parametrize("visual", [False, True])
+def test_issued_credit_status_is_bound_only_from_unambiguous_same_source_metadata(tmp_path, visual):
+    group, rows_key = ("entity_hint", "observations") if visual else ("entity_id", "candidates")
+    quote_key = "visible_text" if visual else "raw_observed_value"
+    rows = [
+        {group: "document", "semantic_type": "document_role", "value": "CREDIT_NOTE",
+         "value_type": "ENUM", quote_key: "credit note", "page": 1, "location": "part:1",
+         "ambiguity": []},
+        {group: "document", "semantic_type": "document_status", "value": "ISSUED",
+         "value_type": "ENUM", quote_key: "issued", "page": 1, "location": "part:1",
+         "ambiguity": []},
+        {group: "credit", "semantic_type": "entity_kind", "value": "CREDIT",
+         "value_type": "ENUM", quote_key: "credit", "page": 1, "location": "part:1",
+         "ambiguity": []},
+    ]
+    if visual:
+        for row in rows:
+            row.pop("location")
+    normalized = normalize_document_envelopes({rows_key: rows}, visual=visual)
+    derived = next(row for row in normalized[rows_key]
+                   if row[group] == "credit" and row["semantic_type"] == "status")
+    assert derived["value"] == "ISSUED"
+    assert derived[quote_key] == "issued"
+    if visual:
+        assert set(derived) == {group, "semantic_type", "value_type", "value", quote_key,
+                                "page", "ambiguity"}
+        assert derived["page"] == 1
+    else:
+        assert derived["location"] == "part:1"
+    assert not any(row["semantic_type"] == "status" for row in rows)
+
+
+@pytest.mark.parametrize("metadata", [
+    [("document_role", "CREDIT_NOTE"), ("document_status", "PROMISED")],
+    [("document_role", "UNKNOWN"), ("document_status", "ISSUED")],
+    [("document_status", "ISSUED")],
+    [("document_role", "CREDIT_NOTE"), ("document_status", "ISSUED"),
+     ("document_status", "PROMISED")],
+])
+def test_credit_status_stays_missing_without_unique_source_proof(metadata):
+    rows = [{"entity_id": "credit", "semantic_type": field, "value": value}
+            for field, value in metadata]
+    rows.extend([{"entity_id": "credit", "semantic_type": "entity_kind", "value": "CREDIT"},
+                 {"entity_id": "credit", "semantic_type": "credit_id", "value": "CN-8"},
+                 {"entity_id": "credit", "semantic_type": "net_amount", "value": "20.00"}])
+    normalized = normalize_document_envelopes({"candidates": rows}, visual=False)
+    assert not any(row["semantic_type"] == "status" for row in normalized["candidates"])
+
+
+def test_credit_without_proven_issued_state_remains_package_blocking(tmp_path):
+    candidates = [
+        {"entity_id": "credit", "semantic_type": "entity_kind", "value_type": "ENUM",
+         "value": "CREDIT", "quote": "credit issued"},
+        {"entity_id": "credit", "semantic_type": "document_role", "value_type": "ENUM",
+         "value": "CREDIT_NOTE", "quote": "credit note"},
+        {"entity_id": "credit", "semantic_type": "document_status", "value_type": "ENUM",
+         "value": "ACCEPTED", "quote": "accepted"},
+        {"entity_id": "credit", "semantic_type": "credit_id", "value_type": "IDENTIFIER",
+         "value": "CN-8", "quote": "CN-8"},
+        {"entity_id": "credit", "semantic_type": "currency", "value_type": "CURRENCY",
+         "value": "EUR", "quote": "EUR"},
+        {"entity_id": "credit", "semantic_type": "net_amount", "value_type": "DECIMAL",
+         "value": "20.00", "quote": "20.00"},
+    ]
+    extraction = _proposal(tmp_path, "credit note credit issued accepted CN-8 EUR 20.00", candidates)
+    with pytest.raises(DocumentError) as caught:
+        validate_rental_extraction(extraction, require_package_facts=True)
+    assert caught.value.diagnostic["missing_semantic_fields"] == ["status"]
+
+
+def test_issued_credit_source_metadata_completes_only_the_same_source_entity(tmp_path):
+    raw = {"candidates": [
+        {"entity_id": "document", "semantic_type": "document_role", "value_type": "ENUM",
+         "value": "CREDIT_NOTE", "quote": "credit note"},
+        {"entity_id": "document", "semantic_type": "document_status", "value_type": "ENUM",
+         "value": "ISSUED", "quote": "status-issued"},
+        {"entity_id": "credit", "semantic_type": "entity_kind", "value_type": "ENUM",
+         "value": "CREDIT", "quote": "credit row"},
+        {"entity_id": "credit", "semantic_type": "credit_id", "value_type": "IDENTIFIER",
+         "value": "CN-8", "quote": "CN-8"},
+        {"entity_id": "credit", "semantic_type": "currency", "value_type": "CURRENCY",
+         "value": "EUR", "quote": "EUR"},
+        {"entity_id": "credit", "semantic_type": "net_amount", "value_type": "DECIMAL",
+         "value": "20.00", "quote": "20.00"},
+    ]}
+    normalized = normalize_document_envelopes(raw, visual=False)
+    candidates = [{"entity_id": row["entity_id"], "semantic_type": row["semantic_type"],
+        "value_type": row["value_type"], "value": row["value"], "quote": row["quote"]}
+        for row in normalized["candidates"]]
+    extraction = _proposal(tmp_path, "credit note status-issued credit row CN-8 EUR 20.00", candidates)
+    validate_rental_extraction(extraction, require_package_facts=True)
+    status = next(row for row in extraction.candidates
+                  if row.entity_id == "credit" and row.semantic_type == "status")
+    assert status.value == "ISSUED"
+    assert status.source_id == extraction.source_id
+    assert status.raw_observed_value == "status-issued"
 
 
 def test_invoice_charge_type_is_deferred_to_package_review_not_invented_in_source(tmp_path):

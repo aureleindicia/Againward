@@ -19,7 +19,7 @@ from againward.documents.resolution import Entity
 from againward.documents.sources import inventory_sources
 from againward.domains.rental.document_adapter import _line_identifier
 from againward.domains.rental.extraction_validation import validate_rental_extraction, package_source_gaps
-from againward.domains.rental.entity_contract import structural_gaps
+from againward.domains.rental.entity_contract import normalize_document_envelopes, structural_gaps
 from tests.test_document_analyst_review import _native_decisions
 
 CONTENT = "Issued Invoice ZX-42 rental net 730.00 EUR."
@@ -118,6 +118,68 @@ def test_assembly_cannot_silently_omit_inputs_or_change_source_evidence(tmp_path
     (root / batch.documents[0].blob_path).write_text("Mutated")
     with pytest.raises(DocumentError, match="SOURCE_CHANGED"):
         assemble_observations(p, q, _dispositions(p, q), batch, root)
+
+
+def test_assembled_invoice_keeps_same_source_document_identity_and_lineage(tmp_path):
+    incoming = tmp_path / "incoming"
+    incoming.mkdir()
+    (incoming / "record.txt").write_text(
+        "support file. invoice document is issued. INV-8 line item totals EUR 20.00.")
+    root = tmp_path / "documents"
+    batch = inventory_sources(incoming, root)
+    document = batch.documents[0]
+    parsed = read_document(document, root)
+    def make_read(*, include_invoice_id: bool, label: str):
+        rows = [
+            {"entity_id": "support", "semantic_type": "entity_kind", "value_type": "ENUM",
+             "value": "SUPPORTING_DOCUMENT", "raw_observed_value": "support file"},
+            {"entity_id": "support", "semantic_type": "document_role", "value_type": "ENUM",
+             "value": "INVOICE", "raw_observed_value": "invoice document"},
+            {"entity_id": "support", "semantic_type": "document_status", "value_type": "ENUM",
+             "value": "ISSUED", "raw_observed_value": "is issued"},
+            {"entity_id": label, "semantic_type": "entity_kind", "value_type": "ENUM",
+             "value": "INVOICE_LINE", "raw_observed_value": "line item"},
+            {"entity_id": label, "semantic_type": "currency", "value_type": "CURRENCY",
+             "value": "EUR", "raw_observed_value": "EUR"},
+            {"entity_id": label, "semantic_type": "net_amount", "value_type": "DECIMAL",
+             "value": "20.00", "raw_observed_value": "20.00"},
+        ]
+        if include_invoice_id:
+            rows.append({"entity_id": "support", "semantic_type": "invoice_id", "value_type": "IDENTIFIER",
+                         "value": "INV-8", "raw_observed_value": "INV-8"})
+        for row in rows:
+            row.update(location=parsed.units[0].location, normalization_notes="Exact source observation",
+                       ambiguity_flags=[])
+        raw = normalize_document_envelopes({"status": "SUCCESS", "limitations": [],
+                                             "candidates": rows}, visual=False)
+        return validate_proposal(assemble_proposal(raw, document, parsed, batch.batch_id,
+            "synthetic-model"), batch, root)
+
+    primary, challenger = make_read(include_invoice_id=False, label="primary-line"), \
+        make_read(include_invoice_id=True, label="challenger-line")
+    source_id = primary.source_id
+    seen: set[tuple[str, str]] = set()
+    dispositions = []
+    for proposal in (primary, challenger):
+        extraction_hash = proposal.to_dict()["extraction_sha256"]
+        for candidate in proposal.candidates:
+            scope = "support" if candidate.entity_id == "support" else "line"
+            identity = candidate.semantic_type, scope
+            include = identity not in seen
+            if include:
+                seen.add(identity)
+            dispositions.append({"extraction_sha256": extraction_hash, "candidate_id": candidate.candidate_id,
+                "decision": "INCLUDE" if include else "DEFER",
+                "entity_id": ("support" if candidate.entity_id == "support" else "reconciled-line")
+                if include else ""})
+    assembled = assemble_observations(primary, challenger, dispositions, batch, root)
+    validate_rental_extraction(assembled, require_package_facts=True)
+    invoice_id = next(c for c in assembled.candidates if c.entity_id == "reconciled-line"
+                      and c.semantic_type == "invoice_id")
+    assert invoice_id.value == "INV-8"
+    assert invoice_id.source_id == source_id
+    assert invoice_id.raw_observed_value == "INV-8"
+    assert invoice_id.source_span is not None
 
 
 def test_partial_and_contradictory_reads_are_provisional_never_calculation_ready(tmp_path):

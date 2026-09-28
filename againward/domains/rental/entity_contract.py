@@ -154,9 +154,9 @@ def structural_gaps(accepted: Iterable[tuple[str, str, str]], *,
     for source_id, fields in sorted(by_source.items()):
         if source_id in visual_sources:
             continue
-        missing = sorted({"document_role", "document_status"} - fields)
-        if missing:
-            gaps.append({"source_id": source_id, "entity_id": None, "missing": missing})
+        missing_document_fields = sorted({"document_role", "document_status"} - fields)
+        if missing_document_fields:
+            gaps.append({"source_id": source_id, "entity_id": None, "missing": missing_document_fields})
     return gaps
 
 
@@ -234,10 +234,13 @@ def unique_pixel_entity_for_required_field(semantic: str, location: str,
 
 
 def normalize_document_envelopes(raw: dict[str, Any], *, visual: bool) -> dict[str, Any]:
-    """Merge only a uniquely compatible document envelope into its material row.
+    """Bind unique source-envelope facts to the same-source entities they identify.
 
-    Multiple rate/line/event rows are never coalesced by shared document IDs.
-    Evidence values and source locations remain unchanged and need review.
+    Source IDs and citations never change. A unique invoice number may be
+    attached to invoice lines in its own uniquely classified invoice document;
+    an issued credit note's own document status may supply its credit status.
+    These are still unapproved observations and retain the envelope citation.
+    No filename, sibling source, or ambiguous envelope is used.
     """
     result = deepcopy(raw)
     key, group_key = ("observations", "entity_hint") if visual else ("candidates", "entity_id")
@@ -276,6 +279,86 @@ def normalize_document_envelopes(raw: dict[str, Any], *, visual: bool) -> dict[s
         if len(eligible) == 1:
             for row in members:
                 row[group_key] = eligible[0]
+
+    # `invoice_id` is a source/document identity but is required on each
+    # canonical invoice line. When an otherwise structural SUPPORTING_DOCUMENT
+    # group carries the one ID for a source explicitly classified as an
+    # invoice, rebind that observation to every line in that same source.
+    # Keep no duplicate standalone ID fact; its exact quote/page stays intact.
+    def string_values(members: list[dict[str, Any]], semantic: str) -> set[str] | None:
+        values = [row.get("value") for row in members if row.get("semantic_type") == semantic]
+        if any(not isinstance(value, str) or not value for value in values):
+            return None
+        return {value for value in values if isinstance(value, str)}
+
+    roles = string_values(rows, "document_role")
+    invoice_ids = string_values(rows, "invoice_id")
+    if not invoice_ids:
+        invoice_ids = None
+    current_groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        current_groups[row[group_key]].append(row)
+    invoice_lines = sorted(group for group, members in current_groups.items()
+                           if any(row.get("semantic_type") == "entity_kind"
+                                  and row.get("value") == "INVOICE_LINE" for row in members))
+    if roles == {"INVOICE"} and invoice_ids is not None and len(invoice_ids) == 1 and invoice_lines:
+        invoice_id = next(iter(invoice_ids))
+        id_rows = [row for row in rows if row.get("semantic_type") == "invoice_id"
+                   and row.get("value") == invoice_id]
+        compatible = all(
+            (line_ids := string_values(current_groups[group], "invoice_id")) is not None
+            and line_ids <= {invoice_id}
+            for group in invoice_lines)
+        if compatible:
+            template = sorted(id_rows, key=lambda row: (
+                str(row.get("location", row.get("page", ""))),
+                str(row.get("raw_observed_value", row.get("visible_text", "")))))[0]
+            line_id_groups = set(invoice_lines)
+            rows[:] = [row for row in rows if row.get("semantic_type") != "invoice_id"
+                       or row.get(group_key) in line_id_groups]
+            current_groups = defaultdict(list)
+            for row in rows:
+                current_groups[row[group_key]].append(row)
+            for group in invoice_lines:
+                if not any(row.get("semantic_type") == "invoice_id" for row in current_groups[group]):
+                    bound = deepcopy(template)
+                    bound[group_key] = group
+                    if not visual:
+                        note = "Bound the unique invoice document ID to its source-local invoice line."
+                        prior = bound.get("normalization_notes", "")
+                        bound["normalization_notes"] = "; ".join(
+                            part for part in (prior.strip() if isinstance(prior, str) else "", note) if part)
+                    rows.append(bound)
+
+    # Credit.status is a required commercial fact, but an unambiguous ISSUED
+    # state is already stated by the same source's role/status metadata. Project
+    # that exact, source-bound observation onto CREDIT entities so it still
+    # enters ordinary review. Never infer PROMISED, VOID, or a state from role,
+    # filename, or another document.
+    source_roles = string_values(rows, "document_role")
+    source_statuses = string_values(rows, "document_status")
+    status_rows = [row for row in rows if row.get("semantic_type") == "document_status"
+                   and row.get("value") == "ISSUED"]
+    current_groups = defaultdict(list)
+    for row in rows:
+        current_groups[row[group_key]].append(row)
+    if source_roles == {"CREDIT_NOTE"} and source_statuses == {"ISSUED"} and status_rows:
+        template = sorted(status_rows, key=lambda row: (
+            str(row.get("location", row.get("page", ""))),
+            str(row.get("raw_observed_value", row.get("visible_text", "")))))[0]
+        for group, members in current_groups.items():
+            entity_kinds = string_values(members, "entity_kind")
+            fields = {row.get("semantic_type") for row in members}
+            if entity_kinds == {"CREDIT"} and "status" not in fields:
+                derived = deepcopy(template)
+                derived[group_key] = group
+                derived["semantic_type"] = "status"
+                if not visual:
+                    note = "Derived CREDIT status ISSUED from this source's CREDIT_NOTE / ISSUED metadata."
+                    prior = derived.get("normalization_notes", "")
+                    derived["normalization_notes"] = "; ".join(
+                        part for part in (prior.strip() if isinstance(prior, str) else "", note) if part)
+                rows.append(derived)
     return result
 
 
