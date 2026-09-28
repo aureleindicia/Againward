@@ -206,7 +206,7 @@ def test_package_derives_only_technical_invoice_keys_after_review(tmp_path):
 
 def test_package_never_derives_commercial_charge_type(tmp_path):
     source, _ = packet(tmp_path, omit_invoice_fields={"charge_type"})
-    with pytest.raises(DocumentError, match="package-required source facts: charge_type"):
+    with pytest.raises(DocumentError, match="Missing package classification review"):
         load_rental_case(source)
 
 

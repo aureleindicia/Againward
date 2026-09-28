@@ -71,6 +71,14 @@ def _case(tmp_path):
     return root, batch, primary, challenger, qa, raw, email
 
 
+def _local_model_answer(raw):
+    """New model protocol sees one source; legacy receipt tests keep context citations."""
+    result = deepcopy(raw)
+    for row in result["decisions"]:
+        row["citations"] = [c for c in row["citations"] if c["source_id"] == row["source_id"]]
+    return result
+
+
 def test_adjudication_selects_source_bound_proposal_without_approving_facts(tmp_path):
     root, batch, primary, challenger, qa, raw, email = _case(tmp_path)
     result = validate_adjudication(batch, primary, challenger, qa, raw, root)
@@ -122,7 +130,7 @@ def test_matching_missing_commercial_field_cannot_be_selected_as_complete(tmp_pa
             ("document_role", "ENUM", "INVOICE", "Invoice"),
             ("document_status", "ENUM", "ISSUED", "Issued"),
             ("invoice_id", "IDENTIFIER", "INV-8", "INV-8"),
-            ("net_amount", "DECIMAL", "850.00", "850.00"),
+            ("charge_type", "ENUM", "RENTAL", "rental"),
             ("currency", "CURRENCY", "EUR", "EUR")]
     raw = {"status": "SUCCESS", "limitations": [], "candidates": [
         {"entity_id": "line", "semantic_type": field, "value_type": value_type,
@@ -132,16 +140,16 @@ def test_matching_missing_commercial_field_cannot_be_selected_as_complete(tmp_pa
     extraction = validate_proposal(assemble_proposal(raw, document, parsed, batch.batch_id,
         "synthetic-model"), batch, root)
     qa = compare_extractions(batch, (extraction,), (extraction,), root)
-    assert qa["source_results"][0]["primary_source_fact_gaps"]["line"] == ["charge_type"]
+    assert qa["source_results"][0]["primary_source_fact_gaps"]["line"] == ["net_amount"]
     decision = {"decisions": [{"source_id": document.source_id, "selection": "PRIMARY",
-        "rationale": "The amount is visible, but the type was omitted.", "observations": [],
+        "rationale": "The amount was omitted from both observation sets.", "observations": [],
         "citations": [{"source_id": document.source_id, "location": parsed.units[0].location,
                        "quote": "rental line", "preview_sha256": ""}]}]}
     with pytest.raises(DocumentError) as caught:
         validate_adjudication(batch, (extraction,), (extraction,), qa, decision, root,
                               required_source_facts=package_source_gaps)
     assert caught.value.diagnostic["validation_code"] == "SELECTED_SOURCE_FACT_GAP"
-    assert caught.value.diagnostic["missing_semantic_fields"] == ["charge_type"]
+    assert caught.value.diagnostic["missing_semantic_fields"] == ["net_amount"]
     decision["decisions"][0].update(selection="UNRESOLVED", citations=[])
     unresolved = validate_adjudication(batch, (extraction,), (extraction,), qa, decision, root)
     assert unresolved["status"] == "RECONCILIATION_REQUIRED"
@@ -156,12 +164,12 @@ def test_adjudicator_reopens_original_sources_without_private_truth(tmp_path, mo
         prompts.append(input)
         prompt = json.loads(input.split("\n", 1)[1])
         calls.append(prompt)
-        assert len(prompt["original_sources"]) == 2
-        assert "off-hire request alone" in json.dumps(prompt["original_sources"])
+        assert len(prompt["original_sources"]) == 1
+        assert "off-hire request alone" not in json.dumps(prompt["original_sources"])
         assert "not proof of physical return" in json.dumps(prompt["original_sources"])
         assert "private_truth" not in input
         output = Path(command[command.index("--output-last-message") + 1])
-        output.write_text(json.dumps(raw))
+        output.write_text(json.dumps(_local_model_answer(raw)))
         return SimpleNamespace(returncode=0, stderr="")
 
     monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)
@@ -188,7 +196,7 @@ def test_adjudicator_retries_one_invalid_closed_schema_response(tmp_path, monkey
             return original_run(command, **kwargs)
         prompts.append(kwargs["input"])
         output = Path(command[command.index("--output-last-message") + 1])
-        output.write_text(json.dumps(responses.pop(0)))
+        output.write_text(json.dumps(_local_model_answer(responses.pop(0))))
         return SimpleNamespace(returncode=0, stderr="")
 
     monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)
@@ -260,7 +268,7 @@ def test_adjudication_schema_failure_has_safe_exact_path_diagnostic(tmp_path, mo
 
     def fake_codex(command, **_kwargs):
         output = Path(command[command.index("--output-last-message") + 1])
-        output.write_text(json.dumps(raw))
+        output.write_text(json.dumps(_local_model_answer(raw)))
         return SimpleNamespace(returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)
@@ -291,7 +299,7 @@ def test_evaluation_only_adjudication_diagnostic_may_keep_raw_in_private_scratch
     raw["decisions"][0]["observations"] = "PRIVATE_EVAL_DETAIL"
 
     def fake_codex(command, **_kwargs):
-        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(raw))
+        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(_local_model_answer(raw)))
         return SimpleNamespace(returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)
@@ -614,7 +622,7 @@ def test_adjudicator_structural_pixel_observation_gets_one_bounded_repair(tmp_pa
         input = kwargs["input"]
         prompts.append(input)
         output = Path(command[command.index("--output-last-message") + 1])
-        output.write_text(json.dumps(responses.pop(0)))
+        output.write_text(json.dumps(_local_model_answer(responses.pop(0))))
         return SimpleNamespace(returncode=0, stderr="")
 
     monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)
@@ -642,7 +650,7 @@ def test_live_interface_binds_hashes_and_preserves_semantic_guidance(tmp_path, m
         assert set(fields["candidate_selections"]["items"]["required"]) == {
             "reader", "candidate_index", "decision", "entity_id"}
         assert '"semantic_guidance": "Shared domain semantics"' in input
-        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(model_raw))
+        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(_local_model_answer(model_raw)))
         return SimpleNamespace(returncode=0, stderr="")
 
     monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)

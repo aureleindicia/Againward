@@ -16,7 +16,7 @@ from againward.domains.rental.entity_contract import (ENUM_ALIASES, ENUM_FIELDS,
 
 from .contracts import DocumentError
 
-VERSION = "model-observation-boundary-v1"
+VERSION = "model-observation-boundary-v2-rate-dimensions"
 
 
 def load_model_json(raw: bytes, *, maximum: int) -> dict[str, Any]:
@@ -172,6 +172,22 @@ def normalize_read(raw: dict[str, Any], parsed: Any, *, rental: bool) -> dict[st
     for key in keys:
         if key not in result or not isinstance(result[key], list):
             continue
+        if rental:
+            from againward.domains.rental.rate_dimensions import rate_dimensions
+            expanded = []
+            for row in result[key]:
+                dimensions = rate_dimensions(row.get("value")) if isinstance(row, dict) and row.get("semantic_type") == "billing_unit" else None
+                if not dimensions:
+                    expanded.append(row)
+                    continue
+                for field, value in dimensions.items():
+                    derived = {**row, "semantic_type": field, "value": value}
+                    # The exact original quote/page stays attached to EACH
+                    # unapproved dimension. All pass normal source/review gates.
+                    if key != "observations":
+                        derived["normalization_notes"] = "Explicit rate denominator decomposition"
+                    expanded.append(derived)
+            result[key] = expanded
         result[key] = [normalize_row(row, visual=key == "observations", rental=rental)
                        if isinstance(row, dict) else row for row in result[key]
                        if not (isinstance(row, dict) and "value" in row and row["value"] is None)]

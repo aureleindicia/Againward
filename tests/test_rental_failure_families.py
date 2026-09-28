@@ -139,7 +139,9 @@ def test_canonical_scope_and_review_shape_are_route_independent():
     assert FIELD_SCOPE["document_role"] == FIELD_SCOPE["document_status"] == "SOURCE"
     assert "invoice_line_id" not in PACKAGE_SOURCE_REQUIRED["INVOICE_LINE"]
     assert "charge_key" not in PACKAGE_SOURCE_REQUIRED["INVOICE_LINE"]
-    assert "charge_type" in PACKAGE_SOURCE_REQUIRED["INVOICE_LINE"]
+    from againward.domains.rental.entity_contract import PACKAGE_RELATIONAL_FIELDS
+    assert "charge_type" not in PACKAGE_SOURCE_REQUIRED["INVOICE_LINE"]
+    assert "charge_type" in PACKAGE_RELATIONAL_FIELDS["INVOICE_LINE"]
     for source_id in ("native-source", "visual-source"):
         accepted = [(source_id, "row-1", "entity_kind"),
                     (source_id, "row-1", "document_role"),
@@ -197,7 +199,7 @@ def test_document_envelope_does_not_override_conflict_or_cross_page_pixels():
     assert normalize_single_line_document_groups({"observations": rows}, visual=True)[1] == 0
 
 
-def test_invoice_semantic_charge_type_is_required_on_selected_extraction_before_review(tmp_path):
+def test_invoice_charge_type_is_deferred_to_package_review_not_invented_in_source(tmp_path):
     rows = _fields() + [
         {"entity_id": "line", "semantic_type": "invoice_id", "value_type": "IDENTIFIER",
          "value": "INV-8", "quote": "INV-8"},
@@ -208,10 +210,14 @@ def test_invoice_semantic_charge_type_is_required_on_selected_extraction_before_
     ]
     extraction = _proposal(tmp_path, "Invoice line Issued INV-8 EUR 850.00.", rows)
     validate_rental_extraction(extraction)  # A challenger may still recover the omitted fact.
+    validate_rental_extraction(extraction, require_package_facts=True)
+    assert not any(c.semantic_type == "charge_type" for c in extraction.candidates)
+    from tests.test_rental_document_adapter import packet
+    from againward.domains.rental.document_adapter import load_document_case
+    source, package = packet(tmp_path / "package", omit_invoice_fields={"charge_type"})
     with pytest.raises(DocumentError) as caught:
-        validate_rental_extraction(extraction, require_package_facts=True)
-    assert caught.value.code == "STRUCTURAL_INCOMPLETE"
-    assert caught.value.diagnostic["missing_semantic_fields"] == ["charge_type"]
+        load_document_case(package, source.parent)
+    assert caught.value.diagnostic["validation_code"] == "PACKAGE_CLASSIFICATION_REVIEW_REQUIRED"
 
 
 def test_multrow_accounting_export_still_requires_kind_for_each_row(tmp_path):

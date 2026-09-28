@@ -36,7 +36,7 @@ from .autonomous_job import run_reviewed_package_job
 from .autonomous_report import current_report_versions
 
 
-VERSION = "againward-rental-approved-sources-job-v4-reconciled-observations"
+VERSION = "againward-rental-approved-sources-job-v5-package-scope"
 VISUAL_LIMITATION_ROUTING_VERSION = "againward-rental-visual-reading-v2"
 RETRYABLE_MODEL_CODES = {"MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_AUTH_REQUIRED",
                          "MODEL_RATE_LIMITED", "MODEL_TRANSPORT_FAILURE", "MODEL_EMPTY_RESPONSE"}
@@ -674,10 +674,25 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                 review, review_path = attested
                 state["fact_review_file"] = review_path
                 _save(path, state, "VISUAL_ATTESTATION_REPLAYED")
+        active_stage = "PACKAGE_SCOPE_REVIEW"
+        from .scope_review import classification_plan, review_package_scope
+        from againward.documents.resolution import entities_from_facts
+        reviewed_entities = entities_from_facts(promote_facts(selected, review, batch, documents))
+        if classification_plan(reviewed_entities, selected) and "scope_review_receipt" not in state:
+            scoped = review_package_scope(batch, selected, review, documents,
+                                          model=model, timeout_seconds=timeout_seconds)
+            saved = documents / "scope_reviews" / (scoped["receipt_sha256"] + ".json")
+            write_json(saved, scoped)
+            state["scope_review_receipt"] = str(saved)
+            _save(path, state, "PACKAGE_SCOPE_REVIEWED", model_calls=scoped["model_calls"])
+        scoped = (_receipt(state["scope_review_receipt"], documents, "scope_reviews", "receipt_sha256")
+                  if "scope_review_receipt" in state else None)
         active_stage = "DOCUMENT_PACKAGE_VALIDATION"
         body = {"schema_version": DOCUMENT_CASE_SCHEMA, "batch": batch.to_dict(),
                 "extractions": [item.to_dict() for item in selected], "fact_review": review,
                 "rental_relationship_review": None, "credit_relationship_review": None}
+        if scoped is not None:
+            body["scope_review"] = scoped
         if "package" not in state:
             canonical, lineage = load_document_case(body, documents)
             package = documents / "packages" / (stable_hash(body) + ".json")
@@ -727,6 +742,14 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
               failure_diagnostic=safe_diagnostic)
         return {"status": "FAILED", "reason_code": exc.code,
                 "job_state": str(path), "approved_for_delivery": False}
+
+    except ValueError as exc:
+        diagnostic = {"stage": active_stage, "source_id": active_source_id,
+            "validation_code": "INTERNAL_VALUE_ERROR", "error_category": "SCHEMA_ERROR",
+            "schema_path": "$", "exception_type": type(exc).__name__}
+        _save(path, state, "FAILED", reason_code="EXTRACTION_SCHEMA_INVALID", failure_diagnostic=diagnostic)
+        return {"status": "FAILED", "reason_code": "EXTRACTION_SCHEMA_INVALID", "stage": active_stage,
+                "diagnostic": diagnostic, "job_state": str(path), "approved_for_delivery": False}
 
 
 def run_approved_sources_job(workspace: str | Path, *, model: str,

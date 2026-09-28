@@ -2,7 +2,7 @@
 
 from .entity_contract import observation_instructions
 
-GUIDANCE_VERSION = "rental-semantic-guidance-v17-shared-source-semantics"
+GUIDANCE_VERSION = "rental-semantic-guidance-v18-local-observation-relational-classification"
 
 STRUCTURE_RETRY_INSTRUCTIONS = (
     "Reinspect this source. Each material entity needs entity_kind, not document_role; source role/status need one supported value. "
@@ -30,8 +30,12 @@ Do not turn contact details or notices unrelated to commercial evidence into
 analytical entities; preserve markings that establish document status.
 
 Classify commercial meaning from exact local wording, not literal enum spelling.
-A billed rental description can support charge_type RENTAL without printing the
-enum. A mere reference to an agreement does not establish what a charge is for.
+A contractual rental charge and a billed rental description both support charge_type RENTAL without printing the
+enum. This classification applies to RENTAL_SCOPE terms as well as INVOICE_LINE.
+A missing invoice classification may require package relation review; do not
+claim a source is incomplete solely because another document defines the charge.
+Report compound rate wording intact: Python separates time unit, quantity basis
+and calendar convention into unapproved observations that must be reviewed. A mere reference to an agreement does not establish what a charge is for.
 An issued invoice/credit is ISSUED, not ACCEPTED: this status records issuance,
 not customer agreement with the charges. ACCEPTED describes accepted terms or
 an accepted/signed return. A quote is PROPOSED unless acceptance is evidenced.

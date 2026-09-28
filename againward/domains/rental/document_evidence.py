@@ -31,6 +31,12 @@ def append_document_evidence(case, lineage, rows, row_refs):
                 "normalized_value": json.dumps(c["value"], ensure_ascii=False),
                 "extraction_sha256": fact["extraction_sha256"], "review_sha256": fact["review_sha256"]},
                [reference(fact)])
+    for claim in lineage.get("package_classifications", []):
+        append({"record_type": "package_classification", "record_id": "claim-" + stable_hash(claim),
+                "entity_id": claim["entity_id"], "semantic_type": claim["field"],
+                "normalized_value": json.dumps(claim["value"]), "state": claim["status"],
+                "review_sha256": stable_hash(claim["reviews"]), "authority": "MODEL_REVIEWED_MEANING_ONLY"},
+               [reference(facts[fid]) for fid in claim["supporting_fact_ids"]])
     entity_facts = {e["entity_id"]: [facts[f["fact_id"]] for f in e["facts"]]
                     for e in lineage["entities"]}
     for resolution in (lineage["rental_resolution"], lineage["credit_resolution"]):

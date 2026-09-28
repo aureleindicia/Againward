@@ -28,7 +28,7 @@ ANALYTICAL_FIELDS = frozenset({
     "entity_kind", "document_role", "document_status", "agreement_id", "supplier_id",
     "client_id", "item_id", "description", "asset_id", "serial_number", "category",
     "site_id", "cost_center_id", "start", "end", "quantity", "rate", "charge_key",
-    "charge_type", "currency", "billing_unit", "weekends_billable", "minimum_days",
+    "charge_type", "currency", "billing_unit", "quantity_basis", "weekends_billable", "minimum_days",
     "partial_period_policy", "stop_event", "stop_day_billable", "discount_fraction",
     "percentage_of", "tier_min_days", "tier_max_days", "effective_from", "terms_unchanged",
     "invoice_id", "invoice_line_id", "net_amount", "unit_rate", "billed_units",
@@ -36,18 +36,20 @@ ANALYTICAL_FIELDS = frozenset({
     "allocated_amount",
 })
 
-FIELD_SCOPE = {"entity_kind": "ENTITY", "document_role": "SOURCE",
+FIELD_SCOPE = {"charge_type": "ENTITY_OR_REVIEWED_RELATION", "billing_unit": "TERM_TIME",
+               "quantity_basis": "TERM_QUANTITY", "entity_kind": "ENTITY", "document_role": "SOURCE",
                "document_status": "SOURCE", "invoice_line_id": "LINE_OR_TECHNICAL",
                "charge_key": "CHARGE_SCOPE_OR_TECHNICAL"}
 TECHNICAL_DERIVATIONS = frozenset({"invoice_line_id", "charge_key"})
 DOCUMENT_ENVELOPE_FIELDS = frozenset({"document_role", "document_status", "invoice_id", "supplier_id"})
 
-# These facts must be observed from this source if the entity is to enter the
-# financial package. The technical keys above are resolved after fact review.
+# Intrinsic source observations required before source selection/fact review.
+# Charge meaning can instead be established by an explicit package-scope review;
+# canonical financial records still require it. Keys are derived after review.
 PACKAGE_SOURCE_REQUIRED = {
     "RENTAL_SCOPE": frozenset({"agreement_id", "supplier_id", "client_id", "start", "end",
                                "quantity", "description"}),
-    "INVOICE_LINE": frozenset({"invoice_id", "charge_type", "currency", "net_amount"}),
+    "INVOICE_LINE": frozenset({"invoice_id", "currency", "net_amount"}),
     "RETURN": frozenset({"event_type", "date", "quantity", "verification"}),
     "RATE_AMENDMENT": frozenset({"charge_type", "currency", "rate", "effective_from",
                                  "terms_unchanged"}),
@@ -55,6 +57,11 @@ PACKAGE_SOURCE_REQUIRED = {
     "SUPPORTING_DOCUMENT": frozenset(),
     "IRRELEVANT": frozenset(),
 }
+
+# These remain mandatory on applicable canonical financial records, but may be
+# established by reviewed relationships rather than duplicated on every source.
+PACKAGE_RELATIONAL_FIELDS = {"INVOICE_LINE": frozenset({"charge_type"}),
+                             "RENTAL_SCOPE": frozenset({"charge_type"})}
 
 # A classification-only source record is still checked at selected-package
 # validation. QA reopens an agreed omission only when a financial/event record
@@ -72,7 +79,7 @@ COMPLETENESS_TRIGGER_FIELDS = {
 MATERIAL_FIELDS = {
     "RENTAL_SCOPE": frozenset({"entity_kind", "agreement_id", "supplier_id", "client_id",
         "asset_id", "serial_number", "start", "end", "quantity", "rate", "currency",
-        "charge_key", "charge_type", "billing_unit", "weekends_billable", "minimum_days",
+        "charge_key", "charge_type", "billing_unit", "quantity_basis", "weekends_billable", "minimum_days",
         "partial_period_policy", "stop_event", "stop_day_billable", "discount_fraction"}),
     "INVOICE_LINE": frozenset({"entity_kind", "invoice_id", "invoice_line_id", "supplier_id",
         "agreement_id", "asset_id", "serial_number", "currency", "net_amount", "charge_key",
@@ -108,7 +115,7 @@ def observation_instructions() -> str:
         "says INVOICE or CREDIT; the row type is source data, not entity_kind or document_role. "
         "PAYMENT_EXPORT is a possible SOURCE role only when the workbook content supports it. "
         "For an INVOICE_LINE, observe invoice_id, charge_type, currency and net_amount when the source "
-        "supports them. charge_type is a commercial classification and must cite this source. "
+        "supports them. charge_type applies to terms as well as invoice lines; missing charge classification requires explicit package relation review. "
         "invoice_line_id and charge_key may be omitted when they are only internal technical keys; "
         "Python can derive them after review from a unique source-local entity or reviewed charge scope. "
         "Never invent a printed line ID, charge type, document authority or status. "
@@ -220,7 +227,8 @@ def unique_pixel_entity_for_required_field(semantic: str, location: str,
         if len(kinds) != 1:
             continue
         kind = next(iter(kinds))
-        if semantic in PACKAGE_SOURCE_REQUIRED.get(kind, frozenset()) and semantic not in fields:
+        required = PACKAGE_SOURCE_REQUIRED.get(kind, frozenset()) | PACKAGE_RELATIONAL_FIELDS.get(kind, frozenset())
+        if semantic in required and semantic not in fields:
             eligible.append(entity_id)
     return eligible[0] if len(eligible) == 1 else None
 
@@ -282,7 +290,7 @@ ENUM_ALIASES = {
                       "CORRESPONDENCE": "EMAIL_EVIDENCE", "RATE_SHEET": "RATE_CARD"},
     "charge_type": {"EQUIPMENT_RENTAL": "RENTAL"},
 }
-ENUM_FIELDS = frozenset({"entity_kind", "document_role", "document_status", "charge_type", "billing_unit"})
+ENUM_FIELDS = frozenset({"entity_kind", "document_role", "document_status", "charge_type", "billing_unit", "quantity_basis"})
 DECIMAL_FIELDS = frozenset({"net_amount", "rate", "unit_rate", "allocated_amount", "quantity", "billed_units",
                             "discount_fraction"})
 DATE_FIELDS = frozenset({"start", "end", "date", "effective_from", "extended_end"})

@@ -29,7 +29,7 @@ from .sources import verify_batch
 from .model_protocol import load_model_json, normalize_decision, normalize_read
 
 
-ADJUDICATION_VERSION = "againward-source-adjudication-v15-normalized-observations"
+ADJUDICATION_VERSION = "againward-source-adjudication-v16-source-isolated"
 MAX_SOURCE_TEXT = 60_000
 MAX_VISUAL_PAGES = 4
 _SCHEMA: dict[str, Any] = {
@@ -88,7 +88,8 @@ del _SCHEMA["properties"]["decisions"]["items"]["properties"]["candidate_selecti
 def bind_model_citations(raw: dict[str, Any], visual_manifest: list[dict[str, Any]], *,
                          primary: tuple[DocumentExtraction, ...] = (),
                          challenger: tuple[DocumentExtraction, ...] = (),
-                         sparse_assembly: bool = False) -> dict[str, Any]:
+                         sparse_assembly: bool = False,
+                         focused_source_id: str | None = None) -> dict[str, Any]:
     """Bind citation hashes to the actual invocation attachments, never model text.
 
     No semantic value, citation, source or location is repaired. The durable
@@ -134,6 +135,11 @@ def bind_model_citations(raw: dict[str, Any], visual_manifest: list[dict[str, An
             if not isinstance(citation, dict):
                 continue
             source, location = citation.get("source_id"), citation.get("location")
+            if focused_source_id is not None and source != focused_source_id:
+                raise DocumentError("SOURCE_LOCATION_INVALID", "Foreign citation in source-local adjudication",
+                    diagnostic={"stage": "SOURCE_ADJUDICATION_VALIDATION",
+                        "source_id": focused_source_id, "schema_path": "$.decisions[0].citations[].source_id",
+                        "validation_code": "FOREIGN_SOURCE_CITATION", "error_category": "SOURCE_BINDING"})
             if not isinstance(source, str) or not isinstance(location, str):
                 continue
             # Legacy callers may supply a hash, but it is never silently replaced.
@@ -642,17 +648,19 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         result["adjudication_sha256"] = stable_hash({k: v for k, v in result.items()
                                                      if k != "adjudication_sha256"})
         return result
-    parsed = [read_document(document, root) for document in batch.documents]
+    focused_ids = {row["source_id"] for row in disputes}
+    focused_documents = tuple(document for document in batch.documents if document.source_id in focused_ids)
+    parsed = [read_document(document, root) for document in focused_documents]
     sources: list[dict[str, Any]] = [{"source_id": document.source_id, "source_sha256": document.sha256,
                 "units": [{"location": unit.location, "route": unit.route,
                            "unit_sha256": unit.unit_sha256, "text": unit.text}
                           for unit in source.units]}
-               for document, source in zip(batch.documents, parsed, strict=True)]
+               for document, source in zip(focused_documents, parsed, strict=True)]
     if sum(len(unit["text"]) for source in sources for unit in source["units"]) > MAX_SOURCE_TEXT:
         raise DocumentError("RESOURCE_LIMIT", "Adjudication source set exceeds bounded model context")
     prompt = (
         "Decide ONLY the source in material_disagreements: exactly one decision. "
-        "All other originals are context, not additional decision requests. "
+        "Only this source is supplied. Cross-document relationships are reviewed later on promoted facts. "
         "Python verifies source identity, hashes and exhaustive input accounting. Assess business meaning, not ledger cardinality. For complementary partial readings you may choose ASSEMBLE, supplying candidate_selections "
         "with INCLUDE selections for the observations needed in the assembled entities. Unselected inputs are retained as DEFER in an exhaustive Python-owned lineage ledger and reconsidered by fresh QA. "
         "Reference reader PRIMARY/CHALLENGER and candidate_index (one-based position in that reader's candidates); "
@@ -679,14 +687,14 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         "semantic reading. Choose UNRESOLVED if pixels are illegible or materially ambiguous. "
         "Do not infer what the scan says from the agreement or other documents. Two proposals containing different "
         "true fields are not automatically a material conflict. Compare the actual financial meaning, "
-        "source authority and completeness across ALL originals. Prefer the representation with the "
+        "source authority and local completeness. Prefer the representation with the "
         "correct documentary role and necessary financial facts; explain complementary metadata and "
-        "whether the governing original already supplies an omitted fact. "
+        "whether this original already supplies an omitted fact. "
         "The material_disagreements records list package-required source-fact gaps for each reading. "
         "If the selected reading lacks such a fact, reopen its original source. For visual evidence, "
         "add a new source-bound pixel observation only when the visible wording supports the missing "
         "semantic field, using the selected entity's fact-group where unambiguous. It remains unapproved. "
-        "If neither reading nor current pixels support the field, choose UNRESOLVED. Do not fill a "
+        "Local requirements exclude classifications reserved for package relation review. If neither reading nor current pixels support a required local field, choose UNRESOLVED. Do not fill a "
         "commercial classification from another document or an expected financial result. "
         "A proposal selection chooses a source-local observation set for further review; it "
         "does NOT establish contractual authority or approve facts. Use the shared semantic_guidance "
@@ -711,13 +719,16 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                           "primary": next(_model_observation_view(item) for item in primary if item.source_id == row["source_id"]),
                           "challenger": next(_model_observation_view(item) for item in challenger if item.source_id == row["source_id"])}
                           for row in disputes],
-                      "original_sources": sources, "prior_assembly": assembly_context}, ensure_ascii=False)
+                      "original_sources": sources, "prior_assembly": (
+                          {"original_primary": [item for item in assembly_context.get("original_primary", [])
+                                                if item.get("source_id") in focused_ids]}
+                          if assembly_context else None)}, ensure_ascii=False)
     )
     with tempfile.TemporaryDirectory(prefix="againward-adjudication-") as directory:
         temp = Path(directory)
         images: list[Path] = []
         visual_manifest: list[dict[str, Any]] = []
-        for document, source in zip(batch.documents, parsed, strict=True):
+        for document, source in zip(focused_documents, parsed, strict=True):
             source_temp = temp / document.sha256
             source_temp.mkdir()
             rendered = _images(document, source, root, source_temp)
@@ -734,6 +745,8 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         schema_body = json.loads(json.dumps(_MODEL_SCHEMA))
         citation_schema = schema_body["properties"]["decisions"]["items"]["properties"]["citations"]["items"]
         citation_schema["required"].remove("preview_sha256")
+        citation_schema["required"].remove("source_id")
+        del citation_schema["properties"]["source_id"]
         del citation_schema["properties"]["preview_sha256"]
         reference = schema_body["properties"]["decisions"]["items"]["properties"]["candidate_selections"]["items"]
         reference["required"] = ["reader", "candidate_index", "decision", "entity_id"]
@@ -824,6 +837,16 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
             try:
                 raw = load_model_json(response_bytes, maximum=200_000)
                 raw = normalize_decision(raw, source_id=disputes[0]["source_id"])
+                # Only one source and its pixels were exposed. Bind omitted
+                # citation identity; never rewrite an explicit foreign ID.
+                decisions_raw = raw.get("decisions")
+                for decision in decisions_raw if isinstance(decisions_raw, list) else []:
+                    if not isinstance(decision, dict):
+                        continue
+                    citations_raw = decision.get("citations")
+                    for citation in citations_raw if isinstance(citations_raw, list) else []:
+                        if isinstance(citation, dict):
+                            citation.setdefault("source_id", disputes[0]["source_id"])
             except DocumentError as exc:
                 from .codex_provider import _codex_cli_version, write_model_diagnostic
                 diagnostic = {"stage": "SOURCE_ADJUDICATION_VALIDATION",
@@ -850,7 +873,7 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                 rows = raw.get("decisions")
                 for row in rows if isinstance(rows, list) else []:
                     if isinstance(row, dict) and isinstance(row.get("native_observations"), list):
-                        native_source = next((p for d, p in zip(batch.documents, parsed, strict=True)
+                        native_source = next((p for d, p in zip(focused_documents, parsed, strict=True)
                                        if d.source_id == row.get("source_id")), None)
                         if native_source is not None:
                             from dataclasses import replace
@@ -858,7 +881,7 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                             row["native_observations"] = normalize_read(
                                 {"candidates": row["native_observations"]}, native_source, rental=True)["candidates"]
                 bound_raw = bind_model_citations(raw, visual_manifest, primary=primary, challenger=challenger,
-                                                  sparse_assembly=True)
+                                                  sparse_assembly=True, focused_source_id=disputes[0]["source_id"])
                 result = validate_adjudication(batch, primary, challenger, qa, bound_raw, root,
                     required_source_facts=required_source_facts, decision_source_id=decision_source_id)
                 if result.get("assembly_proposals") and not allow_assembly:

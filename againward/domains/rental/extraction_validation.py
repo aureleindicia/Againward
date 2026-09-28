@@ -123,7 +123,7 @@ def package_source_gaps(extraction: DocumentExtraction, *,
             continue
         missing = set(PACKAGE_SOURCE_REQUIRED[kind] - present)
         if kind == "RENTAL_SCOPE" and present & {"rate", "billing_unit", "charge_key", "charge_type"}:
-            missing.update({"charge_type", "currency"} - present)
+            missing.update({"currency"} - present)
         if missing:
             missing_by_entity[entity_id] = missing
     return missing_by_entity

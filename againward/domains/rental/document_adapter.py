@@ -131,7 +131,7 @@ def _unique_charge_key(terms: list[dict[str, Any]], *, period_id: str,
 
 def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, Any]]:
     p = closed(payload, {"schema_version", "batch", "extractions", "fact_review",
-                         "rental_relationship_review", "credit_relationship_review"})
+                         "rental_relationship_review", "credit_relationship_review"}, optional={"scope_review"})
     if p["schema_version"] != DOCUMENT_CASE_SCHEMA:
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown Rental document package")
     batch = SourceBatch.from_dict(p["batch"])
@@ -194,6 +194,31 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
                                     "source_id": entity.source_id, "schema_path": "$.entities[].fields",
                                     "validation_code": "REVIEWED_ENTITY_INCOMPLETE", "error_category": "SOURCE_EVIDENCE_MISSING",
                                     "missing_semantic_fields": sorted(missing)})
+    from .scope_review import validate_scope_receipt
+    classifications, classification_decisions = validate_scope_receipt(entities, extractions, p.get("scope_review"))
+    fact_lookup = {f.fact_id: f for f in facts}
+
+    def classification_refs(entity):
+        refs = _refs(entity)
+        for decision in classification_decisions:
+            if decision["entity_id"] != entity.entity_id:
+                continue
+            for fid in decision["supporting_fact_ids"]:
+                fact = fact_lookup[fid]
+                # Preserve the actual source/location of every relationship
+                # premise. These are not observations copied onto the invoice.
+                ref_entity = Entity("proof", "proof", fact.candidate.source_id, "SUPPORTING_DOCUMENT", (fact,))
+                for ref in _refs(ref_entity):
+                    if ref not in refs:
+                        refs.append(ref)
+        return refs
+
+    def charge_classification(entity):
+        value = entity.values.get("charge_type", classifications.get(entity.entity_id))
+        if value is None:
+            raise DocumentError("EXTRACTION_INCOMPLETE", "Reviewed charge classification required")
+        return value
+
     by_source: dict[str, list[Entity]] = {}
     for e in entities:
         by_source.setdefault(e.source_id, []).append(e)
@@ -226,6 +251,7 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
     parties: dict[str, dict[str, Any]] = {}
     period_ids = {}
     technical_derivations: list[dict[str, str]] = []
+    rate_normalizations: list[dict[str, Any]] = []
     for e in entities:
         if e.kind != "RENTAL_SCOPE":
             continue
@@ -247,17 +273,17 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
         case["periods"].append({"period_id": pid, "item_id": iid, **values, "evidence_refs": _refs(e),
                                 **_optional(e, ("site_id", "cost_center_id"))})
         if any(key in e.values for key in ("rate", "billing_unit", "charge_key", "charge_type")):
-            term = _required(e, ("charge_type", "currency"))
+            term = {**_required(e, ("currency",)), "charge_type": charge_classification(e)}
             if e.values.get("charge_key") is None:
                 term["charge_key"] = str(term["charge_type"]).lower()
                 technical_derivations.append({"entity_id": e.entity_id, "field": "charge_key",
                                               "rule": "REVIEWED_TERM_CHARGE_TYPE"})
             else:
                 term["charge_key"] = e.values["charge_key"]
-            term.update(_optional(e, ("rate", "billing_unit", "weekends_billable", "minimum_days",
+            term.update(_optional(e, ("rate", "billing_unit", "quantity_basis", "weekends_billable", "minimum_days",
                                      "partial_period_policy", "stop_event", "stop_day_billable", "discount_fraction")))
             case["terms"].append({"term_id": "term-" + e.entity_id.removeprefix("entity-"),
-                                  "period_id": pid, **term, "evidence_refs": _refs(e)})
+                                  "period_id": pid, **term, "evidence_refs": classification_refs(e)})
     case["parties"] = sorted(parties.values(), key=lambda party: party["party_id"])
     amendments = sorted((e for e in entities if e.kind == "RATE_AMENDMENT"),
                         key=lambda e: (str(e.values.get("effective_from")), e.entity_id))
@@ -292,7 +318,7 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
     charges = {}
     for e in entities:
         if e.kind == "INVOICE_LINE":
-            charge = _required(e, ("invoice_id", "charge_type", "currency", "net_amount"))
+            charge = {**_required(e, ("invoice_id", "currency", "net_amount")), "charge_type": charge_classification(e)}
             charge["invoice_line_id"], derivation = _line_identifier(e)
             if derivation is not None:
                 technical_derivations.append(derivation)
@@ -305,7 +331,7 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
             else:
                 charge["charge_key"] = e.values["charge_key"]
             charge.update(_optional(e, ("start", "end", "quantity", "unit_rate", "billed_units")))
-            case["actual_charges"].append({**charge, "period_id": period_ids[links[e.entity_id]], "evidence_refs": _refs(e)})
+            case["actual_charges"].append({**charge, "period_id": period_ids[links[e.entity_id]], "evidence_refs": classification_refs(e)})
             charges[e.entity_id] = str(charge["invoice_id"]) + "/" + str(charge["invoice_line_id"])
         elif e.kind == "RETURN":
             event = _required(e, ("event_type", "date", "quantity", "verification"))
@@ -335,12 +361,40 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
                                         "allocation_state": "PARTIALLY_ALLOCATED_CREDIT" if partial else "CONFIRMED_ALLOCATION",
                                         **({"allocated_amount": allocated} if partial else {}),
                                         "evidence_refs": _refs(e)})
-    canonical = RentalCase.from_dict(case)
+    from .entity_contract import BILLING_UNITS
+    from .rate_dimensions import rate_dimensions, QUANTITY_BASES
+    for index, term in enumerate(case["terms"]):
+        dimensions = rate_dimensions(term.get("billing_unit"))
+        if dimensions:
+            original_unit = term["billing_unit"]
+            for field, value in dimensions.items():
+                if field != "billing_unit" and field in term and term[field] != value:
+                    raise DocumentError("EXTRACTION_CONTRADICTION", "Reviewed rate dimensions conflict",
+                        diagnostic={"stage": "DOCUMENT_PACKAGE_VALIDATION", "validation_code": "RATE_DIMENSION_CONFLICT",
+                            "schema_path": f"$.terms[{index}].{field}", "error_category": "SEMANTIC_CONTRADICTION"})
+                term[field] = value
+            rate_normalizations.append({"term_id": term["term_id"], "original_unit": original_unit,
+                "dimensions": dimensions, "rule": "REVIEWED_RATE_DIMENSIONS",
+                "evidence_refs": term["evidence_refs"]})
+        for field, allowed in (("billing_unit", BILLING_UNITS), ("quantity_basis", QUANTITY_BASES)):
+            if term.get(field) is not None and term[field] not in allowed:
+                raise DocumentError("EXTRACTION_INCOMPLETE", "Unsupported reviewed rate dimension",
+                    diagnostic={"stage": "DOCUMENT_PACKAGE_VALIDATION", "validation_code": "UNSUPPORTED_RATE_DIMENSION",
+                        "schema_path": f"$.terms[{index}].{field}", "error_category": "SOURCE_EVIDENCE_MISSING",
+                        "missing_semantic_fields": [field]})
+    try:
+        canonical = RentalCase.from_dict(case)
+    except ValueError as exc:
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Canonical Rental record failed validation",
+            diagnostic={"stage": "DOCUMENT_PACKAGE_VALIDATION", "schema_path": "$.canonical_case",
+                "validation_code": "CANONICAL_RECORD_INVALID", "error_category": "SCHEMA_ERROR"}) from exc
     lineage = {"schema_version": "againward-rental-document-lineage-v1", "batch_id": batch.batch_id,
                "canonical_case_sha256": stable_hash(canonical.to_dict()),
                "facts": [f.to_dict() for f in facts], "entities": [asdict(e) for e in entities],
                "rental_resolution": resolution.to_dict(), "credit_resolution": credit_resolution.to_dict(),
                "technical_derivations": technical_derivations,
+               "rate_normalizations": rate_normalizations,
+               "package_classifications": classification_decisions,
                "limitations": sorted({limit for extraction in extractions for limit in extraction.limitations}),
                "queryable_source_units": "Native location and character span retained in every evidence reference",
                "human_delivery_approval": False}

@@ -148,6 +148,7 @@ class RateTerm:
     currency: str
     evidence_refs: tuple[EvidenceRef, ...]
     billing_unit: str | None = None
+    quantity_basis: str | None = None
     rate: str | None = None
     quantity: str | None = None
     weekends_billable: bool | None = None
@@ -169,6 +170,9 @@ class RateTerm:
         _evidence(self.evidence_refs)
         if self.charge_type not in CHARGE_TYPES or self.billing_unit not in BILLING_UNITS | {None}:
             raise ValueError("Unknown charge type or billing unit.")
+        from .rate_dimensions import QUANTITY_BASES
+        if self.quantity_basis not in QUANTITY_BASES | {None}:
+            raise ValueError("Unknown quantity basis.")
         for key in ("rate", "quantity", "discount_fraction"):
             if getattr(self, key) is not None:
                 result = decimal_value(getattr(self, key), name=key)

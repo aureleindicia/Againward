@@ -1,5 +1,13 @@
 # AGAINWARD — read first (2026-09-25)
 
+The 2026-09-28 follow-up separates isolated source adjudication from reviewed
+package charge classification, preserves compound rate dimensions, and records
+canonical construction errors in workflow receipts. The latest known Luna
+campaign on `a0de549` still stands at **0/6 calculations**; it is not superseded
+by this engineering change. No new CASE A/B E2E was run. See the
+[evidence-scope record](validation/rental_evidence_scopes_20260928.md) for causal
+findings, software validation and the remaining independent campaign requirement.
+
 Current first-client decision: **NOT READY — INDEPENDENT QUALITY MEASUREMENT OPEN**.
 An earlier v9 eight-source DEV run passed the former rate-card promotion failure
 and completed a model-QA-checked evaluation PDF without HUMAN scan transcription.
