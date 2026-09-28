@@ -2,6 +2,7 @@
 from copy import deepcopy
 from dataclasses import replace
 import json
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -237,6 +238,56 @@ def test_provider_runtime_normalization_is_wired_before_exact_validation(tmp_pat
     accepted = validate_proposal(proposal, batch, root)
     assert accepted.candidates[0].value_type == 'DECIMAL'
     assert accepted.candidates[0].value == '850.00'
+
+
+@pytest.mark.parametrize('model_value', ['9 asset-days', 'asset-days'])
+def test_billed_units_wording_normalizes_from_its_unique_exact_native_quote(
+    tmp_path, monkeypatch, model_value
+):
+    from againward.documents.codex_provider import CodexCliProvider
+
+    quote = '9 asset-days x EUR 30.00'
+    content = f'Invoice INV-9: {quote}; net EUR 270.00.'
+    root, batch, doc, parsed = _source(tmp_path, content)
+    response = {
+        'status': 'SUCCESS', 'limitations': [], 'candidates': [{
+            'entity_id': 'line-1', 'semantic_type': 'billed_units', 'value_type': 'DECIMAL',
+            'value': model_value, 'raw_observed_value': quote, 'location': 'line:1',
+            'normalization_notes': '', 'ambiguity_flags': [],
+        }],
+    }
+
+    def fake_codex(command, **kwargs):
+        Path(command[command.index('--output-last-message') + 1]).write_text(json.dumps(response))
+        return SimpleNamespace(returncode=0, stdout='', stderr='')
+
+    monkeypatch.setattr('againward.documents.codex_provider.subprocess.run', fake_codex)
+    proposal = CodexCliProvider(root, model='test').propose(doc, parsed,
+        {'batch': batch, 'semantic_guidance': guidance()})
+    accepted = validate_proposal(proposal, batch, root)
+    billed_units = accepted.candidates[0]
+    assert billed_units.semantic_type == 'billed_units'
+    assert billed_units.value_type == 'DECIMAL' and billed_units.value == '9'
+    assert billed_units.raw_observed_value == quote
+    assert billed_units.source_span is not None
+    assert 'unique quoted unit expression' in billed_units.normalization_notes
+
+
+@pytest.mark.parametrize(('model_value', 'quote'), [
+    ('10 asset-days', '9 asset-days x EUR 30.00'),
+    ('asset-days', '9 asset-days and 10 asset-days'),
+])
+def test_billed_units_normalization_rejects_mismatched_or_ambiguous_quote(tmp_path, model_value, quote):
+    root, batch, doc, parsed = _source(tmp_path, f'Invoice INV-9: {quote}.')
+    raw = {'status': 'SUCCESS', 'limitations': [], 'candidates': [{
+        'entity_id': 'line-1', 'semantic_type': 'billed_units', 'value_type': 'DECIMAL',
+        'value': model_value, 'raw_observed_value': quote, 'location': 'line:1',
+        'normalization_notes': '', 'ambiguity_flags': [],
+    }]}
+    normalized = normalize_read(raw, parsed, rental=True)
+    assert normalized['candidates'][0]['value'] == model_value
+    with pytest.raises(DocumentError, match='EXTRACTION_SCHEMA_INVALID'):
+        validate_proposal(assemble_proposal(normalized, doc, parsed, batch.batch_id, 'test'), batch, root)
 
 
 def test_recovered_native_assembly_requires_current_qa_review_and_source(tmp_path):

@@ -6,6 +6,7 @@ against the exact strict schema, hashes, quotes and review versions.
 from __future__ import annotations
 
 from copy import deepcopy
+from decimal import Decimal
 import hashlib
 import json
 import re
@@ -75,6 +76,49 @@ def token(value: str) -> str:
 
 
 
+def _normalize_quoted_billed_units(row: dict[str, Any]) -> None:
+    """Recover a billed-unit count only from its own exact quoted phrase.
+
+    A read can place wording such as ``9 asset-days`` in the numeric
+    ``billed_units`` field. Normalize it only when that candidate's quote has
+    one unique count immediately bound to the same unit words. The quote stays
+    unchanged and must still pass the ordinary exact-source check. A mismatch
+    or multiple possible counts is left untouched and fails closed at decimal
+    validation.
+    """
+    value = row.get("value")
+    quote = row.get("raw_observed_value")
+    if not isinstance(value, str) or not isinstance(quote, str):
+        return
+    value_match = re.fullmatch(
+        r"\s*(?:(?P<count>[+-]?\d+(?:\.\d+)?)\s+)?(?P<unit>[A-Za-z][A-Za-z0-9 -]{0,39})\s*",
+        value,
+    )
+    if value_match is None:
+        return
+    unit = value_match.group("unit").strip()
+    words = re.split(r"[\s-]+", unit)
+    if not words or any(not word for word in words):
+        return
+    unit_pattern = r"[\s-]+".join(re.escape(word) for word in words)
+    source_counts = list(re.finditer(
+        rf"(?<![\w.+-])(?P<count>[+-]?\d+(?:\.\d+)?)\s+{unit_pattern}(?![\w-])",
+        quote,
+        flags=re.IGNORECASE,
+    ))
+    if len(source_counts) != 1:
+        return
+    source_count = source_counts[0].group("count")
+    model_count = value_match.group("count")
+    if model_count is not None and Decimal(model_count) != Decimal(source_count):
+        return
+    row["value"] = source_count
+    note = "Parsed billed_units from its unique quoted unit expression."
+    previous = row.get("normalization_notes", "")
+    if isinstance(previous, str):
+        row["normalization_notes"] = "; ".join(part for part in (previous.strip(), note) if part)
+
+
 def normalize_row(row: dict[str, Any], *, visual: bool, rental: bool) -> dict[str, Any]:
     result = deepcopy(row)
     if not visual and "entity_hint" in result and "entity_id" not in result:
@@ -98,6 +142,8 @@ def normalize_row(row: dict[str, Any], *, visual: bool, rental: bool) -> dict[st
             result["value_type"] = "DECIMAL"
             if type(value) is int:
                 result["value"] = str(value)
+            if field == "billed_units":
+                _normalize_quoted_billed_units(result)
         elif field == "currency":
             result["value_type"] = "CURRENCY"
             if isinstance(value, str):

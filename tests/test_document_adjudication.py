@@ -75,11 +75,26 @@ def _local_model_answer(raw):
     """New model protocol sees one source; legacy receipt tests keep context citations."""
     result = deepcopy(raw)
     for row in result["decisions"]:
+        row.setdefault("candidate_selections", [])
         source_id = row.get("source_id")
         if source_id is not None:
             row["citations"] = [c for c in row["citations"]
                                 if c.get("source_id", source_id) == source_id]
     return result
+
+
+def _assert_codex_strict_schema(schema):
+    """Mirror the provider's strict JSON object requirements recursively."""
+    if schema.get("type") == "object":
+        properties = schema.get("properties", {})
+        assert schema.get("additionalProperties") is False
+        assert set(schema.get("required", [])) == set(properties)
+        for child in properties.values():
+            _assert_codex_strict_schema(child)
+    if schema.get("type") == "array":
+        _assert_codex_strict_schema(schema["items"])
+    for child in schema.get("anyOf", []):
+        _assert_codex_strict_schema(child)
 
 
 def test_adjudication_selects_source_bound_proposal_without_approving_facts(tmp_path):
@@ -261,8 +276,9 @@ def test_adjudication_runtime_failure_is_classified_and_sanitized(tmp_path, monk
 def test_adjudication_response_schema_separates_runtime_owned_citation_bindings():
     from againward.documents.adjudication import _MODEL_SCHEMA, _model_response_schema
     decision = _MODEL_SCHEMA["properties"]["decisions"]["items"]
-    assert set(decision["required"]) == set(decision["properties"]) - {"candidate_selections"}
+    assert set(decision["required"]) == set(decision["properties"])
     assert "observations" in decision["required"]
+    assert "candidate_selections" in decision["required"]
     citation = decision["properties"]["citations"]["items"]
     assert {"source_id", "preview_sha256"} <= set(citation["required"])
 
@@ -649,7 +665,7 @@ def test_live_interface_binds_hashes_and_preserves_semantic_guidance(tmp_path, m
     root, batch, primary, challenger, qa, raw, _ = _case(tmp_path)
     model_raw = deepcopy(raw)
     for decision in model_raw["decisions"]:
-        decision.pop("candidate_selections", None)
+        decision["candidate_selections"] = []
         focused_source = decision["source_id"]
         decision["citations"] = [citation for citation in decision["citations"]
                                   if citation.get("source_id") == focused_source]
@@ -664,10 +680,11 @@ def test_live_interface_binds_hashes_and_preserves_semantic_guidance(tmp_path, m
             return original_run(command, **kwargs)
         input = kwargs["input"]
         schema = json.loads(Path(command[command.index("--output-schema") + 1]).read_text())
+        _assert_codex_strict_schema(schema)
         fields = schema["properties"]
         assert "source_id" not in fields
         assert "preview_sha256" not in fields["citations"]["items"]["properties"]
-        assert "candidate_selections" not in schema["required"]
+        assert "candidate_selections" in schema["required"]
         assert set(fields["candidate_selections"]["items"]["required"]) == {
             "reader", "candidate_index", "decision", "entity_id"}
         assert '"semantic_guidance": "Shared domain semantics"' in input
@@ -707,3 +724,21 @@ def test_nonassembly_selection_discards_inapplicable_candidate_dispositions(tmp_
     assert "candidate_selections" not in bound["decisions"][0]
     result = validate_adjudication(batch, primary, challenger, qa, bound, root)
     assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"
+
+
+@pytest.mark.parametrize("selection", ["PRIMARY", "CHALLENGER", "UNRESOLVED"])
+def test_strict_model_decisions_use_empty_assembly_list_outside_assemble(tmp_path, selection):
+    from againward.documents.adjudication import bind_model_citations
+    root, batch, primary, challenger, qa, raw, email = _case(tmp_path)
+    decision = raw["decisions"][0]
+    decision["selection"] = selection
+    decision["candidate_selections"] = []
+    if selection == "UNRESOLVED":
+        decision["citations"] = []
+    bound = bind_model_citations(raw, [])
+    result = validate_adjudication(batch, primary, challenger, qa, bound, root)
+    assert result["facts_approved"] == 0 and result["delivery_approved"] is False
+    if selection == "UNRESOLVED":
+        assert email.source_id in result["material_unresolved_source_ids"]
+    else:
+        assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"

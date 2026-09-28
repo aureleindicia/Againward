@@ -78,17 +78,18 @@ _SCHEMA: dict[str, Any] = {
 _SCHEMA["properties"]["decisions"]["items"]["properties"]["native_observations"] = \
     _OUTPUT_SCHEMA["properties"]["candidates"]
 
-# Stored legacy decisions remain readable. The current schema keeps optional
-# assembly dispositions typed and closed; the selected operation determines
-# whether deterministic validation requires them.
+# Stored legacy decisions remain readable. The strict provider schema requires
+# every declared property, so non-assembly choices serialize an empty
+# candidate_selections array. Only ASSEMBLE gives that array semantic content;
+# deterministic validation still requires complete dispositions then.
 _MODEL_SCHEMA = json.loads(json.dumps(_SCHEMA))
-# Candidate dispositions are meaningful only for ASSEMBLE. Making them
-# unconditionally required taught the model to emit them for ordinary
-# PRIMARY/CHALLENGER selections, while the deterministic validator correctly
-# rejects non-empty dispositions on those selections. Keep the property closed
-# and typed, but optional; the validator and assembly builder enforce when it is
-# required.
-_MODEL_SCHEMA["properties"]["decisions"]["items"]["required"].append("native_observations")
+# OpenAI/Codex strict JSON Schema requires `required` to enumerate every key in
+# `properties`; conventional optional properties are rejected before inference.
+# Requiring an empty array outside ASSEMBLE satisfies transport strictness
+# without asking the model to account for any candidates. ASSEMBLE dispositions
+# remain explicit, source-local semantic input and are bound by Python below.
+_MODEL_SCHEMA["properties"]["decisions"]["items"]["required"].extend(
+    ["candidate_selections", "native_observations"])
 del _SCHEMA["properties"]["decisions"]["items"]["properties"]["candidate_selections"]
 
 
