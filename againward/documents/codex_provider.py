@@ -776,6 +776,17 @@ class CodexCliProvider:
         unnormalized = raw
         rental = guidance.startswith(("Rental B2B source interpretation", "Rental document observation vocabulary"))
         raw = normalize_read(raw, parsed, rental=rental)
+        quarantined_observations = raw.pop("_againward_rejected_observations", [])
+        if quarantined_observations:
+            self._diagnostic({"stage": "MODEL_PROTOCOL_NORMALIZATION",
+                "schema_version": PROTOCOL_VERSION, "source_id": document.source_id,
+                "source_sha256": document.sha256, "model": self.model,
+                "prompt_version": prompt_version, "invocation_id": invocation_id,
+                "rejection_code": "RATE_DIMENSION_EVIDENCE_CONFLICT",
+                "rejected_count": len(quarantined_observations),
+                "rejected_observations": quarantined_observations,
+                "semantic_values_present_before_rejection": True},
+                raw=unnormalized)
         if raw != unnormalized:
             self._diagnostic({"stage": "MODEL_PROTOCOL_NORMALIZATION",
                 "source_id": document.source_id, "schema_version": PROTOCOL_VERSION,

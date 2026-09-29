@@ -23,6 +23,24 @@ def has_unsupported_calendar_rate_convention(value: Any) -> bool:
     return _UNSUPPORTED_CALENDAR_RATE.search(words) is not None
 
 
+def has_ambiguous_rate_dimensions(value: Any) -> bool:
+    """Return true when source wording contains multiple competing rate bases."""
+    if not isinstance(value, str):
+        return False
+    words = re.sub(r"[_-]+", " ", value.strip().lower())
+    words = re.sub(r"\s+", " ", words)
+    item = r"(?:asset|item|unit|equipment item)"
+    duration = r"(?P<calendar>calendar )?(?P<unit>day|week|month)s?"
+    expressions = (
+        re.compile(r"\bper " + item + r" per " + duration + r"\b"),
+        re.compile(r"\bper " + duration + r" (?:and )?per " + item + r"\b"),
+        re.compile(r"\b" + item + r" " + duration + r"\b"),
+        re.compile(r"\bper (?:whole )?(?:fleet|scope|lot) per " + duration + r"\b"),
+    )
+    spans = {(match.start(), match.end()) for pattern in expressions for match in pattern.finditer(words)}
+    return len(spans) > 1
+
+
 def rate_dimensions(value: Any) -> dict[str, Any] | None:
     if not isinstance(value, str):
         return None

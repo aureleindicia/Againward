@@ -34,6 +34,21 @@ def test_unit_aliases_have_identical_canonical_meaning_and_unchanged_evidence(al
 
 
 @pytest.mark.parametrize('visual', [False, True])
+def test_composite_rate_projection_matches_exact_wording_for_native_and_visual(visual):
+    quote = 'EUR 50.00 per asset per calendar day'
+    parsed = SimpleNamespace(units=[SimpleNamespace(
+        route='VISUAL' if visual else 'NATIVE', location='page:1' if visual else 'line:1', text=quote)])
+    row = {'entity_hint': 'term', 'semantic_type': 'billing_unit',
+        'value': 'per calendar day', 'raw_observed_value': quote,
+        'visible_text': quote, 'location': 'page:1' if visual else 'line:1', 'page': 1}
+    key = 'observations' if visual else 'candidates'
+    result = normalize_read({key: [row]}, parsed, rental=True)[key]
+    assert {item['semantic_type']: item['value'] for item in result} == {
+        'billing_unit': 'DAY', 'quantity_basis': 'PER_ITEM', 'weekends_billable': True}
+    assert all(item.get('visible_text', item.get('raw_observed_value')) == quote for item in result)
+
+
+@pytest.mark.parametrize('visual', [False, True])
 def test_split_rate_dimensions_are_reconciled_from_their_same_exact_quote(visual):
     quote = 'per asset per calendar day'
     group_key = 'entity_hint'
@@ -60,7 +75,7 @@ def test_split_rate_dimensions_are_reconciled_from_their_same_exact_quote(visual
         row.get('location') == 'line:4' for row in normalized)
 
 
-def test_rate_dimension_quote_conflict_is_not_repaired_to_a_supported_basis():
+def test_conflicting_rate_basis_is_quarantined_and_quote_dimensions_survive():
     parsed = SimpleNamespace(units=[SimpleNamespace(route='NATIVE', location='line:4',
                                                       text='per asset per calendar day')])
     raw = {'candidates': [
@@ -69,17 +84,60 @@ def test_rate_dimension_quote_conflict_is_not_repaired_to_a_supported_basis():
         {'entity_hint': 'term', 'semantic_type': 'quantity_basis', 'value': 'PER_SCOPE',
          'raw_observed_value': 'per asset per calendar day', 'location': 'line:4'},
     ]}
-    with pytest.raises(DocumentError, match='conflicts with its exact source wording'):
-        normalize_read(raw, parsed, rental=True)
+    normalized = normalize_read(raw, parsed, rental=True)
+    assert normalized['status'] == 'NEEDS_REVIEW'
+    assert {row['semantic_type']: row['value'] for row in normalized['candidates']} == {
+        'billing_unit': 'DAY', 'quantity_basis': 'PER_ITEM', 'weekends_billable': True}
+    assert normalized['_againward_rejected_observations'][0]['rejection_code'] == (
+        'RATE_DIMENSION_EVIDENCE_CONFLICT')
+    assert normalized['_againward_rejected_observations'][0]['quote_dimensions_recovered'] is True
+    assert 'value_sha256' in normalized['_againward_rejected_observations'][0]
+    assert 'raw_observed_value' not in normalized['_againward_rejected_observations'][0]
 
 
-def test_composite_value_cannot_override_a_different_supported_source_quote():
+def test_conflicting_model_rate_value_is_rebuilt_from_exact_native_quote_before_binding(tmp_path):
+    quote = 'Rental rate EUR 12 per asset per calendar day'
+    root, batch, document, parsed = _source(tmp_path, quote)
+    raw = {'status': 'SUCCESS', 'limitations': [], 'candidates': [{
+        'entity_id': 'local-term', 'semantic_type': 'billing_unit', 'value_type': 'ENUM',
+        'value': 'WEEK', 'raw_observed_value': quote,
+        'location': parsed.units[0].location, 'normalization_notes': '', 'ambiguity_flags': []}]}
+    normalized = normalize_read(raw, parsed, rental=True)
+    normalized.pop('_againward_rejected_observations')
+    proposal = assemble_proposal(normalized, document, parsed, batch.batch_id, 'synthetic-model')
+    extraction = validate_proposal(proposal, batch, root)
+    dimensions = {candidate.semantic_type: candidate.value for candidate in extraction.candidates}
+    assert dimensions == {'billing_unit': 'DAY', 'quantity_basis': 'PER_ITEM',
+                         'weekends_billable': True}
+    assert all(candidate.raw_observed_value == quote for candidate in extraction.candidates)
+    assert all(candidate.source_span == (0, len(quote)) for candidate in extraction.candidates)
+
+
+def test_composite_basis_conflict_isolated_without_overriding_source_quote():
     quote = 'per fleet per calendar day'
     parsed = SimpleNamespace(units=[SimpleNamespace(route='NATIVE', location='line:8', text=quote)])
     raw = {'candidates': [{'entity_id': 'term', 'semantic_type': 'billing_unit',
         'value': 'per item per calendar day', 'raw_observed_value': quote, 'location': 'line:8'}]}
-    with pytest.raises(DocumentError, match='conflicts with its exact source wording'):
-        normalize_read(raw, parsed, rental=True)
+    normalized = normalize_read(raw, parsed, rental=True)
+    assert normalized['status'] == 'NEEDS_REVIEW'
+    assert {row['semantic_type']: row['value'] for row in normalized['candidates']} == {
+        'billing_unit': 'DAY', 'quantity_basis': 'PER_SCOPE', 'weekends_billable': True}
+    assert normalized['_againward_rejected_observations'][0]['rejection_code'] == (
+        'RATE_DIMENSION_EVIDENCE_CONFLICT')
+    assert normalized['_againward_rejected_observations'][0]['quote_dimensions_recovered'] is True
+
+
+def test_multiple_explicit_rate_expressions_remain_ambiguous_and_incomplete():
+    quote = 'EUR 12 per asset per day or EUR 300 per asset per month'
+    parsed = SimpleNamespace(units=[SimpleNamespace(route='NATIVE', location='line:9', text=quote)])
+    row = {'entity_id': 'term', 'semantic_type': 'billing_unit', 'value': 'DAY',
+           'raw_observed_value': quote, 'location': 'line:9'}
+    normalized = normalize_read({'candidates': [row]}, parsed, rental=True)
+    assert normalized['status'] == 'PARTIAL'
+    assert normalized['candidates'] == []
+    rejected = normalized['_againward_rejected_observations'][0]
+    assert rejected['rejection_code'] == 'AMBIGUOUS_RATE_DIMENSION_EVIDENCE'
+    assert rejected['quote_dimensions_recovered'] is False
 
 
 @pytest.mark.parametrize('visual', [False, True])

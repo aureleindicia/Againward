@@ -14,13 +14,14 @@ from pathlib import Path
 from typing import Any
 
 from againward.domains.rental.entity_contract import MATERIAL_FIELDS
-from againward.domains.rental.extraction_validation import package_source_gaps, proposal_issues
+from againward.domains.rental.extraction_validation import (PACKAGE_SOURCE_REQUIRED,
+    package_source_gaps, proposal_issues)
 from againward.evidence.hashing import stable_hash
 from .codex_provider import CodexCliProvider
 from .contracts import DocumentError, SourceBatch
 from .extraction import DocumentExtraction, persist_extraction, replay_extraction, validate_proposal
 from .readers import read_document
-from .reconciliation import ASSEMBLY_VERSION
+from .reconciliation import ASSEMBLY_VERSION, FACT_RECONCILIATION_VERSION
 from .sources import verify_batch
 
 
@@ -93,11 +94,47 @@ def _canonical_observations(extraction: DocumentExtraction) -> list[dict[str, An
         anchors = values_by_field.get(anchor_field or "", set())
         anchor_by_group[entity_id] = next(iter(anchors)) if len(anchors) == 1 else None
 
+    # In a validated single-scope rental agreement, the source contract itself
+    # can supply a stable identity when a reader splits the agreement envelope
+    # and its sole asset into separate model-local groups. This is permitted
+    # only when all four source-bound facts are unique: agreement role, scope
+    # kind, agreement identifier and asset identifier. The projection affects
+    # comparison/reconciliation only; candidate citations and source facts are
+    # unchanged, and the resulting extraction still requires review.
+    all_values: dict[str, set[str]] = {}
+    for candidate in extraction.candidates:
+        if candidate.value is not None:
+            all_values.setdefault(candidate.semantic_type, set()).add(str(candidate.value))
+    rental_anchor: str | None = None
+    if (all_values.get("document_role") == {"RENTAL_AGREEMENT"}
+            and all_values.get("entity_kind") == {"RENTAL_SCOPE"}
+            and len(all_values.get("agreement_id", set())) == 1
+            and len(all_values.get("asset_id", set())) == 1):
+        rental_anchor = "rental-scope-" + stable_hash({
+            "source_id": extraction.source_id,
+            "agreement_id": next(iter(all_values["agreement_id"])),
+            "asset_id": next(iter(all_values["asset_id"])),
+        })[:24]
+    rental_scope_fields = (set(MATERIAL_FIELDS.get("RENTAL_SCOPE", set()))
+                          | set(PACKAGE_SOURCE_REQUIRED.get("RENTAL_SCOPE", set()))
+                          | {"agreement_id"})
+
     observations: list[dict[str, Any]] = []
     for candidate in extraction.candidates:
         field = candidate.semantic_type
         kind = kind_by_group.get(candidate.entity_id)
-        if field in _SOURCE_METADATA_FIELDS and not (field == "invoice_id" and kind == "CREDIT"):
+        scope: str
+        anchor: str | None
+        if (rental_anchor is not None and field in rental_scope_fields):
+            scope, anchor = "MATERIAL_ENTITY", rental_anchor
+        elif field == "invoice_id" and kind == "INVOICE_LINE":
+            # The source-level envelope value is explicitly projected onto its
+            # same-source invoice line by the provider contract. For QA and
+            # deterministic union it therefore belongs to that anchored line,
+            # so a union cannot strand the required identifier in a metadata
+            # group separate from the entity it identifies.
+            scope, anchor = "MATERIAL_ENTITY", anchor_by_group.get(candidate.entity_id)
+        elif field in _SOURCE_METADATA_FIELDS and not (field == "invoice_id" and kind == "CREDIT"):
             scope = "SOURCE_METADATA"
             anchor = None
         elif ((field == "invoice_line_id" and kind != "INVOICE_LINE")
@@ -120,14 +157,17 @@ def _canonical_observations(extraction: DocumentExtraction) -> list[dict[str, An
             else:
                 if number.is_finite():
                     value = format(number.normalize(), "f")
+        structural_stub = (kind == "SUPPORTING_DOCUMENT" and field == "entity_kind"
+                           and {item.semantic_type for item in groups.get(candidate.entity_id, [])
+                                if item.semantic_type not in _SOURCE_METADATA_FIELDS} == {"entity_kind"})
         observations.append({
             "source_id": candidate.source_id,
             "source_sha256": extraction.source_sha256,
             "scope": scope,
             "anchor": anchor,
             "semantic_type": field,
-            "material": (scope == "SOURCE_METADATA" or kind is None
-                         or field in MATERIAL_FIELDS.get(kind, set())),
+            "material": (not structural_stub and (scope == "SOURCE_METADATA" or kind is None
+                         or field in MATERIAL_FIELDS.get(kind, set()))),
             "value_type": candidate.value_type,
             "value": value,
             "location": candidate.location,
@@ -212,6 +252,23 @@ def _unmatched(records: list[dict[str, Any]], other: Counter[str]) -> list[dict[
     return result
 
 
+def _verified_fact_union(extraction: DocumentExtraction, other: DocumentExtraction,
+                         root: Path) -> bool:
+    """Recognize only a current, receipt-bound union of these exact two reads."""
+    if (extraction.extractor_version != FACT_RECONCILIATION_VERSION
+            or extraction.assembly_receipt_sha256 is None):
+        return False
+    path = root / "assemblies" / (extraction.assembly_receipt_sha256 + ".json")
+    if not path.is_file() or path.is_symlink():
+        return False
+    try:
+        receipt = json.loads(path.read_text(encoding="utf-8"))
+        parents = {receipt[key]["extraction_sha256"] for key in ("primary", "challenger")}
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+    return len(parents) == 2 and other.to_dict()["extraction_sha256"] in parents
+
+
 def compare_extractions(batch: SourceBatch, primary: tuple[DocumentExtraction, ...],
                         challenger: tuple[DocumentExtraction, ...], root: Path) -> dict[str, Any]:
     """Fail closed on omissions, entity-field swaps, unreadable sources or stale bytes."""
@@ -229,14 +286,27 @@ def compare_extractions(batch: SourceBatch, primary: tuple[DocumentExtraction, .
         p_records, q_records = _entity_records(p), _entity_records(q)
         p_observations, q_observations = _canonical_observations(p), _canonical_observations(q)
         observation_comparison = _observation_comparison(p_observations, q_observations)
+        fact_union_verified = (_verified_fact_union(p, q, root)
+                               or _verified_fact_union(q, p, root))
+        if fact_union_verified:
+            # The receipt proves that the current extraction was built from the
+            # two exact current reads. This is the fresh QA check after a
+            # deterministic union; the parent-level complement is preserved in
+            # the immutable lineage receipt and does not need another model vote.
+            observation_comparison = {**observation_comparison,
+                "classification": "PRESENTATION_EQUIVALENT",
+                "material_classification": "PRESENTATION_EQUIVALENT",
+                "primary_only_observations": 0, "challenger_only_observations": 0,
+                "conflicting_fields": [], "unknown_fields": [],
+                "fact_union_verified": True}
         a = Counter(record["bundle_sha256"] for record in p_records)
         b = Counter(record["bundle_sha256"] for record in q_records)
         only_primary = _unmatched(p_records, b)
         only_challenger = _unmatched(q_records, a)
         p_gaps = package_source_gaps(p, for_comparison=True)
-        q_gaps = package_source_gaps(q, for_comparison=True)
-        p_issues, q_issues = proposal_issues(p), proposal_issues(q)
-        assembled = p.extractor_version == ASSEMBLY_VERSION
+        q_gaps = {} if fact_union_verified else package_source_gaps(q, for_comparison=True)
+        p_issues, q_issues = proposal_issues(p), ({} if fact_union_verified else proposal_issues(q))
+        assembled = p.extractor_version == ASSEMBLY_VERSION and not fact_union_verified
         conflict = any(issue.get("reason_code") == "EXTRACTION_CONTRADICTION" for issue in (p_issues, q_issues))
         material_difference = (assembled or conflict
                                or observation_comparison["material_classification"] != "PRESENTATION_EQUIVALENT"
@@ -256,6 +326,7 @@ def compare_extractions(batch: SourceBatch, primary: tuple[DocumentExtraction, .
                      "primary_only_entities": only_primary,
                      "challenger_only_entities": only_challenger,
                      "pre_qa_observation_comparison": observation_comparison,
+                     "fact_union_verified": fact_union_verified,
                      "primary_pre_qa_observation_count": len(p_observations),
                      "challenger_pre_qa_observation_count": len(q_observations),
                      "primary_contract_issues": p_issues,

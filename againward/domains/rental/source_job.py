@@ -18,7 +18,8 @@ from againward.documents.analyst_review import REVIEW_VERSION, VISUAL_REVIEW_VER
 from againward.documents.codex_provider import (VISUAL_RENDER_VERSION, CodexCliProvider,
     prompt_version_for_guidance)
 from againward.documents.contracts import DocumentError, SourceBatch, error_category
-from againward.documents.extraction import (append_adjudicator_visual_observations, append_adjudicator_native_observations, persist_extraction,
+from againward.documents.extraction import (DocumentExtraction, append_adjudicator_visual_observations,
+    append_adjudicator_native_observations, persist_extraction,
     promote_facts, replay_extraction, validate_proposal)
 from againward.documents.independent_qa import (QA_GUIDANCE_VERSION, QA_INSTRUCTIONS,
     RETRY_INSTRUCTIONS, VISUAL_RETRY_INSTRUCTIONS, compare_extractions)
@@ -442,18 +443,21 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                       deferred_structure=deferred_structure)
         challenger = _extractions(state["challenger"], batch, documents)
         if "assembly_plan_receipt" in state:
-            from againward.documents.reconciliation import assemble_observations
+            from againward.documents.reconciliation import (ASSEMBLY_VERSION,
+                FACT_RECONCILIATION_VERSION, assemble_observations)
             plan = _receipt(state["assembly_plan_receipt"], documents, "adjudications", "adjudication_sha256")
             original = {item.source_id: item for item in _extractions(state["original_primary"], batch, documents)}
             peers = {item.source_id: item for item in challenger}
             effective = {item.source_id: item for item in primary}
             for decision in plan["decisions"]:
                 source_id = decision["source_id"]
-                if decision["selection"] == "ASSEMBLE":
+                if decision["selection"] in {"ASSEMBLE", "FACT_RECONCILE"}:
                     rebuilt = assemble_observations(original[source_id], peers[source_id],
                         decision["candidate_selections"], batch, documents,
                         native_observations=decision.get("native_observations", []),
-                        pixel_observations=decision.get("pixel_observations", []))
+                        pixel_observations=decision.get("pixel_observations", []),
+                        output_version=(FACT_RECONCILIATION_VERSION
+                            if decision["selection"] == "FACT_RECONCILE" else ASSEMBLY_VERSION))
                     if rebuilt.to_dict() != effective[source_id].to_dict():
                         raise DocumentError("REVIEW_STALE", "Assembly lineage no longer matches current proposals")
         active_stage = "SOURCE_QA"
@@ -470,6 +474,55 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
             if saved_qa["source_results"] != qa["source_results"]:
                 raise DocumentError("REVIEW_STALE", "QA comparison changed")
             qa = saved_qa
+        if "assembly_plan_receipt" not in state:
+            from againward.documents.reconciliation import (FACT_RECONCILIATION_VERSION,
+                reconcile_complementary_facts)
+            by_source_primary = {item.source_id: item for item in primary}
+            by_source_challenger = {item.source_id: item for item in challenger}
+            fact_reconciled: dict[str, DocumentExtraction] = {}
+            fact_decisions: list[dict[str, Any]] = []
+            for row in qa["source_results"]:
+                if row["pre_qa_observation_comparison"]["material_classification"] != "COMPLEMENTARY":
+                    continue
+                source_id = row["source_id"]
+                reconciled = reconcile_complementary_facts(
+                    by_source_primary[source_id], by_source_challenger[source_id], batch, documents)
+                if reconciled is None:
+                    continue
+                fact_reconciled[source_id] = reconciled
+                parent_receipt = read_json(documents / "assemblies" /
+                    (str(reconciled.assembly_receipt_sha256) + ".json"))
+                fact_decisions.append({"source_id": source_id, "selection": "FACT_RECONCILE",
+                    "candidate_selections": parent_receipt["dispositions"],
+                    "native_observations": [], "pixel_observations": [],
+                    "primary_extraction_sha256": row["primary_extraction_sha256"],
+                    "challenger_extraction_sha256": row["challenger_extraction_sha256"]})
+            if fact_reconciled:
+                state["original_primary"] = dict(state["primary"])
+                state["preassembly_qa_receipt"] = state["qa_receipt"]
+                plan = {"schema_version": ADJUDICATION_VERSION, "batch_id": batch.batch_id,
+                    "qa_sha256": qa["qa_sha256"], "status": "FACTS_RECONCILED",
+                    "decisions": fact_decisions,
+                    "assembly_proposals": {sid: item.to_dict()
+                        for sid, item in fact_reconciled.items()},
+                    "selected_extractions": {}, "material_unresolved_source_ids": [],
+                    "facts_approved": 0, "delivery_approved": False,
+                    "limitations": ["Deterministic fact union is unapproved and requires fresh QA/review."]}
+                plan["adjudication_sha256"] = stable_hash(plan)
+                plan_path = documents / "adjudications" / (plan["adjudication_sha256"] + ".json")
+                write_json(plan_path, plan)
+                state["assembly_plan_receipt"] = str(plan_path)
+                for source_id, extraction in fact_reconciled.items():
+                    state["primary"][source_id] = str(persist_extraction(extraction, documents))
+                primary = _extractions(state["primary"], batch, documents)
+                qa = compare_extractions(batch, primary, challenger, documents)
+                qa_path = documents / "independent_qa" / (qa["qa_sha256"] + ".json")
+                write_json(qa_path, qa)
+                state["qa_receipt"] = str(qa_path)
+                _save(path, state, "FACT_LEVEL_RECONCILIATION_APPLIED",
+                    source_count=len(fact_reconciled), facts_approved=0,
+                    fresh_qa_sha256=qa["qa_sha256"],
+                    reconciliation_version=FACT_RECONCILIATION_VERSION)
         if "adjudication_receipt" not in state:
             active_stage = "SOURCE_ADJUDICATION"
             started = perf_counter()

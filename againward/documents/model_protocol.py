@@ -198,7 +198,7 @@ def normalize_row(row: dict[str, Any], *, visual: bool, rental: bool) -> dict[st
 
 
 def _normalize_rate_dimension_rows(rows: list[Any], *, visual: bool,
-                                   group_key: str) -> list[Any]:
+                                   group_key: str) -> tuple[list[Any], list[dict[str, Any]]]:
     """Canonicalize dimensions only when the same candidate quote states them.
 
     A model can split one explicit denominator across fields (for example,
@@ -208,12 +208,13 @@ def _normalize_rate_dimension_rows(rows: list[Any], *, visual: bool,
     in the expression. Quotes, locations/pages and grouping remain unchanged.
     """
     from againward.domains.rental.rate_dimensions import (
-        has_unsupported_calendar_rate_convention, rate_dimensions,
+        has_ambiguous_rate_dimensions, has_unsupported_calendar_rate_convention, rate_dimensions,
     )
 
     prepared: list[Any] = []
+    rejected: list[dict[str, Any]] = []
     quote_key = "visible_text" if visual else "raw_observed_value"
-    for value in rows:
+    for row_index, value in enumerate(rows, 1):
         if not isinstance(value, dict) or value.get("semantic_type") not in _RATE_DIMENSION_FIELDS:
             prepared.append(value)
             continue
@@ -227,16 +228,23 @@ def _normalize_rate_dimension_rows(rows: list[Any], *, visual: bool,
                     "schema_path": f"$.{('observations' if visual else 'candidates')}[].{quote_key}",
                     "validation_code": "UNSUPPORTED_CALENDAR_RATE_CONVENTION",
                     "error_category": "SOURCE_EVIDENCE_MISSING"})
+        if isinstance(quote, str) and has_ambiguous_rate_dimensions(quote):
+            rejected.append(_rate_dimension_rejection(row, row_index, visual=visual,
+                reason="AMBIGUOUS_RATE_DIMENSION_EVIDENCE", quote_supported=False))
+            continue
         quote_dimensions = rate_dimensions(quote) if isinstance(quote, str) else None
         if (quote_dimensions is not None and value_dimensions is not None
                 and any(value_dimensions.get(key) != value for key, value in quote_dimensions.items()
                         if key in value_dimensions)):
-            raise DocumentError("EXTRACTION_CONTRADICTION",
-                "Rate dimension value conflicts with its exact source wording",
-                diagnostic={"stage": "MODEL_OUTPUT_NORMALIZATION",
-                    "schema_path": f"$.{('observations' if visual else 'candidates')}[].value",
-                    "validation_code": "RATE_DIMENSION_EVIDENCE_CONFLICT",
-                    "error_category": "SEMANTIC_CONTRADICTION"})
+            rejected.append(_rate_dimension_rejection(row, row_index, visual=visual,
+                reason="RATE_DIMENSION_EVIDENCE_CONFLICT", quote_supported=bool(quote_dimensions)))
+            # The quote may still independently state a supported denominator.
+            # Treat that source-bound wording as the observation; never keep the
+            # incompatible typed claim from the model.
+            _append_quoted_rate_dimensions(prepared, row, quote_dimensions,
+                                           visual=visual, group_key=group_key,
+                                           quote_key=quote_key)
+            continue
         dimensions = quote_dimensions
         if (dimensions is None and value_dimensions is not None
                 and isinstance(quote, str) and isinstance(row.get("value"), str)):
@@ -260,12 +268,16 @@ def _normalize_rate_dimension_rows(rows: list[Any], *, visual: bool,
                 and expected == "PER_ITEM"):
             compatible = True
         if expected is not None and not compatible:
-            raise DocumentError("EXTRACTION_CONTRADICTION",
-                "Explicit rate dimension conflicts with its exact source wording",
-                diagnostic={"stage": "MODEL_OUTPUT_NORMALIZATION",
-                    "schema_path": f"$.{('observations' if visual else 'candidates')}[].value",
-                    "validation_code": "RATE_DIMENSION_EVIDENCE_CONFLICT",
-                    "error_category": "SEMANTIC_CONTRADICTION"})
+            projected = _project_rate_dimension(field, supplied)
+            if projected == expected:
+                compatible = True
+            else:
+                rejected.append(_rate_dimension_rejection(row, row_index, visual=visual,
+                    reason="RATE_DIMENSION_EVIDENCE_CONFLICT", quote_supported=bool(dimensions)))
+                _append_quoted_rate_dimensions(prepared, row, dimensions,
+                                               visual=visual, group_key=group_key,
+                                               quote_key=quote_key)
+                continue
         if expected is not None:
             row["value"] = expected
             if supplied != expected:
@@ -314,7 +326,68 @@ def _normalize_rate_dimension_rows(rows: list[Any], *, visual: bool,
         if fingerprint not in seen:
             seen.add(fingerprint)
             deduplicated.append(row)
-    return deduplicated
+    return deduplicated, rejected
+
+
+def _project_rate_dimension(field: Any, supplied: Any) -> Any:
+    """Interpret only a field-specific, explicit projection of one dimension."""
+    from againward.domains.rental.rate_dimensions import rate_dimensions
+
+    if not isinstance(field, str) or not isinstance(supplied, str):
+        return None
+    parsed = rate_dimensions(supplied)
+    if parsed is not None and field in parsed:
+        return parsed[field]
+    normalized = re.sub(r"[_-]+", " ", supplied.strip().lower())
+    normalized = re.sub(r"\s+", " ", normalized)
+    if field == "billing_unit":
+        match = re.fullmatch(r"(?:per )?(?:calendar )?(day|week|month)s?", normalized)
+        if match:
+            return match.group(1).upper()
+    if field == "quantity_basis":
+        match = re.fullmatch(r"per (?:whole )?(asset|item|unit|equipment item|scope|lot|fleet)", normalized)
+        if match:
+            return "PER_SCOPE" if match.group(1) in {"scope", "lot", "fleet"} else "PER_ITEM"
+    return None
+
+
+def _rate_dimension_rejection(row: dict[str, Any], index: int, *, visual: bool,
+                              reason: str, quote_supported: bool) -> dict[str, Any]:
+    quote_key = "visible_text" if visual else "raw_observed_value"
+    quote = row.get(quote_key)
+    value = row.get("value")
+    return {"candidate_index": index,
+            "semantic_type": row.get("semantic_type") if isinstance(row.get("semantic_type"), str) else None,
+            "location": row.get("location") if isinstance(row.get("location"), str) else None,
+            "page": row.get("page") if type(row.get("page")) is int else None,
+            "value_sha256": hashlib.sha256(str(value).encode("utf-8")).hexdigest(),
+            "quote_sha256": hashlib.sha256(str(quote).encode("utf-8")).hexdigest(),
+            "quote_dimensions_recovered": quote_supported,
+            "rejection_code": reason}
+
+
+def _append_quoted_rate_dimensions(prepared: list[Any], row: dict[str, Any],
+                                   dimensions: dict[str, Any] | None, *, visual: bool,
+                                   group_key: str, quote_key: str) -> None:
+    """Recover recognized dimensions from the candidate's own exact wording."""
+    if not dimensions:
+        return
+    for semantic_type, value in dimensions.items():
+        represented = any(isinstance(other, dict)
+            and other.get(group_key) == row.get(group_key)
+            and other.get("semantic_type") == semantic_type
+            and other.get(quote_key) == row.get(quote_key)
+            and (not visual or other.get("page") == row.get("page"))
+            and _project_rate_dimension(semantic_type, other.get("value")) == value
+            for other in prepared)
+        if represented:
+            continue
+        derived = deepcopy(row)
+        derived["semantic_type"] = semantic_type
+        derived["value"] = value
+        derived["value_type"] = "BOOLEAN" if semantic_type == "weekends_billable" else "ENUM"
+        derived["normalization_notes"] = "Canonicalized from the exact source rate-denominator wording."
+        prepared.append(derived)
 
 
 def normalize_read(raw: dict[str, Any], parsed: Any, *, rental: bool) -> dict[str, Any]:
@@ -331,6 +404,7 @@ def normalize_read(raw: dict[str, Any], parsed: Any, *, rental: bool) -> dict[st
     if isinstance(result.get("status"), str):
         result["status"] = token(result["status"])
     keys = ["observations"] if visual else ["candidates"]
+    rejected_observations: list[dict[str, Any]] = []
     if visual and has_native:
         keys.append("native_candidates")
     # A legacy visual fixture has candidates. Preserve that explicit route.
@@ -343,8 +417,15 @@ def normalize_read(raw: dict[str, Any], parsed: Any, *, rental: bool) -> dict[st
             group_key = ("entity_hint" if key == "observations" or any(
                 isinstance(row, dict) and "entity_hint" in row and "entity_id" not in row
                 for row in result[key]) else "entity_id")
-            result[key] = _normalize_rate_dimension_rows(result[key], visual=key == "observations",
-                                                         group_key=group_key)
+            result[key], rejected = _normalize_rate_dimension_rows(
+                result[key], visual=key == "observations", group_key=group_key)
+            rejected_observations.extend({"collection": key, **row} for row in rejected)
+            unresolved_rejections = [row for row in rejected
+                                     if not row["quote_dimensions_recovered"]]
+            if unresolved_rejections:
+                result["status"] = "PARTIAL"
+                result["limitations"] = list(result.get("limitations", [])) + [
+                    "A rate-dimension observation conflicted with its exact source wording and could not be recovered from that wording."]
         result[key] = [normalize_row(row, visual=key == "observations", rental=rental)
                        if isinstance(row, dict) else row for row in result[key]
                        if not (isinstance(row, dict) and "value" in row and row["value"] is None)]
@@ -362,6 +443,8 @@ def normalize_read(raw: dict[str, Any], parsed: Any, *, rental: bool) -> dict[st
             units = [unit for unit in parsed.units if unit.route == "NATIVE" and unit.text.count(quote) == 1]
             if len(units) == 1 and sum(unit.text.count(quote) for unit in parsed.units if unit.route == "NATIVE") == 1:
                 row["location"] = units[0].location
+    if rejected_observations:
+        result["_againward_rejected_observations"] = rejected_observations
     return result
 
 

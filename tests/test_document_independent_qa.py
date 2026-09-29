@@ -12,8 +12,10 @@ from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
 from againward.documents.independent_qa import (_canonical_observations,
     _observation_comparison, compare_extractions, reread_sources)
+from againward.documents.reconciliation import FACT_RECONCILIATION_VERSION, reconcile_complementary_facts
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
+from againward.domains.rental.extraction_validation import package_source_gaps
 
 
 def _case(tmp_path, source_text="Invoice I-1 line A net 100; line B net 200."):
@@ -173,6 +175,196 @@ def test_pre_qa_view_retains_visual_and_native_lineage_while_comparing_semantics
     assert _observation_comparison(native, visual)["classification"] == "PRESENTATION_EQUIVALENT"
     assert native[0]["location"] != visual[0]["location"]
     assert native[0]["unit_sha256"] != visual[0]["unit_sha256"]
+
+
+def _anchored_fact_reads(tmp_path, *, challenger_amount="100", include_date=True):
+    amount_text = "net 100" if challenger_amount == "100" else "net 100 or 101"
+    source_text = f"Invoice I-1, line A, {amount_text}, currency EUR, date 2026-09-01."
+    root, batch, _, validate = _case(tmp_path, source_text)
+    location = read_document(batch.documents[0], root).units[0].location
+    common = [
+        ("entity_kind", "ENUM", "INVOICE_LINE", "line A"),
+        ("invoice_id", "IDENTIFIER", "I-1", "I-1"),
+        ("invoice_line_id", "IDENTIFIER", "A", "line A"),
+    ]
+    first_rows = common + [("net_amount", "DECIMAL", "100", "100")]
+    second_rows = common + [("net_amount", "DECIMAL", challenger_amount, challenger_amount)]
+    if include_date:
+        second_rows.append(("date", "DATE", "2026-09-01", "2026-09-01"))
+
+    def extraction(rows, label):
+        raw = {"status": "SUCCESS", "limitations": [], "candidates": [
+            {"entity_id": label, "semantic_type": field, "value_type": kind,
+             "value": value, "raw_observed_value": quote, "location": location,
+             "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+            for field, kind, value, quote in rows]}
+        return validate(raw)
+
+    return root, batch, extraction(first_rows, "first-local-label"), extraction(second_rows, "other-local-label")
+
+
+def test_fact_reconciliation_unions_anchored_complements_and_binds_both_reads(tmp_path):
+    from againward.documents.extraction import replay_extraction
+
+    root, batch, primary, challenger = _anchored_fact_reads(tmp_path)
+    merged = reconcile_complementary_facts(primary, challenger, batch, root)
+    assert merged is not None
+    assert merged.extractor_version == FACT_RECONCILIATION_VERSION
+    assert {item.semantic_type for item in merged.candidates} >= {
+        "entity_kind", "invoice_id", "invoice_line_id", "net_amount", "date"}
+    replayed = replay_extraction(merged.to_dict(), batch, root)
+    qa = compare_extractions(batch, (replayed,), (challenger,), root)
+    row = qa["source_results"][0]
+    assert row["fact_union_verified"] is True
+    assert row["pre_qa_observation_comparison"]["classification"] == "PRESENTATION_EQUIVALENT"
+    receipt = json.loads((root / "assemblies" / f"{merged.assembly_receipt_sha256}.json").read_text())
+    assert {receipt["primary"]["extraction_sha256"], receipt["challenger"]["extraction_sha256"]} == {
+        primary.to_dict()["extraction_sha256"], challenger.to_dict()["extraction_sha256"]}
+
+
+def test_fact_union_is_checked_as_a_whole_not_as_two_individually_complete_reads(tmp_path):
+    text = ("Invoice I-1 line A net 100 currency EUR date 2026-09-01; "
+            "invoice status ISSUED.")
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+    base = [
+        ("entity_kind", "ENUM", "INVOICE_LINE", "line A"),
+        ("document_role", "ENUM", "INVOICE", "Invoice"),
+        ("invoice_line_id", "IDENTIFIER", "A", "line A"),
+        ("net_amount", "DECIMAL", "100", "100"),
+        ("currency", "CURRENCY", "EUR", "EUR"),
+    ]
+
+    def read(rows):
+        return validate({"status": "SUCCESS", "limitations": [], "candidates": [
+            {"entity_id": group, "semantic_type": field, "value_type": value_type,
+             "value": value, "raw_observed_value": quote, "location": location,
+             "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+            for group, field, value_type, value, quote in rows]})
+
+    primary_rows = [("line", *row) for row in base]
+    challenger_rows = [("envelope", *row) for row in base] + [
+        ("envelope", "invoice_id", "IDENTIFIER", "I-1", "I-1"),
+        ("envelope", "document_status", "ENUM", "ISSUED", "invoice status ISSUED")]
+    primary, challenger = read(primary_rows), read(challenger_rows)
+    assert package_source_gaps(primary, for_comparison=True)
+    merged = reconcile_complementary_facts(primary, challenger, batch, root)
+    assert merged is not None
+    assert not package_source_gaps(merged, for_comparison=True)
+    qa = compare_extractions(batch, (merged,), (challenger,), root)
+    assert qa["status"] == "AGREEMENT"
+    assert qa["material_status"] == "MATERIAL_AGREEMENT"
+
+
+def test_fact_reconciliation_refuses_conflicts_and_unanchored_complements(tmp_path):
+    root, batch, primary, challenger = _anchored_fact_reads(tmp_path, challenger_amount="101")
+    assert reconcile_complementary_facts(primary, challenger, batch, root) is None
+    comparison = _observation_comparison(_canonical_observations(primary),
+                                         _canonical_observations(challenger))
+    assert comparison["material_classification"] == "CONFLICT"
+
+    unknown_root = tmp_path / "unknown"
+    unknown_root.mkdir()
+    root2, batch2, _, validate = _case(unknown_root, "A label, another label.")
+    parsed = read_document(batch2.documents[0], root2)
+    location = parsed.units[0].location
+
+    def read(label, quote):
+        raw = {"status": "SUCCESS", "limitations": [], "candidates": [{
+            "entity_id": label, "semantic_type": "description", "value_type": "TEXT",
+            "value": quote, "raw_observed_value": quote, "location": location,
+            "normalization_notes": "", "ambiguity_flags": []}]}
+        return validate(raw)
+
+    assert reconcile_complementary_facts(read("left", "A label"), read("right", "another label"),
+                                         batch2, root2) is None
+
+
+def test_agreement_scope_union_ignores_envelope_grouping_only_with_unique_source_anchors(tmp_path):
+    content = ("ACCEPTED RENTAL AGREEMENT RA-9; ASSET AX-4; supplier SUP-1; client CL-2; "
+               "from 2026-06-01 to 2026-06-08; quantity 1; description lift; "
+               "charge RENTAL; rate EUR 12 per asset per calendar day.")
+    root, batch, _, validate = _case(tmp_path, content)
+    location = read_document(batch.documents[0], root).units[0].location
+    observations = [
+        ("document_role", "ENUM", "RENTAL_AGREEMENT", "RENTAL AGREEMENT"),
+        ("document_status", "ENUM", "ACCEPTED", "ACCEPTED"),
+        ("entity_kind", "ENUM", "RENTAL_SCOPE", "RENTAL AGREEMENT"),
+        ("agreement_id", "IDENTIFIER", "RA-9", "RA-9"),
+        ("asset_id", "IDENTIFIER", "AX-4", "AX-4"),
+        ("supplier_id", "IDENTIFIER", "SUP-1", "SUP-1"),
+        ("client_id", "IDENTIFIER", "CL-2", "CL-2"),
+        ("start", "DATE", "2026-06-01", "2026-06-01"),
+        ("end", "DATE", "2026-06-08", "2026-06-08"),
+        ("quantity", "DECIMAL", "1", "quantity 1"),
+        ("description", "TEXT", "lift", "lift"),
+        ("charge_type", "ENUM", "RENTAL", "charge RENTAL"),
+        ("rate", "DECIMAL", "12", "12"),
+        ("currency", "CURRENCY", "EUR", "EUR"),
+        ("billing_unit", "ENUM", "DAY", "per asset per calendar day"),
+        ("quantity_basis", "ENUM", "PER_ITEM", "per asset per calendar day"),
+        ("weekends_billable", "BOOLEAN", True, "per asset per calendar day"),
+    ]
+
+    def read(envelope_group, scope_group, *, omit_end=False, include_anchors=True):
+        rows = []
+        for field, value_type, value, quote in observations:
+            if omit_end and field == "end":
+                continue
+            if not include_anchors and field in {"agreement_id", "asset_id"}:
+                continue
+            group = envelope_group if field in {"document_role", "document_status", "agreement_id"} else scope_group
+            rows.append({"entity_id": group, "semantic_type": field, "value_type": value_type,
+                "value": value, "raw_observed_value": quote, "location": location,
+                "normalization_notes": "Source-supported classification", "ambiguity_flags": []})
+        return validate({"status": "SUCCESS", "limitations": [], "candidates": rows})
+
+    primary = read("envelope-a", "asset-fragment-a", omit_end=True)
+    challenger = read("envelope-b", "scope-b")
+    view_a, view_b = _canonical_observations(primary), _canonical_observations(challenger)
+    assert _observation_comparison(view_a, view_b)["classification"] == "COMPLEMENTARY"
+    merged = reconcile_complementary_facts(primary, challenger, batch, root)
+    assert merged is not None
+    assert {candidate.semantic_type for candidate in merged.candidates} >= {
+        "agreement_id", "asset_id", "start", "end", "charge_type", "billing_unit", "quantity_basis"}
+
+    # If the evidence cannot establish a unique agreement-to-asset anchor,
+    # model group labels alone cannot authorize an equivalent union.
+    unanchored_primary = read("envelope-c", "fragment-c", include_anchors=False)
+    unanchored_challenger = read("envelope-d", "fragment-d", include_anchors=False)
+    assert reconcile_complementary_facts(unanchored_primary, unanchored_challenger,
+                                        batch, root) is None
+
+
+def test_source_status_conflict_is_not_hidden_by_fact_union(tmp_path):
+    text = ("Invoice I-1, line A, net 100, currency EUR, date 2026-09-01; "
+            "document status ACCEPTED; document status ISSUED.")
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+
+    def read(status):
+        rows = [
+            ("entity_kind", "ENUM", "INVOICE_LINE", "line A"),
+            ("invoice_id", "IDENTIFIER", "I-1", "I-1"),
+            ("invoice_line_id", "IDENTIFIER", "A", "line A"),
+            ("net_amount", "DECIMAL", "100", "100"),
+            ("currency", "CURRENCY", "EUR", "EUR"),
+            ("date", "DATE", "2026-09-01", "2026-09-01"),
+            ("document_status", "ENUM", status, f"document status {status}"),
+        ]
+        return validate({"status": "SUCCESS", "limitations": [], "candidates": [
+            {"entity_id": "arbitrary-model-group", "semantic_type": field,
+             "value_type": value_type, "value": value, "raw_observed_value": quote,
+             "location": location, "normalization_notes": "Exact source evidence",
+             "ambiguity_flags": []} for field, value_type, value, quote in rows]})
+
+    primary, challenger = read("ACCEPTED"), read("ISSUED")
+    comparison = _observation_comparison(_canonical_observations(primary),
+                                        _canonical_observations(challenger))
+    assert comparison["material_classification"] == "CONFLICT"
+    assert comparison["conflicting_fields"] == [{"scope": "SOURCE_METADATA", "anchor": None,
+                                                    "semantic_type": "document_status"}]
+    assert reconcile_complementary_facts(primary, challenger, batch, root) is None
 
 
 def test_independent_qa_requires_complete_current_source_set(tmp_path):

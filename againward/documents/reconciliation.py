@@ -1,7 +1,9 @@
-"""Explicit source-local assembly of unapproved observations.
+"""Reconcile source-local observations without granting them fact authority.
 
-No union, field value, provenance or authority is inferred. Every input candidate
-needs a model disposition; a new proposal requires fresh QA/adjudication/review.
+Proposal-level assembly uses explicit dispositions. Complementary reads may be
+united deterministically only when exact source bindings and canonical anchors
+prove scope and identity. Either result stays unapproved and requires ordinary
+QA, adjudication where needed, and fact review.
 """
 from __future__ import annotations
 
@@ -16,13 +18,18 @@ from .extraction import (DocumentExtraction, replay_extraction, append_adjudicat
                          append_adjudicator_visual_observations)
 
 ASSEMBLY_VERSION = "againward-explicit-assembly-v3-source-recovery"
+FACT_RECONCILIATION_VERSION = "againward-deterministic-fact-reconciliation-v1"
 
 
 def _build_assembly(primary: DocumentExtraction, challenger: DocumentExtraction,
                           dispositions: list[dict[str, Any]], batch: SourceBatch,
                           root: Path, *, native_observations: list[dict[str, Any]] | None = None,
-                          pixel_observations: list[dict[str, Any]] | None = None) -> DocumentExtraction:
-    if any(item.extractor_version == ASSEMBLY_VERSION or item.assembly_receipt_sha256 is not None
+                          pixel_observations: list[dict[str, Any]] | None = None,
+                          output_version: str = ASSEMBLY_VERSION) -> DocumentExtraction:
+    if output_version not in {ASSEMBLY_VERSION, FACT_RECONCILIATION_VERSION}:
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown reconciliation output version")
+    if any(item.extractor_version in {ASSEMBLY_VERSION, FACT_RECONCILIATION_VERSION}
+           or item.assembly_receipt_sha256 is not None
            for item in (primary, challenger)):
         raise DocumentError("EXTRACTION_INCOMPLETE", "Only one assembly round is permitted")
     parents = tuple(replay_extraction(item.to_dict(), batch, root) for item in (primary, challenger))
@@ -61,10 +68,13 @@ def _build_assembly(primary: DocumentExtraction, challenger: DocumentExtraction,
                             diagnostic={"validation_code": "ASSEMBLY_COVERAGE_INCOMPLETE",
                                         "schema_path": "$.candidate_selections",
                                         "error_category": "DECISION_COVERAGE", "source_id": primary.source_id})
-    receipt_hash = stable_hash({"schema_version": ASSEMBLY_VERSION,
+    receipt_body = {"schema_version": ASSEMBLY_VERSION,
         "primary": primary.to_dict(), "challenger": challenger.to_dict(), "dispositions": dispositions,
-        "native_observations": native_observations or [], "pixel_observations": pixel_observations or []})
-    result = replace(primary, extractor_version=ASSEMBLY_VERSION, status="NEEDS_REVIEW",
+        "native_observations": native_observations or [], "pixel_observations": pixel_observations or []}
+    if output_version != ASSEMBLY_VERSION:
+        receipt_body["output_version"] = output_version
+    receipt_hash = stable_hash(receipt_body)
+    result = replace(primary, extractor_version=output_version, status="NEEDS_REVIEW",
                      assembly_receipt_sha256=receipt_hash,
                      candidates=tuple(sorted(selected, key=lambda c: c.candidate_id)),
                      limitations=tuple(sorted(set(primary.limitations) | set(challenger.limitations))))
@@ -78,12 +88,16 @@ def _build_assembly(primary: DocumentExtraction, challenger: DocumentExtraction,
 def assemble_observations(primary: DocumentExtraction, challenger: DocumentExtraction,
                           dispositions: list[dict[str, Any]], batch: SourceBatch,
                           root: Path, *, native_observations: list[dict[str, Any]] | None = None,
-                          pixel_observations: list[dict[str, Any]] | None = None) -> DocumentExtraction:
+                          pixel_observations: list[dict[str, Any]] | None = None,
+                          output_version: str = ASSEMBLY_VERSION) -> DocumentExtraction:
     result = _build_assembly(primary, challenger, dispositions, batch, root,
-                             native_observations=native_observations, pixel_observations=pixel_observations)
+                             native_observations=native_observations, pixel_observations=pixel_observations,
+                             output_version=output_version)
     receipt = {"schema_version": ASSEMBLY_VERSION, "primary": primary.to_dict(),
                "challenger": challenger.to_dict(), "dispositions": dispositions,
                "native_observations": native_observations or [], "pixel_observations": pixel_observations or []}
+    if output_version != ASSEMBLY_VERSION:
+        receipt["output_version"] = output_version
     path = root / "assemblies" / (str(result.assembly_receipt_sha256) + ".json")
     with transaction(root):
         if path.exists():
@@ -96,7 +110,7 @@ def assemble_observations(primary: DocumentExtraction, challenger: DocumentExtra
 
 def verify_assembly_extraction(extraction: DocumentExtraction, batch: SourceBatch, root: Path) -> None:
     """Package replay must verify parent lineage, not just the assembled values."""
-    if extraction.extractor_version != ASSEMBLY_VERSION:
+    if extraction.extractor_version not in {ASSEMBLY_VERSION, FACT_RECONCILIATION_VERSION}:
         raise DocumentError("REVIEW_STALE", "Assembly binding on a non-assembly extraction")
     receipt_hash = digest(extraction.assembly_receipt_sha256)
     path = root / "assemblies" / (receipt_hash + ".json")
@@ -104,9 +118,13 @@ def verify_assembly_extraction(extraction: DocumentExtraction, batch: SourceBatc
             or not path.resolve().is_relative_to(root.resolve())):
         raise DocumentError("REVIEW_STALE", "Assembly lineage receipt unavailable")
     receipt = load_json(path.read_bytes())
-    if (stable_hash(receipt) != receipt_hash or set(receipt) != {
-            "schema_version", "primary", "challenger", "dispositions", "native_observations", "pixel_observations"}
-            or receipt["schema_version"] != ASSEMBLY_VERSION):
+    allowed = {"schema_version", "primary", "challenger", "dispositions", "native_observations", "pixel_observations"}
+    if "output_version" in receipt:
+        allowed.add("output_version")
+    output_version = receipt.get("output_version", ASSEMBLY_VERSION)
+    if (stable_hash(receipt) != receipt_hash or set(receipt) != allowed
+            or receipt["schema_version"] != ASSEMBLY_VERSION
+            or output_version != extraction.extractor_version):
         raise DocumentError("REVIEW_STALE", "Assembly lineage hash mismatch")
     parents = []
     for key in ("primary", "challenger"):
@@ -116,9 +134,90 @@ def verify_assembly_extraction(extraction: DocumentExtraction, batch: SourceBatc
             raise DocumentError("REVIEW_STALE", "Recursive assembly lineage refused")
         parents.append(replay_extraction(payload, batch, root))
     expected = _build_assembly(parents[0], parents[1], receipt["dispositions"], batch, root,
-        native_observations=receipt["native_observations"], pixel_observations=receipt["pixel_observations"])
+        native_observations=receipt["native_observations"], pixel_observations=receipt["pixel_observations"],
+        output_version=output_version)
     if expected.to_dict() != extraction.to_dict():
         raise DocumentError("REVIEW_STALE", "Assembled candidates differ from explicit parent dispositions")
+
+
+def reconcile_complementary_facts(primary: DocumentExtraction, challenger: DocumentExtraction,
+                                 batch: SourceBatch, root: Path) -> DocumentExtraction | None:
+    """Union only unambiguous source-local facts with a deterministic identity anchor.
+
+    Model-local entity labels are never used as identity. Complementary facts
+    without a source-bound canonical scope/anchor remain unresolved for the
+    ordinary adjudication path. Equivalent observations retain one selected
+    citation while both immutable parent extractions remain in the lineage.
+    """
+    if (primary.source_id != challenger.source_id or primary.source_sha256 != challenger.source_sha256
+            or primary.status == "FAILED" or challenger.status == "FAILED"
+            or primary.limitations or challenger.limitations):
+        return None
+    from .independent_qa import _canonical_observations
+
+    primary_hash = primary.to_dict()["extraction_sha256"]
+    challenger_hash = challenger.to_dict()["extraction_sha256"]
+    if primary_hash == challenger_hash:
+        return None
+    extraction_hashes = {primary_hash: primary, challenger_hash: challenger}
+    observations = {extraction_hash: _canonical_observations(extraction)
+                    for extraction_hash, extraction in extraction_hashes.items()}
+    value_sets: dict[tuple[str, str, str], set[str]] = {}
+    for extraction_hash, extraction in extraction_hashes.items():
+        rows = observations[extraction_hash]
+        if len(rows) != len(extraction.candidates):
+            return None
+        for candidate, observation in zip(extraction.candidates, rows, strict=True):
+            scope, anchor, semantic = (observation["scope"], observation["anchor"],
+                                       observation["semantic_type"])
+            if scope != "SOURCE_METADATA" and anchor is None and observation["material"]:
+                return None
+            if not observation["material"] and anchor is None:
+                # A structural/document fragment is already retained in each
+                # immutable parent receipt. It is not a financial fact and
+                # must not create an unanchored entity in the reconciled view.
+                continue
+            fact_key = (scope, anchor or "", semantic)
+            value_hash = stable_hash(observation["value"])
+            value_sets.setdefault(fact_key, set()).add(value_hash)
+    if any(len(values) > 1 for values in value_sets.values()):
+        return None
+
+    parents = ((primary.to_dict()["extraction_sha256"], primary),
+               (challenger.to_dict()["extraction_sha256"], challenger))
+    dispositions: list[dict[str, Any]] = []
+    emitted: set[str] = set()
+    for parent_hash, extraction in parents:
+        rows = observations[parent_hash]
+        for candidate, observation in zip(extraction.candidates, rows, strict=True):
+            scope, anchor, semantic = (observation["scope"], observation["anchor"],
+                                       observation["semantic_type"])
+            if not observation["material"] and anchor is None:
+                dispositions.append({"extraction_sha256": parent_hash,
+                    "candidate_id": candidate.candidate_id, "decision": "DEFER", "entity_id": ""})
+                continue
+            value_hash = stable_hash(observation["value"])
+            key = scope + "\0" + (anchor or "") + "\0" + semantic
+            identity = stable_hash({"fact_key": key, "value": value_hash})
+            if identity in emitted:
+                decision, entity_id = "DEFER", ""
+            else:
+                emitted.add(identity)
+                group_seed = ("source-metadata" if scope == "SOURCE_METADATA"
+                              else scope + "\0" + str(anchor))
+                entity_id = "fact-" + stable_hash({"source_id": primary.source_id,
+                                                    "scope_anchor": group_seed})[:24]
+                decision = "INCLUDE"
+            dispositions.append({"extraction_sha256": parent_hash,
+                "candidate_id": candidate.candidate_id, "decision": decision,
+                "entity_id": entity_id})
+    try:
+        return assemble_observations(primary, challenger, dispositions, batch, root,
+                                     output_version=FACT_RECONCILIATION_VERSION)
+    except DocumentError:
+        # A safe union is an optimization, never a reason to weaken ordinary
+        # validation. Fall back to the explicit source adjudication route.
+        return None
 
 
 def complete_dispositions(primary: DocumentExtraction, challenger: DocumentExtraction,
