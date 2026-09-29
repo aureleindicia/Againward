@@ -263,3 +263,21 @@ def test_numeric_representation_and_description_label_are_advisory_but_money_is_
     comparison = _observation_comparison(described, categorized)
     assert comparison["material_classification"] == "PRESENTATION_EQUIVALENT"
     assert comparison["classification"] == "COMPLEMENTARY"
+
+
+def test_unanchored_value_difference_stays_unknown_and_needs_reconciliation():
+    def fact(value, scope="MATERIAL_ENTITY"):
+        return {"source_id": "source", "source_sha256": "a" * 64,
+                "scope": scope, "anchor": None, "semantic_type": "rate",
+                "value_type": "DECIMAL", "value": value, "material": True}
+
+    comparison = _observation_comparison([fact("100")], [fact("200")])
+    assert comparison["classification"] == "UNKNOWN"
+    assert comparison["material_classification"] == "UNKNOWN"
+    assert comparison["conflicting_fields"] == []
+    assert comparison["unknown_fields"] == [{"scope": "MATERIAL_ENTITY", "anchor": None,
+                                               "semantic_type": "rate"}]
+
+    authority_conflict = _observation_comparison(
+        [fact("ACCEPTED", "SOURCE_METADATA")], [fact("PROPOSED", "SOURCE_METADATA")])
+    assert authority_conflict["classification"] == "CONFLICT"

@@ -147,7 +147,7 @@ def _observation_comparison(primary: list[dict[str, Any]],
                             challenger: list[dict[str, Any]]) -> dict[str, Any]:
     """Classify equivalent readings, complements, and anchored conflicts."""
     def classify(left: list[dict[str, Any]], right: list[dict[str, Any]]) -> tuple[
-            str, list[dict[str, Any]], int, int]:
+            str, list[dict[str, Any]], list[dict[str, Any]], int, int]:
         left_values: dict[tuple[str, str | None, str], set[str]] = {}
         right_values: dict[tuple[str, str | None, str], set[str]] = {}
         for target, rows in ((left_values, left), (right_values, right)):
@@ -156,28 +156,34 @@ def _observation_comparison(primary: list[dict[str, Any]],
                 target.setdefault(key, set()).add(stable_hash(row["value"]))
         common_keys = sorted(left_values.keys() & right_values.keys(),
                              key=lambda item: (item[0], item[1] or "", item[2]))
+        disagreements = [key for key in common_keys if left_values[key] != right_values[key]]
         conflicts = [{"scope": key[0], "anchor": key[1], "semantic_type": key[2]}
-                     for key in common_keys
-                     if left_values[key] != right_values[key]]
+                     for key in disagreements if key[0] == "SOURCE_METADATA" or key[1] is not None]
+        unknowns = [{"scope": key[0], "anchor": key[1], "semantic_type": key[2]}
+                    for key in disagreements if key[0] != "SOURCE_METADATA" and key[1] is None]
         left_keys = {_observation_key(row) for row in left}
         right_keys = {_observation_key(row) for row in right}
         if conflicts:
             classification = "CONFLICT"
+        elif unknowns:
+            classification = "UNKNOWN"
         elif left_keys == right_keys:
             classification = "PRESENTATION_EQUIVALENT"
         else:
             classification = "COMPLEMENTARY"
-        return classification, conflicts, len(left_keys - right_keys), len(right_keys - left_keys)
+        return (classification, conflicts, unknowns,
+                len(left_keys - right_keys), len(right_keys - left_keys))
 
-    all_class, _, primary_only, challenger_only = classify(primary, challenger)
+    all_class, _, _, primary_only, challenger_only = classify(primary, challenger)
     material_primary = [row for row in primary if row["material"]]
     material_challenger = [row for row in challenger if row["material"]]
-    material_class, conflicts, _, _ = classify(material_primary, material_challenger)
+    material_class, conflicts, unknowns, _, _ = classify(material_primary, material_challenger)
     return {"classification": all_class,
             "material_classification": material_class,
             "primary_only_observations": primary_only,
             "challenger_only_observations": challenger_only,
-            "conflicting_fields": conflicts}
+            "conflicting_fields": conflicts,
+            "unknown_fields": unknowns}
 
 
 def _entity_records(extraction: DocumentExtraction) -> list[dict[str, Any]]:
