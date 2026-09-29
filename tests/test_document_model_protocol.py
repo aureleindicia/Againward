@@ -125,6 +125,21 @@ def test_single_rate_observation_recovers_only_dimensions_in_its_exact_quote(
                for row in normalized)
 
 
+def test_rate_dimension_normalization_is_idempotent_and_preserves_source_evidence():
+    quote = 'Rental rate EUR 12 per asset per calendar day'
+    parsed = SimpleNamespace(units=[SimpleNamespace(route='NATIVE', location='line:8', text=quote)])
+    initial = {'candidates': [{'entity_hint': 'local-term', 'semantic_type': 'billing_unit',
+        'value': 'per asset per calendar day', 'raw_observed_value': quote, 'location': 'line:8'}]}
+    once = normalize_read(initial, parsed, rental=True)
+    twice = normalize_read(once, parsed, rental=True)
+    def important(result):
+        return [(row['semantic_type'], row['value'], row['location'], row['raw_observed_value'],
+                 row.get('unit_sha256')) for row in result['candidates']]
+    assert important(once) == important(twice)
+    assert {row['semantic_type']: row['value'] for row in once['candidates']} == {
+        'billing_unit': 'DAY', 'quantity_basis': 'PER_ITEM', 'weekends_billable': True}
+
+
 @pytest.mark.parametrize('alias,canonical', [('credit_memo', 'CREDIT_NOTE'), ('rate-sheet', 'RATE_CARD'),
                                           ('email', 'EMAIL_EVIDENCE'), ('correspondence', 'EMAIL_EVIDENCE')])
 def test_document_role_synonyms_never_infer_acceptance(alias, canonical):

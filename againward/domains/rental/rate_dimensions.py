@@ -28,26 +28,30 @@ def rate_dimensions(value: Any) -> dict[str, Any] | None:
         return None
     words = re.sub(r"[_-]+", " ", value.strip().lower())
     words = re.sub(r"\s+", " ", words)
-    # Both ordering variants explicitly state the same multiplicative basis.
+    # Search for one complete denominator phrase inside longer source quotes.
+    # A citation commonly includes the amount and currency before its unit.
+    # Multiple matches are deliberately ambiguous: callers must not choose one.
     item = r"(?:asset|item|unit|equipment item)"
     duration = r"(?P<calendar>calendar )?(?P<unit>day|week|month)s?"
-    match = re.fullmatch(r"per " + item + r" per " + duration, words)
-    if match is None:
-        match = re.fullmatch(r"per " + duration + r" (?:and )?per " + item, words)
-    if match is None:
-        match = re.fullmatch(item + r" " + duration, words)
-    if match:
+    expressions = (
+        (re.compile(r"\bper " + item + r" per " + duration + r"\b"), "PER_ITEM"),
+        (re.compile(r"\bper " + duration + r" (?:and )?per " + item + r"\b"), "PER_ITEM"),
+        (re.compile(r"\b" + item + r" " + duration + r"\b"), "PER_ITEM"),
+        (re.compile(r"\bper (?:whole )?(?:fleet|scope|lot) per " + duration + r"\b"), "PER_SCOPE"),
+    )
+    matches: list[tuple[re.Match[str], str]] = []
+    for pattern, basis in expressions:
+        matches.extend((match, basis) for match in pattern.finditer(words))
+    # Do not double-count nested patterns that identify the same substring.
+    unique = {(match.start(), match.end(), basis): (match, basis) for match, basis in matches}
+    matches = list(unique.values())
+    if len(matches) > 1:
+        return None
+    if matches:
+        match, basis = matches[0]
         if match['calendar'] and match['unit'] != 'day':
             return None  # Do not erase a calendar convention we have not modeled.
-        result: dict[str, Any] = {"billing_unit": match['unit'].upper(), "quantity_basis": "PER_ITEM"}
-        if match['calendar'] and match['unit'] == 'day':
-            result['weekends_billable'] = True
-        return result
-    match = re.fullmatch(r"per (?:whole )?(?:fleet|scope|lot) per " + duration, words)
-    if match:
-        if match['calendar'] and match['unit'] != 'day':
-            return None
-        result = {"billing_unit": match['unit'].upper(), "quantity_basis": "PER_SCOPE"}
+        result: dict[str, Any] = {"billing_unit": match['unit'].upper(), "quantity_basis": basis}
         if match['calendar'] and match['unit'] == 'day':
             result['weekends_billable'] = True
         return result

@@ -146,6 +146,20 @@ def test_unknown_or_ambiguous_units_are_not_guessed(value):
     assert rate_dimensions(value) is None
 
 
+@pytest.mark.parametrize(('quote', 'expected'), [
+    ('Rental rate EUR 12 per asset per calendar day',
+     {'billing_unit': 'DAY', 'quantity_basis': 'PER_ITEM', 'weekends_billable': True}),
+    ('Charge: EUR 40 per lot per month',
+     {'billing_unit': 'MONTH', 'quantity_basis': 'PER_SCOPE'}),
+])
+def test_rate_dimensions_are_parsed_from_one_explicit_phrase_in_a_longer_quote(quote, expected):
+    assert rate_dimensions(quote) == expected
+
+
+def test_rate_dimensions_do_not_select_between_multiple_embedded_pricing_phrases():
+    assert rate_dimensions('EUR 12 per asset per day or EUR 300 per asset per month') is None
+
+
 @pytest.mark.parametrize('visual', [False, True])
 def test_native_visual_dimension_observations_keep_exact_evidence(visual):
     row = {'semantic_type': 'billing_unit', 'value': 'per item per calendar day',

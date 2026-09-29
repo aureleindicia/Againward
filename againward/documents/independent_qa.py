@@ -57,6 +57,128 @@ a short descriptive entity_hint. Do not emit hashes, spans, source IDs or candid
 _NUMERIC_MATERIAL_FIELDS = {"quantity", "minimum_days", "rate", "discount_fraction",
                             "net_amount", "unit_rate", "billed_units", "allocated_amount"}
 
+_SOURCE_METADATA_FIELDS = {"document_role", "document_status", "supplier_id", "invoice_id"}
+
+
+def _canonical_observations(extraction: DocumentExtraction) -> list[dict[str, Any]]:
+    """Derive a source-bound QA view without treating model labels as identity.
+
+    Candidate IDs, entity labels, ordering, and the location of document-envelope
+    fields are presentation details. Values and their already-validated source
+    bindings remain attached; explicit printed identifiers may anchor a material
+    entity when the Rental contract gives that identifier a stable meaning.
+    """
+    groups: dict[str, list[Any]] = {}
+    for candidate in extraction.candidates:
+        groups.setdefault(candidate.entity_id, []).append(candidate)
+
+    anchor_by_group: dict[str, str | None] = {}
+    kind_by_group: dict[str, str | None] = {}
+    for entity_id, candidates in groups.items():
+        fields = {candidate.semantic_type: candidate.value for candidate in candidates}
+        values_by_field: dict[str, set[str]] = {}
+        for candidate in candidates:
+            if candidate.value is not None:
+                values_by_field.setdefault(candidate.semantic_type, set()).add(str(candidate.value))
+        kind = fields.get("entity_kind")
+        kind_by_group[entity_id] = kind if isinstance(kind, str) else None
+        if "invoice_line_id" in fields:
+            anchor_field = "invoice_line_id"
+        elif kind == "CREDIT":
+            anchor_field = "credit_id"
+        elif kind in {"RENTAL_SCOPE", "RETURN", "RATE_AMENDMENT"}:
+            anchor_field = "asset_id"
+        else:
+            anchor_field = None
+        anchors = values_by_field.get(anchor_field or "", set())
+        anchor_by_group[entity_id] = next(iter(anchors)) if len(anchors) == 1 else None
+
+    observations: list[dict[str, Any]] = []
+    for candidate in extraction.candidates:
+        field = candidate.semantic_type
+        kind = kind_by_group.get(candidate.entity_id)
+        if field in _SOURCE_METADATA_FIELDS and not (field == "invoice_id" and kind == "CREDIT"):
+            scope = "SOURCE_METADATA"
+            anchor = None
+        elif ((field == "invoice_line_id" and kind != "INVOICE_LINE")
+              or (field == "invoice_id" and kind == "CREDIT")
+              or (field == "asset_id" and kind in {None, "CREDIT"})):
+            scope = "REFERENCE"
+            anchor = anchor_by_group.get(candidate.entity_id)
+        elif kind is not None:
+            scope = "MATERIAL_ENTITY"
+            anchor = anchor_by_group.get(candidate.entity_id)
+        else:
+            scope = "UNKNOWN"
+            anchor = anchor_by_group.get(candidate.entity_id)
+        value: Any = candidate.value
+        if field in _NUMERIC_MATERIAL_FIELDS and type(value) in {int, str}:
+            try:
+                number = Decimal(str(value))
+            except InvalidOperation:
+                pass
+            else:
+                if number.is_finite():
+                    value = format(number.normalize(), "f")
+        observations.append({
+            "source_id": candidate.source_id,
+            "source_sha256": extraction.source_sha256,
+            "scope": scope,
+            "anchor": anchor,
+            "semantic_type": field,
+            "material": (scope == "SOURCE_METADATA" or kind is None
+                         or field in MATERIAL_FIELDS.get(kind, set())),
+            "value_type": candidate.value_type,
+            "value": value,
+            "location": candidate.location,
+            "unit_sha256": candidate.unit_sha256,
+            "source_span": list(candidate.source_span) if candidate.source_span else None,
+        })
+    return observations
+
+
+def _observation_key(observation: dict[str, Any]) -> str:
+    """Comparison key; provenance is retained in the view, not used as meaning."""
+    return stable_hash({key: observation[key] for key in (
+        "source_id", "source_sha256", "scope", "anchor", "semantic_type", "value")})
+
+
+def _observation_comparison(primary: list[dict[str, Any]],
+                            challenger: list[dict[str, Any]]) -> dict[str, Any]:
+    """Classify equivalent readings, complements, and anchored conflicts."""
+    def classify(left: list[dict[str, Any]], right: list[dict[str, Any]]) -> tuple[
+            str, list[dict[str, Any]], int, int]:
+        left_values: dict[tuple[str, str | None, str], set[str]] = {}
+        right_values: dict[tuple[str, str | None, str], set[str]] = {}
+        for target, rows in ((left_values, left), (right_values, right)):
+            for row in rows:
+                key = (row["scope"], row["anchor"], row["semantic_type"])
+                target.setdefault(key, set()).add(stable_hash(row["value"]))
+        common_keys = sorted(left_values.keys() & right_values.keys(),
+                             key=lambda item: (item[0], item[1] or "", item[2]))
+        conflicts = [{"scope": key[0], "anchor": key[1], "semantic_type": key[2]}
+                     for key in common_keys
+                     if left_values[key] != right_values[key]]
+        left_keys = {_observation_key(row) for row in left}
+        right_keys = {_observation_key(row) for row in right}
+        if conflicts:
+            classification = "CONFLICT"
+        elif left_keys == right_keys:
+            classification = "PRESENTATION_EQUIVALENT"
+        else:
+            classification = "COMPLEMENTARY"
+        return classification, conflicts, len(left_keys - right_keys), len(right_keys - left_keys)
+
+    all_class, _, primary_only, challenger_only = classify(primary, challenger)
+    material_primary = [row for row in primary if row["material"]]
+    material_challenger = [row for row in challenger if row["material"]]
+    material_class, conflicts, _, _ = classify(material_primary, material_challenger)
+    return {"classification": all_class,
+            "material_classification": material_class,
+            "primary_only_observations": primary_only,
+            "challenger_only_observations": challenger_only,
+            "conflicting_fields": conflicts}
+
 
 def _entity_records(extraction: DocumentExtraction) -> list[dict[str, Any]]:
     """Keep comparison independent of model-local entity IDs, but show deltas."""
@@ -84,38 +206,6 @@ def _unmatched(records: list[dict[str, Any]], other: Counter[str]) -> list[dict[
     return result
 
 
-def _material_bundles(records: list[dict[str, Any]]) -> Counter[str]:
-    bundles: Counter[str] = Counter()
-    for record in records:
-        fields = {field["semantic_type"]: field["value"] for field in record["fields"]}
-        kind = fields.get("entity_kind")
-        # Unknown/unclassified entities are not a licence to ignore fields.
-        keep = MATERIAL_FIELDS.get(kind if isinstance(kind, str) else "", set(fields))
-        material = {field: value for field, value in fields.items()
-                    if field in keep and field not in {"document_role", "document_status"}}
-        for field in _NUMERIC_MATERIAL_FIELDS & material.keys():
-            value = material[field]
-            if type(value) not in {int, str}:
-                continue
-            try:
-                numeric = Decimal(str(value))
-            except InvalidOperation:
-                continue
-            if numeric.is_finite():
-                material[field] = format(numeric.normalize(), "f")
-        bundles[stable_hash(material)] += 1
-    return bundles
-
-
-def _source_metadata(records: list[dict[str, Any]]) -> tuple[tuple[str, ...], tuple[str, ...]]:
-    values: dict[str, set[str]] = {"document_role": set(), "document_status": set()}
-    for record in records:
-        for field in record["fields"]:
-            if field["semantic_type"] in values:
-                values[field["semantic_type"]].add(str(field["value"]))
-    return tuple(sorted(values["document_role"])), tuple(sorted(values["document_status"]))
-
-
 def compare_extractions(batch: SourceBatch, primary: tuple[DocumentExtraction, ...],
                         challenger: tuple[DocumentExtraction, ...], root: Path) -> dict[str, Any]:
     """Fail closed on omissions, entity-field swaps, unreadable sources or stale bytes."""
@@ -131,6 +221,8 @@ def compare_extractions(batch: SourceBatch, primary: tuple[DocumentExtraction, .
     for document in batch.documents:
         p, q = first[document.source_id], second[document.source_id]
         p_records, q_records = _entity_records(p), _entity_records(q)
+        p_observations, q_observations = _canonical_observations(p), _canonical_observations(q)
+        observation_comparison = _observation_comparison(p_observations, q_observations)
         a = Counter(record["bundle_sha256"] for record in p_records)
         b = Counter(record["bundle_sha256"] for record in q_records)
         only_primary = _unmatched(p_records, b)
@@ -141,12 +233,13 @@ def compare_extractions(batch: SourceBatch, primary: tuple[DocumentExtraction, .
         assembled = p.extractor_version == ASSEMBLY_VERSION
         conflict = any(issue.get("reason_code") == "EXTRACTION_CONTRADICTION" for issue in (p_issues, q_issues))
         material_difference = (assembled or conflict
-                               or _material_bundles(p_records) != _material_bundles(q_records)
-                               or _source_metadata(p_records) != _source_metadata(q_records)
+                               or observation_comparison["material_classification"] != "PRESENTATION_EQUIVALENT"
                                or bool(p_gaps) or bool(q_gaps)
                                or p.status == "FAILED" or q.status == "FAILED"
                                or bool(p.limitations) or bool(q.limitations))
-        difference = bool(material_difference or a != b or p.status == "FAILED" or q.status == "FAILED"
+        difference = bool(material_difference
+                          or observation_comparison["classification"] != "PRESENTATION_EQUIVALENT"
+                          or p.status == "FAILED" or q.status == "FAILED"
                           or p.limitations or q.limitations or p_gaps or q_gaps)
         rows.append({"source_id": document.source_id, "source_sha256": document.sha256,
                      "primary_extraction_sha256": p.to_dict()["extraction_sha256"],
@@ -156,6 +249,9 @@ def compare_extractions(batch: SourceBatch, primary: tuple[DocumentExtraction, .
                      "challenger_only_entity_bundles": len(only_challenger),
                      "primary_only_entities": only_primary,
                      "challenger_only_entities": only_challenger,
+                     "pre_qa_observation_comparison": observation_comparison,
+                     "primary_pre_qa_observation_count": len(p_observations),
+                     "challenger_pre_qa_observation_count": len(q_observations),
                      "primary_contract_issues": p_issues,
                      "challenger_contract_issues": q_issues,
                      "primary_source_fact_gaps": {key: sorted(value) for key, value in p_gaps.items()},
