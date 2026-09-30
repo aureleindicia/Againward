@@ -40,7 +40,7 @@ from .autonomous_job import run_reviewed_package_job
 from .autonomous_report import current_report_versions
 
 
-VERSION = "againward-rental-approved-sources-job-v6-typed-observations"
+VERSION = "againward-rental-approved-sources-job-v7-selected-runtime-structure"
 VISUAL_LIMITATION_ROUTING_VERSION = "againward-rental-visual-reading-v2"
 RETRYABLE_MODEL_CODES = {"MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_AUTH_REQUIRED",
                          "MODEL_RATE_LIMITED", "MODEL_TRANSPORT_FAILURE", "MODEL_EMPTY_RESPONSE"}
@@ -54,6 +54,46 @@ def _visual_review_stop(visual: dict[str, Any]) -> dict[str, Any] | None:
     if status == "WAITING_FOR_REQUIRED_INFORMATION":
         return {"status": status}
     raise DocumentError("REVIEW_STALE", "Unexpected final visual-review lifecycle status")
+
+
+def _reconstruct_selected_runtime_structure(
+        adjudication: dict[str, Any], proposals: tuple[DocumentExtraction, ...]
+        ) -> tuple[dict[str, Any], dict[str, DocumentExtraction]]:
+    """Rebuild selected proposals from same-source reads before completeness gates.
+
+    Adjudication selects semantic evidence; it does not own repeating runtime
+    structure. Keep the selected model proposal hash in an explicit binding and
+    publish the reconstructed extraction as a separately hashed artifact.
+    """
+    by_hash = {item.to_dict()["extraction_sha256"]: item for item in proposals}
+    selections = adjudication.get("selected_extractions")
+    if not isinstance(selections, dict):
+        return adjudication, {}
+    reconstructed: dict[str, DocumentExtraction] = {}
+    bindings: dict[str, dict[str, str]] = {}
+    for source_id, selected_hash in sorted(selections.items()):
+        base = by_hash.get(selected_hash)
+        if base is None or base.source_id != source_id:
+            continue
+        peers = tuple(item for item in proposals
+                      if item.source_id == source_id
+                      and item.source_sha256 == base.source_sha256
+                      and item.to_dict()["extraction_sha256"] != selected_hash)
+        normalized = reconstruct_runtime_structure(base, peers)
+        if normalized == base:
+            continue
+        extraction_hash = normalized.to_dict()["extraction_sha256"]
+        selections[source_id] = extraction_hash
+        reconstructed[source_id] = normalized
+        bindings[source_id] = {"selected_proposal_sha256": selected_hash,
+                               "runtime_extraction_sha256": extraction_hash,
+                               "source_sha256": normalized.source_sha256}
+    if bindings:
+        adjudication["runtime_reconstructed_extractions"] = bindings
+        adjudication["adjudication_sha256"] = stable_hash({
+            key: value for key, value in adjudication.items()
+            if key != "adjudication_sha256"})
+    return adjudication, reconstructed
 
 
 def _save(path: Path, state: dict[str, Any], phase: str, **details: Any) -> None:
@@ -604,6 +644,17 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                                                                   if k != "adjudication_sha256"})
                 state["adjudicator_extractions"] = {source_id: row["path"]
                                                      for source_id, row in added.items()}
+            selected_inputs = list((*primary, *challenger))
+            for row in added.values():
+                selected_inputs.append(replay_extraction(read_json(Path(row["path"])), batch, documents))
+            adjudication, runtime_reconstructed = _reconstruct_selected_runtime_structure(
+                adjudication, tuple(selected_inputs))
+            if runtime_reconstructed:
+                runtime_paths: dict[str, str] = {}
+                for source_id, extraction in runtime_reconstructed.items():
+                    validate_rental_extraction(extraction)
+                    runtime_paths[source_id] = str(persist_extraction(extraction, documents))
+                state["runtime_reconstructed_extractions"] = runtime_paths
             saved = documents / "adjudications" / (adjudication["adjudication_sha256"] + ".json")
             write_json(saved, adjudication)
             state["adjudication_receipt"] = str(saved)
@@ -623,12 +674,13 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                     "source_ids": adjudication["material_unresolved_source_ids"],
                     "job_state": str(path), "approved_for_delivery": False}
         augmented_rows = []
-        for source_id, saved_path in state.get("adjudicator_extractions", {}).items():
-            stored_path = Path(saved_path).resolve()
-            if (source_id not in {doc.source_id for doc in batch.documents}
-                    or not stored_path.is_relative_to((documents / "extractions").resolve())):
-                raise DocumentError("SOURCE_UNSAFE_PATH", "Adjudicator extraction escaped its case")
-            augmented_rows.append(replay_extraction(read_json(stored_path), batch, documents))
+        for path_key in ("adjudicator_extractions", "runtime_reconstructed_extractions"):
+            for source_id, saved_path in state.get(path_key, {}).items():
+                stored_path = Path(saved_path).resolve()
+                if (source_id not in {doc.source_id for doc in batch.documents}
+                        or not stored_path.is_relative_to((documents / "extractions").resolve())):
+                    raise DocumentError("SOURCE_UNSAFE_PATH", "Runtime extraction escaped its case")
+                augmented_rows.append(replay_extraction(read_json(stored_path), batch, documents))
         augmented = tuple(augmented_rows)
         by_hash = {item.to_dict()["extraction_sha256"]: item
                    for item in (*primary, *challenger, *augmented)}

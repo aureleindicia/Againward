@@ -604,6 +604,207 @@ def test_runtime_structure_restores_source_metadata_once_for_multiline_export(tm
     assert source_metadata[0].entity_id not in row_entities
 
 
+def _native_export_extraction(*, label: str, role: str | None,
+                              supporting_rows: frozenset[int] = frozenset(),
+                              duplicate_row_group: bool = False):
+    from againward.documents.extraction import DocumentExtraction, FactCandidate
+
+    source_id, source_sha = "src-ledger", "a" * 64
+    candidates = []
+    serial = 0
+
+    def add(group: str, field: str, value_type: str, value: str,
+            raw: str, location: str) -> None:
+        nonlocal serial
+        serial += 1
+        candidates.append(FactCandidate(
+            candidate_id=f"{label}-{serial}", entity_id=group,
+            semantic_type=field, value_type=value_type, value=value,
+            raw_observed_value=raw, location=location, source_id=source_id,
+            unit_sha256=stable_hash({"source": source_sha, "location": location, "raw": raw}),
+            normalization_notes="Source-bound proposal", ambiguity_flags=(),
+            source_span=(0, len(raw)), confidence="MEDIUM"))
+
+    if role is not None:
+        add(f"{label}-metadata", "document_role", "ENUM", role,
+            "Mirror only", "sheet:Ledger/cell:F2")
+    add(f"{label}-metadata", "document_status", "ENUM", "EXTRACTED",
+        "Mirror only", "sheet:Ledger/cell:F2")
+    for row, reference, value, amount in (
+        (2, "invoice_id", "INV-44", "125.00"),
+        (3, "invoice_id", "INV-45", "80.00"),
+        (4, "credit_id", "CN-12", "25.00"),
+    ):
+        group = f"{label}-row-{row}"
+        def cell(column):
+            return f"sheet:Ledger/cell:{column}{row}"
+
+        if row in supporting_rows:
+            add(group, "entity_kind", "ENUM", "SUPPORTING_DOCUMENT", "Mirror only", cell("F"))
+        add(group, reference, "IDENTIFIER", value, value, cell("A"))
+        add(group, "agreement_id", "IDENTIFIER", "AG-22", "AG-22", cell("B"))
+        add(group, "net_amount", "DECIMAL", amount, amount, cell("C"))
+    if duplicate_row_group:
+        add(f"{label}-other-group", "invoice_id", "IDENTIFIER", "INV-44",
+            "INV-44", "sheet:Ledger/cell:A2")
+        add(f"{label}-other-group", "net_amount", "DECIMAL", "125.00",
+            "125.00", "sheet:Ledger/cell:C2")
+    return DocumentExtraction(source_id=source_id, source_sha256=source_sha,
+        batch_id="batch-ledger", reader_version="xlsx-v1", extractor_version="test-v1",
+        model="test-model", prompt_version="test-prompt", created_at="2026-09-30T00:00:00Z",
+        visual_bindings=(), invocation_id=None, status="NEEDS_REVIEW",
+        candidates=tuple(candidates), limitations=())
+
+
+def test_payment_export_reconstructs_supporting_kind_from_source_role_and_unique_rows():
+    selected = _native_export_extraction(label="primary-local", role=None)
+    sibling = _native_export_extraction(label="reread-local", role="PAYMENT_EXPORT",
+                                         supporting_rows=frozenset({2, 3}))
+    restored = reconstruct_runtime_structure(selected, (sibling,))
+    kinds = [candidate for candidate in restored.candidates
+             if candidate.semantic_type == "entity_kind"]
+    assert len(kinds) == 3
+    assert {candidate.value for candidate in kinds} == {"SUPPORTING_DOCUMENT"}
+    assert len({candidate.entity_id for candidate in kinds}) == 3
+    assert all(candidate.entity_id.startswith("runtime-entity-") for candidate in kinds)
+    assert all(candidate.source_id == selected.source_id and candidate.unit_sha256
+               and candidate.source_span is not None for candidate in kinds)
+    assert all("unapproved supporting-record container" in candidate.normalization_notes
+               for candidate in kinds)
+    assert {candidate.value for candidate in restored.candidates
+            if candidate.semantic_type == "document_role"} == {"PAYMENT_EXPORT"}
+    assert {candidate.value for candidate in restored.candidates
+            if candidate.semantic_type == "document_status"} == {"EXTRACTED"}
+    validate_rental_extraction(restored)
+
+    relabeled = reconstruct_runtime_structure(
+        _native_export_extraction(label="different-reader-label", role=None), (sibling,))
+    def comparable(extraction):
+        return sorted((candidate.semantic_type, candidate.value, candidate.location, candidate.entity_id)
+                      for candidate in extraction.candidates
+                      if candidate.semantic_type in {
+                          "entity_kind", "invoice_id", "credit_id", "net_amount"})
+
+    assert comparable(relabeled) == comparable(restored)
+    assert reconstruct_runtime_structure(restored, (sibling,)) == restored
+
+
+@pytest.mark.parametrize(("primary_role", "peer_role", "duplicate_row_group"), [
+    ("INVOICE", "INVOICE", False),
+    ("PAYMENT_EXPORT", "INVOICE", False),
+    (None, None, False),
+    ("PAYMENT_EXPORT", "PAYMENT_EXPORT", True),
+])
+def test_payment_export_projection_requires_unique_source_role_and_row(
+        primary_role, peer_role, duplicate_row_group):
+    primary = _native_export_extraction(label="primary", role=primary_role,
+                                         duplicate_row_group=duplicate_row_group)
+    peer = _native_export_extraction(label="peer", role=peer_role)
+    result = reconstruct_runtime_structure(primary, (peer,))
+    derived = [candidate for candidate in result.candidates
+               if candidate.semantic_type == "entity_kind"
+               and candidate.candidate_id.startswith("runtime-kind-")]
+    if duplicate_row_group:
+        assert len(derived) == 2
+    else:
+        assert not derived
+
+
+def test_payment_export_reconstruction_does_not_type_reference_only_fragments():
+    from dataclasses import replace as dataclass_replace
+
+    extraction = _native_export_extraction(label="reader", role="PAYMENT_EXPORT")
+    reference = next(candidate for candidate in extraction.candidates
+                     if candidate.semantic_type == "invoice_id")
+    fragment = dataclass_replace(reference, candidate_id="orphan-reference",
+                                 entity_id="orphan-reference")
+    extraction = dataclass_replace(extraction, candidates=extraction.candidates + (fragment,))
+    restored = reconstruct_runtime_structure(extraction)
+    orphan = [candidate for candidate in restored.candidates
+              if candidate.candidate_id == "orphan-reference"]
+    assert len(orphan) == 1 and orphan[0].semantic_type == "invoice_id"
+
+
+def test_selected_challenger_is_runtime_reconstructed_before_completeness():
+    from againward.domains.rental.source_job import _reconstruct_selected_runtime_structure
+
+    primary = _native_export_extraction(label="primary", role=None)
+    challenger = _native_export_extraction(label="challenger", role="PAYMENT_EXPORT",
+                                             supporting_rows=frozenset({2, 3}))
+    primary_hash = primary.to_dict()["extraction_sha256"]
+    challenger_hash = challenger.to_dict()["extraction_sha256"]
+    adjudication = {"selected_extractions": {primary.source_id: challenger_hash},
+                    "adjudication_sha256": "old-receipt-hash"}
+
+    receipt, reconstructed = _reconstruct_selected_runtime_structure(
+        adjudication, (primary, challenger))
+
+    selected = reconstructed[primary.source_id]
+    assert receipt["selected_extractions"][primary.source_id] == selected.to_dict()["extraction_sha256"]
+    assert receipt["selected_extractions"][primary.source_id] != challenger_hash
+    binding = receipt["runtime_reconstructed_extractions"][primary.source_id]
+    assert binding == {"selected_proposal_sha256": challenger_hash,
+                       "runtime_extraction_sha256": selected.to_dict()["extraction_sha256"],
+                       "source_sha256": primary.source_sha256}
+    assert receipt["adjudication_sha256"] == stable_hash({
+        key: value for key, value in receipt.items() if key != "adjudication_sha256"})
+    assert primary_hash != challenger_hash
+    assert len({candidate.entity_id for candidate in selected.candidates
+                if candidate.semantic_type == "entity_kind"}) == 3
+    assert {candidate.value for candidate in selected.candidates
+            if candidate.semantic_type == "entity_kind"} == {"SUPPORTING_DOCUMENT"}
+    assert all(candidate.source_id == primary.source_id and candidate.unit_sha256
+               and candidate.source_span is not None
+               for candidate in selected.candidates if candidate.semantic_type == "entity_kind")
+    validate_rental_extraction(selected, require_package_facts=True)
+
+
+def test_selected_proposal_does_not_invent_kind_without_source_role():
+    from againward.domains.rental.source_job import _reconstruct_selected_runtime_structure
+
+    primary = _native_export_extraction(label="primary", role=None)
+    challenger = _native_export_extraction(label="challenger", role=None)
+    selected_hash = primary.to_dict()["extraction_sha256"]
+    adjudication = {"selected_extractions": {primary.source_id: selected_hash},
+                    "adjudication_sha256": "unchanged"}
+
+    receipt, reconstructed = _reconstruct_selected_runtime_structure(
+        adjudication, (primary, challenger))
+
+    assert primary.source_id in reconstructed
+    selected = reconstructed[primary.source_id]
+    assert receipt["selected_extractions"][primary.source_id] == selected.to_dict()["extraction_sha256"]
+    assert receipt["selected_extractions"][primary.source_id] != selected_hash
+    assert not any(candidate.candidate_id.startswith("runtime-kind-")
+                   for candidate in selected.candidates)
+    assert all(candidate.semantic_type != "entity_kind" for candidate in selected.candidates)
+    assert receipt["adjudication_sha256"] == stable_hash({
+        key: value for key, value in receipt.items() if key != "adjudication_sha256"})
+
+
+def test_payment_export_projection_requires_current_same_source_native_binding():
+    from dataclasses import replace as dataclass_replace
+
+    selected = _native_export_extraction(label="primary", role=None)
+    sibling = _native_export_extraction(label="peer", role="PAYMENT_EXPORT",
+                                         supporting_rows=frozenset({2, 3, 4}))
+    foreign = dataclass_replace(sibling, source_id="src-other")
+    stale = dataclass_replace(sibling, source_sha256="b" * 64)
+    for peer in (foreign, stale):
+        result = reconstruct_runtime_structure(selected, (peer,))
+        assert not any(candidate.semantic_type == "entity_kind"
+                       and candidate.candidate_id.startswith("runtime-kind-")
+                       for candidate in result.candidates)
+
+    visual_candidates = tuple(dataclass_replace(candidate,
+        location="page:1", source_span=None, unit_sha256="") for candidate in sibling.candidates)
+    visual_peer = dataclass_replace(sibling, candidates=visual_candidates)
+    result = reconstruct_runtime_structure(selected, (visual_peer,))
+    assert not any(candidate.semantic_type == "entity_kind"
+                   and candidate.candidate_id.startswith("runtime-kind-")
+                   for candidate in result.candidates)
+
+
 def test_adjudication_delta_binds_and_canonicalizes_explicit_offhire_event(tmp_path):
     text = ("Email evidence E-7 for agreement AG-7 and asset UNIT-11. "
             "On 2026-03-04 the supplier requested off-hire and collection of one UNIT-11 unit.")

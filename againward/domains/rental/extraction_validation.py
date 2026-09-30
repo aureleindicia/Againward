@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import replace
 from decimal import Decimal, InvalidOperation
+import re
 from typing import Iterable
 
 from againward.documents.contracts import DocumentError
@@ -48,6 +49,20 @@ def _proof_identity(candidate, source_sha256: str) -> tuple[object, ...] | None:
         return None
     return (candidate.source_id, source_sha256, candidate.location,
             candidate.unit_sha256, tuple(candidate.source_span))
+
+
+_NATIVE_SHEET_CELL = re.compile(r"^sheet:(.+)/cell:([A-Z]+)([1-9][0-9]*)$")
+
+
+def _native_sheet_row(candidate) -> tuple[str, int] | None:
+    """Return a parser-bound spreadsheet row identity, never a model label."""
+    if (candidate.source_span is None or not candidate.unit_sha256
+            or "VISUAL_TRANSCRIPTION_UNVERIFIED" in candidate.ambiguity_flags):
+        return None
+    match = _NATIVE_SHEET_CELL.fullmatch(candidate.location)
+    if match is None:
+        return None
+    return (match.group(1), int(match.group(3)))
 
 
 def _same_observed_value(left, right) -> bool:
@@ -279,6 +294,68 @@ def reconstruct_runtime_structure(extraction: DocumentExtraction,
             by_entity[candidate.entity_id].append(candidate)
         peer_groups.extend((peer, _identity_fields(peer, rows), rows) for rows in by_entity.values())
 
+    # A model can omit entity_kind on native rows in a payment export. That
+    # classification is structural: the source role says these are mirror
+    # records, while exact cell locations bind each record to one spreadsheet
+    # row. Reconstruct it only when the same immutable source has one supported
+    # PAYMENT_EXPORT role and each eligible row is represented by exactly one
+    # material group. This neither promotes the row's amount nor treats it as
+    # an invoice/credit authority.
+    observed_roles = {
+        candidate.value for peer in (extraction, *peers)
+        for candidate in peer.candidates
+        if candidate.semantic_type == "document_role"
+        and candidate.source_id == extraction.source_id
+        and candidate.unit_sha256 and candidate.source_span is not None
+        and "VISUAL_TRANSCRIPTION_UNVERIFIED" not in candidate.ambiguity_flags
+    }
+    payment_export_rows: dict[str, tuple[tuple[str, int], FactCandidate, bool]] = {}
+    if observed_roles == {"PAYMENT_EXPORT"}:
+        role_witnesses = [candidate for peer in (extraction, *peers)
+            for candidate in peer.candidates if candidate.semantic_type == "document_role"
+            and candidate.value == "PAYMENT_EXPORT" and candidate.source_id == extraction.source_id
+            and candidate.unit_sha256 and candidate.source_span is not None
+            and "VISUAL_TRANSCRIPTION_UNVERIFIED" not in candidate.ambiguity_flags]
+        row_groups: dict[tuple[str, int], list[tuple[str, list, dict[str, set[object]]]]] = defaultdict(list)
+        for entity_id, rows in grouped.items():
+            fields = _group_values(rows)
+            kinds = fields.get("entity_kind", set())
+            if ((kinds and kinds != {"SUPPORTING_DOCUMENT"})
+                    or (not kinds and is_non_entity_observation(fields))
+                    or not (fields.keys() & {"net_amount", "allocated_amount"})
+                    or not (fields.keys() & {"invoice_id", "invoice_line_id", "credit_id", "asset_id"})
+                    or any(len(values) != 1 for values in fields.values())):
+                continue
+            # Header-derived values such as currency can be cited from a
+            # column heading shared by all rows. Bind the occurrence using
+            # only row-bearing identifiers and amount observations.
+            row_bearing_fields = {"invoice_id", "invoice_line_id", "credit_id", "asset_id",
+                                  "net_amount", "allocated_amount"}
+            row_keys = {_native_sheet_row(candidate) for candidate in rows
+                        if candidate.semantic_type in row_bearing_fields}
+            if len(row_keys) == 1:
+                row_key = next(iter(row_keys))
+                if row_key is not None:
+                    row_groups[row_key].append((entity_id, rows, fields))
+        for row_key, row_entities in row_groups.items():
+            # Multiple model-local groups in one row do not establish which
+            # one is the source record. Keep them separate and fail closed.
+            if len(row_entities) != 1:
+                continue
+            entity_id, rows, _ = row_entities[0]
+            row_witnesses = [candidate for peer in (extraction, *peers)
+                for candidate in peer.candidates
+                if candidate.semantic_type == "entity_kind"
+                and candidate.value == "SUPPORTING_DOCUMENT"
+                and candidate.source_id == extraction.source_id
+                and candidate.unit_sha256 and candidate.source_span is not None
+                and _native_sheet_row(candidate) == row_key
+                and "VISUAL_TRANSCRIPTION_UNVERIFIED" not in candidate.ambiguity_flags]
+            template = sorted(row_witnesses or role_witnesses,
+                key=lambda item: (item.location, str(item.source_span or ()), item.candidate_id))[0]
+            payment_export_rows[entity_id] = (row_key, template,
+                                              not bool(_group_values(row_entities[0][1]).get("entity_kind")))
+
     # Map unambiguous sibling occurrence anchors to source-supported kinds.
     peer_kinds: dict[tuple[str, ...], set[str]] = defaultdict(set)
     peer_kind_candidates: dict[tuple[str, ...], list] = defaultdict(list)
@@ -384,12 +461,40 @@ def reconstruct_runtime_structure(extraction: DocumentExtraction,
                 "source_sha256": extraction.source_sha256})[:24]
             candidates.append(replace(candidate, entity_id=source_metadata_id))
             continue
+        if candidate.entity_id in payment_export_rows:
+            row_key, _, _ = payment_export_rows[candidate.entity_id]
+            row_id = "runtime-entity-" + stable_hash({
+                "source_id": extraction.source_id,
+                "source_sha256": extraction.source_sha256,
+                "occurrence_anchor": ("PAYMENT_EXPORT_ROW", *row_key)})[:24]
+            candidates.append(replace(candidate, entity_id=row_id))
+            continue
         anchor = anchor_by_group.get(candidate.entity_id)
         if anchor is None:
             anchor = atom_assignments.get(candidate.entity_id)
         runtime_entity_id: str | None = runtime_ids.get(anchor) if anchor is not None else None
         candidates.append(replace(candidate, entity_id=runtime_entity_id)
                           if runtime_entity_id else candidate)
+
+    for entity_id, (row_key, template, needs_kind) in sorted(payment_export_rows.items(),
+                                                              key=lambda item: item[1][0]):
+        if not needs_kind:
+            continue
+        row_id = "runtime-entity-" + stable_hash({
+            "source_id": extraction.source_id,
+            "source_sha256": extraction.source_sha256,
+            "occurrence_anchor": ("PAYMENT_EXPORT_ROW", *row_key)})[:24]
+        candidates.append(replace(template,
+            candidate_id="runtime-kind-" + stable_hash({
+                "source_id": extraction.source_id, "source_sha256": extraction.source_sha256,
+                "occurrence_anchor": ("PAYMENT_EXPORT_ROW", *row_key),
+                "kind": "SUPPORTING_DOCUMENT", "witness": template.candidate_id})[:24],
+            entity_id=row_id, semantic_type="entity_kind", value_type="ENUM",
+            value="SUPPORTING_DOCUMENT",
+            normalization_notes=(template.normalization_notes + "; "
+                if template.normalization_notes else "")
+                + "Derived an unapproved supporting-record container from the unique same-source "
+                  "PAYMENT_EXPORT role and one native spreadsheet row; no invoice/credit authority is implied."))
 
     present_source_fields = {candidate.semantic_type for candidate in candidates
                              if candidate.semantic_type in SOURCE_STRUCTURAL_FIELDS}
