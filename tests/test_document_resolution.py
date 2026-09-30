@@ -7,7 +7,8 @@ import pytest
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import CanonicalFact, FactCandidate
 from againward.documents.resolution import (
-    MatchPolicy, RelationshipState, entities_from_facts, resolve_entities, review_relationships,
+    MatchPolicy, RelationshipState, entities_from_facts, non_entity_reference_groups,
+    resolve_entities, review_relationships,
 )
 from againward.domains.rental.document_adapter import RENTAL_MATCH
 
@@ -54,6 +55,31 @@ def test_exact_reviewed_anchors_confirm_without_copying_attributes():
 def test_untyped_entity_group_fails_closed_without_business_pack_policy():
     with pytest.raises(DocumentError, match="ENTITY_AMBIGUOUS"):
         entities_from_facts(facts("source", invoice_id="INV-991"))
+
+
+def test_source_level_supplier_metadata_stays_in_lineage_without_becoming_entity():
+    source_facts = facts("source", "supplier", supplier_id="SUPPLIER-7")
+    assert entities_from_facts(source_facts, non_entity_fields=frozenset({"supplier_id"})) == ()
+    fragments = non_entity_reference_groups(
+        source_facts, non_entity_fields=frozenset({"supplier_id"}))
+    assert fragments == [{"source_id": "source", "local_id": "supplier",
+                          "record_type": "SOURCE_METADATA_OR_REFERENCE_FRAGMENT",
+                          "fact_ids": [source_facts[0].fact_id]}]
+
+
+def test_source_metadata_fragment_cannot_hide_untyped_commercial_fact():
+    source_facts = (*facts("source", "supplier", supplier_id="SUPPLIER-7"),
+                    *facts("source", "supplier", rate="12.00"))
+    with pytest.raises(DocumentError, match="ENTITY_AMBIGUOUS"):
+        entities_from_facts(source_facts,
+                            non_entity_fields=frozenset({"supplier_id"}))
+
+
+def test_bare_agreement_identifier_is_not_source_metadata():
+    agreement = facts("source", "agreement", agreement_id="AGR-7")
+    with pytest.raises(DocumentError, match="ENTITY_AMBIGUOUS"):
+        entities_from_facts(agreement,
+                            non_entity_fields=frozenset({"agreement_id"}))
 
 
 def test_same_local_model_label_does_not_merge_source_entities():

@@ -13,7 +13,8 @@ from againward.documents.extraction import validate_proposal, validate_semantic_
 from againward.documents.independent_qa import QA_INSTRUCTIONS
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
-from againward.domains.rental.extraction_validation import validate_rental_extraction
+from againward.domains.rental.extraction_validation import (normalize_source_supported_rate_rows,
+    validate_rental_extraction)
 from againward.domains.rental.entity_contract import (FIELD_SCOPE, PACKAGE_SOURCE_REQUIRED,
     normalize_document_envelopes, normalize_single_line_document_groups, structural_gaps,
     unique_pixel_entity_for_required_field)
@@ -30,11 +31,14 @@ def _proposal(tmp_path: Path, content: str, candidates: list[dict], limitations:
     batch = inventory_sources(incoming, root)
     document = batch.documents[0]
     parsed = read_document(document, root)
-    normalized = [{"entity_id": row["entity_id"], "semantic_type": row["semantic_type"],
-        "value_type": row["value_type"], "value": row["value"],
-        "raw_observed_value": row["quote"], "location": parsed.units[0].location,
-        "normalization_notes": "Source-bound test observation", "ambiguity_flags": []}
-        for row in candidates]
+    normalized = []
+    for row in candidates:
+        matching_units = [unit for unit in parsed.units if row["quote"] in unit.text]
+        location = matching_units[0].location if matching_units else parsed.units[0].location
+        normalized.append({"entity_id": row["entity_id"], "semantic_type": row["semantic_type"],
+            "value_type": row["value_type"], "value": row["value"],
+            "raw_observed_value": row["quote"], "location": location,
+            "normalization_notes": "Source-bound test observation", "ambiguity_flags": []})
     raw = {"status": "SUCCESS", "limitations": limitations or [], "candidates": normalized}
     extraction = validate_proposal(assemble_proposal(raw, document, parsed, batch.batch_id,
         "synthetic-model"), batch, root)
@@ -285,6 +289,90 @@ def test_failure_family_rate_support_entity_cannot_omit_its_kind(tmp_path):
     extraction = _proposal(tmp_path, "Accepted rate sheet daily price 50.00.", candidates)
     with pytest.raises(DocumentError, match="metadata is incomplete"):
         validate_rental_extraction(extraction)
+
+
+def _supporting_rate_card(tmp_path: Path, *, support_witness: bool = True, duplicate_anchor: bool = False):
+    content = ("Accepted rate card for agreement AGR-7 dated 2026-08-28.\n"
+        "This duplicates signed terms and does not amend them.\n"
+        "Asset A / serial S-A: net EUR 12.00 per asset per calendar day.\n"
+        + ("Asset A / serial S-A: net EUR 13.00 per asset per calendar day.\n" if duplicate_anchor else "")
+        + "Asset B / serial S-B: net EUR 9.00 per asset per calendar day.")
+    candidates = [
+        {"entity_id": "source-envelope", "semantic_type": "document_role", "value_type": "ENUM",
+         "value": "RATE_CARD", "quote": "rate card"},
+        {"entity_id": "source-envelope", "semantic_type": "document_status", "value_type": "ENUM",
+         "value": "ACCEPTED", "quote": "Accepted"},
+        {"entity_id": "agreement-header", "semantic_type": "agreement_id", "value_type": "IDENTIFIER",
+         "value": "AGR-7", "quote": "agreement AGR-7"},
+        {"entity_id": "source-envelope", "semantic_type": "date", "value_type": "DATE",
+         "value": "2026-08-28", "quote": "2026-08-28"},
+    ]
+    if support_witness:
+        candidates.append({"entity_id": "source-note", "semantic_type": "entity_kind", "value_type": "ENUM",
+            "value": "SUPPORTING_DOCUMENT", "quote": "This duplicates signed terms and does not amend them."})
+    for label, asset, serial, amount, quote in (
+        ("row-a", "A", "S-A", "12.00", "Asset A / serial S-A: net EUR 12.00 per asset per calendar day."),
+        *(([("row-a-duplicate", "A", "S-A", "13.00",
+             "Asset A / serial S-A: net EUR 13.00 per asset per calendar day.")] if duplicate_anchor else [])),
+        ("row-b", "B", "S-B", "9.00", "Asset B / serial S-B: net EUR 9.00 per asset per calendar day."),
+    ):
+        for field, value, value_type in (
+            ("asset_id", "ASSET-" + asset, "IDENTIFIER"), ("serial_number", serial, "IDENTIFIER"),
+            ("rate", amount, "DECIMAL"), ("currency", "EUR", "CURRENCY"),
+            ("billing_unit", "DAY", "ENUM"), ("quantity_basis", "PER_ITEM", "ENUM"),
+        ):
+            candidates.append({"entity_id": label, "semantic_type": field, "value_type": value_type,
+                               "value": value, "quote": quote})
+    return _proposal(tmp_path, content, candidates)
+
+
+def test_explicit_supporting_rate_card_rows_get_runtime_structure_not_authority(tmp_path):
+    from againward.documents.readers import read_document
+    # Read the exact source again because the normalizer binds source unit hashes,
+    # spans, role, row anchors and the cited supporting statement together.
+    extraction = _supporting_rate_card(tmp_path)
+    source_root = tmp_path / "documents"
+    batch = inventory_sources(tmp_path / "incoming", source_root)
+    parsed = read_document(batch.documents[0], source_root)
+    normalized = normalize_source_supported_rate_rows(extraction, parsed)
+    validate_rental_extraction(normalized, require_package_facts=True)
+    rows = [candidate for candidate in normalized.candidates if candidate.semantic_type == "entity_kind"
+            and candidate.value == "SUPPORTING_DOCUMENT"]
+    assert len(rows) == 3
+    assert len({candidate.entity_id for candidate in rows}) == 3
+    assert all(candidate.source_id == extraction.source_id for candidate in rows)
+    assert all("no rate authority granted" in candidate.normalization_notes for candidate in rows[1:])
+    assert {candidate.raw_observed_value for candidate in rows[1:]} == {
+        "This duplicates signed terms and does not amend them."}
+
+
+@pytest.mark.parametrize("duplicate_anchor", [False, True])
+def test_rate_card_rows_without_unique_supporting_structure_remain_incomplete(tmp_path, duplicate_anchor):
+    from againward.documents.readers import read_document
+    extraction = _supporting_rate_card(tmp_path, support_witness=False,
+                                      duplicate_anchor=duplicate_anchor)
+    source_root = tmp_path / "documents"
+    batch = inventory_sources(tmp_path / "incoming", source_root)
+    normalized = normalize_source_supported_rate_rows(
+        extraction, read_document(batch.documents[0], source_root))
+    with pytest.raises(DocumentError) as caught:
+        validate_rental_extraction(normalized)
+    assert caught.value.diagnostic["validation_code"] == "ENTITY_METADATA_REQUIRED"
+
+
+def test_rate_card_support_projection_refuses_visual_or_split_line_evidence(tmp_path):
+    from dataclasses import replace as dataclass_replace
+    from againward.documents.readers import read_document
+    extraction = _supporting_rate_card(tmp_path)
+    source_root = tmp_path / "documents"
+    batch = inventory_sources(tmp_path / "incoming", source_root)
+    parsed = read_document(batch.documents[0], source_root)
+    visual = dataclass_replace(parsed, units=tuple(dataclass_replace(unit, route="VISUAL")
+                                                     for unit in parsed.units))
+    visual_result = normalize_source_supported_rate_rows(extraction, visual)
+    with pytest.raises(DocumentError) as caught:
+        validate_rental_extraction(visual_result)
+    assert caught.value.diagnostic["validation_code"] == "ENTITY_METADATA_REQUIRED"
 
 
 def test_multirow_accounting_export_uses_source_level_role_and_status(tmp_path):

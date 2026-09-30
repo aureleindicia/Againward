@@ -94,8 +94,7 @@ def entities_from_facts(facts: tuple[CanonicalFact, ...], *,
         kind = values.get("entity_kind")
         if not isinstance(kind, str):
             fields = {fact.candidate.semantic_type for fact in group}
-            metadata_only = fields and fields <= non_entity_fields and fields <= {
-                "document_role", "document_status"}
+            metadata_only = is_source_metadata_fragment(fields, non_entity_fields)
             if metadata_only or is_reference_fragment(fields, non_entity_fields):
                 continue
             raise DocumentError("ENTITY_AMBIGUOUS", "Reviewed entity_kind required")
@@ -130,13 +129,31 @@ def non_entity_reference_groups(facts: tuple[CanonicalFact, ...], *,
                              "local_id": "reference-" + stable_hash(fact.fact_id)[:20],
                              "record_type": "SOURCE_REFERENCE_FRAGMENT",
                              "semantic_type": field, "fact_ids": [fact.fact_id]})
-        metadata_only = fields and fields <= non_entity_fields and fields <= {
-            "document_role", "document_status"}
+        metadata_only = is_source_metadata_fragment(fields, non_entity_fields)
         if "entity_kind" not in fields and (metadata_only or is_reference_fragment(fields, non_entity_fields)):
             rows.append({"source_id": source_id, "local_id": local_id,
                          "record_type": "SOURCE_METADATA_OR_REFERENCE_FRAGMENT",
                          "fact_ids": sorted(fact.fact_id for fact in group)})
     return rows
+
+
+def is_source_metadata_fragment(fields: set[str], non_entity_fields: frozenset[str]) -> bool:
+    """Recognize narrowly scoped source metadata without creating an entity.
+
+    Supplier identity may be emitted as its own source-envelope observation,
+    just like document role/status. A date is source metadata only when tied to
+    an explicit role or status. Commercial facts and bare agreement identifiers
+    still require a typed occurrence.
+    """
+    if not fields or not fields <= non_entity_fields:
+        return False
+    envelope = {"document_role", "document_status", "supplier_id", "agreement_id"}
+    if fields <= envelope and (fields == {"supplier_id"}
+                               or bool(fields & {"document_role", "document_status"})):
+        return True
+    return ("date" in fields
+            and bool(fields & {"document_role", "document_status"})
+            and fields <= envelope | {"date"})
 
 
 def is_reference_fragment(fields: set[str], non_entity_fields: frozenset[str]) -> bool:

@@ -8,6 +8,7 @@ from typing import Iterable
 
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import DocumentExtraction, contradictory_source_limitations
+from againward.documents.readers import ParsedDocument
 from againward.evidence.hashing import stable_hash
 
 from .entity_contract import (COMPLETENESS_TRIGGER_FIELDS, ENTITY_KINDS,
@@ -329,6 +330,118 @@ def reconstruct_runtime_structure(extraction: DocumentExtraction,
             entity_id=runtime_ids[anchor]))
         present_kind_anchors.add(anchor)
 
+    if tuple(candidates) == extraction.candidates:
+        return extraction
+    return replace(extraction, candidates=tuple(candidates))
+
+
+def normalize_source_supported_rate_rows(extraction: DocumentExtraction,
+                                        parsed: ParsedDocument) -> DocumentExtraction:
+    """Bind explicit supporting rate-card rows without granting rate authority.
+
+    A source-level RATE_CARD / SUPPORTING_DOCUMENT reading can describe
+    separately priced native rows while the model leaves their local kinds
+    blank. When each row is exactly cited, line-bounded, and uniquely anchored
+    by asset and serial, the runtime can preserve it as a supporting record.
+    This is structural only: the rates never become RentalCase terms, and all
+    generated kind observations remain subject to ordinary fact review.
+    """
+    from againward.evidence.hashing import stable_hash
+
+    if parsed.source_id != extraction.source_id:
+        return extraction
+    candidates = list(extraction.candidates)
+    roles = {candidate.value for candidate in candidates
+             if candidate.semantic_type == "document_role"}
+    statuses = {candidate.value for candidate in candidates
+                if candidate.semantic_type == "document_status"}
+    if roles != {"RATE_CARD"} or len(statuses) > 1:
+        return extraction
+    kinds_in_source = {candidate.value for candidate in candidates
+                       if candidate.semantic_type == "entity_kind"}
+    if kinds_in_source != {"SUPPORTING_DOCUMENT"}:
+        return extraction
+    source_key = "runtime-source-" + stable_hash({
+        "source_id": extraction.source_id, "source_sha256": extraction.source_sha256})[:24]
+    # Header metadata is source-scoped even if a reader assigned separate
+    # local labels. Keep each exact fact and its original citation intact.
+    agreement_ids = {candidate.value for candidate in candidates
+                     if candidate.semantic_type == "agreement_id"}
+    if len(agreement_ids) <= 1:
+        candidates = [replace(candidate, entity_id=source_key)
+                      if candidate.semantic_type in {"document_role", "document_status", "agreement_id", "date"}
+                      else candidate for candidate in candidates]
+
+    groups: dict[str, list] = defaultdict(list)
+    for candidate in candidates:
+        groups[candidate.entity_id].append(candidate)
+    witnesses = [(entity_id, rows) for entity_id, rows in groups.items()
+                 if {row.value for row in rows if row.semantic_type == "entity_kind"}
+                 == {"SUPPORTING_DOCUMENT"}]
+    untyped = [(entity_id, rows) for entity_id, rows in groups.items()
+               if not any(row.semantic_type == "entity_kind" for row in rows)
+               and any(row.semantic_type in {"rate", "unit_rate"} for row in rows)]
+    if len(witnesses) != 1 or not untyped:
+        return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
+    witness_rows = witnesses[0][1]
+    witness_kinds = [row for row in witness_rows if row.semantic_type == "entity_kind"]
+    if (len(witness_kinds) != 1 or len(witness_rows) != 1
+            or witness_kinds[0].source_span is None
+            or "VISUAL_TRANSCRIPTION_UNVERIFIED" in witness_kinds[0].ambiguity_flags):
+        return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
+    witness = witness_kinds[0]
+    native_units = {unit.unit_sha256: unit for unit in parsed.units if unit.route == "NATIVE"}
+    row_shapes: list[tuple[str, list, str, str, tuple[int, int], str]] = []
+    allowed_row_fields = {"asset_id", "serial_number", "rate", "unit_rate", "currency",
+                          "billing_unit", "quantity_basis", "weekends_billable", "charge_type"}
+    anchors: set[tuple[str, str]] = set()
+    for entity_id, rows in untyped:
+        fields: dict[str, set[object]] = defaultdict(set)
+        for row in rows:
+            fields[row.semantic_type].add(row.value)
+        if (not set(fields) <= allowed_row_fields
+                or not {"asset_id", "serial_number", "currency", "billing_unit", "quantity_basis"} <= set(fields)
+                or not (set(fields) & {"rate", "unit_rate"})
+                or {"rate", "unit_rate"} <= set(fields)
+                or any(len(values) != 1 for values in fields.values())):
+            return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
+        asset = next(iter(fields["asset_id"]))
+        serial = next(iter(fields["serial_number"]))
+        if not isinstance(asset, str) or not isinstance(serial, str) or (asset, serial) in anchors:
+            return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
+        anchors.add((asset, serial))
+        spans = [row.source_span for row in rows]
+        units = {row.unit_sha256 for row in rows}
+        locations = {row.location for row in rows}
+        if (any(span is None for span in spans) or len(units) != 1 or len(locations) != 1
+                or next(iter(units)) not in native_units):
+            return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
+        unit = native_units[next(iter(units))]
+        start = min(span[0] for span in spans if span is not None)
+        end = max(span[1] for span in spans if span is not None)
+        if (start < 0 or end > len(unit.text) or start >= end
+                or "\n" in unit.text[start:end] or "\r" in unit.text[start:end]):
+            return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
+        row_shapes.append((entity_id, rows, asset, serial, (start, end), unit.text[start:end]))
+    if len(anchors) != len(untyped):
+        return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
+
+    # The source's exact supporting-document observation is the evidence for
+    # this non-authoritative structural kind. Row citations and all commercial
+    # values remain their own source-bound facts.
+    for entity_id, rows, asset, serial, span, _line_text in row_shapes:
+        runtime_id = "runtime-rate-row-" + stable_hash({
+            "source_id": extraction.source_id, "source_sha256": extraction.source_sha256,
+            "asset_id": asset, "serial_number": serial, "source_span": span})[:24]
+        candidates = [replace(row, entity_id=runtime_id) if row.entity_id == entity_id else row
+                      for row in candidates]
+        derived_id = "runtime-kind-" + stable_hash({
+            "source_id": extraction.source_id, "source_sha256": extraction.source_sha256,
+            "asset_id": asset, "serial_number": serial, "witness": witness.candidate_id})[:24]
+        derived = replace(witness, candidate_id=derived_id, entity_id=runtime_id,
+            normalization_notes=(witness.normalization_notes + "; " if witness.normalization_notes else "")
+                + "Bound same-source supporting classification to one exact native rate row; no rate authority granted.")
+        candidates.append(derived)
     if tuple(candidates) == extraction.candidates:
         return extraction
     return replace(extraction, candidates=tuple(candidates))

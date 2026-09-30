@@ -27,8 +27,8 @@ from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources, safe_file, verify_batch
 from againward.documents.visual_fact_review import MODEL_VISUAL_VERSION, record_model_visual_review, verify_visual_attestations
 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
-from againward.domains.rental.extraction_validation import (package_source_gaps,
-    reconstruct_runtime_structure, validate_rental_extraction, proposal_issues)
+from againward.domains.rental.extraction_validation import (normalize_source_supported_rate_rows,
+    package_source_gaps, reconstruct_runtime_structure, validate_rental_extraction, proposal_issues)
 from againward.domains.rental.entity_contract import (ANALYTICAL_FIELDS,
     CREDIT_REFERENCE_FIELDS, NON_ENTITY_OBSERVATION_FIELDS,
     unique_pixel_entity_for_required_field)
@@ -363,6 +363,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                             {"batch": batch, "semantic_guidance": attempt_guidance,
                              "invocation_phase": "PRIMARY_EXTRACTION"})
                         extraction = validate_proposal(proposal, batch, documents)
+                        extraction = normalize_source_supported_rate_rows(extraction, parsed)
                         validate_rental_extraction(extraction, provisional=True, allow_incomplete=True)
                         deferred_structure = proposal_issues(extraction) or None
                         break
@@ -414,6 +415,7 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                             {"batch": batch, "semantic_guidance": attempt_guidance,
                              "invocation_phase": "INDEPENDENT_REREAD"})
                         extraction = validate_proposal(proposal, batch, documents)
+                        extraction = normalize_source_supported_rate_rows(extraction, parsed)
                         validate_rental_extraction(extraction, provisional=True, allow_incomplete=True)
                         deferred_structure = proposal_issues(extraction) or None
                         break
