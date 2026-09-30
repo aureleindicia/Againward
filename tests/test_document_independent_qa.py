@@ -277,6 +277,91 @@ def test_fact_union_preserves_kind_across_a_partial_reader_and_replays_canonical
     assert {"first-read-label", "reread-label"} <= source_labels
 
 
+def test_exact_duplicate_rate_atom_is_assigned_to_one_anchored_occurrence(tmp_path):
+    text = ("Accepted rental agreement AG-22. Asset: UNIT-7. "
+            "Rental rate EUR 90.00 per asset per calendar day.")
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+    rows = [
+        ("scope", "entity_kind", "ENUM", "RENTAL_SCOPE", "Accepted rental agreement AG-22."),
+        ("scope", "document_role", "ENUM", "RENTAL_AGREEMENT", "Accepted rental agreement AG-22."),
+        ("scope", "document_status", "ENUM", "ACCEPTED", "Accepted rental agreement AG-22."),
+        ("scope", "agreement_id", "IDENTIFIER", "AG-22", "AG-22"),
+        ("scope", "asset_id", "IDENTIFIER", "UNIT-7", "UNIT-7"),
+        ("scope", "rate", "DECIMAL", "90.00", "Rental rate EUR 90.00 per asset per calendar day."),
+        ("scope", "currency", "CURRENCY", "EUR", "Rental rate EUR 90.00 per asset per calendar day."),
+        ("orphan-rate", "unit_rate", "DECIMAL", "90.00", "Rental rate EUR 90.00 per asset per calendar day."),
+    ]
+    extraction = validate({"status": "SUCCESS", "limitations": [], "candidates": [
+        {"entity_id": group, "semantic_type": field, "value_type": value_type,
+         "value": value, "raw_observed_value": quote, "location": location,
+         "normalization_notes": "Exact cited source observation", "ambiguity_flags": []}
+        for group, field, value_type, value, quote in rows]})
+
+    normalized = reconstruct_runtime_structure(extraction)
+    rate = next(c for c in normalized.candidates if c.semantic_type == "rate")
+    atom = next(c for c in normalized.candidates if c.semantic_type == "unit_rate")
+    assert atom.entity_id == rate.entity_id
+    assert atom.source_span == rate.source_span
+    assert atom.source_id == rate.source_id == extraction.source_id
+    assert normalized.source_sha256 == extraction.source_sha256
+    validate_rental_extraction(normalized)
+    assert reconstruct_runtime_structure(normalized) == normalized
+
+
+def test_rate_atom_is_not_assigned_when_multiple_occurrences_share_the_same_proof(tmp_path):
+    text = ("Accepted rental agreement AG-23 lists UNIT-7 and UNIT-8. "
+            "Rental rate EUR 90.00 per asset per calendar day.")
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+    quote = "Rental rate EUR 90.00 per asset per calendar day."
+    rows = []
+    for label, asset in (("scope-left", "UNIT-7"), ("scope-right", "UNIT-8")):
+        rows.extend([
+            (label, "entity_kind", "ENUM", "RENTAL_SCOPE", "Accepted rental agreement AG-23"),
+            (label, "agreement_id", "IDENTIFIER", "AG-23", "AG-23"),
+            (label, "asset_id", "IDENTIFIER", asset, asset),
+            (label, "rate", "DECIMAL", "90.00", quote),
+        ])
+    rows.append(("untyped-atom", "unit_rate", "DECIMAL", "90.00", quote))
+    extraction = validate({"status": "SUCCESS", "limitations": [], "candidates": [
+        {"entity_id": group, "semantic_type": field, "value_type": value_type,
+         "value": value, "raw_observed_value": observed, "location": location,
+         "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+        for group, field, value_type, value, observed in rows]})
+
+    normalized = reconstruct_runtime_structure(extraction)
+    atom = next(c for c in normalized.candidates if c.semantic_type == "unit_rate")
+    typed_occurrences = {c.entity_id for c in normalized.candidates
+                         if c.semantic_type == "entity_kind"}
+    assert atom.entity_id not in typed_occurrences
+    with pytest.raises(DocumentError) as caught:
+        validate_rental_extraction(normalized)
+    assert caught.value.diagnostic["validation_code"] == "ENTITY_METADATA_REQUIRED"
+
+
+def test_source_supplier_identifier_alone_does_not_create_a_pseudo_entity(tmp_path):
+    text = "Invoice I-8 issued by supplier ACME-4."
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+    rows = [
+        ("document", "document_role", "ENUM", "INVOICE", "Invoice"),
+        ("document", "document_status", "ENUM", "ISSUED", "issued"),
+        ("supplier-fragment", "supplier_id", "IDENTIFIER", "ACME-4", "ACME-4"),
+    ]
+    extraction = validate({"status": "SUCCESS", "limitations": [], "candidates": [
+        {"entity_id": group, "semantic_type": field, "value_type": value_type,
+         "value": value, "raw_observed_value": quote, "location": location,
+         "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+        for group, field, value_type, value, quote in rows]})
+
+    validate_rental_extraction(extraction)
+    supplier = next(c for c in _canonical_observations(extraction)
+                    if c["semantic_type"] == "supplier_id")
+    assert supplier["scope"] == "SOURCE_METADATA" and supplier["anchor"] is None
+    assert next(c for c in extraction.candidates if c.semantic_type == "supplier_id").entity_id == "supplier-fragment"
+
+
 def test_adjudication_delta_restores_only_unique_same_source_structure(tmp_path):
     text = "Invoice I-7 line C equipment charge 55 EUR. Status ISSUED."
     root, batch, _, validate = _case(tmp_path, text)

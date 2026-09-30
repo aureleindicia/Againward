@@ -684,6 +684,7 @@ def test_live_interface_binds_hashes_and_preserves_semantic_guidance(tmp_path, m
         fields = schema["properties"]
         assert "source_id" not in fields
         assert "preview_sha256" not in fields["citations"]["items"]["properties"]
+        assert fields["citations"]["maxItems"] == 12
         assert "candidate_selections" in schema["required"]
         assert set(fields["candidate_selections"]["items"]["required"]) == {
             "reader", "candidate_index", "decision", "entity_id"}
@@ -697,6 +698,36 @@ def test_live_interface_binds_hashes_and_preserves_semantic_guidance(tmp_path, m
     assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"
     assert result["facts_approved"] == 0
     assert all(c["source_span"] for c in result["decisions"][0]["citations"])
+
+
+def test_adjudicator_retries_once_with_minimal_citations_after_citation_bound(tmp_path, monkeypatch):
+    root, batch, primary, challenger, qa, raw, _email = _case(tmp_path)
+    over_limit = deepcopy(raw)
+    citation = over_limit["decisions"][0]["citations"][0]
+    over_limit["decisions"][0]["citations"] = [deepcopy(citation) for _ in range(13)]
+    responses = [over_limit, raw]
+    prompts = []
+    schemas = []
+    original_run = subprocess.run
+
+    def fake_codex(command, **kwargs):
+        if "input" not in kwargs:
+            return original_run(command, **kwargs)
+        prompts.append(kwargs["input"])
+        schema = json.loads(Path(command[command.index("--output-schema") + 1]).read_text())
+        schemas.append(schema)
+        assert schema["properties"]["citations"]["maxItems"] == 12
+        response = _local_model_answer(responses.pop(0))
+        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(response))
+        return SimpleNamespace(returncode=0, stderr="")
+
+    monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)
+    result = adjudicate_with_codex(batch, primary, challenger, qa, root, model="synthetic-model")
+    assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"
+    assert len(prompts) == 2 and len(schemas) == 2
+    assert "minimum exact source excerpts" in prompts[0]
+    assert "exceeded the hard limit of 12 citations" in prompts[1]
+    assert len(result["decisions"][0]["citations"]) == 1
 
 
 def test_native_citation_binds_runtime_identity_without_model_preview_hash(tmp_path):

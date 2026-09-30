@@ -29,9 +29,10 @@ from .sources import verify_batch
 from .model_protocol import load_model_json, normalize_decision, normalize_read
 
 
-ADJUDICATION_VERSION = "againward-source-adjudication-v16-source-isolated"
+ADJUDICATION_VERSION = "againward-source-adjudication-v17-bounded-evidence"
 MAX_SOURCE_TEXT = 60_000
 MAX_VISUAL_PAGES = 4
+MAX_ADJUDICATION_CITATIONS = 12
 _SCHEMA: dict[str, Any] = {
     "type": "object", "additionalProperties": False,
     "required": ["decisions"],
@@ -42,7 +43,7 @@ _SCHEMA: dict[str, Any] = {
             "source_id": {"type": "string"},
             "selection": {"type": "string", "enum": ["PRIMARY", "CHALLENGER", "ASSEMBLE", "UNRESOLVED"]},
             "rationale": {"type": "string"},
-            "citations": {"type": "array", "items": {
+            "citations": {"type": "array", "maxItems": MAX_ADJUDICATION_CITATIONS, "items": {
                 "type": "object", "additionalProperties": False,
                 "required": ["source_id", "location", "quote", "preview_sha256"],
                 "properties": {"source_id": {"type": "string"},
@@ -478,11 +479,12 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
             recovered = assemble_proposal({"status": "NEEDS_REVIEW", "limitations": [], "candidates": raw_native},
                 document, parsed_native, batch.batch_id, "adjudicator")
             bound_native = [_candidate(c, source_id, units[source_id]).to_dict() for c in recovered["candidates"]]
-        if not isinstance(citations, list) or len(citations) > 12:
-            raise DocumentError("RESOURCE_LIMIT", "Bounded original-source citations required",
-                diagnostic=_error_diagnostic("CITATION_LIMIT", f"$.decisions[{decision_index}].citations",
-                                             "RESOURCE_BOUND", "array(items<=12)", citations,
-                                             source_id=source_id, decision_index=decision_index))
+        if not isinstance(citations, list) or len(citations) > MAX_ADJUDICATION_CITATIONS:
+                raise DocumentError("RESOURCE_LIMIT", "Bounded original-source citations required",
+                    diagnostic=_error_diagnostic("CITATION_LIMIT", f"$.decisions[{decision_index}].citations",
+                                                 "RESOURCE_BOUND",
+                                                 f"array(items<={MAX_ADJUDICATION_CITATIONS})", citations,
+                                                 source_id=source_id, decision_index=decision_index))
         if selection != "UNRESOLVED" and not citations:
             raise DocumentError("EXTRACTION_INCOMPLETE", "Resolved disagreement needs original evidence",
                 diagnostic=_error_diagnostic("RESOLUTION_WITHOUT_CITATION",
@@ -754,7 +756,12 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         "Local requirements exclude classifications reserved for package relation review. If neither reading nor current pixels support a required local field, choose UNRESOLVED. Do not fill a "
         "commercial classification from another document or an expected financial result. "
         "A proposal selection chooses a source-local observation set for further review; it "
-        "does NOT establish contractual authority or approve facts. Use the shared semantic_guidance "
+        "does NOT establish contractual authority or approve facts. Citations are a bounded justification, "
+        "not a copy of the candidate ledger: provide only the minimum exact source excerpts needed to support "
+        "the selected interpretation, never one citation per candidate or per field. One exact native excerpt "
+        "may support several facts when it contains them together. The downstream fact review independently "
+        "validates each selected observation. Never return more than "
+        f"{MAX_ADJUDICATION_CITATIONS} citations. Use the shared semantic_guidance "
         "to interpret domain classifications. Compare semantic facts, not model-local entity IDs: "
         "different phrasing or grouping alone is not a material conflict. Reconcile complementary "
         "readings explicitly with ASSEMBLE; choose UNRESOLVED for unsupported material interpretations. "
@@ -996,11 +1003,21 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                 write_model_diagnostic(root, diagnostic,
                                        evaluation_raw=raw if evaluation_only else None)
                 exc.diagnostic = diagnostic
-                if attempt or exc.code not in {"SOURCE_LOCATION_INVALID", "EXTRACTION_INCOMPLETE",
-                                               "STRUCTURAL_INCOMPLETE", "EXTRACTION_SCHEMA_INVALID",
-                                               "REVIEW_STALE"}:
+                citation_limit = ((exc.diagnostic or {}).get("validation_code") == "CITATION_LIMIT")
+                retryable = (exc.code in {"SOURCE_LOCATION_INVALID", "EXTRACTION_INCOMPLETE",
+                                          "STRUCTURAL_INCOMPLETE", "EXTRACTION_SCHEMA_INVALID",
+                                          "REVIEW_STALE"}
+                             or (exc.code == "RESOURCE_LIMIT" and citation_limit))
+                if attempt or not retryable:
                     raise
-                if exc.code == "STRUCTURAL_INCOMPLETE":
+                if citation_limit:
+                    prompt += (
+                        f"\nYour prior response exceeded the hard limit of {MAX_ADJUDICATION_CITATIONS} citations. "
+                        "Return only the minimum exact native excerpts needed to justify the source-set choice; "
+                        "do not cite every candidate. A single exact row or passage may support multiple "
+                        "observations. Preserve exact quote text and listed source locations."
+                    )
+                elif exc.code == "STRUCTURAL_INCOMPLETE":
                     prompt += (
                         "\nYour prior pixel observations omitted required source-supported entity metadata. "
                         "Reinspect the same original pixels. Give each material entity a source-supported "

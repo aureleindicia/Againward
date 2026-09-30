@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import replace
+from decimal import Decimal, InvalidOperation
 from typing import Iterable
 
 from againward.documents.contracts import DocumentError
@@ -11,7 +12,7 @@ from againward.evidence.hashing import stable_hash
 
 from .entity_contract import (COMPLETENESS_TRIGGER_FIELDS, ENTITY_KINDS,
     DOCUMENT_ROLES, DOCUMENT_STATUSES, PACKAGE_SOURCE_REQUIRED,
-    CREDIT_REFERENCE_FIELDS, is_non_entity_observation)
+    CREDIT_REFERENCE_FIELDS, MATERIAL_FIELDS, is_non_entity_observation)
 
 
 # Ownership boundary: source/hash/location/span are runtime-bound; entity_id is
@@ -30,6 +31,31 @@ OCCURRENCE_ANCHOR_FIELDS = {
     "RETURN": ("agreement_id", "asset_id", "event_type", "date"),
     "RATE_AMENDMENT": ("agreement_id", "asset_id", "effective_from"),
 }
+
+# A decimal rate can be emitted under either contract field when two readers
+# describe the same cited rate term. This is only an occurrence-assignment
+# equivalence; it does not rewrite the observation or derive a new rate.
+_RATE_OBSERVATION_EQUIVALENTS = frozenset({"rate", "unit_rate"})
+
+
+def _proof_identity(candidate, source_sha256: str) -> tuple[object, ...] | None:
+    """A locatable exact native proof identity; page-only visual cites cannot assign scope."""
+    if (candidate.source_span is None or candidate.unit_sha256 is None
+            or not candidate.source_id or not source_sha256):
+        return None
+    return (candidate.source_id, source_sha256, candidate.location,
+            candidate.unit_sha256, tuple(candidate.source_span))
+
+
+def _same_observed_value(left, right) -> bool:
+    if left.semantic_type in _RATE_OBSERVATION_EQUIVALENTS and right.semantic_type in _RATE_OBSERVATION_EQUIVALENTS:
+        try:
+            left_value = Decimal(str(left.value))
+            right_value = Decimal(str(right.value))
+        except (InvalidOperation, ValueError):
+            return left.value == right.value
+        return left_value.is_finite() and right_value.is_finite() and left_value == right_value
+    return left.semantic_type == right.semantic_type and left.value == right.value
 
 
 def _group_values(candidates) -> dict[str, set[object]]:
@@ -198,6 +224,45 @@ def reconstruct_runtime_structure(extraction: DocumentExtraction,
     runtime_ids = {anchor: "runtime-entity-" + stable_hash({
         "source_id": extraction.source_id, "source_sha256": extraction.source_sha256,
         "anchor": anchor})[:24] for anchor in kinds_by_anchor}
+
+    # A model can split one exact native observation into a singleton group
+    # while placing an equivalent observation with the occurrence. Reattach
+    # only when its current source/hash/location/span exactly matches a
+    # compatible typed occurrence and that proof identifies one anchor. This
+    # deliberately does not use page, value, proximity, or model labels alone.
+    atom_assignments: dict[str, tuple[str, ...]] = {}
+    for entity_id, rows in grouped.items():
+        if len(rows) != 1 or entity_id in anchor_by_group:
+            continue
+        candidate = rows[0]
+        proof = _proof_identity(candidate, extraction.source_sha256)
+        if proof is None:
+            continue
+        matches: set[tuple[str, ...]] = set()
+        for target_id, target_rows in grouped.items():
+            if target_id == entity_id:
+                continue
+            anchor = anchor_by_group.get(target_id)
+            kind = resolved_kind_by_group.get(target_id)
+            if anchor is None or kind is None:
+                continue
+            for target in target_rows:
+                target_proof = _proof_identity(target, extraction.source_sha256)
+                if target_proof != proof or not _same_observed_value(candidate, target):
+                    continue
+                # Equal field names are assignable only when that field is
+                # meaningful on this occurrence. The sole declared decimal
+                # vocabulary variation is rate/unit_rate.
+                equivalent_rate = (candidate.semantic_type in _RATE_OBSERVATION_EQUIVALENTS
+                                   and target.semantic_type in _RATE_OBSERVATION_EQUIVALENTS)
+                supported_fields = MATERIAL_FIELDS.get(kind, frozenset())
+                if (candidate.semantic_type in supported_fields
+                        or (equivalent_rate and bool(supported_fields & _RATE_OBSERVATION_EQUIVALENTS))):
+                    matches.add(anchor)
+                    break
+        if len(matches) == 1:
+            atom_assignments[entity_id] = next(iter(matches))
+
     candidates = []
     for candidate in extraction.candidates:
         if candidate.semantic_type in SOURCE_STRUCTURAL_FIELDS:
@@ -207,6 +272,8 @@ def reconstruct_runtime_structure(extraction: DocumentExtraction,
             candidates.append(replace(candidate, entity_id=runtime_id))
             continue
         anchor = anchor_by_group.get(candidate.entity_id)
+        if anchor is None:
+            anchor = atom_assignments.get(candidate.entity_id)
         runtime_id = runtime_ids.get(anchor) if anchor is not None else None
         candidates.append(replace(candidate, entity_id=runtime_id) if runtime_id else candidate)
 
