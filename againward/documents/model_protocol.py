@@ -17,7 +17,7 @@ from againward.domains.rental.entity_contract import (ENUM_ALIASES, ENUM_FIELDS,
 
 from .contracts import DocumentError
 
-VERSION = "model-observation-boundary-v2-rate-dimensions"
+VERSION = "model-observation-boundary-v3-typed-integers"
 _RATE_DIMENSION_FIELDS = frozenset({"billing_unit", "quantity_basis", "weekends_billable"})
 
 
@@ -435,17 +435,48 @@ def normalize_read(raw: dict[str, Any], parsed: Any, *, rental: bool) -> dict[st
             if not isinstance(row, dict):
                 continue
             location = row.get("location")
-            if (location is not None and not isinstance(location, str)) or location in {unit.location for unit in parsed.units}:
-                continue
-            quote = row.get("raw_observed_value")
-            if not isinstance(quote, str) or not quote:
-                continue
-            units = [unit for unit in parsed.units if unit.route == "NATIVE" and unit.text.count(quote) == 1]
-            if len(units) == 1 and sum(unit.text.count(quote) for unit in parsed.units if unit.route == "NATIVE") == 1:
-                row["location"] = units[0].location
+            valid_locations = {unit.location for unit in parsed.units}
+            invalid_location_type = location is not None and not isinstance(location, str)
+            if not invalid_location_type and location not in valid_locations:
+                quote = row.get("raw_observed_value")
+                if isinstance(quote, str) and quote:
+                    units = [unit for unit in parsed.units if unit.route == "NATIVE" and unit.text.count(quote) == 1]
+                    if len(units) == 1 and sum(unit.text.count(quote) for unit in parsed.units if unit.route == "NATIVE") == 1:
+                        row["location"] = units[0].location
+            # The model-facing contract deliberately omits value_type for
+            # Rental observations; Python owns it. Recover only a plain
+            # integer numeral serialized as a string, and only when that same
+            # numeral appears exactly once in the candidate's exact native
+            # quote. No rounding, unit conversion, or natural-language parse.
+            if rental:
+                _normalize_exact_integer_scalar(row, parsed)
     if rejected_observations:
         result["_againward_rejected_observations"] = rejected_observations
     return result
+
+
+def _normalize_exact_integer_scalar(row: dict[str, Any], parsed: Any) -> None:
+    """Canonicalize harmless JSON string-vs-integer variation for typed fields."""
+    field = row.get("semantic_type")
+    value = row.get("value")
+    if (not isinstance(field, str) or MODEL_VALUE_TYPES.get(field) != "INTEGER"
+            or not isinstance(value, str) or not re.fullmatch(r"[0-9]{1,12}", value)):
+        return
+    location, quote = row.get("location"), row.get("raw_observed_value")
+    unit = next((item for item in parsed.units if item.location == location), None)
+    if (unit is None or unit.route != "NATIVE" or not isinstance(quote, str)
+            or not quote or unit.text.count(quote) != 1):
+        return
+    # Avoid extracting a numeral from a decimal, larger number, or adjacent
+    # alphanumeric identifier. The exact source quote remains unchanged.
+    token_pattern = rf"(?<![A-Za-z0-9.,]){re.escape(value)}(?![A-Za-z0-9.,])"
+    if len(re.findall(token_pattern, quote)) != 1:
+        return
+    row["value"] = int(value)
+    previous = row.get("normalization_notes", "")
+    note = "Canonicalized a plain integer string from its exact native citation."
+    if isinstance(previous, str):
+        row["normalization_notes"] = "; ".join(part for part in (previous.strip(), note) if part)
 
 
 def normalize_decision(raw: dict[str, Any], *, source_id: str) -> dict[str, Any]:

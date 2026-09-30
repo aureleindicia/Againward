@@ -208,6 +208,40 @@ def test_document_role_synonyms_never_infer_acceptance(alias, canonical):
     assert 'document_status' not in json.dumps(row)
 
 
+def test_plain_integer_string_is_retyped_only_from_its_exact_native_quote(tmp_path):
+    root, batch, document, parsed = _source(tmp_path, "Minimum term: 30 days.")
+    location = parsed.units[0].location
+    raw = {'status': 'SUCCESS', 'limitations': [], 'candidates': [{
+        'entity_id': 'term', 'semantic_type': 'minimum_days', 'value': '30',
+        'raw_observed_value': 'Minimum term: 30 days.', 'location': location,
+        'normalization_notes': '', 'ambiguity_flags': []}]}
+    normalized = normalize_read(raw, parsed, rental=True)
+    row = normalized['candidates'][0]
+    assert row['value'] == 30 and type(row['value']) is int
+    assert row['value_type'] == 'INTEGER'
+    assert row['raw_observed_value'] == raw['candidates'][0]['raw_observed_value']
+    assert 'plain integer string' in row['normalization_notes']
+    proposal = assemble_proposal(normalized, document, parsed, batch.batch_id, 'synthetic-model')
+    extraction = validate_proposal(proposal, batch, root)
+    assert next(candidate for candidate in extraction.candidates
+                if candidate.semantic_type == 'minimum_days').value == 30
+
+
+@pytest.mark.parametrize('value', ['30 days', '31', '30.0', '-30'])
+def test_integer_string_is_not_repaired_when_not_a_plain_cited_scalar(tmp_path, value):
+    root, batch, document, parsed = _source(tmp_path, "Minimum term: 30 days.")
+    location = parsed.units[0].location
+    raw = {'status': 'SUCCESS', 'limitations': [], 'candidates': [{
+        'entity_id': 'term', 'semantic_type': 'minimum_days', 'value': value,
+        'raw_observed_value': 'Minimum term: 30 days.', 'location': location,
+        'normalization_notes': '', 'ambiguity_flags': []}]}
+    normalized = normalize_read(raw, parsed, rental=True)
+    assert normalized['candidates'][0]['value'] == value
+    proposal = assemble_proposal(normalized, document, parsed, batch.batch_id, 'synthetic-model')
+    with pytest.raises(DocumentError, match='Unknown or invalid value type'):
+        validate_proposal(proposal, batch, root)
+
+
 @pytest.mark.parametrize('raw', [b'{"x":1,}', b'```json\n{"x":1}\n```', b'{"x":1}'])
 def test_unambiguous_serialization_is_recovered(raw):
     assert load_model_json(raw, maximum=1000) == {'x': 1}

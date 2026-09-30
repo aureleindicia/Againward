@@ -40,7 +40,7 @@ from .autonomous_job import run_reviewed_package_job
 from .autonomous_report import current_report_versions
 
 
-VERSION = "againward-rental-approved-sources-job-v5-package-scope"
+VERSION = "againward-rental-approved-sources-job-v6-typed-observations"
 VISUAL_LIMITATION_ROUTING_VERSION = "againward-rental-visual-reading-v2"
 RETRYABLE_MODEL_CODES = {"MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_AUTH_REQUIRED",
                          "MODEL_RATE_LIMITED", "MODEL_TRANSPORT_FAILURE", "MODEL_EMPTY_RESPONSE"}

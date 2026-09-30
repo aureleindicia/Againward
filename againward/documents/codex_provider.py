@@ -29,7 +29,7 @@ from .readers import ParsedDocument
 from .model_protocol import load_model_json, normalize_read, VERSION as PROTOCOL_VERSION
 
 PROMPT_VERSION = "againward-source-facts-v13-normalized-observations"
-EXTRACTOR_VERSION = "codex-cli-source-units-v2-visual-bound"
+EXTRACTOR_VERSION = "codex-cli-source-units-v3-typed-integers"
 MAX_PROMPT_TEXT = 30_000
 MAX_UNITS = 300
 MAX_VISUAL_PAGES = 4
