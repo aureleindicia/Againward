@@ -7,13 +7,15 @@ from decimal import Decimal, InvalidOperation
 from typing import Iterable
 
 from againward.documents.contracts import DocumentError
-from againward.documents.extraction import DocumentExtraction, contradictory_source_limitations
+from againward.documents.extraction import (DocumentExtraction, FactCandidate,
+    contradictory_source_limitations)
 from againward.documents.readers import ParsedDocument
 from againward.evidence.hashing import stable_hash
 
 from .entity_contract import (COMPLETENESS_TRIGGER_FIELDS, ENTITY_KINDS,
     DOCUMENT_ROLES, DOCUMENT_STATUSES, PACKAGE_SOURCE_REQUIRED,
-    CREDIT_REFERENCE_FIELDS, MATERIAL_FIELDS, is_non_entity_observation)
+    CREDIT_REFERENCE_FIELDS, MATERIAL_FIELDS, event_record_kind,
+    is_non_entity_observation, rental_scope_record_kind)
 
 
 # Ownership boundary: source/hash/location/span are runtime-bound; entity_id is
@@ -71,8 +73,8 @@ def _identity_fields(extraction: DocumentExtraction, candidates) -> dict[str, se
     # A source with exactly one printed invoice ID can bind a split row fragment
     # that omitted the repeated envelope field. This is identity context only;
     # no invoice_id candidate is created or moved by this helper.
-    invoice_ids = {candidate.value for candidate in extraction.candidates
-                   if candidate.semantic_type == "invoice_id" and candidate.value is not None}
+    invoice_ids: set[object] = {candidate.value for candidate in extraction.candidates
+                                if candidate.semantic_type == "invoice_id" and candidate.value is not None}
     if (len(invoice_ids) == 1 and len(fields.get("invoice_line_id", set())) == 1
             and not fields.get("invoice_id")):
         fields["invoice_id"] = invoice_ids
@@ -122,10 +124,10 @@ def occurrence_kind_overrides(extraction: DocumentExtraction,
     for item, groups in groups_by_extraction:
         for rows in groups.values():
             fields = _identity_fields(item, rows)
-            kinds = fields.get("entity_kind", set())
-            if len(kinds) != 1:
+            peer_entity_kinds = fields.get("entity_kind", set())
+            if len(peer_entity_kinds) != 1:
                 continue
-            kind = next(iter(kinds))
+            kind = next(iter(peer_entity_kinds))
             if isinstance(kind, str):
                 anchor = _occurrence_anchor(item.source_id, fields, kind)
                 if anchor is not None:
@@ -137,10 +139,119 @@ def occurrence_kind_overrides(extraction: DocumentExtraction,
         if fields.get("entity_kind"):
             continue
         anchor = _occurrence_anchor(extraction.source_id, fields, None)
-        kinds = anchored_kinds.get(anchor, set()) if anchor is not None else set()
-        if len(kinds) == 1:
-            overrides[entity_id] = next(iter(kinds))
+        matching_kinds: set[str] = anchored_kinds.get(anchor, set()) if anchor is not None else set()
+        if len(matching_kinds) == 1:
+            overrides[entity_id] = next(iter(matching_kinds))
     return overrides
+
+
+def _canonicalize_explicit_entity_structure(extraction: DocumentExtraction) -> DocumentExtraction:
+    """Bind a uniquely anchored Rental container from exact source observations.
+
+    This derives only the runtime container kind. All commercial values remain
+    source observations and still require review.
+    """
+    grouped: dict[str, list] = defaultdict(list)
+    for candidate in extraction.candidates:
+        grouped[candidate.entity_id].append(candidate)
+
+    proposed: dict[str, tuple[str, tuple[str, ...], FactCandidate, bool]] = {}
+    for entity_id, rows in grouped.items():
+        fields = _group_values(rows)
+        event_kind = event_record_kind(fields)
+        if event_kind is not None:
+            signature: tuple[str, ...]
+            agreement = next(iter(fields["agreement_id"]))
+            asset = next(iter(fields["asset_id"]))
+            event_type = next(iter(fields["event_type"]))
+            event_rows = [row for row in rows if row.semantic_type == "event_type"
+                          and row.value == event_type and row.source_id == extraction.source_id
+                          and row.unit_sha256]
+            if (not event_rows or not isinstance(asset, str)
+                    or not any(asset.casefold() in row.raw_observed_value.casefold() for row in event_rows)):
+                continue
+            signature = (event_kind, str(agreement), str(asset), str(event_type))
+            proposed[entity_id] = (event_kind, signature, event_rows[0], True)
+            continue
+
+        scope_kind = rental_scope_record_kind(fields)
+        if scope_kind is not None:
+            agreement = next(iter(fields["agreement_id"]))
+            asset = next(iter(fields["asset_id"]))
+            role_rows = [row for row in rows if row.semantic_type == "document_role"
+                         and row.value == "RENTAL_AGREEMENT"
+                         and row.source_id == extraction.source_id and row.unit_sha256]
+            if not role_rows:
+                continue
+            signature = (scope_kind, str(agreement), str(asset))
+            proposed[entity_id] = (scope_kind, signature, role_rows[0], False)
+
+    counts: dict[tuple[str, ...], int] = defaultdict(int)
+    for _, signature, _, _ in proposed.values():
+        counts[signature] += 1
+    if not proposed or any(counts[signature] != 1 for _, signature, _, _ in proposed.values()):
+        return extraction
+
+    candidates = list(extraction.candidates)
+    for entity_id, (kind, signature, structure_template, is_event) in proposed.items():
+        indices = [index for index, row in enumerate(candidates) if row.entity_id == entity_id]
+        kind_indices = [index for index in indices if candidates[index].semantic_type == "entity_kind"]
+        kind_values = {candidates[index].value for index in kind_indices}
+        if len(kind_values) > 1:
+            # Preserve a real internal contradiction for the ordinary gate.
+            continue
+        if kind_indices:
+            for index in kind_indices:
+                row = candidates[index]
+                if row.value != kind:
+                    note = (row.normalization_notes + "; " if row.normalization_notes else "") + (
+                        "Canonicalized the structural container from exact source-bound Rental "
+                        "observations; commercial meaning remains unreviewed.")
+                    candidates[index] = replace(row, value=kind, value_type="ENUM",
+                normalization_notes=note)
+        else:
+            candidates.append(replace(structure_template,
+                candidate_id="runtime-entity-kind-" + stable_hash({
+                    "source_id": extraction.source_id,
+                    "source_sha256": extraction.source_sha256,
+                    "occurrence_anchor": signature, "kind": kind})[:24],
+                semantic_type="entity_kind", value_type="ENUM", value=kind,
+                normalization_notes=(structure_template.normalization_notes + "; "
+                    if structure_template.normalization_notes else "")
+                    + ("Derived the event-record container from its explicit source-bound event_type; "
+                       "this does not assert physical return or grant approval." if is_event else
+                       "Derived the rental-scope container from the exact source-bound agreement role, "
+                       "asset, interval, quantity, and description; this does not grant authority.")))
+
+        if not is_event:
+            continue
+        # DECLARED/DOCUMENTED are the same controlled verification vocabulary
+        # used by the canonical event record. Map only an exact matching enum;
+        # no other status or free-text wording is interpreted.
+        fields = _group_values(candidates[index] for index in indices)
+        statuses = fields.get("status", set())
+        if (len(statuses) == 1 and next(iter(statuses)) in {"DECLARED", "DOCUMENTED"}
+                and not fields.get("verification")):
+            status_value = next(iter(statuses))
+            if not isinstance(status_value, str):
+                continue
+            status = status_value
+            template = next(row for row in candidates if row.entity_id == entity_id
+                            and row.semantic_type == "status" and row.value == status)
+            candidates.append(replace(template,
+                candidate_id="runtime-event-verification-" + stable_hash({
+                    "source_id": extraction.source_id,
+                    "source_sha256": extraction.source_sha256,
+                    "occurrence_anchor": signature, "status": status})[:24],
+                semantic_type="verification", value_type="TEXT", value=status,
+                normalization_notes=(template.normalization_notes + "; "
+                    if template.normalization_notes else "")
+                    + "Mapped the identical controlled event status to verification; "
+                      "source binding is unchanged and review is still required."))
+
+    if tuple(candidates) == extraction.candidates:
+        return extraction
+    return replace(extraction, candidates=tuple(candidates))
 
 
 def reconstruct_runtime_structure(extraction: DocumentExtraction,
@@ -154,13 +265,14 @@ def reconstruct_runtime_structure(extraction: DocumentExtraction,
     determine the runtime occurrence ID. Missing or conflicting anchors remain
     untouched for the ordinary fail-closed validator.
     """
+    extraction = _canonicalize_explicit_entity_structure(extraction)
     peers = tuple(item for item in supporting
                   if item.source_id == extraction.source_id
                   and item.source_sha256 == extraction.source_sha256)
     grouped: dict[str, list] = defaultdict(list)
     for candidate in extraction.candidates:
         grouped[candidate.entity_id].append(candidate)
-    peer_groups = []
+    peer_groups: list[tuple[DocumentExtraction, dict[str, set[object]], list[FactCandidate]]] = []
     for peer in (extraction, *peers):
         by_entity: dict[str, list] = defaultdict(list)
         for candidate in peer.candidates:
@@ -267,16 +379,17 @@ def reconstruct_runtime_structure(extraction: DocumentExtraction,
     candidates = []
     for candidate in extraction.candidates:
         if candidate.semantic_type in SOURCE_STRUCTURAL_FIELDS:
-            runtime_id = "runtime-source-" + stable_hash({
+            source_metadata_id = "runtime-source-" + stable_hash({
                 "source_id": extraction.source_id,
                 "source_sha256": extraction.source_sha256})[:24]
-            candidates.append(replace(candidate, entity_id=runtime_id))
+            candidates.append(replace(candidate, entity_id=source_metadata_id))
             continue
         anchor = anchor_by_group.get(candidate.entity_id)
         if anchor is None:
             anchor = atom_assignments.get(candidate.entity_id)
-        runtime_id = runtime_ids.get(anchor) if anchor is not None else None
-        candidates.append(replace(candidate, entity_id=runtime_id) if runtime_id else candidate)
+        runtime_entity_id: str | None = runtime_ids.get(anchor) if anchor is not None else None
+        candidates.append(replace(candidate, entity_id=runtime_entity_id)
+                          if runtime_entity_id else candidate)
 
     present_source_fields = {candidate.semantic_type for candidate in candidates
                              if candidate.semantic_type in SOURCE_STRUCTURAL_FIELDS}

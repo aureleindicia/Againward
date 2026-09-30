@@ -12,6 +12,12 @@ from typing import Any, Iterable
 
 ENTITY_KINDS = frozenset({"RENTAL_SCOPE", "INVOICE_LINE", "RETURN", "RATE_AMENDMENT",
                           "CREDIT", "SUPPORTING_DOCUMENT", "IRRELEVANT"})
+# The current canonical event record is represented by the legacy RETURN
+# container. Its event_type carries the actual distinction (request, collection,
+# or physical return); assigning the container does not assert that equipment
+# was physically returned.
+RETURN_RECORD_EVENT_TYPES = frozenset({"OFF_HIRE_REQUESTED", "COLLECTION_REQUESTED",
+                                       "COLLECTED", "RETURNED"})
 DOCUMENT_ROLES = frozenset({"RENTAL_AGREEMENT", "RATE_CARD", "QUOTE", "PURCHASE_ORDER",
     "AMENDMENT", "INVOICE", "CREDIT_NOTE", "DELIVERY_NOTE", "RETURN_NOTE",
     "OFF_HIRE_NOTICE", "EMAIL_EVIDENCE", "ASSET_LIST", "PAYMENT_EXPORT",
@@ -85,6 +91,44 @@ def is_non_entity_observation(fields: Iterable[str]) -> bool:
     # They do not create a material entity; values remain source-bound and are
     # still checked for conflicts wherever the Rental contract requires them.
     return values <= {"document_role", "document_status", "supplier_id"}
+
+
+def event_record_kind(fields: dict[str, set[object]]) -> str | None:
+    """Infer only the structural container for one explicitly typed event.
+
+    The event_type is the source-supported semantic fact. Agreement and asset
+    anchors prevent an isolated event label from creating a business entity.
+    """
+    event_types = fields.get("event_type", set())
+    agreement_ids = fields.get("agreement_id", set())
+    assets = fields.get("asset_id", set())
+    # A credit or invoice line can mention an event without being that event.
+    # Those intrinsic transaction fields keep the observation in its own kind.
+    if fields.keys() & {"credit_id", "credit_amount", "invoice_line_id", "net_amount",
+                        "unit_rate", "billing_unit", "quantity_basis"}:
+        return None
+    if (len(event_types) == 1 and next(iter(event_types)) in RETURN_RECORD_EVENT_TYPES
+            and len(agreement_ids) == 1 and len(assets) == 1):
+        return "RETURN"
+    return None
+
+
+def rental_scope_record_kind(fields: dict[str, set[object]]) -> str | None:
+    """Recognize one fully anchored rental-scope occurrence from exact fields.
+
+    A document role alone is not enough. The same source occurrence must also
+    carry a unique agreement, asset, hire interval, quantity, and description.
+    This establishes only the structural container; it grants no commercial
+    authority and all underlying observations still require ordinary review.
+    """
+    required = ("document_role", "agreement_id", "asset_id", "start", "end",
+                "quantity", "description")
+    if fields.keys() & {"credit_id", "credit_amount", "invoice_line_id", "net_amount"}:
+        return None
+    if all(len(fields.get(name, set())) == 1 for name in required):
+        if next(iter(fields["document_role"])) == "RENTAL_AGREEMENT":
+            return "RENTAL_SCOPE"
+    return None
 
 # Intrinsic source observations required before source selection/fact review.
 # Charge meaning can instead be established by an explicit package-scope review;
@@ -271,11 +315,15 @@ def unique_pixel_entity_for_required_field(semantic: str, location: str,
     eligible = []
     for entity_id, fields in by_entity.items():
         kinds = fields.get("entity_kind", set())
-        if len(kinds) != 1:
+        inferred_event_kind = event_record_kind(fields) if not kinds else None
+        if len(kinds) > 1:
             continue
-        kind = next(iter(kinds))
+        kind = next(iter(kinds)) if kinds else inferred_event_kind
+        if kind is None:
+            continue
         required = PACKAGE_SOURCE_REQUIRED.get(kind, frozenset()) | PACKAGE_RELATIONAL_FIELDS.get(kind, frozenset())
-        if semantic in required and semantic not in fields:
+        if ((semantic == "entity_kind" and not kinds)
+                or (semantic in required and semantic not in fields)):
             eligible.append(entity_id)
     return eligible[0] if len(eligible) == 1 else None
 

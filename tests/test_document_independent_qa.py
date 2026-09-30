@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import replace
 import json
 
 import pytest
@@ -10,14 +11,17 @@ from againward.documents.codex_provider import assemble_proposal
 from againward.documents.cli import main
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
+from againward.documents.extraction import append_adjudicator_native_observations
 from againward.documents.independent_qa import (_canonical_observations,
     _observation_comparison, compare_extractions, reread_sources)
 from againward.documents.reconciliation import (FACT_RECONCILIATION_VERSION,
     complete_fact_superset, reconcile_complementary_facts)
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
+from againward.evidence.hashing import stable_hash
 from againward.domains.rental.extraction_validation import (package_source_gaps,
     reconstruct_runtime_structure, validate_rental_extraction)
+from againward.domains.rental.entity_contract import unique_pixel_entity_for_required_field
 
 
 def _case(tmp_path, source_text="Invoice I-1 line A net 100; line B net 200."):
@@ -598,6 +602,189 @@ def test_runtime_structure_restores_source_metadata_once_for_multiline_export(tm
     assert len({candidate.entity_id for candidate in source_metadata}) == 1
     assert source_metadata[0].entity_id.startswith("runtime-source-")
     assert source_metadata[0].entity_id not in row_entities
+
+
+def test_adjudication_delta_binds_and_canonicalizes_explicit_offhire_event(tmp_path):
+    text = ("Email evidence E-7 for agreement AG-7 and asset UNIT-11. "
+            "On 2026-03-04 the supplier requested off-hire and collection of one UNIT-11 unit.")
+    root, batch, _, validate = _case(tmp_path, text)
+    unit = read_document(batch.documents[0], root).units[0]
+    location = unit.location
+    event_quote = "On 2026-03-04 the supplier requested off-hire and collection of one UNIT-11 unit."
+    source_quote = "Email evidence E-7 for agreement AG-7 and asset UNIT-11."
+    extraction = validate({"status": "SUCCESS", "limitations": [], "candidates": [
+        {"entity_id": "reader-local-a", "semantic_type": field, "value_type": value_type,
+         "value": value, "raw_observed_value": quote, "location": location,
+         "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+        for field, value_type, value, quote in (
+            ("agreement_id", "IDENTIFIER", "AG-7", source_quote),
+            ("asset_id", "IDENTIFIER", "UNIT-11", source_quote),
+            ("event_type", "ENUM", "OFF_HIRE_REQUESTED", event_quote),
+            ("quantity", "DECIMAL", "1", event_quote),
+            ("status", "ENUM", "DECLARED", event_quote),
+            ("document_role", "ENUM", "EMAIL_EVIDENCE", "Email evidence"),
+            ("document_status", "ENUM", "EXTRACTED", "Email evidence"),
+        )]})
+    def observation(field, value_type, value, quote):
+        start = unit.text.index(quote)
+        return {"candidate_id": "model-local-" + field, "source_id": extraction.source_id,
+                "semantic_type": field, "value_type": value_type, "value": value,
+                "raw_observed_value": quote, "location": location,
+                "unit_sha256": unit.unit_sha256, "source_span": [start, start + len(quote)],
+                "normalization_notes": "Source-supported observation", "ambiguity_flags": [],
+                "confidence": "0.9", "entity_id": "adjudicator-local-label"}
+    observations = [
+        observation("date", "DATE", "2026-03-04", "2026-03-04"),
+        observation("entity_kind", "ENUM", "RENTAL_SCOPE",
+                    "requested off-hire and collection of one UNIT-11 unit"),
+    ]
+    assert unique_pixel_entity_for_required_field("date", location, list(extraction.candidates)) == "reader-local-a"
+    assert unique_pixel_entity_for_required_field("entity_kind", location,
+                                                   list(extraction.candidates)) == "reader-local-a"
+    augmented = append_adjudicator_native_observations(extraction, observations, batch, root,
+        "a" * 64, unique_required_entity=unique_pixel_entity_for_required_field)
+    canonical = reconstruct_runtime_structure(augmented)
+    validate_rental_extraction(canonical, require_package_facts=True)
+
+    event_rows = [row for row in canonical.candidates if row.semantic_type in {
+        "entity_kind", "event_type", "agreement_id", "asset_id", "date", "quantity",
+        "status", "verification"}]
+    assert {row.entity_id for row in event_rows} == {"runtime-entity-" + stable_hash({
+            "source_id": extraction.source_id, "source_sha256": extraction.source_sha256,
+            "anchor": (extraction.source_id, "RETURN", "AG-7", "UNIT-11",
+                       "OFF_HIRE_REQUESTED", "2026-03-04")})[:24]}
+    assert {row.value for row in event_rows if row.semantic_type == "entity_kind"} == {"RETURN"}
+    assert {row.value for row in event_rows if row.semantic_type == "verification"} == {"DECLARED"}
+    assert not any("RENTAL_SCOPE" == row.value and row.semantic_type == "entity_kind"
+                   for row in canonical.candidates)
+    for row in event_rows:
+        assert row.source_id == extraction.source_id
+        assert row.source_span is not None
+    assert reconstruct_runtime_structure(canonical) == canonical
+
+
+def test_event_kind_derivation_refuses_ambiguous_or_non_event_occurrences(tmp_path):
+    text = ("Agreement AG-8 asset UNIT-21 off-hire requested on 2026-04-01; "
+            "agreement AG-8 asset UNIT-22 off-hire requested on 2026-04-02.")
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+    extraction = validate({"status": "SUCCESS", "limitations": [], "candidates": [
+        {"entity_id": group, "semantic_type": field, "value_type": value_type,
+         "value": value, "raw_observed_value": quote, "location": location,
+         "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+        for group, field, value_type, value, quote in (
+            ("event-a", "agreement_id", "IDENTIFIER", "AG-8", "Agreement AG-8"),
+            ("event-a", "asset_id", "IDENTIFIER", "UNIT-21", "asset UNIT-21"),
+            ("event-a", "event_type", "ENUM", "OFF_HIRE_REQUESTED", "UNIT-21 off-hire requested"),
+            ("event-b", "agreement_id", "IDENTIFIER", "AG-8", "Agreement AG-8"),
+            ("event-b", "asset_id", "IDENTIFIER", "UNIT-22", "asset UNIT-22"),
+            ("event-b", "event_type", "ENUM", "OFF_HIRE_REQUESTED", "UNIT-22 off-hire requested"),
+        )]})
+    assert unique_pixel_entity_for_required_field("date", location,
+                                                   list(extraction.candidates)) is None
+    unchanged = reconstruct_runtime_structure(extraction)
+    assert len([row for row in unchanged.candidates if row.semantic_type == "entity_kind"]) == 2
+    assert unique_pixel_entity_for_required_field("date", location,
+                                                   list(unchanged.candidates)) is None
+
+    unrelated = deepcopy(extraction)
+    candidates = list(unrelated.candidates)
+    candidates = [replace(row, value="INVOICED") if row.entity_id == "event-a"
+                  and row.semantic_type == "event_type" else row for row in candidates]
+    unrelated = replace(unrelated, candidates=tuple(candidates))
+    normalized = reconstruct_runtime_structure(unrelated)
+    kinds_by_group = {row.entity_id: row.value for row in normalized.candidates
+                      if row.semantic_type == "entity_kind"}
+    assert kinds_by_group == {"event-b": "RETURN"}
+
+
+def test_transaction_reference_to_event_does_not_become_return_entity(tmp_path):
+    text = ("Credit CN-4 for agreement AG-10 and asset UNIT-41 references an off-hire "
+            "request and collection; the credit is issued for 25 EUR.")
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+    quote = "Credit CN-4 for agreement AG-10 and asset UNIT-41 references an off-hire request"
+    extraction = validate({"status": "SUCCESS", "limitations": [], "candidates": [
+        {"entity_id": "credit-record", "semantic_type": field, "value_type": value_type,
+         "value": value, "raw_observed_value": observed, "location": location,
+         "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+        for field, value_type, value, observed in (
+            ("credit_id", "IDENTIFIER", "CN-4", "CN-4"),
+            ("agreement_id", "IDENTIFIER", "AG-10", "AG-10"),
+            ("asset_id", "IDENTIFIER", "UNIT-41", "UNIT-41"),
+            ("event_type", "ENUM", "OFF_HIRE_REQUESTED", quote),
+        )]})
+    reconstructed = reconstruct_runtime_structure(extraction)
+    assert not any(row.semantic_type == "entity_kind" for row in reconstructed.candidates)
+
+
+def test_unique_rental_agreement_scope_gets_runtime_container_but_not_authority(tmp_path):
+    text = ("RENTAL AGREEMENT for AG-8. Supplier: SUP-8. Customer: SITE-8. "
+            "Asset: UNIT-28. Description: electric platform. Quantity: 2. "
+            "Hire starts 2026-04-01 and ends 2026-04-08.")
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+    rows = [
+        ("document_role", "ENUM", "RENTAL_AGREEMENT", "RENTAL AGREEMENT"),
+        ("agreement_id", "IDENTIFIER", "AG-8", "AG-8"),
+        ("asset_id", "IDENTIFIER", "UNIT-28", "UNIT-28"),
+        ("description", "TEXT", "electric platform", "electric platform"),
+        ("quantity", "DECIMAL", "2", "Quantity: 2"),
+        ("start", "DATE", "2026-04-01", "2026-04-01"),
+        ("end", "DATE", "2026-04-08", "2026-04-08"),
+        ("document_status", "ENUM", "ACCEPTED", "RENTAL AGREEMENT"),
+    ]
+    extraction = validate({"status": "SUCCESS", "limitations": [], "candidates": [
+        {"entity_id": "local-document-bucket", "semantic_type": field,
+         "value_type": value_type, "value": value, "raw_observed_value": quote,
+         "location": location, "normalization_notes": "Exact source observation",
+         "ambiguity_flags": []}
+        for field, value_type, value, quote in rows]})
+    reconstructed = reconstruct_runtime_structure(extraction)
+    kind_rows = [row for row in reconstructed.candidates if row.semantic_type == "entity_kind"]
+    assert len(kind_rows) == 1
+    assert kind_rows[0].value == "RENTAL_SCOPE"
+    assert kind_rows[0].source_id == extraction.source_id
+    assert kind_rows[0].source_span is not None
+    assert "ADJUDICATOR" not in " ".join(kind_rows[0].ambiguity_flags)
+    assert not any(row.semantic_type in {"governing_agreement", "commercial_authority"}
+                   for row in reconstructed.candidates)
+    relabeled = replace(extraction, candidates=tuple(
+        replace(row, entity_id="different-reader-label") for row in extraction.candidates))
+    relabeled_kind = [row for row in reconstruct_runtime_structure(relabeled).candidates
+                      if row.semantic_type == "entity_kind"]
+    assert [row.candidate_id for row in relabeled_kind] == [row.candidate_id for row in kind_rows]
+
+
+@pytest.mark.parametrize("change", ["role", "missing_end", "multiple_assets"])
+def test_rental_scope_container_is_not_inferred_from_weak_or_ambiguous_evidence(tmp_path, change):
+    text = ("RENTAL AGREEMENT for AG-9, asset UNIT-31, description lift, quantity 1, "
+            "starts 2026-05-01, ends 2026-05-04; asset UNIT-32.")
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+    rows = [
+        ("document_role", "ENUM", "RENTAL_AGREEMENT", "RENTAL AGREEMENT"),
+        ("agreement_id", "IDENTIFIER", "AG-9", "AG-9"),
+        ("asset_id", "IDENTIFIER", "UNIT-31", "UNIT-31"),
+        ("description", "TEXT", "lift", "description lift"),
+        ("quantity", "DECIMAL", "1", "quantity 1"),
+        ("start", "DATE", "2026-05-01", "2026-05-01"),
+        ("end", "DATE", "2026-05-04", "2026-05-04"),
+    ]
+    if change == "role":
+        rows[0] = ("document_role", "ENUM", "EMAIL_EVIDENCE", "RENTAL AGREEMENT")
+    elif change == "missing_end":
+        rows = [row for row in rows if row[0] != "end"]
+    else:
+        rows.append(("asset_id", "IDENTIFIER", "UNIT-32", "UNIT-32"))
+    extraction = validate({"status": "SUCCESS", "limitations": [], "candidates": [
+        {"entity_id": "local-document-bucket", "semantic_type": field,
+         "value_type": value_type, "value": value, "raw_observed_value": quote,
+         "location": location, "normalization_notes": "Exact source observation",
+         "ambiguity_flags": []}
+        for field, value_type, value, quote in rows]})
+    reconstructed = reconstruct_runtime_structure(extraction)
+    assert not any(row.semantic_type == "entity_kind" for row in reconstructed.candidates)
 
 
 def test_fact_union_is_checked_as_a_whole_not_as_two_individually_complete_reads(tmp_path):
