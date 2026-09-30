@@ -82,7 +82,11 @@ def _build_assembly(primary: DocumentExtraction, challenger: DocumentExtraction,
         result = append_adjudicator_visual_observations(result, pixel_observations, batch, root, receipt_hash)
     if native_observations:
         result = append_adjudicator_native_observations(result, native_observations, batch, root, receipt_hash)
-    return result
+    # A fact union can place facts for one proven occurrence in separate
+    # runtime groups when one reader omitted its entity_kind. Rebuild those
+    # groups from explicit same-source anchors before the fresh QA/replay.
+    from againward.domains.rental.extraction_validation import reconstruct_runtime_structure
+    return reconstruct_runtime_structure(result)
 
 
 def assemble_observations(primary: DocumentExtraction, challenger: DocumentExtraction,
@@ -154,14 +158,19 @@ def reconcile_complementary_facts(primary: DocumentExtraction, challenger: Docum
             or primary.limitations or challenger.limitations):
         return None
     from .independent_qa import _canonical_observations
+    from againward.domains.rental.extraction_validation import occurrence_kind_overrides
 
     primary_hash = primary.to_dict()["extraction_sha256"]
     challenger_hash = challenger.to_dict()["extraction_sha256"]
     if primary_hash == challenger_hash:
         return None
     extraction_hashes = {primary_hash: primary, challenger_hash: challenger}
-    observations = {extraction_hash: _canonical_observations(extraction)
-                    for extraction_hash, extraction in extraction_hashes.items()}
+    observations = {
+        primary_hash: _canonical_observations(primary,
+            entity_kind_overrides=occurrence_kind_overrides(primary, (challenger,))),
+        challenger_hash: _canonical_observations(challenger,
+            entity_kind_overrides=occurrence_kind_overrides(challenger, (primary,))),
+    }
     value_sets: dict[tuple[str, str, str], set[str]] = {}
     for extraction_hash, extraction in extraction_hashes.items():
         rows = observations[extraction_hash]

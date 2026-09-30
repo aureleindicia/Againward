@@ -2,13 +2,269 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from dataclasses import replace
+from typing import Iterable
 
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import DocumentExtraction, contradictory_source_limitations
+from againward.evidence.hashing import stable_hash
 
 from .entity_contract import (COMPLETENESS_TRIGGER_FIELDS, ENTITY_KINDS,
     DOCUMENT_ROLES, DOCUMENT_STATUSES, PACKAGE_SOURCE_REQUIRED,
     CREDIT_REFERENCE_FIELDS, is_non_entity_observation)
+
+
+# Ownership boundary: source/hash/location/span are runtime-bound; entity_id is
+# a runtime occurrence identity once its source-local anchor is established.
+# model_entity_hint is retained only for trace/debug. entity_kind is structural
+# classification supported by a source observation. document_role is source
+# structure; document_status is source-bound but may carry commercial meaning,
+# so it is preserved only as the exact reviewed/read value and conflicts remain
+# conflicts. Invoice/asset/agreement identifiers, charge type and rate terms
+# remain source-supported semantics; Python may bind but never invent them.
+SOURCE_STRUCTURAL_FIELDS = frozenset({"document_role", "document_status"})
+OCCURRENCE_ANCHOR_FIELDS = {
+    "INVOICE_LINE": ("invoice_id", "invoice_line_id"),
+    "CREDIT": ("credit_id",),
+    "RENTAL_SCOPE": ("agreement_id", "asset_id"),
+    "RETURN": ("agreement_id", "asset_id", "event_type", "date"),
+    "RATE_AMENDMENT": ("agreement_id", "asset_id", "effective_from"),
+}
+
+
+def _group_values(candidates) -> dict[str, set[object]]:
+    fields: dict[str, set[object]] = defaultdict(set)
+    for candidate in candidates:
+        fields[candidate.semantic_type].add(candidate.value)
+    return fields
+
+
+def _identity_fields(extraction: DocumentExtraction, candidates) -> dict[str, set[object]]:
+    fields = _group_values(candidates)
+    # A source with exactly one printed invoice ID can bind a split row fragment
+    # that omitted the repeated envelope field. This is identity context only;
+    # no invoice_id candidate is created or moved by this helper.
+    invoice_ids = {candidate.value for candidate in extraction.candidates
+                   if candidate.semantic_type == "invoice_id" and candidate.value is not None}
+    if (len(invoice_ids) == 1 and len(fields.get("invoice_line_id", set())) == 1
+            and not fields.get("invoice_id")):
+        fields["invoice_id"] = invoice_ids
+    return fields
+
+
+def _occurrence_anchor(source_id: str, fields: dict[str, set[object]],
+                       kind: str | None) -> tuple[str, ...] | None:
+    """Return only explicit source-local identities, never model group labels."""
+    kinds = fields.get("entity_kind", set())
+    if kind is None and len(kinds) == 1:
+        value = next(iter(kinds))
+        kind = value if isinstance(value, str) else None
+    if kind is not None:
+        required = OCCURRENCE_ANCHOR_FIELDS.get(kind)
+        if required is not None and all(len(fields.get(field, set())) == 1
+                                        for field in required):
+            return (source_id, kind, *(str(next(iter(fields[field]))) for field in required))
+        return None
+    # An invoice line can be aligned across readers by its printed line ID.
+    # This is only a provisional match key: it never supplies entity_kind.
+    if len(fields.get("invoice_line_id", set())) == 1:
+        invoice_ids = fields.get("invoice_id", set())
+        invoice_id = next(iter(invoice_ids)) if len(invoice_ids) == 1 else ""
+        return (source_id, "INVOICE_LINE", str(invoice_id),
+                str(next(iter(fields["invoice_line_id"]))))
+    # Credit IDs identify the occurrence; invoice/asset values on a credit are
+    # references and deliberately do not participate in its identity.
+    if len(fields.get("credit_id", set())) == 1:
+        return (source_id, "CREDIT", str(next(iter(fields["credit_id"]))))
+    return None
+
+
+def occurrence_kind_overrides(extraction: DocumentExtraction,
+                              supporting: Iterable[DocumentExtraction] = ()) -> dict[str, str]:
+    """Resolve only missing group kinds supported by an exact peer anchor."""
+    peers = tuple(item for item in supporting
+                  if item.source_id == extraction.source_id
+                  and item.source_sha256 == extraction.source_sha256)
+    groups_by_extraction: list[tuple[DocumentExtraction, dict[str, list]]] = []
+    for item in (extraction, *peers):
+        grouped: dict[str, list] = defaultdict(list)
+        for candidate in item.candidates:
+            grouped[candidate.entity_id].append(candidate)
+        groups_by_extraction.append((item, grouped))
+    anchored_kinds: dict[tuple[str, ...], set[str]] = defaultdict(set)
+    for item, groups in groups_by_extraction:
+        for rows in groups.values():
+            fields = _identity_fields(item, rows)
+            kinds = fields.get("entity_kind", set())
+            if len(kinds) != 1:
+                continue
+            kind = next(iter(kinds))
+            if isinstance(kind, str):
+                anchor = _occurrence_anchor(item.source_id, fields, kind)
+                if anchor is not None:
+                    anchored_kinds[anchor].add(kind)
+    overrides: dict[str, str] = {}
+    own_groups = groups_by_extraction[0][1]
+    for entity_id, rows in own_groups.items():
+        fields = _identity_fields(extraction, rows)
+        if fields.get("entity_kind"):
+            continue
+        anchor = _occurrence_anchor(extraction.source_id, fields, None)
+        kinds = anchored_kinds.get(anchor, set()) if anchor is not None else set()
+        if len(kinds) == 1:
+            overrides[entity_id] = next(iter(kinds))
+    return overrides
+
+
+def reconstruct_runtime_structure(extraction: DocumentExtraction,
+                                  supporting: Iterable[DocumentExtraction] = ()) -> DocumentExtraction:
+    """Rebuild source/occurrence structure from current, same-source evidence.
+
+    Structural metadata is copied only from exact-hash sibling reads and only
+    when the selected extraction lacks it and the sibling evidence is unique.
+    Candidate values, citations, spans, hashes and review flags are preserved.
+    Model group labels are never identity evidence; explicit source-local anchors
+    determine the runtime occurrence ID. Missing or conflicting anchors remain
+    untouched for the ordinary fail-closed validator.
+    """
+    peers = tuple(item for item in supporting
+                  if item.source_id == extraction.source_id
+                  and item.source_sha256 == extraction.source_sha256)
+    grouped: dict[str, list] = defaultdict(list)
+    for candidate in extraction.candidates:
+        grouped[candidate.entity_id].append(candidate)
+    peer_groups = []
+    for peer in (extraction, *peers):
+        by_entity: dict[str, list] = defaultdict(list)
+        for candidate in peer.candidates:
+            by_entity[candidate.entity_id].append(candidate)
+        peer_groups.extend((peer, _identity_fields(peer, rows), rows) for rows in by_entity.values())
+
+    # Map unambiguous sibling occurrence anchors to source-supported kinds.
+    peer_kinds: dict[tuple[str, ...], set[str]] = defaultdict(set)
+    peer_kind_candidates: dict[tuple[str, ...], list] = defaultdict(list)
+    for _, fields, rows in peer_groups:
+        kinds = fields.get("entity_kind", set())
+        if len(kinds) != 1:
+            continue
+        kind = next(iter(kinds))
+        if not isinstance(kind, str):
+            continue
+        anchor = _occurrence_anchor(extraction.source_id, fields, kind)
+        if anchor is not None:
+            peer_kinds[anchor].add(kind)
+            peer_kind_candidates[anchor].extend(
+                candidate for candidate in rows if candidate.semantic_type == "entity_kind")
+
+    resolved_kind_by_group: dict[str, str] = {}
+    anchor_by_group: dict[str, tuple[str, ...]] = {}
+    for entity_id, rows in grouped.items():
+        fields = _identity_fields(extraction, rows)
+        kinds = fields.get("entity_kind", set())
+        if len(kinds) > 1:
+            # Leave it visible to the established contradiction validator.
+            continue
+        kind = next(iter(kinds)) if kinds else None
+        anchor = _occurrence_anchor(extraction.source_id, fields,
+                                    kind if isinstance(kind, str) else None)
+        if kind is None:
+            provisional = anchor or _occurrence_anchor(extraction.source_id, fields, None)
+            if provisional is not None and len(peer_kinds.get(provisional, set())) == 1:
+                kind = next(iter(peer_kinds[provisional]))
+                anchor = provisional
+                resolved_kind_by_group[entity_id] = kind
+        if anchor is not None:
+            anchor_by_group[entity_id] = anchor
+            if isinstance(kind, str):
+                resolved_kind_by_group[entity_id] = kind
+
+    # Conflicting explicit kinds for one selected occurrence are not resolved
+    # by source order or sibling preference.
+    kinds_by_anchor: dict[tuple[str, ...], set[str]] = defaultdict(set)
+    for entity_id, anchor in anchor_by_group.items():
+        kind = resolved_kind_by_group.get(entity_id)
+        if kind is not None:
+            kinds_by_anchor[anchor].add(kind)
+    conflicting = [anchor for anchor, kinds in kinds_by_anchor.items() if len(kinds) > 1]
+    if conflicting:
+        raise DocumentError("EXTRACTION_CONTRADICTION",
+            "Structural entity kinds conflict for one source-anchored occurrence",
+            diagnostic={"error_category": "SEMANTIC_CONTRADICTION",
+                        "schema_path": "$.candidates[].entity_kind",
+                        "validation_code": "STRUCTURAL_METADATA_CONFLICT",
+                        "source_id": extraction.source_id,
+                        "conflicting_field_count": len(conflicting)})
+
+    runtime_ids = {anchor: "runtime-entity-" + stable_hash({
+        "source_id": extraction.source_id, "source_sha256": extraction.source_sha256,
+        "anchor": anchor})[:24] for anchor in kinds_by_anchor}
+    candidates = []
+    for candidate in extraction.candidates:
+        if candidate.semantic_type in SOURCE_STRUCTURAL_FIELDS:
+            runtime_id = "runtime-source-" + stable_hash({
+                "source_id": extraction.source_id,
+                "source_sha256": extraction.source_sha256})[:24]
+            candidates.append(replace(candidate, entity_id=runtime_id))
+            continue
+        anchor = anchor_by_group.get(candidate.entity_id)
+        runtime_id = runtime_ids.get(anchor) if anchor is not None else None
+        candidates.append(replace(candidate, entity_id=runtime_id) if runtime_id else candidate)
+
+    present_source_fields = {candidate.semantic_type for candidate in candidates
+                             if candidate.semantic_type in SOURCE_STRUCTURAL_FIELDS}
+    for field in sorted(SOURCE_STRUCTURAL_FIELDS - present_source_fields):
+        values = {candidate.value for peer in peers for candidate in peer.candidates
+                  if candidate.semantic_type == field}
+        if len(values) != 1:
+            continue
+        templates = sorted((candidate for peer in peers for candidate in peer.candidates
+                            if candidate.semantic_type == field and candidate.value in values),
+                           key=lambda item: (item.location, str(item.source_span or ()),
+                                             item.raw_observed_value, str(item.value), item.candidate_id))
+        if not templates:
+            continue
+        template = templates[0]
+        candidates.append(replace(template,
+            candidate_id="runtime-metadata-" + stable_hash({
+                "source_id": extraction.source_id, "source_sha256": extraction.source_sha256,
+                "field": field, "value": next(iter(values)), "location": template.location,
+                "unit_sha256": template.unit_sha256, "source_span": template.source_span,
+                "raw_observed_value": template.raw_observed_value})[:24],
+            entity_id="runtime-source-" + stable_hash({
+                "source_id": extraction.source_id,
+                "source_sha256": extraction.source_sha256})[:24]))
+
+    # If a selected occurrence lacks its kind, carry the unique exact-source
+    # sibling observation only when its printed anchor identifies that one
+    # occurrence. No kind is inferred from an amount, filename or row label.
+    present_kind_anchors = {
+        anchor_by_group[entity_id] for entity_id, rows in grouped.items()
+        if anchor_by_group.get(entity_id) is not None
+        and len(_group_values(rows).get("entity_kind", set())) == 1
+    }
+    for entity_id, kind in resolved_kind_by_group.items():
+        anchor = anchor_by_group.get(entity_id)
+        if anchor is None or anchor not in runtime_ids or anchor in present_kind_anchors:
+            continue
+        options = peer_kind_candidates.get(anchor, [])
+        peer_values = peer_kinds.get(anchor, set())
+        if peer_values != {kind} or not options:
+            continue
+        template = sorted(options, key=lambda item: (item.location, str(item.source_span or ()),
+                                                     item.raw_observed_value, str(item.value),
+                                                     item.candidate_id))[0]
+        candidates.append(replace(template,
+            candidate_id="runtime-kind-" + stable_hash({
+                "source_id": extraction.source_id, "source_sha256": extraction.source_sha256,
+                "anchor": anchor, "kind": kind, "location": template.location,
+                "unit_sha256": template.unit_sha256, "source_span": template.source_span,
+                "raw_observed_value": template.raw_observed_value})[:24],
+            entity_id=runtime_ids[anchor]))
+        present_kind_anchors.add(anchor)
+
+    if tuple(candidates) == extraction.candidates:
+        return extraction
+    return replace(extraction, candidates=tuple(candidates))
 
 
 def validate_rental_extraction(extraction: DocumentExtraction, *,

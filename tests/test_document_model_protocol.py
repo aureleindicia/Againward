@@ -510,7 +510,12 @@ def test_new_pixel_facts_in_assembly_have_lineage_but_no_attestation(tmp_path):
     assert result['facts_approved'] == 0
     assert all(c.source_span is None and 'VISUAL_TRANSCRIPTION_UNVERIFIED' in c.ambiguity_flags
                for c in assembled.candidates)
-    assert all(c.entity_id == 'joined' for c in assembled.candidates)
+    source_metadata = [c for c in assembled.candidates
+                       if c.semantic_type in {'document_role', 'document_status'}]
+    entity_observations = [c for c in assembled.candidates
+                           if c.semantic_type not in {'document_role', 'document_status'}]
+    assert source_metadata and all(c.entity_id.startswith('runtime-source-') for c in source_metadata)
+    assert all(c.entity_id == 'joined' for c in entity_observations)
     with pytest.raises(DocumentError):
         promote_facts((assembled,), {}, batch, root)
 

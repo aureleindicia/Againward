@@ -27,7 +27,8 @@ from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources, safe_file, verify_batch
 from againward.documents.visual_fact_review import MODEL_VISUAL_VERSION, record_model_visual_review, verify_visual_attestations
 from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
-from againward.domains.rental.extraction_validation import package_source_gaps, validate_rental_extraction, proposal_issues
+from againward.domains.rental.extraction_validation import (package_source_gaps,
+    reconstruct_runtime_structure, validate_rental_extraction, proposal_issues)
 from againward.domains.rental.entity_contract import (ANALYTICAL_FIELDS,
     CREDIT_REFERENCE_FIELDS, NON_ENTITY_OBSERVATION_FIELDS,
     unique_pixel_entity_for_required_field)
@@ -580,6 +581,10 @@ def _run_approved_sources_job(workspace: str | Path, *, model: str,
                     revised = append_adjudicator_native_observations(revised, decision["native_observations"],
                         batch, documents, adjudication["adjudication_sha256"],
                         unique_required_entity=unique_pixel_entity_for_required_field)
+                revised = reconstruct_runtime_structure(revised,
+                    (item for item in (*primary, *challenger)
+                     if item.source_id == source_id
+                     and item.to_dict()["extraction_sha256"] != adjudication["selected_extractions"][source_id]))
                 stored = persist_extraction(revised, documents)
                 augmented = revised.to_dict()["extraction_sha256"]
                 base_sha = base.to_dict()["extraction_sha256"]

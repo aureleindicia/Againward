@@ -15,7 +15,8 @@ from againward.documents.independent_qa import (_canonical_observations,
 from againward.documents.reconciliation import FACT_RECONCILIATION_VERSION, reconcile_complementary_facts
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
-from againward.domains.rental.extraction_validation import package_source_gaps
+from againward.domains.rental.extraction_validation import (package_source_gaps,
+    reconstruct_runtime_structure, validate_rental_extraction)
 
 
 def _case(tmp_path, source_text="Invoice I-1 line A net 100; line B net 200."):
@@ -220,6 +221,255 @@ def test_fact_reconciliation_unions_anchored_complements_and_binds_both_reads(tm
     receipt = json.loads((root / "assemblies" / f"{merged.assembly_receipt_sha256}.json").read_text())
     assert {receipt["primary"]["extraction_sha256"], receipt["challenger"]["extraction_sha256"]} == {
         primary.to_dict()["extraction_sha256"], challenger.to_dict()["extraction_sha256"]}
+
+
+def test_fact_union_preserves_kind_across_a_partial_reader_and_replays_canonically(tmp_path):
+    from againward.documents.extraction import replay_extraction
+
+    text = ("Invoice I-9 line A rental charge 100 EUR, dated 2026-09-01. "
+            "Document status ISSUED.")
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+
+    def read(label, *, with_kind, with_date=False):
+        rows = [
+            ("document_role", "ENUM", "INVOICE", "Invoice"),
+            ("document_status", "ENUM", "ISSUED", "ISSUED"),
+            ("invoice_id", "IDENTIFIER", "I-9", "I-9"),
+            ("invoice_line_id", "IDENTIFIER", "A", "line A"),
+            ("charge_type", "ENUM", "RENTAL", "rental charge"),
+            ("net_amount", "DECIMAL", "100", "100"),
+            ("currency", "CURRENCY", "EUR", "EUR"),
+        ]
+        if with_kind:
+            rows.append(("entity_kind", "ENUM", "INVOICE_LINE", "line A"))
+        if with_date:
+            rows.append(("date", "DATE", "2026-09-01", "2026-09-01"))
+        return validate({"status": "SUCCESS", "limitations": [], "candidates": [
+            {"entity_id": label, "semantic_type": field, "value_type": value_type,
+             "value": value, "raw_observed_value": quote, "location": location,
+             "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+            for field, value_type, value, quote in rows]})
+
+    primary = read("first-read-label", with_kind=False)
+    challenger = read("reread-label", with_kind=True, with_date=True)
+    merged = reconcile_complementary_facts(primary, challenger, batch, root)
+    assert merged is not None
+    validate_rental_extraction(merged)
+    line_fields = {"entity_kind", "invoice_id", "invoice_line_id", "charge_type",
+                   "net_amount", "currency", "date"}
+    line_candidates = [candidate for candidate in merged.candidates
+                       if candidate.semantic_type in line_fields]
+    assert {candidate.semantic_type for candidate in line_candidates} == line_fields
+    assert len({candidate.entity_id for candidate in line_candidates}) == 1
+    assert all(candidate.source_id == batch.documents[0].source_id
+               and candidate.source_span is not None for candidate in line_candidates)
+    replayed = replay_extraction(merged.to_dict(), batch, root)
+    validate_rental_extraction(replayed)
+    assert reconstruct_runtime_structure(replayed) == replayed
+    assert [(c.semantic_type, c.value, c.entity_id)
+            for c in replayed.candidates] == [
+                (c.semantic_type, c.value, c.entity_id)
+                for c in merged.candidates]
+    receipt = json.loads((root / "assemblies" / f"{merged.assembly_receipt_sha256}.json").read_text())
+    source_labels = {candidate["entity_id"] for parent in (receipt["primary"], receipt["challenger"])
+                     for candidate in parent["candidates"]}
+    assert {"first-read-label", "reread-label"} <= source_labels
+
+
+def test_adjudication_delta_restores_only_unique_same_source_structure(tmp_path):
+    text = "Invoice I-7 line C equipment charge 55 EUR. Status ISSUED."
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+
+    def read(label, fields):
+        return validate({"status": "SUCCESS", "limitations": [], "candidates": [
+            {"entity_id": label, "semantic_type": field, "value_type": value_type,
+             "value": value, "raw_observed_value": quote, "location": location,
+             "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+            for field, value_type, value, quote in fields]})
+
+    selected = read("selected-local-group", [
+        ("invoice_id", "IDENTIFIER", "I-7", "I-7"),
+        ("invoice_line_id", "IDENTIFIER", "C", "line C"),
+        ("net_amount", "DECIMAL", "55", "55"),
+    ])
+    sibling = read("sibling-local-group", [
+        ("entity_kind", "ENUM", "INVOICE_LINE", "line C"),
+        ("document_role", "ENUM", "INVOICE", "Invoice"),
+        ("document_status", "ENUM", "ISSUED", "ISSUED"),
+        ("invoice_id", "IDENTIFIER", "I-7", "I-7"),
+        ("invoice_line_id", "IDENTIFIER", "C", "line C"),
+    ])
+    restored = reconstruct_runtime_structure(selected, (sibling,))
+    validate_rental_extraction(restored)
+    by_field = {candidate.semantic_type: candidate for candidate in restored.candidates}
+    assert {field: by_field[field].value for field in (
+        "entity_kind", "document_role", "document_status")} == {
+            "entity_kind": "INVOICE_LINE", "document_role": "INVOICE", "document_status": "ISSUED"}
+    assert by_field["entity_kind"].entity_id == by_field["invoice_line_id"].entity_id
+    assert by_field["entity_kind"].source_id == batch.documents[0].source_id
+    assert by_field["entity_kind"].source_span is not None
+    assert by_field["entity_kind"].entity_id.startswith("runtime-entity-")
+    assert sibling.candidates[0].entity_id == "sibling-local-group"
+    assert by_field["document_role"].entity_id.startswith("runtime-source-")
+    assert by_field["document_status"].entity_id == by_field["document_role"].entity_id
+    assert by_field["document_role"].entity_id != by_field["entity_kind"].entity_id
+    assert reconstruct_runtime_structure(restored, (sibling,)) == restored
+
+    # No explicit occurrence anchor means the sibling kind and source metadata
+    # cannot be attached to an unrelated recovered fact.
+    unanchored = read("no-identity", [("net_amount", "DECIMAL", "55", "55")])
+    untouched = reconstruct_runtime_structure(unanchored, (sibling,))
+    assert not any(candidate.semantic_type == "entity_kind" for candidate in untouched.candidates)
+    with pytest.raises(DocumentError) as excinfo:
+        validate_rental_extraction(untouched)
+    assert excinfo.value.diagnostic["validation_code"] == "ENTITY_METADATA_REQUIRED"
+
+
+def test_runtime_structure_never_imports_metadata_from_another_source(tmp_path):
+    from dataclasses import replace
+
+    root, batch, primary, challenger = _anchored_fact_reads(tmp_path)
+    foreign = replace(challenger, source_id="src-foreign")
+    restored = reconstruct_runtime_structure(primary, (foreign,))
+    assert not any(candidate.semantic_type in {"document_role", "document_status"}
+                   for candidate in restored.candidates)
+    stale = replace(challenger, source_sha256="f" * 64)
+    stale_restored = reconstruct_runtime_structure(primary, (stale,))
+    assert not any(candidate.semantic_type in {"document_role", "document_status"}
+                   for candidate in stale_restored.candidates)
+
+
+def test_runtime_structure_binds_kind_to_one_line_without_leaking_to_sibling_line(tmp_path):
+    text = "Invoice I-4 line A net 100; line B net 200. Invoice issued."
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+
+    def read(label, with_kind):
+        rows = [
+            ("A", "invoice_id", "IDENTIFIER", "I-4", "I-4"),
+            ("A", "invoice_line_id", "IDENTIFIER", "A", "line A"),
+            ("A", "net_amount", "DECIMAL", "100", "100"),
+            ("B", "invoice_id", "IDENTIFIER", "I-4", "I-4"),
+            ("B", "invoice_line_id", "IDENTIFIER", "B", "line B"),
+            ("B", "net_amount", "DECIMAL", "200", "200"),
+        ]
+        if with_kind:
+            rows.append(("A", "entity_kind", "ENUM", "INVOICE_LINE", "line A"))
+        return validate({"status": "SUCCESS", "limitations": [], "candidates": [
+            {"entity_id": f"{label}-{line}", "semantic_type": field, "value_type": value_type,
+             "value": value, "raw_observed_value": quote, "location": location,
+             "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+            for line, field, value_type, value, quote in rows]})
+
+    selected = read("selected", False)
+    sibling = read("sibling", True)
+    restored = reconstruct_runtime_structure(selected, (sibling,))
+    kind_candidates = [candidate for candidate in restored.candidates
+                       if candidate.semantic_type == "entity_kind"]
+    assert len(kind_candidates) == 1
+    assert kind_candidates[0].raw_observed_value == "line A"
+    assert kind_candidates[0].entity_id == next(candidate.entity_id for candidate in restored.candidates
+        if candidate.semantic_type == "invoice_line_id" and candidate.value == "A")
+    assert next(candidate.entity_id for candidate in restored.candidates
+        if candidate.semantic_type == "invoice_line_id" and candidate.value == "B") != kind_candidates[0].entity_id
+    with pytest.raises(DocumentError) as excinfo:
+        validate_rental_extraction(restored)
+    assert excinfo.value.diagnostic["validation_code"] == "ENTITY_METADATA_REQUIRED"
+
+
+def test_runtime_structure_does_not_infer_source_role_or_status_from_filename(tmp_path):
+    text = "A record I-5 with line A and amount 100."
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+    selected = validate({"status": "SUCCESS", "limitations": [], "candidates": [
+        {"entity_id": "local-line", "semantic_type": field, "value_type": value_type,
+         "value": value, "raw_observed_value": quote, "location": location,
+         "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+        for field, value_type, value, quote in (
+            ("entity_kind", "ENUM", "INVOICE_LINE", "line A"),
+            ("invoice_id", "IDENTIFIER", "I-5", "I-5"),
+            ("invoice_line_id", "IDENTIFIER", "A", "line A"),
+            ("net_amount", "DECIMAL", "100", "100"),
+        )]})
+    reconstructed = reconstruct_runtime_structure(selected)
+    assert not any(candidate.semantic_type in {"document_role", "document_status"}
+                   for candidate in reconstructed.candidates)
+    with pytest.raises(DocumentError) as excinfo:
+        validate_rental_extraction(reconstructed)
+    assert excinfo.value.diagnostic["validation_code"] == "ENTITY_METADATA_REQUIRED"
+
+
+def test_runtime_structure_keeps_document_status_conflict_fail_closed(tmp_path):
+    text = "Invoice I-8 line A status ISSUED or PROPOSED, net 100."
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+    extraction = validate({"status": "SUCCESS", "limitations": [], "candidates": [
+        {"entity_id": "local-group", "semantic_type": field, "value_type": value_type,
+         "value": value, "raw_observed_value": quote, "location": location,
+         "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+        for field, value_type, value, quote in (
+            ("entity_kind", "ENUM", "INVOICE_LINE", "line A"),
+            ("document_role", "ENUM", "INVOICE", "Invoice"),
+            ("document_status", "ENUM", "ISSUED", "ISSUED"),
+            ("document_status", "ENUM", "PROPOSED", "PROPOSED"),
+            ("invoice_id", "IDENTIFIER", "I-8", "I-8"),
+            ("invoice_line_id", "IDENTIFIER", "A", "line A"),
+            ("net_amount", "DECIMAL", "100", "100"),
+        )]})
+    reconstructed = reconstruct_runtime_structure(extraction)
+    assert {candidate.value for candidate in reconstructed.candidates
+            if candidate.semantic_type == "document_status"} == {"ISSUED", "PROPOSED"}
+    with pytest.raises(DocumentError) as excinfo:
+        validate_rental_extraction(reconstructed)
+    assert excinfo.value.diagnostic["validation_code"] == "STRUCTURAL_METADATA_CONFLICT"
+
+
+def test_runtime_structure_restores_source_metadata_once_for_multiline_export(tmp_path):
+    text = ("Payment export mirror: ref R-1 agreement G-1 asset A-1 net 100; "
+            "ref R-2 agreement G-1 asset A-2 net 200; "
+            "ref R-3 agreement G-2 asset A-3 net 300. Export status EXTRACTED.")
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+
+    def read(label, rows):
+        return validate({"status": "SUCCESS", "limitations": [], "candidates": [
+            {"entity_id": group, "semantic_type": field, "value_type": value_type,
+             "value": value, "raw_observed_value": quote, "location": location,
+             "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+            for group, field, value_type, value, quote in rows]})
+
+    records = []
+    for ref, agreement, asset, amount in (
+        ("R-1", "G-1", "A-1", "100"),
+        ("R-2", "G-1", "A-2", "200"),
+        ("R-3", "G-2", "A-3", "300"),
+    ):
+        records.extend([
+            (ref, "entity_kind", "ENUM", "SUPPORTING_DOCUMENT", "Payment export mirror"),
+            (ref, "source_reference", "IDENTIFIER", ref, ref),
+            (ref, "agreement_id", "IDENTIFIER", agreement, f"ref {ref} agreement {agreement}"),
+            (ref, "asset_id", "IDENTIFIER", asset,
+             f"ref {ref} agreement {agreement} asset {asset}"),
+            (ref, "net_amount", "DECIMAL", amount, amount),
+        ])
+    selected = read("selected", records)
+    envelope = read("envelope", [
+        ("envelope", "document_role", "ENUM", "PAYMENT_EXPORT", "Payment export mirror"),
+        ("envelope", "document_status", "ENUM", "EXTRACTED", "EXTRACTED"),
+    ])
+    restored = reconstruct_runtime_structure(selected, (envelope,))
+    validate_rental_extraction(restored)
+    row_entities = {candidate.entity_id for candidate in restored.candidates
+                    if candidate.semantic_type == "source_reference"}
+    source_metadata = [candidate for candidate in restored.candidates
+                       if candidate.semantic_type in {"document_role", "document_status"}]
+    assert len(row_entities) == 3
+    assert len(source_metadata) == 2
+    assert len({candidate.entity_id for candidate in source_metadata}) == 1
+    assert source_metadata[0].entity_id.startswith("runtime-source-")
+    assert source_metadata[0].entity_id not in row_entities
 
 
 def test_fact_union_is_checked_as_a_whole_not_as_two_individually_complete_reads(tmp_path):

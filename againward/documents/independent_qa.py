@@ -61,7 +61,8 @@ _NUMERIC_MATERIAL_FIELDS = {"quantity", "minimum_days", "rate", "discount_fracti
 _SOURCE_METADATA_FIELDS = {"document_role", "document_status", "supplier_id", "invoice_id"}
 
 
-def _canonical_observations(extraction: DocumentExtraction) -> list[dict[str, Any]]:
+def _canonical_observations(extraction: DocumentExtraction, *,
+                            entity_kind_overrides: dict[str, str] | None = None) -> list[dict[str, Any]]:
     """Derive a source-bound QA view without treating model labels as identity.
 
     Candidate IDs, entity labels, ordering, and the location of document-envelope
@@ -82,6 +83,8 @@ def _canonical_observations(extraction: DocumentExtraction) -> list[dict[str, An
             if candidate.value is not None:
                 values_by_field.setdefault(candidate.semantic_type, set()).add(str(candidate.value))
         kind = fields.get("entity_kind")
+        if kind is None and entity_kind_overrides is not None:
+            kind = entity_kind_overrides.get(entity_id)
         kind_by_group[entity_id] = kind if isinstance(kind, str) else None
         if "invoice_line_id" in fields:
             anchor_field = "invoice_line_id"
@@ -284,7 +287,11 @@ def compare_extractions(batch: SourceBatch, primary: tuple[DocumentExtraction, .
     for document in batch.documents:
         p, q = first[document.source_id], second[document.source_id]
         p_records, q_records = _entity_records(p), _entity_records(q)
-        p_observations, q_observations = _canonical_observations(p), _canonical_observations(q)
+        from againward.domains.rental.extraction_validation import occurrence_kind_overrides
+        p_observations = _canonical_observations(p,
+            entity_kind_overrides=occurrence_kind_overrides(p, (q,)))
+        q_observations = _canonical_observations(q,
+            entity_kind_overrides=occurrence_kind_overrides(q, (p,)))
         observation_comparison = _observation_comparison(p_observations, q_observations)
         fact_union_verified = (_verified_fact_union(p, q, root)
                                or _verified_fact_union(q, p, root))

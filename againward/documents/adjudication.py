@@ -969,6 +969,11 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
                                 augmented = append_adjudicator_native_observations(augmented,
                                     decision["native_observations"], batch, root, result["adjudication_sha256"],
                                     unique_required_entity=unique_required_entity)
+                            from againward.domains.rental.extraction_validation import reconstruct_runtime_structure
+                            augmented = reconstruct_runtime_structure(augmented,
+                                (item for item in (*primary, *challenger)
+                                 if item.source_id == decision["source_id"]
+                                 and item.to_dict()["extraction_sha256"] != selected_hash))
                             validate_pixel_observations(augmented)
                 return result
             except DocumentError as exc:
