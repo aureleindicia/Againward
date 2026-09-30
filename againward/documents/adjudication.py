@@ -316,6 +316,51 @@ def _contradictory_limitations(extraction: DocumentExtraction) -> list[dict[str,
     return contradictory_source_limitations(extraction)
 
 
+def _recover_native_observations(rows: list[Any], document: Any, parsed: Any,
+                                 batch_id: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Keep only optional native recoveries that bind to exact source text.
+
+    A bad recovery candidate must not invalidate an otherwise valid source
+    decision. It is quarantined with content-safe metadata; selected proposal
+    facts and their exact citation checks remain subject to the normal gates.
+    """
+    from .extraction import _candidate
+
+    valid_rows: list[dict[str, Any]] = []
+    rejected: list[dict[str, Any]] = []
+    units = {unit.location: unit for unit in parsed.units}
+    for index, row in enumerate(rows, 1):
+        try:
+            if not isinstance(row, dict):
+                raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Native recovery candidate must be an object")
+            assembled = assemble_proposal(
+                {"status": "NEEDS_REVIEW", "limitations": [], "candidates": [row]},
+                document, parsed, batch_id, "adjudicator")
+            _candidate(assembled["candidates"][0], document.source_id, units)
+        except DocumentError as exc:
+            if exc.code != "SOURCE_LOCATION_INVALID":
+                raise
+            location = row.get("location") if isinstance(row, dict) else None
+            location_unit = units.get(location) if isinstance(location, str) else None
+            rejected.append({
+                "candidate_index": index,
+                "rejection_code": "NATIVE_QUOTE_NOT_EXACT_UNIQUE",
+                "error_category": "CANDIDATE_EVIDENCE_QUARANTINED",
+                "location_bound": location_unit is not None and location_unit.route == "NATIVE",
+            })
+            continue
+        valid_rows.append(row)
+
+    if not valid_rows:
+        return [], rejected
+    recovered = assemble_proposal(
+        {"status": "NEEDS_REVIEW", "limitations": [], "candidates": valid_rows},
+        document, parsed, batch_id, "adjudicator")
+    candidates = [_candidate(candidate, document.source_id, units).to_dict()
+                  for candidate in recovered["candidates"]]
+    return candidates, rejected
+
+
 def verify_adjudication_pixels(batch: SourceBatch, receipt: dict[str, Any], root: Path) -> None:
     """Recheck rendered evidence on resume, not only when the receipt was issued."""
     from .visual_fact_review import _render_hash
@@ -392,6 +437,7 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
     extraction_by_hash = {extraction.to_dict()["extraction_sha256"]: extraction
                           for extraction in (*primary, *challenger)}
     decisions: list[dict[str, Any]] = []
+    rejected_native_recoveries: list[dict[str, Any]] = []
     seen: set[str] = set()
     assemblies: dict[str, Any] = {}
     for decision_index, decision in enumerate(raw["decisions"]):
@@ -467,18 +513,18 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
         raw_native = decision.get("native_observations", [])
         if not isinstance(raw_native, list) or len(raw_native) > 100:
             raise DocumentError("RESOURCE_LIMIT", "Bounded native recovery required")
-        bound_native = []
+        bound_native: list[dict[str, Any]] = []
         if raw_native:
             from dataclasses import replace
-            from .extraction import _candidate
             document = next(d for d in batch.documents if d.source_id == source_id)
             parsed_native = read_document(document, root)
             parsed_native = replace(parsed_native, units=tuple(u for u in parsed_native.units if u.route == "NATIVE"))
             if not parsed_native.units:
                 raise DocumentError("SOURCE_LOCATION_INVALID", "Native recovery requires original native text")
-            recovered = assemble_proposal({"status": "NEEDS_REVIEW", "limitations": [], "candidates": raw_native},
-                document, parsed_native, batch.batch_id, "adjudicator")
-            bound_native = [_candidate(c, source_id, units[source_id]).to_dict() for c in recovered["candidates"]]
+            bound_native, rejected_native = _recover_native_observations(
+                raw_native, document, parsed_native, batch.batch_id)
+            rejected_native_recoveries.extend({"source_id": source_id, **row}
+                                               for row in rejected_native)
         if not isinstance(citations, list) or len(citations) > MAX_ADJUDICATION_CITATIONS:
                 raise DocumentError("RESOURCE_LIMIT", "Bounded original-source citations required",
                     diagnostic=_error_diagnostic("CITATION_LIMIT", f"$.decisions[{decision_index}].citations",
@@ -641,6 +687,8 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
               "limitations": ["Proposal selection is not fact approval, financial verification or report QA.",
                               "Same-model adjudication may be wrong despite exact citations.",
                               "Every selected extraction needs independent fact/relationship review and downstream recalculation."]}
+    if rejected_native_recoveries:
+        result["rejected_native_recoveries"] = rejected_native_recoveries
     result["adjudication_sha256"] = stable_hash(result)
     return result
 

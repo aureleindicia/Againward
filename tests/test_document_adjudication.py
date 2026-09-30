@@ -744,6 +744,71 @@ def test_native_citation_binds_runtime_identity_without_model_preview_hash(tmp_p
     assert result["decisions"][0]["citations"][0]["source_span"]
 
 
+def test_adjudication_quarantines_paraphrased_optional_native_recovery(tmp_path, monkeypatch):
+    from againward.documents.adjudication import adjudicate_with_codex
+
+    root, batch, primary, challenger, qa, _raw, email = _case(tmp_path)
+    response = {"selection": "PRIMARY",
+        "rationale": "The exact email source supports the selected source-local proposal.",
+        "citations": [{"location": "line:1",
+                       "quote": "This email is not proof of physical return."}],
+        "candidate_selections": [], "observations": [],
+        "native_observations": [{
+            "entity_id": "email", "semantic_type": "document_status",
+            "value_type": "ENUM", "value": "EXTRACTED",
+            "raw_observed_value": "email documents a request, not an earlier return",
+            "location": "line:1", "normalization_notes": "Source context", "ambiguity_flags": [],
+        }]}
+
+    def fake_codex(command, **kwargs):
+        Path(command[command.index("--output-last-message") + 1]).write_text(json.dumps(response))
+        return SimpleNamespace(returncode=0, stderr="", stdout="")
+
+    monkeypatch.setattr("againward.documents.adjudication.subprocess.run", fake_codex)
+    result = adjudicate_with_codex(batch, primary, challenger, qa, root,
+                                  model="synthetic-model", decision_source_id=email.source_id)
+
+    assert result["status"] == "RESOLVED_FOR_FACT_REVIEW"
+    assert result["facts_approved"] == 0
+    decision = result["decisions"][0]
+    assert decision["native_observations"] == []
+    assert decision["citations"][0]["source_span"]
+    assert result["rejected_native_recoveries"] == [{
+        "source_id": email.source_id,
+        "candidate_index": 1,
+        "rejection_code": "NATIVE_QUOTE_NOT_EXACT_UNIQUE",
+        "error_category": "CANDIDATE_EVIDENCE_QUARANTINED",
+        "location_bound": True,
+    }]
+    serialized = json.dumps(result)
+    assert "email documents a request" not in serialized
+
+
+def test_exact_native_recovery_survives_alongside_quarantined_paraphrase(tmp_path):
+    from againward.documents.adjudication import _recover_native_observations
+
+    root, batch, _primary, _challenger, _qa, _raw, email = _case(tmp_path)
+    document = next(item for item in batch.documents if item.source_id == email.source_id)
+    parsed = read_document(document, root)
+    exact = {"entity_id": "email", "semantic_type": "document_role", "value_type": "ENUM",
+        "value": "EMAIL_EVIDENCE", "raw_observed_value": "We request off-hire.",
+        "location": "line:1", "normalization_notes": "Source classification",
+        "ambiguity_flags": []}
+    paraphrase = {**exact, "semantic_type": "document_status", "value": "EXTRACTED",
+        "raw_observed_value": "The message records an off-hire request."}
+
+    recovered, rejected = _recover_native_observations(
+        [exact, paraphrase], document, parsed, batch.batch_id)
+
+    assert len(recovered) == 1
+    assert recovered[0]["semantic_type"] == "document_role"
+    start, end = recovered[0]["source_span"]
+    assert parsed.units[0].text[start:end] == "We request off-hire."
+    assert rejected == [{"candidate_index": 2,
+        "rejection_code": "NATIVE_QUOTE_NOT_EXACT_UNIQUE",
+        "error_category": "CANDIDATE_EVIDENCE_QUARANTINED", "location_bound": True}]
+
+
 def test_nonassembly_selection_discards_inapplicable_candidate_dispositions(tmp_path):
     from againward.documents.adjudication import bind_model_citations
     root, batch, primary, challenger, qa, raw, _email = _case(tmp_path)

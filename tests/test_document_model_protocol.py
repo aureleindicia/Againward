@@ -346,8 +346,20 @@ def test_native_recovery_can_fill_both_readers_omission_without_approving(tmp_pa
         promote_facts((assembled,), {}, batch, root)
     bad = deepcopy(bound)
     bad['decisions'][0]['native_observations'][0]['raw_observed_value'] = 'nonexistent source statement'
-    with pytest.raises(DocumentError, match='SOURCE_LOCATION_INVALID'):
-        validate_adjudication(batch, (p,), (q,), qa, bad, root)
+    partial = validate_adjudication(batch, (p,), (q,), qa, bad, root,
+                                    required_source_facts=package_source_gaps)
+    assert len(partial['rejected_native_recoveries']) == 1
+    assert partial['rejected_native_recoveries'][0]['rejection_code'] == 'NATIVE_QUOTE_NOT_EXACT_UNIQUE'
+    incomplete = replay_extraction(partial['assembly_proposals'][p.source_id], batch, root)
+    # charge_type is package-relational, so source-local completeness correctly
+    # defers it; the quarantined paraphrase must still create no candidate/fact.
+    assert not any(c.semantic_type == 'charge_type' and c.value == 'RENTAL'
+                   and 'ADJUDICATOR_NATIVE_OBSERVATION' in c.ambiguity_flags
+                   for c in incomplete.candidates)
+    assert package_source_gaps(incomplete) == {}
+    assert partial['facts_approved'] == 0 and not partial['selected_extractions']
+    # Existing package-scope gates separately require reviewed evidence before
+    # canonicalization; this response is still only an unapproved assembly.
 
 
 def test_redundancy_and_candidate_order_do_not_change_material_comparison(tmp_path):
