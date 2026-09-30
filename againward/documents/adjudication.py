@@ -361,6 +361,30 @@ def _recover_native_observations(rows: list[Any], document: Any, parsed: Any,
     return candidates, rejected
 
 
+def _exact_native_quote_span(quote: str, unit_text: str) -> tuple[str, tuple[int, int], bool]:
+    """Bind an exact quote, allowing only deterministic whitespace reflow.
+
+    Models often collapse line wrapping in text extracted from PDFs/EML. Match
+    every non-whitespace character verbatim, require a unique span, and return
+    the original substring so the durable receipt still contains an exact
+    source quote. No token, punctuation, or fuzzy matching is permitted.
+    """
+    import re
+
+    if unit_text.count(quote) == 1:
+        start = unit_text.index(quote)
+        return quote, (start, start + len(quote)), False
+    words = quote.split()
+    if not words:
+        raise DocumentError("SOURCE_LOCATION_INVALID", "Native quote absent or not unique in named unit")
+    pattern = re.compile(r"(?<!\w)" + r"\s+".join(re.escape(word) for word in words) + r"(?!\w)")
+    matches = list(pattern.finditer(unit_text))
+    if len(matches) != 1:
+        raise DocumentError("SOURCE_LOCATION_INVALID", "Native quote absent or not unique in named unit")
+    match = matches[0]
+    return match.group(), match.span(), True
+
+
 def verify_adjudication_pixels(batch: SourceBatch, receipt: dict[str, Any], root: Path) -> None:
     """Recheck rendered evidence on resume, not only when the receipt was issued."""
     from .visual_fact_review import _render_hash
@@ -556,16 +580,22 @@ def validate_adjudication(batch: SourceBatch, primary: tuple[DocumentExtraction,
                         "SOURCE_BINDING", "existing unit location", location,
                         source_id=source_id, decision_index=decision_index))
             if unit.route == "NATIVE":
-                if citation.get("preview_sha256", "") != "" or unit.text.count(quote) != 1:
+                try:
+                    bound_quote, span, whitespace_reflowed = _exact_native_quote_span(quote, unit.text)
+                except DocumentError:
+                    bound_quote, span, whitespace_reflowed = "", (0, 0), False
+                if citation.get("preview_sha256", "") != "" or not bound_quote:
                     raise DocumentError("SOURCE_LOCATION_INVALID", "Native quote absent or nonunique",
                         diagnostic=_error_diagnostic("NATIVE_QUOTE_NOT_EXACT_UNIQUE",
                             f"$.decisions[{decision_index}].citations[{len(verified)}].quote",
-                            "EXACT_SOURCE_SPAN", "one exact unique source substring", quote,
+                            "EXACT_SOURCE_SPAN", "one unique source substring (whitespace reflow only)", quote,
                             source_id=source_id, decision_index=decision_index))
-                start = unit.text.index(quote)
-                verified.append({"source_id": cited_source, "source_sha256": source_hashes[cited_source],
-                                 "location": location, "unit_sha256": unit.unit_sha256,
-                                 "quote": quote, "source_span": [start, start + len(quote)]})
+                citation_row = {"source_id": cited_source, "source_sha256": source_hashes[cited_source],
+                                "location": location, "unit_sha256": unit.unit_sha256,
+                                "quote": bound_quote, "source_span": list(span)}
+                if whitespace_reflowed:
+                    citation_row["binding_note"] = "EXACT_SOURCE_WHITESPACE_REFLOW"
+                verified.append(citation_row)
             else:
                 from .visual_fact_review import _render_hash
                 if cited_source != source_id:

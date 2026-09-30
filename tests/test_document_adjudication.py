@@ -809,6 +809,40 @@ def test_exact_native_recovery_survives_alongside_quarantined_paraphrase(tmp_pat
         "error_category": "CANDIDATE_EVIDENCE_QUARANTINED", "location_bound": True}]
 
 
+def test_native_adjudication_quote_binds_whitespace_reflow_to_exact_span():
+    from againward.documents.adjudication import _exact_native_quote_span
+
+    source = "The signed record is dated 2026-09-05;\n  this email is not\nproof of earlier return."
+    model_quote = "The signed record is dated 2026-09-05; this email is not proof of earlier return."
+
+    exact_quote, span, reflowed = _exact_native_quote_span(model_quote, source)
+
+    assert reflowed is True
+    assert source[span[0]:span[1]] == exact_quote
+    assert exact_quote == "The signed record is dated 2026-09-05;\n  this email is not\nproof of earlier return."
+
+
+@pytest.mark.parametrize('quote', [
+    "The signed record is dated 2026-09-06; this email is not proof of earlier return.",
+    "The signed record is dated 2026-09-05; the email is not proof of an earlier return.",
+])
+def test_native_adjudication_quote_reflow_never_accepts_changed_tokens_or_date(quote):
+    from againward.documents.adjudication import _exact_native_quote_span
+
+    source = "The signed record is dated 2026-09-05;\n  this email is not\nproof of earlier return."
+    with pytest.raises(DocumentError, match='SOURCE_LOCATION_INVALID'):
+        _exact_native_quote_span(quote, source)
+
+
+def test_native_adjudication_quote_reflow_rejects_multiple_matching_spans():
+    from againward.documents.adjudication import _exact_native_quote_span
+
+    quote = "status is current"
+    source = "status is\ncurrent; status\nis current"
+    with pytest.raises(DocumentError, match='SOURCE_LOCATION_INVALID'):
+        _exact_native_quote_span(quote, source)
+
+
 def test_nonassembly_selection_discards_inapplicable_candidate_dispositions(tmp_path):
     from againward.documents.adjudication import bind_model_citations
     root, batch, primary, challenger, qa, raw, _email = _case(tmp_path)
