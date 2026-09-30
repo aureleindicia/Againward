@@ -49,7 +49,7 @@ DOCUMENT_ENVELOPE_FIELDS = frozenset({"document_role", "document_status", "invoi
 # note). They remain source-bound observations and are retained in lineage, but
 # must not be assigned a guessed entity_kind just to satisfy entity validation.
 NON_ENTITY_OBSERVATION_FIELDS = frozenset({
-    "document_role", "document_status", "supplier_id", "invoice_id", "invoice_line_id", "asset_id",
+    "document_role", "document_status", "date", "supplier_id", "invoice_id", "invoice_line_id", "asset_id",
 })
 
 # These identifiers describe the target of a credit, rather than attributes of
@@ -73,6 +73,9 @@ def is_non_entity_observation(fields: Iterable[str]) -> bool:
     references = values & CREDIT_REFERENCE_FIELDS
     if references:
         return bool(references & {"invoice_id", "invoice_line_id"})
+    if "date" in values:
+        return bool(values & {"document_role", "document_status"}) and values <= {
+            "document_role", "document_status", "date", "supplier_id"}
     # These fields describe the source envelope when they are emitted alone.
     # They do not create a material entity; values remain source-bound and are
     # still checked for conflicts wherever the Rental contract requires them.
@@ -277,6 +280,7 @@ def normalize_document_envelopes(raw: dict[str, Any], *, visual: bool) -> dict[s
 
     Source IDs and citations never change. A unique invoice number may be
     attached to invoice lines in its own uniquely classified invoice document;
+    unique agreement terms may be attached to explicitly anchored rental scopes;
     an issued credit note's own document status may supply its credit status.
     These are still unapproved observations and retain the envelope citation.
     No filename, sibling source, or ambiguous envelope is used.
@@ -315,9 +319,120 @@ def normalize_document_envelopes(raw: dict[str, Any], *, visual: bool) -> dict[s
             if visual and {row.get("page") for row in members} != {row.get("page") for row in material}:
                 continue
             eligible.append(target)
-        if len(eligible) == 1:
+        # A document envelope cannot be assigned to whichever sibling happens
+        # to remain compatible when several business groups exist. A conflict
+        # on one sibling does not prove that the envelope belongs to another.
+        if len(targets) == 1 and len(eligible) == 1:
             for row in members:
                 row[group_key] = eligible[0]
+
+    # A single source can describe one agreement in a header group and several
+    # rental scopes in separate groups. The agreement's unique identifiers and
+    # terms belong to every explicitly typed, source-anchored scope. Project
+    # only values that are unique across the entire source, preserve their
+    # original quote/page/location, and leave the header observations intact
+    # for lineage. Model-local grouping labels do not establish this relation;
+    # the explicit agreement role/ID and scope anchors do.
+    def unique_text_values(members: list[dict[str, Any]], semantic: str) -> set[str] | None:
+        values = [row.get("value") for row in members if row.get("semantic_type") == semantic]
+        if not values or any(not isinstance(value, str) or not value for value in values):
+            return None
+        return {value for value in values if isinstance(value, str)}
+
+    def unique_observed_value(members: list[dict[str, Any]], semantic: str) -> Any | None:
+        values = [row.get("value") for row in members if row.get("semantic_type") == semantic]
+        if not values or any(value is None or isinstance(value, (list, dict)) for value in values):
+            return None
+        first = values[0]
+        return first if all(type(value) is type(first) and value == first for value in values) else None
+
+    agreement_roles = {str(row.get("value")) for row in rows
+                       if row.get("semantic_type") == "document_role"}
+    agreement_ids = unique_text_values(rows, "agreement_id")
+    current_groups = defaultdict(list)
+    for row in rows:
+        current_groups[row[group_key]].append(row)
+    agreement_header_groups = {
+        group for group, members in current_groups.items()
+        if not any(row.get("semantic_type") == "entity_kind" for row in members)
+        and any(row.get("semantic_type") == "document_role"
+                and row.get("value") == "RENTAL_AGREEMENT" for row in members)
+    }
+    scopes: list[tuple[str, list[dict[str, Any]]]] = []
+    anchors: set[tuple[str, str]] = set()
+    anchors_are_unique = True
+    for group, members in current_groups.items():
+        kinds = {row.get("value") for row in members if row.get("semantic_type") == "entity_kind"}
+        if kinds != {"RENTAL_SCOPE"}:
+            continue
+        scope_anchors = []
+        for semantic in ("asset_id", "serial_number"):
+            present_values = [row.get("value") for row in members if row.get("semantic_type") == semantic]
+            if not present_values:
+                continue
+            values = unique_text_values(members, semantic)
+            if values is None or len(values) != 1:
+                anchors_are_unique = False
+                break
+            scope_anchors.append((semantic, next(iter(values))))
+        if not scope_anchors:
+            anchors_are_unique = False
+            break
+        if any(anchor in anchors for anchor in scope_anchors):
+            anchors_are_unique = False
+            break
+        anchors.update(scope_anchors)
+        scopes.append((group, members))
+
+    if agreement_roles == {"RENTAL_AGREEMENT"} and agreement_ids is not None \
+            and len(agreement_ids) == 1 and scopes and anchors_are_unique:
+        agreement_fields = ("agreement_id", "supplier_id", "client_id", "start", "end", "currency",
+                            "weekends_billable", "minimum_days", "discount_fraction",
+                            "partial_period_policy", "stop_event", "stop_day_billable", "terms_unchanged")
+        templates: dict[str, dict[str, Any]] = {}
+        for semantic in agreement_fields:
+            value = unique_observed_value(rows, semantic)
+            if value is None:
+                continue
+            matching = [row for row in rows if row.get("semantic_type") == semantic
+                        and type(row.get("value")) is type(value) and row.get("value") == value]
+            if matching:
+                templates[semantic] = sorted(matching, key=lambda row: (
+                    str(row.get("location", row.get("page", ""))),
+                    str(row.get("raw_observed_value", row.get("visible_text", "")))))[0]
+        projectable: dict[str, dict[str, Any]] = {}
+        for group, members in scopes:
+            existing: dict[str, set[str]] = defaultdict(set)
+            for row in members:
+                if row.get("semantic_type") in agreement_fields:
+                    existing[str(row["semantic_type"])].add(str(row.get("value")))
+            projectable[group] = {}
+            for semantic, template in templates.items():
+                value = str(template["value"])
+                if existing.get(semantic) and existing[semantic] != {value}:
+                    projectable[group].pop(semantic, None)
+                    continue
+                projectable[group][semantic] = template
+        # A conflict in any target scope prevents partial fan-out of that field.
+        safe_fields = {semantic for semantic in templates
+                       if all(semantic in projected for projected in projectable.values())}
+        for group, members in scopes:
+            for semantic in sorted(safe_fields):
+                template = projectable[group][semantic]
+                if any(row.get("semantic_type") == semantic for row in members):
+                    continue
+                bound = deepcopy(template)
+                bound[group_key] = group
+                if not visual:
+                    note = "Bound a unique same-source rental-agreement fact to an explicitly anchored rental scope."
+                    prior = bound.get("normalization_notes", "")
+                    bound["normalization_notes"] = "; ".join(
+                        part for part in (prior.strip() if isinstance(prior, str) else "", note) if part)
+                rows.append(bound)
+        if safe_fields:
+            rows[:] = [row for row in rows
+                       if row.get(group_key) not in agreement_header_groups
+                       or row.get("semantic_type") not in safe_fields]
 
     # `invoice_id` is a source/document identity but is required on each
     # canonical invoice line. When an otherwise structural SUPPORTING_DOCUMENT
@@ -334,7 +449,7 @@ def normalize_document_envelopes(raw: dict[str, Any], *, visual: bool) -> dict[s
     invoice_ids = string_values(rows, "invoice_id")
     if not invoice_ids:
         invoice_ids = None
-    current_groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    current_groups.clear()
     for row in rows:
         current_groups[row[group_key]].append(row)
     invoice_lines = sorted(group for group, members in current_groups.items()

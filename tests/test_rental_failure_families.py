@@ -430,6 +430,148 @@ def test_document_identity_is_not_borrowed_from_a_different_source(tmp_path):
 
 
 @pytest.mark.parametrize("visual", [False, True])
+def test_unique_agreement_envelope_is_projected_to_each_anchored_scope(visual):
+    group_key, rows_key = (("entity_hint", "observations") if visual
+                           else ("entity_id", "candidates"))
+    quote_key = "visible_text" if visual else "raw_observed_value"
+    header = {
+        "document_role": ("RENTAL_AGREEMENT", "Accepted rental agreement"),
+        "document_status": ("ACCEPTED", "Agreement accepted"),
+        "agreement_id": ("AG-100", "Agreement AG-100"),
+        "supplier_id": ("SUP-20", "Supplier SUP-20"),
+        "client_id": ("SITE-4", "Customer SITE-4"),
+        "start": ("2026-09-01", "Hire starts 2026-09-01"),
+        "end": ("2026-09-30", "Agreement ends 2026-09-30"),
+        "currency": ("EUR", "Net EUR"),
+    }
+    rows = []
+    for semantic, (value, quote) in header.items():
+        rows.append({group_key: "header", "semantic_type": semantic, "value_type": "TEXT",
+                     "value": value, quote_key: quote, "page": 1, "location": "part:1"})
+    for group, asset, serial in (("scope-x", "ASSET-X", "SER-X"),
+                                 ("scope-y", "ASSET-Y", "SER-Y")):
+        for semantic, value, quote in (("entity_kind", "RENTAL_SCOPE", "Rental scope"),
+                                       ("asset_id", asset, f"Asset {asset}"),
+                                       ("serial_number", serial, f"Serial {serial}"),
+                                       ("description", "platform", "platform"),
+                                       ("quantity", "1", "quantity 1")):
+            rows.append({group_key: group, "semantic_type": semantic, "value_type": "TEXT",
+                         "value": value, quote_key: quote, "page": 1, "location": "part:1"})
+    if visual:
+        for row in rows:
+            row.pop("location")
+    original = {rows_key: rows}
+    normalized = normalize_document_envelopes(original, visual=visual)
+    projected_fields = {"agreement_id", "supplier_id", "client_id", "start", "end", "currency"}
+    for group in ("scope-x", "scope-y"):
+        fields = {row["semantic_type"]: row for row in normalized[rows_key]
+                  if row[group_key] == group}
+        for semantic in projected_fields:
+            value, quote = header[semantic]
+            assert fields[semantic]["value"] == value
+            assert fields[semantic][quote_key] == quote
+            if visual:
+                assert fields[semantic]["page"] == 1
+            else:
+                assert fields[semantic]["location"] == "part:1"
+    source_metadata = {row["semantic_type"]: row for row in normalized[rows_key]
+                       if row[group_key] == "header"}
+    assert source_metadata["document_role"]["value"] == "RENTAL_AGREEMENT"
+    assert source_metadata["document_status"]["value"] == "ACCEPTED"
+    assert len(original[rows_key]) == len(rows)  # pure transformation, no input mutation
+
+
+def test_projected_agreement_fields_keep_exact_native_quote_and_source_binding(tmp_path):
+    content = ("Accepted rental agreement AG-100 dated 2026-08-28. Agreement status accepted. "
+               "Supplier SUP-20. Customer SITE-4. "
+               "Hire starts 2026-09-01 and ends 2026-09-30. Net EUR. "
+               "Asset ASSET-X serial SER-X electric platform quantity 1.")
+    raw = {"status": "SUCCESS", "limitations": [], "candidates": []}
+    for group, semantic, value, quote in (
+        ("header", "document_role", "RENTAL_AGREEMENT", "Accepted rental agreement"),
+        ("header", "date", "2026-08-28", "dated 2026-08-28"),
+        ("header", "document_status", "ACCEPTED", "status accepted"),
+        ("header", "agreement_id", "AG-100", "AG-100"),
+        ("header", "supplier_id", "SUP-20", "Supplier SUP-20"),
+        ("header", "client_id", "SITE-4", "Customer SITE-4"),
+        ("header", "start", "2026-09-01", "Hire starts 2026-09-01"),
+        ("header", "end", "2026-09-30", "ends 2026-09-30"),
+        ("header", "currency", "EUR", "Net EUR"),
+        ("scope", "entity_kind", "RENTAL_SCOPE", "Asset ASSET-X"),
+        ("scope", "asset_id", "ASSET-X", "Asset ASSET-X"),
+        ("scope", "serial_number", "SER-X", "serial SER-X"),
+        ("scope", "description", "electric platform", "electric platform"),
+        ("scope", "quantity", "1", "quantity 1"),
+    ):
+        raw["candidates"].append({"entity_id": group, "semantic_type": semantic,
+            "value_type": "TEXT", "value": value, "raw_observed_value": quote,
+            "location": "part:1", "normalization_notes": "Exact source observation",
+            "ambiguity_flags": []})
+    normalized = normalize_document_envelopes(raw, visual=False)
+    value_types = {"entity_kind": "ENUM", "document_role": "ENUM", "document_status": "ENUM",
+                   "date": "DATE",
+                   "agreement_id": "IDENTIFIER",
+                   "supplier_id": "IDENTIFIER", "client_id": "IDENTIFIER", "start": "DATE",
+                   "end": "DATE", "currency": "CURRENCY", "asset_id": "IDENTIFIER",
+                   "serial_number": "IDENTIFIER", "description": "TEXT", "quantity": "DECIMAL"}
+    model_candidates = [{"entity_id": row["entity_id"], "semantic_type": row["semantic_type"],
+        "value_type": value_types[row["semantic_type"]], "value": row["value"],
+        "quote": row["raw_observed_value"]} for row in normalized["candidates"]]
+    extraction = _proposal(tmp_path, content, model_candidates)
+    validate_rental_extraction(extraction, require_package_facts=True)
+    assert not package_source_gaps(extraction)
+    bound = next(candidate for candidate in extraction.candidates
+                 if candidate.entity_id == "scope" and candidate.semantic_type == "supplier_id")
+    assert bound.source_id == extraction.source_id
+    assert bound.raw_observed_value == "Supplier SUP-20"
+    assert bound.location == "line:1"
+
+
+@pytest.mark.parametrize("change", [
+    "missing_role", "missing_agreement_id", "multiple_agreements", "missing_anchor",
+    "duplicate_anchor", "contradictory_scope_value",
+])
+def test_agreement_projection_stops_when_identity_or_value_is_not_unique(change):
+    rows = [
+        {"entity_id": "header", "semantic_type": "document_role", "value": "RENTAL_AGREEMENT"},
+        {"entity_id": "header", "semantic_type": "agreement_id", "value": "AG-100"},
+        {"entity_id": "header", "semantic_type": "supplier_id", "value": "SUP-20",
+         "raw_observed_value": "Supplier SUP-20", "location": "part:1"},
+    ]
+    for group, asset in (("scope-x", "ASSET-X"), ("scope-y", "ASSET-Y")):
+        rows.extend([
+            {"entity_id": group, "semantic_type": "entity_kind", "value": "RENTAL_SCOPE"},
+            {"entity_id": group, "semantic_type": "asset_id", "value": asset},
+            {"entity_id": group, "semantic_type": "description", "value": "platform"},
+        ])
+    if change == "missing_role":
+        rows = [row for row in rows if row["semantic_type"] != "document_role"]
+    elif change == "missing_agreement_id":
+        rows = [row for row in rows if row["semantic_type"] != "agreement_id"]
+    elif change == "multiple_agreements":
+        rows.append({"entity_id": "scope-y", "semantic_type": "agreement_id", "value": "AG-200"})
+    elif change == "missing_anchor":
+        rows = [row for row in rows if not (row["entity_id"] == "scope-y"
+                                            and row["semantic_type"] == "asset_id")]
+    elif change == "duplicate_anchor":
+        next(row for row in rows if row["entity_id"] == "scope-y"
+             and row["semantic_type"] == "asset_id")["value"] = "ASSET-X"
+    elif change == "contradictory_scope_value":
+        rows.append({"entity_id": "scope-y", "semantic_type": "supplier_id", "value": "SUP-99"})
+    normalized = normalize_document_envelopes({"candidates": rows}, visual=False)["candidates"]
+    if change == "contradictory_scope_value":
+        assert not [row for row in normalized if row["entity_id"] == "scope-x"
+                    and row["semantic_type"] == "supplier_id"]
+        assert [row["value"] for row in normalized if row["entity_id"] == "scope-y"
+                and row["semantic_type"] == "supplier_id"] == ["SUP-99"]
+        return
+    for group in ("scope-x", "scope-y"):
+        suppliers = [row["value"] for row in normalized
+                     if row["entity_id"] == group and row["semantic_type"] == "supplier_id"]
+        assert not suppliers or suppliers == ["SUP-20"]
+
+
+@pytest.mark.parametrize("visual", [False, True])
 def test_issued_credit_status_is_bound_only_from_unambiguous_same_source_metadata(tmp_path, visual):
     group, rows_key = ("entity_hint", "observations") if visual else ("entity_id", "candidates")
     quote_key = "visible_text" if visual else "raw_observed_value"
