@@ -65,6 +65,14 @@ NON_ENTITY_OBSERVATION_FIELDS = frozenset({
 CREDIT_REFERENCE_FIELDS = frozenset({"invoice_id", "invoice_line_id", "asset_id"})
 
 
+def is_source_metadata_envelope(fields: Iterable[str]) -> bool:
+    """An explicit documentary scope witness, without business-bearing fields."""
+    values = set(fields)
+    return (values <= {"document_role", "document_status", "agreement_id", "supplier_id",
+                       "date", "terms_unchanged"}
+            and bool(values & {"document_role", "document_status"}))
+
+
 def is_non_entity_observation(fields: Iterable[str]) -> bool:
     """Whether an untyped source-local group contains only metadata/references.
 
@@ -73,7 +81,6 @@ def is_non_entity_observation(fields: Iterable[str]) -> bool:
     entity kind.
     """
     values = set(fields)
-    source_envelope = {"document_role", "document_status", "agreement_id", "supplier_id", "date"}
     if not values or not values <= (NON_ENTITY_OBSERVATION_FIELDS | {"terms_unchanged"}):
         return False
     # An asset identifier alone can describe a business-bearing rental entity.
@@ -81,12 +88,10 @@ def is_non_entity_observation(fields: Iterable[str]) -> bool:
     references = values & CREDIT_REFERENCE_FIELDS
     if references:
         return bool(references & {"invoice_id", "invoice_line_id"})
-    if (values <= (source_envelope | {"terms_unchanged"})
-            and bool(values & {"document_role", "document_status"})):
+    if is_source_metadata_envelope(values):
         return True
     if "date" in values:
-        return bool(values & {"document_role", "document_status"}) and values <= {
-            "document_role", "document_status", "date", "supplier_id", "agreement_id", "terms_unchanged"}
+        return False
     # These fields describe the source envelope when they are emitted alone.
     # They do not create a material entity; values remain source-bound and are
     # still checked for conflicts wherever the Rental contract requires them.

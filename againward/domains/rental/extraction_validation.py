@@ -16,7 +16,7 @@ from againward.evidence.hashing import stable_hash
 from .entity_contract import (COMPLETENESS_TRIGGER_FIELDS, ENTITY_KINDS,
     DOCUMENT_ROLES, DOCUMENT_STATUSES, PACKAGE_SOURCE_REQUIRED,
     CREDIT_REFERENCE_FIELDS, MATERIAL_FIELDS, event_record_kind,
-    is_non_entity_observation, rental_scope_record_kind)
+    is_non_entity_observation, is_source_metadata_envelope, rental_scope_record_kind)
 
 
 # Ownership boundary: source/hash/location/span are runtime-bound; entity_id is
@@ -131,6 +131,7 @@ def occurrence_kind_overrides(extraction: DocumentExtraction,
                   and item.source_sha256 == extraction.source_sha256)
     groups_by_extraction: list[tuple[DocumentExtraction, dict[str, list]]] = []
     for item in (extraction, *peers):
+        item = _canonicalize_explicit_entity_structure(item)
         grouped: dict[str, list] = defaultdict(list)
         for candidate in item.candidates:
             grouped[candidate.entity_id].append(candidate)
@@ -148,7 +149,9 @@ def occurrence_kind_overrides(extraction: DocumentExtraction,
                 if anchor is not None:
                     anchored_kinds[anchor].add(kind)
     overrides: dict[str, str] = {}
-    own_groups = groups_by_extraction[0][1]
+    own_groups: dict[str, list] = defaultdict(list)
+    for candidate in extraction.candidates:
+        own_groups[candidate.entity_id].append(candidate)
     for entity_id, rows in own_groups.items():
         fields = _identity_fields(extraction, rows)
         if fields.get("entity_kind"):
@@ -171,8 +174,22 @@ def _canonicalize_explicit_entity_structure(extraction: DocumentExtraction) -> D
         grouped[candidate.entity_id].append(candidate)
 
     proposed: dict[str, tuple[str, tuple[str, ...], FactCandidate, bool]] = {}
+    source_roles = {c.value for c in extraction.candidates if c.semantic_type == "document_role"}
     for entity_id, rows in grouped.items():
         fields = _group_values(rows)
+        # A printed invoice/line identity plus an amount and currency describes
+        # an invoice-line container. This supplies no charge meaning, status,
+        # contractual authority or missing commercial value.
+        invoice_fields = ("invoice_id", "invoice_line_id", "net_amount", "currency")
+        if (source_roles == {"INVOICE"} and not fields.get("entity_kind")
+                and all(len(fields.get(field, set())) == 1 for field in invoice_fields)
+                and not (set(fields) & {"credit_id", "credit_amount", "event_type"})):
+            witness = next(row for row in rows if row.semantic_type == "invoice_line_id")
+            if witness.source_id == extraction.source_id and witness.unit_sha256:
+                signature = ("INVOICE_LINE", str(next(iter(fields["invoice_id"]))),
+                             str(next(iter(fields["invoice_line_id"]))))
+                proposed[entity_id] = ("INVOICE_LINE", signature, witness, False)
+            continue
         event_kind = event_record_kind(fields)
         if event_kind is not None:
             signature: tuple[str, ...]
@@ -235,6 +252,8 @@ def _canonicalize_explicit_entity_structure(extraction: DocumentExtraction) -> D
                     if structure_template.normalization_notes else "")
                     + ("Derived the event-record container from its explicit source-bound event_type; "
                        "this does not assert physical return or grant approval." if is_event else
+                       "Derived the invoice-line container from explicit source-bound invoice/line identity, "
+                       "amount and currency; this does not grant authority." if kind == "INVOICE_LINE" else
                        "Derived the rental-scope container from the exact source-bound agreement role, "
                        "asset, interval, quantity, and description; this does not grant authority.")))
 
@@ -281,7 +300,7 @@ def reconstruct_runtime_structure(extraction: DocumentExtraction,
     untouched for the ordinary fail-closed validator.
     """
     extraction = _canonicalize_explicit_entity_structure(extraction)
-    peers = tuple(item for item in supporting
+    peers = tuple(_canonicalize_explicit_entity_structure(item) for item in supporting
                   if item.source_id == extraction.source_id
                   and item.source_sha256 == extraction.source_sha256)
     grouped: dict[str, list] = defaultdict(list)
@@ -453,9 +472,15 @@ def reconstruct_runtime_structure(extraction: DocumentExtraction,
         if len(matches) == 1:
             atom_assignments[entity_id] = next(iter(matches))
 
+    # Preserve the scope witness of an explicit documentary envelope. Moving
+    # only role/status would turn its date into an artificial untyped entity.
+    # A standalone date or a business-bearing group cannot acquire this scope.
+    source_envelopes = {entity_id for entity_id, rows in grouped.items()
+                        if is_source_metadata_envelope(_group_values(rows))}
     candidates = []
     for candidate in extraction.candidates:
-        if candidate.semantic_type in SOURCE_STRUCTURAL_FIELDS:
+        if (candidate.semantic_type in SOURCE_STRUCTURAL_FIELDS
+                or candidate.entity_id in source_envelopes):
             source_metadata_id = "runtime-source-" + stable_hash({
                 "source_id": extraction.source_id,
                 "source_sha256": extraction.source_sha256})[:24]

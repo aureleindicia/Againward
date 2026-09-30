@@ -1324,3 +1324,129 @@ def test_unanchored_value_difference_stays_unknown_and_needs_reconciliation():
     authority_conflict = _observation_comparison(
         [fact("ACCEPTED", "SOURCE_METADATA")], [fact("PROPOSED", "SOURCE_METADATA")])
     assert authority_conflict["classification"] == "CONFLICT"
+
+
+def test_reconstruction_preserves_explicit_document_envelope_scope(tmp_path):
+    text = "Invoice I-4 line R net 80 EUR. ISSUED by SUP-Z on 2026-08-02."
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+    rows = [
+        ("header", "document_role", "ENUM", "INVOICE", "Invoice"),
+        ("header", "document_status", "ENUM", "ISSUED", "ISSUED"),
+        ("header", "supplier_id", "IDENTIFIER", "SUP-Z", "SUP-Z"),
+        ("header", "date", "DATE", "2026-08-02", "2026-08-02"),
+        ("line", "entity_kind", "ENUM", "INVOICE_LINE", "line R"),
+        ("line", "invoice_id", "IDENTIFIER", "I-4", "I-4"),
+        ("line", "invoice_line_id", "IDENTIFIER", "R", "line R"),
+        ("line", "net_amount", "DECIMAL", "80", "80"),
+        ("line", "currency", "CURRENCY", "EUR", "EUR"),
+    ]
+    extraction = validate({"status": "SUCCESS", "limitations": [], "candidates": [
+        {"entity_id": group, "semantic_type": field, "value_type": kind,
+         "value": value, "raw_observed_value": quote, "location": location,
+         "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+        for group, field, kind, value, quote in rows]})
+    validate_rental_extraction(extraction)
+    rebuilt = reconstruct_runtime_structure(extraction)
+    validate_rental_extraction(rebuilt)
+    assert reconstruct_runtime_structure(rebuilt) == rebuilt
+    assert {c.candidate_id: replace(c, entity_id="") for c in rebuilt.candidates} == {
+        c.candidate_id: replace(c, entity_id="") for c in extraction.candidates}
+    header_ids = {c.entity_id for c in rebuilt.candidates
+                  if c.semantic_type in {"document_role", "document_status", "supplier_id", "date"}}
+    assert len(header_ids) == 1
+    # A separate event date has no documentary scope witness: do not absorb it.
+    orphan = replace(next(c for c in extraction.candidates if c.semantic_type == "date"),
+                     entity_id="unidentified-event", candidate_id="unidentified-date")
+    incomplete = reconstruct_runtime_structure(replace(extraction,
+        candidates=extraction.candidates + (orphan,)))
+    with pytest.raises(DocumentError, match="STRUCTURAL_INCOMPLETE"):
+        validate_rental_extraction(incomplete)
+
+
+def test_provisional_anchor_does_not_authorize_unknown_scope_union(tmp_path):
+    root, batch, primary, challenger = _anchored_fact_reads(tmp_path)
+    primary = replace(primary, candidates=tuple(c for c in primary.candidates
+                                               if c.semantic_type != "entity_kind"))
+    challenger = replace(challenger, candidates=tuple(c for c in challenger.candidates
+                                                     if c.semantic_type != "entity_kind"))
+    assert reconcile_complementary_facts(primary, challenger, batch, root) is None
+
+
+def test_union_lineage_does_not_approve_incomplete_structure(tmp_path):
+    root, batch, primary, challenger = _anchored_fact_reads(tmp_path)
+    merged = reconcile_complementary_facts(primary, challenger, batch, root)
+    assert merged is not None
+    result = compare_extractions(batch, (merged,), (challenger,), root)["source_results"][0]
+    assert result["fact_union_verified"]
+    assert result["material_needs_reconciliation"]
+    assert result["primary_contract_issues"]["validation_code"] == "ENTITY_METADATA_REQUIRED"
+
+
+@pytest.mark.parametrize("omission", [None, "invoice_id", "invoice_line_id", "net_amount", "currency", "document_role"])
+def test_explicit_invoice_container_requires_complete_semantic_tuple(tmp_path, omission):
+    text = "Invoice Z-42 line K net 73 EUR ISSUED."
+    root, batch, _, validate = _case(tmp_path, text)
+    location = read_document(batch.documents[0], root).units[0].location
+    fields = [
+        ("document_role", "ENUM", "INVOICE", "Invoice"),
+        ("document_status", "ENUM", "ISSUED", "ISSUED"),
+        ("invoice_id", "IDENTIFIER", "Z-42", "Z-42"),
+        ("invoice_line_id", "IDENTIFIER", "K", "line K"),
+        ("net_amount", "DECIMAL", "73", "73"),
+        ("currency", "CURRENCY", "EUR", "EUR"),
+    ]
+    original = validate({"status": "SUCCESS", "limitations": [], "candidates": [
+        {"entity_id": "local-label", "semantic_type": field, "value_type": kind,
+         "value": value, "raw_observed_value": quote, "location": location,
+         "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+        for field, kind, value, quote in fields if field != omission]})
+    rebuilt = reconstruct_runtime_structure(original)
+    kinds = [c for c in rebuilt.candidates if c.semantic_type == "entity_kind"]
+    if omission is not None:
+        assert not kinds
+        with pytest.raises(DocumentError):
+            validate_rental_extraction(rebuilt, require_package_facts=True)
+        return
+    assert len(kinds) == 1 and kinds[0].value == "INVOICE_LINE"
+    witness = next(c for c in original.candidates if c.semantic_type == "invoice_line_id")
+    assert (kinds[0].source_id, kinds[0].unit_sha256, kinds[0].source_span,
+            kinds[0].raw_observed_value, kinds[0].ambiguity_flags) == (
+        witness.source_id, witness.unit_sha256, witness.source_span,
+        witness.raw_observed_value, witness.ambiguity_flags)
+    validate_rental_extraction(rebuilt, require_package_facts=True)
+    assert reconstruct_runtime_structure(rebuilt) == rebuilt
+    # Both readers may omit this technical classification. The union still
+    # reconstructs it, and immutable replay reproduces the same candidate set.
+    from againward.documents.extraction import replay_extraction
+    other = replace(original, candidates=tuple(replace(c, entity_id="another-label")
+                                               for c in original.candidates))
+    merged = reconcile_complementary_facts(original, other, batch, root)
+    assert merged is not None
+    validate_rental_extraction(merged, require_package_facts=True)
+    assert replay_extraction(merged.to_dict(), batch, root) == merged
+    # Distinct printed line identities must stay distinct, despite equal money.
+    second_line = tuple(replace(c, entity_id="other-line", candidate_id=c.candidate_id + "-other",
+                                value="L" if c.semantic_type == "invoice_line_id" else c.value)
+                        for c in original.candidates if c.semantic_type not in {"document_role", "document_status"})
+    two_lines = reconstruct_runtime_structure(replace(original,
+        candidates=original.candidates + second_line))
+    assert len({c.entity_id for c in two_lines.candidates if c.semantic_type == "net_amount"}) == 2
+    # A visual observation remains unapproved and bound to its original page.
+    visual = replace(original, candidates=tuple(replace(c, location="page:1", source_span=None,
+        ambiguity_flags=("VISUAL_TRANSCRIPTION_UNVERIFIED",)) for c in original.candidates))
+    visual_kind = next(c for c in reconstruct_runtime_structure(visual).candidates
+                       if c.semantic_type == "entity_kind")
+    assert visual_kind.location == "page:1" and visual_kind.source_span is None
+    assert visual_kind.ambiguity_flags == ("VISUAL_TRANSCRIPTION_UNVERIFIED",)
+    assert visual_kind.unit_sha256 == witness.unit_sha256
+    # Explicitly different source semantics take precedence over shape.
+    credit = replace(original, candidates=tuple(
+        replace(c, value="CREDIT_NOTE") if c.semantic_type == "document_role" else c
+        for c in original.candidates))
+    assert not any(c.semantic_type == "entity_kind"
+                   for c in reconstruct_runtime_structure(credit).candidates)
+    conflicting = replace(original, candidates=original.candidates + (
+        replace(witness, semantic_type="entity_kind", value_type="ENUM", value="CREDIT"),))
+    assert {c.value for c in reconstruct_runtime_structure(conflicting).candidates
+            if c.semantic_type == "entity_kind"} == {"CREDIT"}

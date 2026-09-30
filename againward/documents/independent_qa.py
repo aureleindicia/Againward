@@ -25,7 +25,7 @@ from .reconciliation import ASSEMBLY_VERSION, FACT_RECONCILIATION_VERSION
 from .sources import verify_batch
 
 
-QA_GUIDANCE_VERSION = "rental-independent-source-reread-v5-provisional-content"
+QA_GUIDANCE_VERSION = "rental-independent-source-reread-v6-union-readiness"
 QA_INSTRUCTIONS = """
 INDEPENDENT ADVERSARIAL SOURCE REREAD. You have not seen the first extraction.
 Read every original unit/page before answering. Search for material facts the
@@ -311,7 +311,11 @@ def compare_extractions(batch: SourceBatch, primary: tuple[DocumentExtraction, .
         observation_comparison = _observation_comparison(p_observations, q_observations)
         fact_union_verified = (_verified_fact_union(p, q, root)
                                or _verified_fact_union(q, p, root))
-        if fact_union_verified:
+        union_has_unknown_scope = any(row["material"] and row["scope"] == "UNKNOWN"
+                                      for row in (*p_observations, *q_observations))
+        if (fact_union_verified and not union_has_unknown_scope
+                and not observation_comparison["conflicting_fields"]
+                and not observation_comparison["unknown_fields"]):
             # The receipt proves that the current extraction was built from the
             # two exact current reads. This is the fresh QA check after a
             # deterministic union; the parent-level complement is preserved in
@@ -331,7 +335,10 @@ def compare_extractions(batch: SourceBatch, primary: tuple[DocumentExtraction, .
         p_issues, q_issues = proposal_issues(p), ({} if fact_union_verified else proposal_issues(q))
         assembled = p.extractor_version == ASSEMBLY_VERSION and not fact_union_verified
         conflict = any(issue.get("reason_code") == "EXTRACTION_CONTRADICTION" for issue in (p_issues, q_issues))
-        material_difference = (assembled or conflict
+        # Lineage authenticates a union, not its readiness. A union may still
+        # need a targeted repair; do not defer that discovery to replay.
+        union_structure_incomplete = fact_union_verified and bool(p_issues)
+        material_difference = (assembled or conflict or union_structure_incomplete
                                or observation_comparison["material_classification"] != "PRESENTATION_EQUIVALENT"
                                or bool(p_gaps) or bool(q_gaps)
                                or p.status == "FAILED" or q.status == "FAILED"

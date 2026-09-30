@@ -18,7 +18,7 @@ from .extraction import (DocumentExtraction, replay_extraction, append_adjudicat
                          append_adjudicator_visual_observations)
 
 ASSEMBLY_VERSION = "againward-explicit-assembly-v3-source-recovery"
-FACT_RECONCILIATION_VERSION = "againward-deterministic-fact-reconciliation-v1"
+FACT_RECONCILIATION_VERSION = "againward-deterministic-fact-reconciliation-v2-known-scope"
 
 
 def complete_fact_superset(primary: DocumentExtraction, challenger: DocumentExtraction,
@@ -230,7 +230,8 @@ def reconcile_complementary_facts(primary: DocumentExtraction, challenger: Docum
         for candidate, observation in zip(extraction.candidates, rows, strict=True):
             scope, anchor, semantic = (observation["scope"], observation["anchor"],
                                        observation["semantic_type"])
-            if scope != "SOURCE_METADATA" and anchor is None and observation["material"]:
+            if observation["material"] and (scope == "UNKNOWN"
+                    or (scope != "SOURCE_METADATA" and anchor is None)):
                 return None
             if not observation["material"] and anchor is None:
                 # A structural/document fragment is already retained in each
