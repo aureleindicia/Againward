@@ -67,19 +67,20 @@ def is_non_entity_observation(fields: Iterable[str]) -> bool:
     entity kind.
     """
     values = set(fields)
-    if not values or not values <= NON_ENTITY_OBSERVATION_FIELDS:
+    source_envelope = {"document_role", "document_status", "agreement_id", "supplier_id", "date"}
+    if not values or not values <= (NON_ENTITY_OBSERVATION_FIELDS | {"terms_unchanged"}):
         return False
     # An asset identifier alone can describe a business-bearing rental entity.
     # Only an explicit invoice target makes this narrow group a reference.
     references = values & CREDIT_REFERENCE_FIELDS
     if references:
         return bool(references & {"invoice_id", "invoice_line_id"})
-    if (values <= {"document_role", "document_status", "agreement_id", "supplier_id"}
+    if (values <= (source_envelope | {"terms_unchanged"})
             and bool(values & {"document_role", "document_status"})):
         return True
     if "date" in values:
         return bool(values & {"document_role", "document_status"}) and values <= {
-            "document_role", "document_status", "date", "supplier_id", "agreement_id"}
+            "document_role", "document_status", "date", "supplier_id", "agreement_id", "terms_unchanged"}
     # These fields describe the source envelope when they are emitted alone.
     # They do not create a material entity; values remain source-bound and are
     # still checked for conflicts wherever the Rental contract requires them.

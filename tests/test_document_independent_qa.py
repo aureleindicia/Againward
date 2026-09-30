@@ -12,7 +12,8 @@ from againward.documents.contracts import DocumentError
 from againward.documents.extraction import validate_proposal
 from againward.documents.independent_qa import (_canonical_observations,
     _observation_comparison, compare_extractions, reread_sources)
-from againward.documents.reconciliation import FACT_RECONCILIATION_VERSION, reconcile_complementary_facts
+from againward.documents.reconciliation import (FACT_RECONCILIATION_VERSION,
+    complete_fact_superset, reconcile_complementary_facts)
 from againward.documents.readers import read_document
 from againward.documents.sources import inventory_sources
 from againward.domains.rental.extraction_validation import (package_source_gaps,
@@ -133,6 +134,48 @@ def test_pre_qa_view_places_document_envelope_metadata_at_source_scope(tmp_path)
     assert _observation_comparison(first_view, second_view)["classification"] == "PRESENTATION_EQUIVALENT"
     assert {row["scope"] for row in second_view if row["semantic_type"] == "document_role"} == {
         "SOURCE_METADATA"}
+
+
+def test_pre_qa_rate_card_rows_get_stable_occurrence_anchors_and_source_metadata(tmp_path):
+    content = ("Accepted rate card for agreement AGR-7 dated 2026-08-28. "
+        "Terms unchanged. Asset A / serial S-A: EUR 12 per asset per day. "
+        "Asset B / serial S-B: EUR 9 per asset per day.")
+    root, batch, _, validate = _case(tmp_path, content)
+    location = read_document(batch.documents[0], root).units[0].location
+    candidates = []
+    for field, kind, value, quote in (
+        ("document_role", "ENUM", "RATE_CARD", "rate card"),
+        ("document_status", "ENUM", "ACCEPTED", "Accepted"),
+        ("agreement_id", "IDENTIFIER", "AGR-7", "agreement AGR-7"),
+        ("date", "DATE", "2026-08-28", "2026-08-28"),
+        ("terms_unchanged", "BOOLEAN", True, "Terms unchanged"),
+    ):
+        candidates.append({"entity_id": "header-a", "semantic_type": field, "value_type": kind,
+            "value": value, "raw_observed_value": quote, "location": location,
+            "normalization_notes": "Exact source observation", "ambiguity_flags": []})
+    for label, asset, serial, rate, quote in (
+        ("local-group-a", "ASSET-A", "S-A", "12", "Asset A / serial S-A: EUR 12 per asset per day"),
+        ("local-group-b", "ASSET-B", "S-B", "9", "Asset B / serial S-B: EUR 9 per asset per day"),
+    ):
+        for field, kind, value, raw_quote in (
+            ("entity_kind", "ENUM", "SUPPORTING_DOCUMENT", quote),
+            ("asset_id", "IDENTIFIER", asset, quote),
+            ("serial_number", "IDENTIFIER", serial, quote),
+            ("rate", "DECIMAL", rate, quote),
+            ("currency", "CURRENCY", "EUR", quote),
+        ):
+            candidates.append({"entity_id": label, "semantic_type": field, "value_type": kind,
+                "value": value, "raw_observed_value": raw_quote, "location": location,
+                "normalization_notes": "Exact source observation", "ambiguity_flags": []})
+    extraction = validate({"status": "SUCCESS", "limitations": [], "candidates": candidates})
+    view = _canonical_observations(extraction)
+    rows = [row for row in view if row["semantic_type"] == "rate"]
+    assert len(rows) == 2
+    assert len({row["anchor"] for row in rows}) == 2
+    assert all(row["scope"] == "MATERIAL_ENTITY" for row in rows)
+    agreement = next(row for row in view if row["semantic_type"] == "agreement_id")
+    assert agreement["scope"] == "REFERENCE" and not agreement["material"]
+    assert next(row for row in view if row["semantic_type"] == "terms_unchanged")["scope"] == "SOURCE_METADATA"
 
 
 def test_pre_qa_view_keeps_invoice_lines_distinct_and_detects_anchored_conflict(tmp_path):
@@ -700,6 +743,91 @@ def test_source_status_conflict_is_not_hidden_by_fact_union(tmp_path):
     assert comparison["conflicting_fields"] == [{"scope": "SOURCE_METADATA", "anchor": None,
                                                     "semantic_type": "document_status"}]
     assert reconcile_complementary_facts(primary, challenger, batch, root) is None
+
+
+def test_complete_source_bound_superset_auto_resolves_partial_read_without_model(tmp_path, monkeypatch):
+    from againward.documents.adjudication import adjudicate_with_codex
+    from againward.documents.extraction import replay_extraction
+    from againward.documents.readers import read_document
+
+    root, batch, _, validate = _case(tmp_path,
+        "INVOICE I-9, document marked ISSUED; status ISSUED, line L7, net EUR 100.00.")
+    source = batch.documents[0]
+    location = read_document(source, root).units[0].location
+
+    def read(label, *, complete):
+        rows = [("document_role", "ENUM", "INVOICE", "INVOICE"),
+                ("document_status", "ENUM", "ISSUED", "document marked ISSUED"),
+                ("entity_kind", "ENUM", "INVOICE_LINE", "line L7"),
+                ("invoice_id", "IDENTIFIER", "I-9", "I-9"),
+                ("invoice_line_id", "IDENTIFIER", "L7", "line L7")]
+        if complete:
+            # A redundant same-value observation with a different exact quote
+            # is corroboration, not a second meaning or a reason to STOP.
+            rows.append(("document_status", "ENUM", "ISSUED", "status ISSUED"))
+        if complete:
+            rows.extend([("currency", "CURRENCY", "EUR", "EUR"),
+                         ("net_amount", "DECIMAL", "100.00", "100.00")])
+        return validate({"status": "SUCCESS", "limitations": [], "candidates": [
+            {"entity_id": label, "semantic_type": field, "value_type": value_type,
+             "value": value, "raw_observed_value": quote, "location": location,
+             "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+            for field, value_type, value, quote in rows]})
+
+    primary, challenger = read("primary-group", complete=True), read("other-group", complete=False)
+    qa = compare_extractions(batch, (primary,), (challenger,), root)
+    assert qa["source_results"][0]["pre_qa_observation_comparison"]["material_classification"] == "COMPLEMENTARY"
+    dominant = complete_fact_superset(primary, challenger, batch, root)
+    assert dominant is not None and dominant[1] == "PRIMARY"
+
+    def forbidden_provider(*args, **kwargs):
+        raise AssertionError("a complete exact-evidence superset must not need another model choice")
+
+    from againward.documents import codex_provider
+    monkeypatch.setattr(codex_provider, "CodexCliProvider", forbidden_provider)
+    result = adjudicate_with_codex(batch, (primary,), (challenger,), qa, root,
+        model="gpt-6-luna", required_source_facts=None)
+    assert result["resolution_method"] == "DETERMINISTIC_COMPLETE_FACT_SUPERSET"
+    assert result["selected_extractions"][source.source_id] == primary.to_dict()["extraction_sha256"]
+    assert result["material_unresolved_source_ids"] == []
+    assert result["facts_approved"] == 0
+    assert result["delivery_approved"] is False
+    assert result["decisions"][0]["citations"][0]["source_span"]
+    selected = replay_extraction(primary.to_dict(), batch, root)
+    assert sum(row.semantic_type == "document_status" for row in selected.candidates) == 2
+
+
+@pytest.mark.parametrize("variant", ["conflict", "unanchored", "both_incomplete"])
+def test_complete_superset_requires_unique_nonconflicting_scope_and_complete_candidate(tmp_path, variant):
+    content = ("INVOICE I-9, ISSUED, line L7, net EUR 100.00 or EUR 90.00."
+               if variant == "conflict" else "INVOICE I-9, ISSUED, line L7, net EUR 100.00.")
+    root, batch, _, validate = _case(tmp_path, content)
+    location = read_document(batch.documents[0], root).units[0].location
+
+    def read(label, value, *, complete, anchor=True):
+        rows = [("document_role", "ENUM", "INVOICE", "INVOICE"),
+                ("document_status", "ENUM", "ISSUED", "ISSUED"),
+                ("entity_kind", "ENUM", "INVOICE_LINE", "line L7"),
+                ("invoice_id", "IDENTIFIER", "I-9", "I-9")]
+        if anchor:
+            rows.append(("invoice_line_id", "IDENTIFIER", "L7", "line L7"))
+        if complete:
+            rows.extend([("currency", "CURRENCY", "EUR",
+                          "net EUR" if variant == "conflict" else "EUR"),
+                         ("net_amount", "DECIMAL", value, value)])
+        return validate({"status": "SUCCESS", "limitations": [], "candidates": [
+            {"entity_id": label, "semantic_type": field, "value_type": value_type,
+             "value": field_value, "raw_observed_value": quote, "location": location,
+             "normalization_notes": "Exact source observation", "ambiguity_flags": []}
+            for field, value_type, field_value, quote in rows]})
+
+    if variant == "conflict":
+        first, second = read("p", "100.00", complete=True), read("q", "90.00", complete=True)
+    elif variant == "unanchored":
+        first, second = read("p", "100.00", complete=True, anchor=False), read("q", "100.00", complete=False, anchor=False)
+    else:
+        first, second = read("p", "100.00", complete=False), read("q", "100.00", complete=False)
+    assert complete_fact_superset(first, second, batch, root) is None
 
 
 def test_independent_qa_requires_complete_current_source_set(tmp_path):

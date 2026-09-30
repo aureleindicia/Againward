@@ -86,6 +86,14 @@ def _canonical_observations(extraction: DocumentExtraction, *,
         if kind is None and entity_kind_overrides is not None:
             kind = entity_kind_overrides.get(entity_id)
         kind_by_group[entity_id] = kind if isinstance(kind, str) else None
+        if kind == "SUPPORTING_DOCUMENT":
+            assets = values_by_field.get("asset_id", set())
+            serials = values_by_field.get("serial_number", set())
+            if len(assets) == 1 and len(serials) == 1:
+                anchor_by_group[entity_id] = "support-row-" + stable_hash({
+                    "source_id": extraction.source_id, "asset_id": next(iter(assets)),
+                    "serial_number": next(iter(serials))})[:24]
+                continue
         if "invoice_line_id" in fields:
             anchor_field = "invoice_line_id"
         elif kind == "CREDIT":
@@ -140,6 +148,12 @@ def _canonical_observations(extraction: DocumentExtraction, *,
         elif field in _SOURCE_METADATA_FIELDS and not (field == "invoice_id" and kind == "CREDIT"):
             scope = "SOURCE_METADATA"
             anchor = None
+        elif field == "agreement_id" and kind is None:
+            # An ungrouped agreement identifier is a source-bound relationship
+            # reference, not a new business entity created by a local label.
+            scope, anchor = "REFERENCE", None
+        elif field in {"date", "terms_unchanged"} and kind is None:
+            scope, anchor = "SOURCE_METADATA", None
         elif ((field == "invoice_line_id" and kind != "INVOICE_LINE")
               or (field == "invoice_id" and kind == "CREDIT")
               or (field == "asset_id" and kind in {None, "CREDIT"})):
@@ -163,14 +177,16 @@ def _canonical_observations(extraction: DocumentExtraction, *,
         structural_stub = (kind == "SUPPORTING_DOCUMENT" and field == "entity_kind"
                            and {item.semantic_type for item in groups.get(candidate.entity_id, [])
                                 if item.semantic_type not in _SOURCE_METADATA_FIELDS} == {"entity_kind"})
+        source_reference = field == "agreement_id" and kind is None and scope == "REFERENCE"
         observations.append({
             "source_id": candidate.source_id,
             "source_sha256": extraction.source_sha256,
             "scope": scope,
             "anchor": anchor,
             "semantic_type": field,
-            "material": (not structural_stub and (scope == "SOURCE_METADATA" or kind is None
-                         or field in MATERIAL_FIELDS.get(kind, set()))),
+            "material": (not structural_stub and not source_reference
+                         and (scope == "SOURCE_METADATA" or kind is None
+                              or field in MATERIAL_FIELDS.get(kind, set()))),
             "value_type": candidate.value_type,
             "value": value,
             "location": candidate.location,

@@ -339,12 +339,14 @@ def normalize_source_supported_rate_rows(extraction: DocumentExtraction,
                                         parsed: ParsedDocument) -> DocumentExtraction:
     """Bind explicit supporting rate-card rows without granting rate authority.
 
-    A source-level RATE_CARD / SUPPORTING_DOCUMENT reading can describe
-    separately priced native rows while the model leaves their local kinds
-    blank. When each row is exactly cited, line-bounded, and uniquely anchored
-    by asset and serial, the runtime can preserve it as a supporting record.
-    This is structural only: the rates never become RentalCase terms, and all
-    generated kind observations remain subject to ordinary fact review.
+    A source-level RATE_CARD can describe separately priced native rows while
+    the model omits their local kinds and explicit rate dimensions. When each
+    row is exactly cited, line-bounded, and uniquely anchored by asset and
+    serial, the runtime can bind its structure from an exact SUPPORTING_DOCUMENT
+    witness or the same source's explicit no-amendment statement. Dimensions
+    must be uniquely parseable from the exact row citation. This is structural
+    only: the rates never become RentalCase terms, and generated observations
+    remain subject to ordinary fact review.
     """
     from againward.evidence.hashing import stable_hash
 
@@ -359,7 +361,7 @@ def normalize_source_supported_rate_rows(extraction: DocumentExtraction,
         return extraction
     kinds_in_source = {candidate.value for candidate in candidates
                        if candidate.semantic_type == "entity_kind"}
-    if kinds_in_source != {"SUPPORTING_DOCUMENT"}:
+    if kinds_in_source - {"SUPPORTING_DOCUMENT"}:
         return extraction
     source_key = "runtime-source-" + stable_hash({
         "source_id": extraction.source_id, "source_sha256": extraction.source_sha256})[:24]
@@ -370,6 +372,7 @@ def normalize_source_supported_rate_rows(extraction: DocumentExtraction,
     if len(agreement_ids) <= 1:
         candidates = [replace(candidate, entity_id=source_key)
                       if candidate.semantic_type in {"document_role", "document_status", "agreement_id", "date"}
+                      or (roles == {"RATE_CARD"} and candidate.semantic_type == "terms_unchanged")
                       else candidate for candidate in candidates]
 
     groups: dict[str, list] = defaultdict(list)
@@ -381,26 +384,47 @@ def normalize_source_supported_rate_rows(extraction: DocumentExtraction,
     untyped = [(entity_id, rows) for entity_id, rows in groups.items()
                if not any(row.semantic_type == "entity_kind" for row in rows)
                and any(row.semantic_type in {"rate", "unit_rate"} for row in rows)]
-    if len(witnesses) != 1 or not untyped:
+    if not untyped:
         return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
-    witness_rows = witnesses[0][1]
-    witness_kinds = [row for row in witness_rows if row.semantic_type == "entity_kind"]
-    if (len(witness_kinds) != 1 or len(witness_rows) != 1
-            or witness_kinds[0].source_span is None
-            or "VISUAL_TRANSCRIPTION_UNVERIFIED" in witness_kinds[0].ambiguity_flags):
+    if len(witnesses) == 1:
+        witness_rows = witnesses[0][1]
+        witness_kinds = [row for row in witness_rows if row.semantic_type == "entity_kind"]
+        if (len(witness_kinds) != 1 or len(witness_rows) != 1
+                or witness_kinds[0].source_span is None
+                or "VISUAL_TRANSCRIPTION_UNVERIFIED" in witness_kinds[0].ambiguity_flags):
+            return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
+        witness = witness_kinds[0]
+    elif not witnesses:
+        # A rate-card row is only projected to a non-authoritative supporting
+        # record when the same native source explicitly says it does not amend
+        # the signed terms. The model may omit the structural kind; Python can
+        # bind it from that exact source fact without granting rate authority.
+        unchanged = [row for row in candidates if row.semantic_type == "terms_unchanged"]
+        if (len(unchanged) != 1 or unchanged[0].value is not True
+                or unchanged[0].source_span is None
+                or "VISUAL_TRANSCRIPTION_UNVERIFIED" in unchanged[0].ambiguity_flags):
+            return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
+        source_fact = unchanged[0]
+        witness = replace(source_fact, semantic_type="entity_kind", value_type="ENUM",
+            value="SUPPORTING_DOCUMENT", candidate_id="runtime-kind-" + stable_hash({
+                "source_id": extraction.source_id, "source_sha256": extraction.source_sha256,
+                "source_fact": source_fact.candidate_id, "kind": "SUPPORTING_DOCUMENT"})[:24],
+            normalization_notes=(source_fact.normalization_notes + "; " if source_fact.normalization_notes else "")
+                + "Derived non-authoritative supporting-record structure from explicit same-source no-amendment evidence.")
+    else:
         return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
-    witness = witness_kinds[0]
     native_units = {unit.unit_sha256: unit for unit in parsed.units if unit.route == "NATIVE"}
-    row_shapes: list[tuple[str, list, str, str, tuple[int, int], str]] = []
+    row_shapes: list[tuple[str, list, str, str, tuple[int, int], str, dict[str, object]]] = []
     allowed_row_fields = {"asset_id", "serial_number", "rate", "unit_rate", "currency",
                           "billing_unit", "quantity_basis", "weekends_billable", "charge_type"}
+    from againward.domains.rental.rate_dimensions import rate_dimensions
     anchors: set[tuple[str, str]] = set()
     for entity_id, rows in untyped:
         fields: dict[str, set[object]] = defaultdict(set)
         for row in rows:
             fields[row.semantic_type].add(row.value)
         if (not set(fields) <= allowed_row_fields
-                or not {"asset_id", "serial_number", "currency", "billing_unit", "quantity_basis"} <= set(fields)
+                or not {"asset_id", "serial_number", "currency"} <= set(fields)
                 or not (set(fields) & {"rate", "unit_rate"})
                 or {"rate", "unit_rate"} <= set(fields)
                 or any(len(values) != 1 for values in fields.values())):
@@ -422,14 +446,24 @@ def normalize_source_supported_rate_rows(extraction: DocumentExtraction,
         if (start < 0 or end > len(unit.text) or start >= end
                 or "\n" in unit.text[start:end] or "\r" in unit.text[start:end]):
             return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
-        row_shapes.append((entity_id, rows, asset, serial, (start, end), unit.text[start:end]))
+        line_text = unit.text[start:end]
+        dimensions = rate_dimensions(line_text)
+        if dimensions is None:
+            return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
+        # Explicit model fields must agree with the uniquely parsed native
+        # expression. Missing dimensions are safe to bind from that citation;
+        # conflicting or competing dimensions remain unresolved.
+        if any(field in fields and next(iter(fields[field])) != value
+               for field, value in dimensions.items()):
+            return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
+        row_shapes.append((entity_id, rows, asset, serial, (start, end), line_text, dimensions))
     if len(anchors) != len(untyped):
         return replace(extraction, candidates=tuple(candidates)) if tuple(candidates) != extraction.candidates else extraction
 
     # The source's exact supporting-document observation is the evidence for
     # this non-authoritative structural kind. Row citations and all commercial
     # values remain their own source-bound facts.
-    for entity_id, rows, asset, serial, span, _line_text in row_shapes:
+    for entity_id, rows, asset, serial, span, line_text, dimensions in row_shapes:
         runtime_id = "runtime-rate-row-" + stable_hash({
             "source_id": extraction.source_id, "source_sha256": extraction.source_sha256,
             "asset_id": asset, "serial_number": serial, "source_span": span})[:24]
@@ -442,6 +476,18 @@ def normalize_source_supported_rate_rows(extraction: DocumentExtraction,
             normalization_notes=(witness.normalization_notes + "; " if witness.normalization_notes else "")
                 + "Bound same-source supporting classification to one exact native rate row; no rate authority granted.")
         candidates.append(derived)
+        for field, value in dimensions.items():
+            if any(row.semantic_type == field for row in rows):
+                continue
+            template = next(row for row in rows if row.semantic_type in {"rate", "unit_rate"})
+            candidates.append(replace(template, candidate_id="runtime-dimension-" + stable_hash({
+                "source_id": extraction.source_id, "source_sha256": extraction.source_sha256,
+                "row_span": span, "field": field, "value": value})[:24],
+                entity_id=runtime_id, semantic_type=field,
+                value_type="BOOLEAN" if isinstance(value, bool) else "ENUM", value=value,
+                raw_observed_value=line_text, source_span=span,
+                normalization_notes=(template.normalization_notes + "; " if template.normalization_notes else "")
+                    + "Bound explicit rate dimensions from the exact native row citation."))
     if tuple(candidates) == extraction.candidates:
         return extraction
     return replace(extraction, candidates=tuple(candidates))

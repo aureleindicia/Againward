@@ -785,6 +785,38 @@ def adjudicate_with_codex(batch: SourceBatch, primary: tuple[DocumentExtraction,
         result["adjudication_sha256"] = stable_hash({k: v for k, v in result.items()
                                                      if k != "adjudication_sha256"})
         return result
+    if len(disputes) == 1:
+        from .reconciliation import complete_fact_superset
+        source_id = disputes[0]["source_id"]
+        primary_source = next(item for item in primary if item.source_id == source_id)
+        challenger_source = next(item for item in challenger if item.source_id == source_id)
+        dominant = complete_fact_superset(primary_source, challenger_source, batch, root)
+        if dominant is not None:
+            chosen, selection = dominant
+            document = next(item for item in batch.documents if item.source_id == source_id)
+            native_units = {unit.location: unit for unit in read_document(document, root).units
+                            if unit.route == "NATIVE"}
+            exact_native = [(candidate.raw_observed_value, candidate.location)
+                            for candidate in chosen.candidates
+                            if candidate.source_span is not None
+                            and candidate.location in native_units
+                            and candidate.raw_observed_value
+                            and native_units[candidate.location].text.count(candidate.raw_observed_value) == 1]
+            if exact_native:
+                quote, location = min(exact_native, key=lambda item: (len(item[0]), item[1], item[0]))
+                deterministic = validate_adjudication(batch, primary, challenger, qa, {"decisions": [{
+                    "source_id": source_id, "selection": selection,
+                    "rationale": ("Selected the complete source-bound reading because it strictly contains "
+                                  "the other reading's canonical observations without a value conflict or "
+                                  "unresolved scope. Ordinary fact review remains required."),
+                    "citations": [{"source_id": source_id, "location": location,
+                                   "quote": quote, "preview_sha256": ""}],
+                    "observations": []}]}, root, required_source_facts=required_source_facts,
+                    decision_source_id=source_id)
+                deterministic["resolution_method"] = "DETERMINISTIC_COMPLETE_FACT_SUPERSET"
+                deterministic["adjudication_sha256"] = stable_hash({key: value for key, value in
+                    deterministic.items() if key != "adjudication_sha256"})
+                return deterministic
     focused_ids = {row["source_id"] for row in disputes}
     focused_documents = tuple(document for document in batch.documents if document.source_id in focused_ids)
     parsed = [read_document(document, root) for document in focused_documents]

@@ -291,7 +291,8 @@ def test_failure_family_rate_support_entity_cannot_omit_its_kind(tmp_path):
         validate_rental_extraction(extraction)
 
 
-def _supporting_rate_card(tmp_path: Path, *, support_witness: bool = True, duplicate_anchor: bool = False):
+def _supporting_rate_card(tmp_path: Path, *, support_witness: bool = True, duplicate_anchor: bool = False,
+                          terms_unchanged: bool | None = True, include_dimensions: bool = True):
     content = ("Accepted rate card for agreement AGR-7 dated 2026-08-28.\n"
         "This duplicates signed terms and does not amend them.\n"
         "Asset A / serial S-A: net EUR 12.00 per asset per calendar day.\n"
@@ -307,6 +308,10 @@ def _supporting_rate_card(tmp_path: Path, *, support_witness: bool = True, dupli
         {"entity_id": "source-envelope", "semantic_type": "date", "value_type": "DATE",
          "value": "2026-08-28", "quote": "2026-08-28"},
     ]
+    if terms_unchanged is not None:
+        candidates.append({"entity_id": "source-terms", "semantic_type": "terms_unchanged",
+            "value_type": "BOOLEAN", "value": terms_unchanged,
+            "quote": "This duplicates signed terms and does not amend them."})
     if support_witness:
         candidates.append({"entity_id": "source-note", "semantic_type": "entity_kind", "value_type": "ENUM",
             "value": "SUPPORTING_DOCUMENT", "quote": "This duplicates signed terms and does not amend them."})
@@ -316,13 +321,22 @@ def _supporting_rate_card(tmp_path: Path, *, support_witness: bool = True, dupli
              "Asset A / serial S-A: net EUR 13.00 per asset per calendar day.")] if duplicate_anchor else [])),
         ("row-b", "B", "S-B", "9.00", "Asset B / serial S-B: net EUR 9.00 per asset per calendar day."),
     ):
-        for field, value, value_type in (
+        fields = [
             ("asset_id", "ASSET-" + asset, "IDENTIFIER"), ("serial_number", serial, "IDENTIFIER"),
             ("rate", amount, "DECIMAL"), ("currency", "EUR", "CURRENCY"),
-            ("billing_unit", "DAY", "ENUM"), ("quantity_basis", "PER_ITEM", "ENUM"),
-        ):
+        ]
+        if include_dimensions:
+            fields.extend([("billing_unit", "DAY", "ENUM"), ("quantity_basis", "PER_ITEM", "ENUM")])
+        for field, value, value_type in fields:
+            candidate_quote = quote
+            if field in {"asset_id", "serial_number"}:
+                candidate_quote = f"Asset {asset} / serial {serial}"
+            elif field == "rate":
+                candidate_quote = quote.split(": ", 1)[1]
+            elif field == "currency":
+                candidate_quote = "net EUR " + amount
             candidates.append({"entity_id": label, "semantic_type": field, "value_type": value_type,
-                               "value": value, "quote": quote})
+                               "value": value, "quote": candidate_quote})
     return _proposal(tmp_path, content, candidates)
 
 
@@ -346,8 +360,47 @@ def test_explicit_supporting_rate_card_rows_get_runtime_structure_not_authority(
         "This duplicates signed terms and does not amend them."}
 
 
-@pytest.mark.parametrize("duplicate_anchor", [False, True])
-def test_rate_card_rows_without_unique_supporting_structure_remain_incomplete(tmp_path, duplicate_anchor):
+def test_source_supported_non_amendment_rate_rows_get_structure_without_model_kind(tmp_path):
+    from againward.documents.readers import read_document
+    extraction = _supporting_rate_card(tmp_path, support_witness=False, include_dimensions=False)
+    source_root = tmp_path / "documents"
+    batch = inventory_sources(tmp_path / "incoming", source_root)
+    normalized = normalize_source_supported_rate_rows(
+        extraction, read_document(batch.documents[0], source_root))
+    validate_rental_extraction(normalized, require_package_facts=True)
+    by_entity = {}
+    for candidate in normalized.candidates:
+        by_entity.setdefault(candidate.entity_id, {})[candidate.semantic_type] = candidate
+    rows = [fields for fields in by_entity.values() if "rate" in fields]
+    assert len(rows) == 2
+    for fields in rows:
+        assert fields["entity_kind"].value == "SUPPORTING_DOCUMENT"
+        assert fields["billing_unit"].value == "DAY"
+        assert fields["quantity_basis"].value == "PER_ITEM"
+        assert fields["weekends_billable"].value is True
+        assert fields["entity_kind"].source_id == fields["rate"].source_id
+        assert fields["entity_kind"].unit_sha256 and fields["rate"].unit_sha256
+        assert "no rate authority granted" in fields["entity_kind"].normalization_notes
+    from againward.documents.extraction import replay_extraction
+    replayed = replay_extraction(normalized.to_dict(), batch, source_root)
+    assert replayed.to_dict() == normalized.to_dict()
+
+
+@pytest.mark.parametrize("terms_unchanged", [None, False])
+def test_rate_card_rows_without_explicit_non_amendment_proof_stay_incomplete(tmp_path, terms_unchanged):
+    from againward.documents.readers import read_document
+    extraction = _supporting_rate_card(tmp_path, support_witness=False, terms_unchanged=terms_unchanged)
+    source_root = tmp_path / "documents"
+    batch = inventory_sources(tmp_path / "incoming", source_root)
+    normalized = normalize_source_supported_rate_rows(
+        extraction, read_document(batch.documents[0], source_root))
+    with pytest.raises(DocumentError) as caught:
+        validate_rental_extraction(normalized)
+    assert caught.value.diagnostic["validation_code"] == "ENTITY_METADATA_REQUIRED"
+
+
+@pytest.mark.parametrize("duplicate_anchor", [True])
+def test_rate_card_rows_with_nonunique_occurrence_anchors_stay_incomplete(tmp_path, duplicate_anchor):
     from againward.documents.readers import read_document
     extraction = _supporting_rate_card(tmp_path, support_witness=False,
                                       duplicate_anchor=duplicate_anchor)
@@ -355,6 +408,54 @@ def test_rate_card_rows_without_unique_supporting_structure_remain_incomplete(tm
     batch = inventory_sources(tmp_path / "incoming", source_root)
     normalized = normalize_source_supported_rate_rows(
         extraction, read_document(batch.documents[0], source_root))
+    with pytest.raises(DocumentError) as caught:
+        validate_rental_extraction(normalized)
+    assert caught.value.diagnostic["validation_code"] == "ENTITY_METADATA_REQUIRED"
+
+
+def test_rate_card_projection_does_not_overwrite_conflicting_dimension(tmp_path):
+    from againward.documents.readers import read_document
+    extraction = _supporting_rate_card(tmp_path, support_witness=False)
+    contradictory = replace(extraction, candidates=(*extraction.candidates,
+        replace(next(row for row in extraction.candidates if row.semantic_type == "billing_unit"),
+                candidate_id="model-conflict", value="MONTH")))
+    source_root = tmp_path / "documents"
+    batch = inventory_sources(tmp_path / "incoming", source_root)
+    normalized = normalize_source_supported_rate_rows(
+        contradictory, read_document(batch.documents[0], source_root))
+    with pytest.raises(DocumentError) as caught:
+        validate_rental_extraction(normalized)
+    assert caught.value.diagnostic["validation_code"] == "STRUCTURAL_METADATA_CONFLICT"
+
+
+def test_rate_card_projection_requires_one_explicit_native_rate_expression(tmp_path):
+    from againward.documents.readers import read_document
+    content = ("Accepted rate card for agreement AGR-7.\n"
+        "This duplicates signed terms and does not amend them.\n"
+        "Asset A / serial S-A: EUR 12 per asset per day or EUR 300 per asset per month.")
+    candidates = [
+        {"entity_id": "envelope", "semantic_type": "document_role", "value_type": "ENUM",
+         "value": "RATE_CARD", "quote": "rate card"},
+        {"entity_id": "envelope", "semantic_type": "document_status", "value_type": "ENUM",
+         "value": "ACCEPTED", "quote": "Accepted"},
+        {"entity_id": "envelope", "semantic_type": "terms_unchanged", "value_type": "BOOLEAN",
+         "value": True, "quote": "This duplicates signed terms and does not amend them."},
+        {"entity_id": "row", "semantic_type": "asset_id", "value_type": "IDENTIFIER",
+         "value": "ASSET-A", "quote": "Asset A / serial S-A"},
+        {"entity_id": "row", "semantic_type": "serial_number", "value_type": "IDENTIFIER",
+         "value": "S-A", "quote": "Asset A / serial S-A"},
+        {"entity_id": "row", "semantic_type": "rate", "value_type": "DECIMAL",
+         "value": "12", "quote": "EUR 12 per asset per day or EUR 300 per asset per month"},
+        {"entity_id": "row", "semantic_type": "currency", "value_type": "CURRENCY",
+         "value": "EUR", "quote": "EUR 12"},
+    ]
+    extraction = _proposal(tmp_path, content, candidates)
+    source_root = tmp_path / "documents"
+    batch = inventory_sources(tmp_path / "incoming", source_root)
+    normalized = normalize_source_supported_rate_rows(
+        extraction, read_document(batch.documents[0], source_root))
+    assert not any(candidate.semantic_type == "entity_kind"
+                   and candidate.value == "SUPPORTING_DOCUMENT" for candidate in normalized.candidates)
     with pytest.raises(DocumentError) as caught:
         validate_rental_extraction(normalized)
     assert caught.value.diagnostic["validation_code"] == "ENTITY_METADATA_REQUIRED"

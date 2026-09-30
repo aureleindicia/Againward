@@ -21,6 +21,57 @@ ASSEMBLY_VERSION = "againward-explicit-assembly-v3-source-recovery"
 FACT_RECONCILIATION_VERSION = "againward-deterministic-fact-reconciliation-v1"
 
 
+def complete_fact_superset(primary: DocumentExtraction, challenger: DocumentExtraction,
+                           batch: SourceBatch, root: Path) -> tuple[DocumentExtraction, str] | None:
+    """Select a complete read only when it contains the other's full canonical evidence set.
+
+    This is narrower than fact union: it applies when one current, source-bound
+    proposal is a strict semantic superset of the other, has no contradiction
+    or unresolved scope, and independently passes selected-proposal
+    completeness. The smaller read contributes no unique fact that would be
+    lost. Selection remains unapproved and normal fact review still follows.
+    """
+    if (primary.source_id != challenger.source_id or primary.source_sha256 != challenger.source_sha256
+            or primary.status == "FAILED" or challenger.status == "FAILED"
+            or primary.limitations or challenger.limitations):
+        return None
+    primary = replay_extraction(primary.to_dict(), batch, root)
+    challenger = replay_extraction(challenger.to_dict(), batch, root)
+    from .independent_qa import _canonical_observations, _observation_comparison, _observation_key
+    from againward.domains.rental.extraction_validation import (occurrence_kind_overrides,
+        validate_rental_extraction)
+
+    first = _canonical_observations(primary,
+        entity_kind_overrides=occurrence_kind_overrides(primary, (challenger,)))
+    second = _canonical_observations(challenger,
+        entity_kind_overrides=occurrence_kind_overrides(challenger, (primary,)))
+    if (any(row["scope"] == "UNKNOWN" and row["material"] for row in (*first, *second))
+            or any(row["anchor"] is None and row["material"]
+                   and row["scope"] != "SOURCE_METADATA" for row in (*first, *second))):
+        return None
+    comparison = _observation_comparison(first, second)
+    if comparison["conflicting_fields"] or comparison["unknown_fields"]:
+        return None
+    first_keys = {_observation_key(row) for row in first}
+    second_keys = {_observation_key(row) for row in second}
+    if first_keys > second_keys:
+        options = ((primary, "PRIMARY"),)
+    elif second_keys > first_keys:
+        options = ((challenger, "CHALLENGER"),)
+    else:
+        return None
+    for candidate, selection in options:
+        try:
+            validate_rental_extraction(candidate, require_package_facts=True)
+        except DocumentError:
+            return None
+        # A selection receipt must cite the same current original source. All
+        # candidates were already replay-validated, so the caller can bind one
+        # exact citation when producing the deterministic decision record.
+        return candidate, selection
+    return None
+
+
 def _build_assembly(primary: DocumentExtraction, challenger: DocumentExtraction,
                           dispositions: list[dict[str, Any]], batch: SourceBatch,
                           root: Path, *, native_observations: list[dict[str, Any]] | None = None,
