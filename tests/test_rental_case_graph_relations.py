@@ -12,6 +12,7 @@ from againward.domains.rental.case_graph import empty_graph, import_reading, rep
 from againward.domains.rental.case_graph_actions import apply_action, bind_action
 from againward.domains.rental.case_graph_relations import relation_view, reduce_relations
 from againward.domains.rental.case_graph_review import invoke_occurrence_review, reduce_review
+from againward.domains.rental.entity_contract import MODEL_VALUE_TYPES
 
 
 def occurrences(tmp_path, monkeypatch, records, *, review=True):
@@ -31,7 +32,7 @@ def occurrences(tmp_path, monkeypatch, records, *, review=True):
         parsed = read_document(doc, root)
         raw = {"status": "SUCCESS", "limitations": [], "candidates": [
             {"entity_id": "not-an-identity", "semantic_type": key,
-             "value_type": "CURRENCY" if key == "currency" else "TEXT",
+             "value_type": MODEL_VALUE_TYPES.get(key, "TEXT"),
              "value": value, "raw_observed_value": f"{key}: {value}",
              "location": next(unit.location for unit in parsed.units if f"{key}: {value}" in unit.text),
              "normalization_notes": "", "ambiguity_flags": []}

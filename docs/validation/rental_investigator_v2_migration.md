@@ -228,3 +228,28 @@ anchors, conflicting suppliers/currencies, unreviewed subjects, newly competing
 scopes, changed reviews, replay forgery, identity versus commercial effect, and
 order invariance). Ruff and explicit mypy on the five graph modules pass. This
 step does not yet resolve semantic links that lack exact identifier anchors.
+
+## Reviewed semantic deltas
+
+Bounded claims now distinguish charge meaning, governing-term authority and
+observation disposition from structural occurrence review. Each claim is an open
+issue until its own independent original-source review supports it. The shared
+review runner renders each referenced source separately and binds all current
+source hashes and pixels. It does not copy a related commercial observation into
+the invoice. Commercial evidence must belong to the reviewed target or an exact,
+current, confirmed relationship; unrelated or ambiguous relationships cannot
+expand that evidence set. Governing authority additionally requires explicit
+reviewed acceptance evidence; a rate-card role is insufficient.
+
+Rejected/irrelevant/duplicate dispositions preserve the original observation.
+Equal text alone cannot establish duplication. The effective materiality frontier
+consults current claim reviews, not editable disposition flags. A rejection that
+conflicts with a current occurrence approval remains unresolved. Stale claims
+cannot retain authority merely because their issue once became `RESOLVED`.
+
+All live claim application and replay use one reducer and the common transaction
+path. 70 targeted graph tests pass, with 13 new semantic-claim tests covering
+cross-source support, unrelated/ambiguous evidence, rejected subjects, authority,
+current dependency invalidation, competing dispositions, forged receipts and
+HUMAN flags. Ruff and explicit mypy on six V2 modules pass. No investigator run,
+readiness success, calculation, or end-to-end validation is claimed yet.
