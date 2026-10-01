@@ -118,6 +118,11 @@ def replay_evidence(graph: dict[str, Any], root: Path) -> dict[str, Any]:
     verify_batch(batch, root)
     rebuilt = empty_graph(batch)
     for event in graph["actions"]:
+        if isinstance(event, dict) and event.get("type") == "RELATION_REFRESH":
+            from .case_graph_relations import reduce_relations
+            closed(event, {"type", "validator_version", "pre_state_hash", "post_state_hash"})
+            rebuilt = reduce_relations(rebuilt)
+            continue
         if isinstance(event, dict) and event.get("type") == "MODEL_REVIEW":
             from .case_graph_review import reduce_review
             closed(event, {"type", "receipt_sha256", "validator_version", "pre_state_hash", "post_state_hash"})

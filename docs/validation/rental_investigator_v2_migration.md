@@ -198,3 +198,33 @@ unchanged HOLDOUT guards refusing the uncommitted engine (786.42 s). The final
 targeted suite additionally covers two transaction tests added during that run.
 The guards will be checked on the committed engine. This is not an end-to-end
 claim. Both CI runs for checkpoint `42651db` completed successfully.
+
+Local reviews checkpoint: `0211ae65afc0a531c665a2db32fbf14baf5b6122`, pushed.
+Both unchanged HOLDOUT guards pass on that committed engine (12.51 s).
+
+## Exact occurrence relationships
+
+The V2 graph can now derive identity links from exact reviewed anchors, without
+constructing legacy entity/fact-review artifacts. Agreement plus asset/serial
+can identify a unique rental scope; invoice plus printed line and matching
+currency can identify a credit target. Any supplied contradicting identifier
+rejects the pair. A partial second plausible target prevents convenient selection
+of the stronger match. An unreviewed endpoint cannot produce a confirmed edge.
+
+These relationships preserve both source IDs and all anchor observation IDs.
+No attributes are copied. Identity confirmation grants neither contractual
+authority, billing-stop effect, nor a financial allocation amount. Incomplete
+identity remains a candidate for investigation; non-exact semantic relationships
+still need the forthcoming bounded action/review path.
+
+The relationship view is recomputed from current local subjects, their latest
+reviews, and competing targets. A deterministic refresh journals the view and
+its issues for replay. Adding a plausible alternative or changing a prerequisite
+review cannot preserve an earlier confirmation. Downstream readiness must use
+this current view rather than an old stored `CONFIRMED` flag.
+
+57 targeted graph tests pass, including 15 relationship tests (unique and partial
+anchors, conflicting suppliers/currencies, unreviewed subjects, newly competing
+scopes, changed reviews, replay forgery, identity versus commercial effect, and
+order invariance). Ruff and explicit mypy on the five graph modules pass. This
+step does not yet resolve semantic links that lack exact identifier anchors.
