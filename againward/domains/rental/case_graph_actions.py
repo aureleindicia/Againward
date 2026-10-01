@@ -109,6 +109,9 @@ def _change(graph: dict[str, Any], action: dict[str, Any]) -> None:
         occurrence["fields"] = _fields(graph, sorted(existing | set(evidence)), source)
         occurrence["state"] = "PROPOSED"
         occurrence["revision"] += 1
+        for issue in graph["issues"].values():
+            if issue.get("origin") == "ACTION" and issue.get("details", {}).get("target") == action["target"]:
+                issue["state"] = "OPEN"
     else:
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown semantic action")
 
@@ -144,17 +147,5 @@ def apply_action(graph: dict[str, Any], action: dict[str, Any], root: Path) -> d
 
 def commit_action(graph: dict[str, Any], action: dict[str, Any], root: Path) -> dict[str, Any]:
     """Atomically persist the receipt/state and compare-and-swap the local head."""
-    from againward.core.artifact_store import read_json, transaction, write_json
-    from .case_graph import graph_hash
-    head = root / "case_graph_v2" / "head.json"
-    with transaction(root):
-        if head.exists() and read_json(head).get("graph_sha256") != graph_hash(graph):
-            raise DocumentError("REVIEW_STALE", "A concurrent action changed the graph head")
-        result = apply_action(graph, action, root)
-        sha = graph_hash(result)
-        path = root / "case_graph_v2" / (sha + ".json")
-        if path.exists() and read_json(path) != result:
-            raise DocumentError("SOURCE_CHANGED", "Immutable graph snapshot changed")
-        write_json(path, result)
-        write_json(head, {"graph_sha256": sha})
-    return result
+    from .case_graph import commit_transition
+    return commit_transition(graph, root, lambda current: reduce_action(current, action))

@@ -22,7 +22,9 @@ def observation_questions(graph: dict[str, Any]) -> dict[str, Any]:
         body = {"kind": kind, "source_id": source,
                 "observation_ids": sorted(observation_ids), "details": details,
                 "state": "OPEN", "materiality": "POTENTIALLY_MATERIAL"}
-        issues["issue-" + stable_hash(body)] = body
+        identity = {"kind": kind, "source_id": source, "observation_ids": sorted(observation_ids),
+                    "details": {key: value for key, value in details.items() if key != "corroborated"}}
+        issues["issue-" + stable_hash(identity)] = body
 
     for oid, observation in graph["observations"].items():
         field = observation["semantic_type"]

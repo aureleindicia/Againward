@@ -6,6 +6,7 @@ not promote facts, infer authority or make an observation a business entity.
 from __future__ import annotations
 
 from copy import deepcopy
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -93,7 +94,12 @@ def import_reading(graph: dict[str, Any], payload: dict[str, Any], root: Path,
             **atom, "origins": [], "disposition": "UNRESOLVED"})
         row["origins"].append(origin)
         row["origins"].sort(key=stable_hash)
-    result["issues"] = observation_questions(result)
+    questions = observation_questions(result)
+    for qid, question in questions.items():
+        if qid in result["issues"]:
+            question["state"] = result["issues"][qid]["state"]
+    questions.update({qid: issue for qid, issue in result["issues"].items() if issue.get("origin") == "ACTION"})
+    result["issues"] = questions
     result["actions"].append({"type": "IMPORT_READING", "reading_id": reading_id,
                               "validator_version": VERSION, "result": "ACCEPTED",
                               "pre_state_hash": state_hash(graph),
@@ -112,6 +118,11 @@ def replay_evidence(graph: dict[str, Any], root: Path) -> dict[str, Any]:
     verify_batch(batch, root)
     rebuilt = empty_graph(batch)
     for event in graph["actions"]:
+        if isinstance(event, dict) and event.get("type") == "MODEL_REVIEW":
+            from .case_graph_review import reduce_review
+            closed(event, {"type", "receipt_sha256", "validator_version", "pre_state_hash", "post_state_hash"})
+            rebuilt = reduce_review(rebuilt, event["receipt_sha256"], root)
+            continue
         if isinstance(event, dict) and event.get("type") == "SEMANTIC_ACTION":
             from .case_graph_actions import reduce_action
             closed(event, {"type", "action_id", "action", "validator_version", "result",
@@ -142,3 +153,17 @@ def save_evidence(graph: dict[str, Any], root: Path) -> Path:
         else:
             write_json(path, graph)
     return path
+
+
+def commit_transition(graph: dict[str, Any], root: Path,
+                      transition: Callable[[dict[str, Any]], dict[str, Any]]) -> dict[str, Any]:
+    """Single transactional persistence path for Python-validated graph events."""
+    head = root / "case_graph_v2" / "head.json"
+    with transaction(root):
+        if head.exists() and read_json(head).get("graph_sha256") != graph_hash(graph):
+            raise DocumentError("REVIEW_STALE", "A concurrent action changed the graph head")
+        replay_evidence(graph, root)
+        result = transition(deepcopy(graph))
+        save_evidence(result, root)  # Replay the entire result before the commit point.
+        write_json(head, {"graph_sha256": graph_hash(result)})
+    return result

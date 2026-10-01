@@ -1,8 +1,9 @@
 # Rental Agentic Case Investigator V2 — migration record
 
 Baseline: `c43cb924a7547f081f8d0ffa2dbc349a126b9beb`.
-Status: evidence graph and structural proposal actions implemented; investigator,
-semantic review, readiness and downstream adapter remain in progress. No V2
+Status: evidence graph, structural proposal actions and local original-source
+reviews implemented; investigator, relations, readiness and downstream adapter
+remain in progress. No V2
 end-to-end result claimed.
 
 ## Causal boundary
@@ -172,3 +173,28 @@ modules pass. The initial full regression/benchmarks above remain the baseline
 checks; another full suite is required as the migration progresses. No A/B live
 run has been launched. Semantic review, relations, material dispositions and the
 readiness gate are not yet supplied by these structural proposal actions.
+
+## Local original-source review
+
+An occurrence review now consumes the original native units and actual rendered
+pages, plus the exact attached observations and proposed grouping. Runtime owns
+the invocation receipt, role (`MODEL` only), local prerequisite digest and render
+hashes. Replaying a review verifies these dependencies without another model call.
+The latest matching review governs; an older positive review cannot override a
+new ambiguous verdict. Structural support still grants no contractual authority.
+
+Unrelated occurrences and equivalent rereads do not invalidate a local review.
+Changing the actual subject does. A rejected grouping keeps its observations and
+creates an explicit open issue. Both reviews and proposal actions use one
+transactional persistence path, with full replay before updating the graph head;
+an unjournaled promotion cannot commit.
+
+42 targeted tests pass, including native and actual rendered visual review,
+source mutation, forged HUMAN receipts, local invalidation, latest-review
+selection, equivalent reread, and concurrent/stale writes. Configured Ruff/mypy
+and explicit checks of the four V2 modules pass. Rental 15/15 and privacy 19/19
+pass again. The expanded full regression completed with 1195 passed and the two
+unchanged HOLDOUT guards refusing the uncommitted engine (786.42 s). The final
+targeted suite additionally covers two transaction tests added during that run.
+The guards will be checked on the committed engine. This is not an end-to-end
+claim. Both CI runs for checkpoint `42651db` completed successfully.
