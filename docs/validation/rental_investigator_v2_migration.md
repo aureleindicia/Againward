@@ -336,3 +336,31 @@ frontier/readiness/projection tests. Repository and explicit V2 Ruff pass;
 configured mypy (18 files) and explicit V2 mypy (10 files) pass. The reader's
 1257-test full result above predates these projection modules; their full
 regression checkpoint is still pending.
+
+Projection checkpoint `1341ef910697a81d0157e3de0bcb1995908e86aa` subsequently
+passed **1277 tests in 783.30 seconds** in its clean detached worktree. Both CI
+runs succeeded. Rental 15/15 and privacy 19/19 also passed at this checkpoint.
+
+## Local repair and reading-issue resolution
+
+`REPLACE_OBSERVATIONS` edits one proposed occurrence while preserving its exact
+identity witnesses. It never deletes observations, moves them across sources or
+preserves the old positive review after the subject changes. Removed evidence
+returns to the unresolved frontier unless another current decision accounts for
+it. The same reducer handles execution, rejection, idempotence and replay.
+
+A bounded `READING_ISSUE_RESOLUTION` claim can address a quarantined observation,
+empty read or stated limitation. `RECOVERED` requires currently reviewed evidence;
+`NO_MATERIAL_EFFECT` still requires independent original-source review. Neither
+claim can resolve arbitrary business conflicts or borrow foreign evidence. The
+review sees the actual failed raw observation where retained, the limitation,
+all current observations of that source, and the original native units/pixels.
+New evidence in the source invalidates the prior resolution. A merely proposed
+or ambiguous resolution cannot clear the materiality gate.
+
+Versioned replay retains support for previous V2 structural-action and claim
+journals; new actions cannot masquerade as old validator capabilities. The graph
+suite passes 111 tests, with an additional foreign-source resolution test passing
+afterward (six issue-resolution tests total). Repository/explicit Ruff and
+configured/explicit mypy pass. Investigator orchestration and complete V2
+end-to-end validation remain unfinished.

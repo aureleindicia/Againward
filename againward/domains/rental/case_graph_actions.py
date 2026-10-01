@@ -12,7 +12,7 @@ from typing import Any
 from againward.documents.contracts import DocumentError, closed
 from againward.evidence.hashing import stable_hash
 
-VERSION = "rental-graph-actions-v1"
+VERSION = "rental-graph-actions-v2-local-repair"
 KINDS = frozenset({"INVOICE_LINE", "RENTAL_SCOPE", "RATE_TERM", "EVENT", "CREDIT", "SUPPORTING_RECORD"})
 KEYS = {"type", "target", "kind", "evidence_ids", "anchor_ids"}
 
@@ -35,14 +35,14 @@ def bind_action(graph: dict[str, Any], proposal: dict[str, Any]) -> dict[str, An
     closed(proposal, {"type", "evidence_ids"}, optional={"target", "kind", "anchor_ids"})
     proposal = {"target": "", "kind": "", "anchor_ids": [], **proposal}
     if (not isinstance(proposal["type"], str)
-            or proposal["type"] not in {"DECLARE_OCCURRENCE", "ATTACH_OBSERVATIONS"}
+            or proposal["type"] not in {"DECLARE_OCCURRENCE", "ATTACH_OBSERVATIONS", "REPLACE_OBSERVATIONS"}
             or not isinstance(proposal["target"], str) or len(proposal["target"]) > 160
             or not isinstance(proposal["kind"], str)):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown semantic action shape")
     evidence = _ids(proposal["evidence_ids"])
     anchors = _ids(proposal["anchor_ids"]) if proposal["type"] == "DECLARE_OCCURRENCE" else []
-    if proposal["type"] == "ATTACH_OBSERVATIONS" and proposal["anchor_ids"] != []:
-        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Attachment cannot replace identity")
+    if proposal["type"] != "DECLARE_OCCURRENCE" and proposal["anchor_ids"] != []:
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Occurrence edits cannot replace identity")
     dependencies = {}
     for oid in evidence:
         if oid in graph["observations"]:
@@ -99,14 +99,17 @@ def _change(graph: dict[str, Any], action: dict[str, Any]) -> None:
         graph["occurrences"][oid] = {**identity, "fields": _fields(graph, evidence, source),
             "origin": "MODEL_STRUCTURE_PROPOSAL", "state": "PROPOSED", "revision": 1,
             "authority": "NONE"}
-    elif action["type"] == "ATTACH_OBSERVATIONS":
+    elif action["type"] in {"ATTACH_OBSERVATIONS", "REPLACE_OBSERVATIONS"}:
         occurrence = graph["occurrences"].get(action["target"])
         if occurrence is None or occurrence["source_id"] != source or action["kind"]:
             raise DocumentError("ENTITY_AMBIGUOUS", "Known same-source target required")
         existing = {oid for values in occurrence["fields"].values() for oid in values}
-        if set(evidence) <= existing:
+        selected = existing | set(evidence) if action["type"] == "ATTACH_OBSERVATIONS" else set(evidence)
+        if not set(occurrence["anchor_ids"]) <= selected:
+            raise DocumentError("ENTITY_AMBIGUOUS", "Local repair must preserve occurrence identity witnesses")
+        if selected == existing:
             return
-        occurrence["fields"] = _fields(graph, sorted(existing | set(evidence)), source)
+        occurrence["fields"] = _fields(graph, sorted(selected), source)
         occurrence["state"] = "PROPOSED"
         occurrence["revision"] += 1
         for issue in graph["issues"].values():
@@ -116,10 +119,13 @@ def _change(graph: dict[str, Any], action: dict[str, Any]) -> None:
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown semantic action")
 
 
-def reduce_action(graph: dict[str, Any], action: dict[str, Any]) -> dict[str, Any]:
+def reduce_action(graph: dict[str, Any], action: dict[str, Any], *, validator_version: str = VERSION) -> dict[str, Any]:
     """Pure reducer shared by live execution and replay; rejected delta is atomic."""
     from .case_graph import state_hash
     closed(action, KEYS | {"prerequisites"})
+    if validator_version not in {VERSION, "rental-graph-actions-v1"} or (
+            validator_version == "rental-graph-actions-v1" and action["type"] == "REPLACE_OBSERVATIONS"):
+        raise DocumentError("SOURCE_CHANGED", "Unknown or incompatible action validator version")
     # Validate bounded model notation even during replay; no arbitrary patch API.
     bind_action(graph, {key: action[key] for key in KEYS})
     action_id = "action-" + stable_hash(action)
@@ -133,7 +139,7 @@ def reduce_action(graph: dict[str, Any], action: dict[str, Any]) -> dict[str, An
         result = deepcopy(graph)
         code = exc.code
     result["actions"].append({"type": "SEMANTIC_ACTION", "action_id": action_id,
-        "action": deepcopy(action), "validator_version": VERSION,
+        "action": deepcopy(action), "validator_version": validator_version,
         "pre_state_hash": state_hash(graph), "post_state_hash": state_hash(result),
         "result": "REJECTED" if code else "ACCEPTED_PROPOSAL", "rejection_code": code})
     return result

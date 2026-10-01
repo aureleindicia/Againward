@@ -54,6 +54,7 @@ def review_request(graph: dict[str, Any], target: str) -> dict[str, Any]:
         identity = deepcopy(issue["details"]["proposal"])
         prerequisites = claim_context(graph, identity)
         evidence = set(identity["evidence_ids"])
+        evidence.update(prerequisites.get("source_observations", {}))
         subject = graph["occurrences"].get(identity["target"])
         if subject is not None:
             evidence.update(oid for values in subject["fields"].values() for oid in values)
@@ -75,6 +76,8 @@ def _context(graph: dict[str, Any], request: dict[str, Any], root: Path,
     pictures: list[Path] = []
     all_renders = {}
     characters = 0
+    reading_issue = (request["subject_type"] == "SEMANTIC_CLAIM"
+                     and request["subject"]["kind"] == "READING_ISSUE_RESOLUTION")
     for source in sorted({row["source_id"] for row in request["observations"].values()}):
         document = next((d for d in batch.documents if d.source_id == source), None)
         if document is None:
@@ -82,7 +85,7 @@ def _context(graph: dict[str, Any], request: dict[str, Any], root: Path,
         parsed = read_document(document, root)
         rows = [row for row in request["observations"].values() if row["source_id"] == source]
         needed = {row["location"] for row in rows}
-        units = tuple(unit for unit in parsed.units if unit.route == "NATIVE" or unit.location in needed)
+        units = tuple(unit for unit in parsed.units if reading_issue or unit.route == "NATIVE" or unit.location in needed)
         characters += sum(len(unit.text) for unit in units)
         if characters > 60_000:
             raise DocumentError("RESOURCE_LIMIT", "Local source review needs a narrower inspection")
@@ -100,7 +103,21 @@ def _context(graph: dict[str, Any], request: dict[str, Any], root: Path,
             "image_locations": [unit.location for unit in visual_units]})
         pictures.extend(images)
         all_renders[source] = renders
-    return {"sources": contexts, "render_hashes": all_renders}, tuple(pictures)
+    context = {"sources": contexts, "render_hashes": all_renders}
+    if reading_issue:
+        issue = request["semantic_prerequisites"]["issue"]
+        details = issue["details"]
+        raw_issue = {"kind": issue["kind"], "details": details}
+        receipt_sha = details.get("receipt_sha256")
+        if receipt_sha:
+            receipt = read_json(root / "case_graph_v2" / "reader_invocations" / (receipt_sha + ".json"))
+            if stable_hash({key: value for key, value in receipt.items() if key != "receipt_sha256"}) != receipt_sha:
+                raise DocumentError("SOURCE_CHANGED", "Reading issue receipt changed")
+            if issue["kind"] == "READING_REJECTION":
+                raw_issue["rejected_model_observation"] = receipt["response"]["observations"][details["index"]]
+            raw_issue["model_limitations"] = receipt["response"]["limitations"]
+        context["reading_issue"] = raw_issue
+    return context, tuple(pictures)
 
 
 def _response(value: Any) -> dict[str, str]:
@@ -145,6 +162,11 @@ def invoke_occurrence_review(graph: dict[str, Any], target: str, root: Path, *,
             "excluded without hiding a financially material uncertainty. A rejected observation need not "
             "itself be true: review the proposed disposition, not that observation's original interpretation. "
             "DUPLICATE requires the same fact and occurrence, not just equal amounts. "
+            "For READING_ISSUE_RESOLUTION, inspect the specific failed observation or limitation "
+            "and the full original source. RECOVERED requires reviewed evidence answering precisely "
+            "that gap; unrelated valid facts are insufficient. NO_MATERIAL_EFFECT requires a "
+            "source-supported reason that this gap cannot change the financial interpretation. "
+            "Neither resolution licenses discarding other open issues or inventing missing facts. "
             "Return SUPPORTED only if the proposed decision is source-supported; UNSUPPORTED if false "
             "or unsupported; AMBIGUOUS if genuinely uncertain. No invented values or relations. ")
         prompt = instructions + (

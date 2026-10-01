@@ -16,21 +16,23 @@ from againward.evidence.hashing import stable_hash
 from .case_graph_actions import _ids, observation_dependency
 from .entity_contract import CHARGE_TYPES
 
-VERSION = "rental-graph-claims-v1"
+VERSION = "rental-graph-claims-v2-reading-issues"
 KEYS = {"kind", "target", "value", "evidence_ids", "reason"}
 DISPOSITIONS = {"REJECTED_WITH_EVIDENCE", "IRRELEVANT", "DUPLICATE"}
+READING_ISSUES = {"READING_REJECTION", "READING_LIMITATION", "EMPTY_READING"}
 
 
 def _shape(proposal: dict[str, Any]) -> None:
     closed(proposal, KEYS)
     if (not isinstance(proposal["kind"], str)
-            or proposal["kind"] not in {"CHARGE_MEANING", "GOVERNING_TERM", "OBSERVATION_DISPOSITION"}
+            or proposal["kind"] not in {"CHARGE_MEANING", "GOVERNING_TERM", "OBSERVATION_DISPOSITION", "READING_ISSUE_RESOLUTION"}
             or not isinstance(proposal["target"], str) or not 1 <= len(proposal["target"]) <= 160
             or not isinstance(proposal["value"], str)
             or not isinstance(proposal["reason"], str) or not 1 <= len(proposal["reason"]) <= 2000):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Bounded semantic claim required")
     allowed = (CHARGE_TYPES if proposal["kind"] == "CHARGE_MEANING" else
-               {"GOVERNING", "NOT_GOVERNING"} if proposal["kind"] == "GOVERNING_TERM" else DISPOSITIONS)
+               {"GOVERNING", "NOT_GOVERNING"} if proposal["kind"] == "GOVERNING_TERM" else
+               {"RECOVERED", "NO_MATERIAL_EFFECT"} if proposal["kind"] == "READING_ISSUE_RESOLUTION" else DISPOSITIONS)
     if proposal["value"] not in allowed:
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown semantic decision")
     _ids(proposal["evidence_ids"])
@@ -44,7 +46,17 @@ def claim_context(graph: dict[str, Any], proposal: dict[str, Any]) -> dict[str, 
     ids = proposal["evidence_ids"]
     dependencies: dict[str, Any] = {"observations": {oid: observation_dependency(graph["observations"][oid])
                     for oid in ids if oid in graph["observations"]}, "subjects": {}, "relations": {}}
-    if proposal["kind"] == "OBSERVATION_DISPOSITION":
+    if proposal["kind"] == "READING_ISSUE_RESOLUTION":
+        issue = graph["issues"].get(target)
+        dependencies["issue"] = {key: value for key, value in (issue or {}).items() if key != "state"}
+        source = issue.get("source_id") if issue else None
+        # Later evidence in this source can overturn an old irrelevance or
+        # recovery judgment. Unrelated sources do not invalidate it.
+        dependencies["source_observations"] = {oid: observation_dependency(row)
+            for oid, row in graph["observations"].items() if row["source_id"] == source}
+        subjects = {oid for oid, occurrence in graph["occurrences"].items()
+                    if set(ids) & {i for group in occurrence["fields"].values() for i in group}}
+    elif proposal["kind"] == "OBSERVATION_DISPOSITION":
         if target in graph["observations"]:
             dependencies["observations"][target] = observation_dependency(graph["observations"][target])
         subjects = {oid for oid, occurrence in graph["occurrences"].items()
@@ -77,6 +89,19 @@ def validate_claim(graph: dict[str, Any], proposal: dict[str, Any]) -> None:
         raise DocumentError("SOURCE_LOCATION_INVALID", "Claim cites unknown observations")
     target = proposal["target"]
     context = claim_context(graph, proposal)
+    if proposal["kind"] == "READING_ISSUE_RESOLUTION":
+        issue = graph["issues"].get(target)
+        if not issue or issue["kind"] not in READING_ISSUES or not issue.get("source_id"):
+            raise DocumentError("ENTITY_AMBIGUOUS", "Known source-local reading issue required")
+        if any(graph["observations"][oid]["source_id"] != issue["source_id"] for oid in ids):
+            raise DocumentError("SOURCE_LOCATION_INVALID", "Reading issue cannot borrow foreign evidence")
+        if proposal["value"] == "RECOVERED":
+            reviewed = {oid for subject, dependency in context["subjects"].items()
+                if dependency["review"] and dependency["review"]["verdict"] == "SUPPORTED"
+                for group in graph["occurrences"][subject]["fields"].values() for oid in group}
+            if not ids <= reviewed:
+                raise DocumentError("REVIEW_STALE", "Recovered observations require current review")
+        return
     if proposal["kind"] == "OBSERVATION_DISPOSITION":
         row = graph["observations"].get(target)
         if row is None or target not in ids:
@@ -115,9 +140,12 @@ def validate_claim(graph: dict[str, Any], proposal: dict[str, Any]) -> None:
             raise DocumentError("EXTRACTION_INCOMPLETE", "Explicit reviewed acceptance evidence required")
 
 
-def reduce_claim(graph: dict[str, Any], action: dict[str, Any]) -> dict[str, Any]:
+def reduce_claim(graph: dict[str, Any], action: dict[str, Any], *, validator_version: str = VERSION) -> dict[str, Any]:
     from .case_graph import state_hash
     closed(action, KEYS | {"prerequisites"})
+    if validator_version not in {VERSION, "rental-graph-claims-v1"} or (
+            validator_version == "rental-graph-claims-v1" and action["kind"] == "READING_ISSUE_RESOLUTION"):
+        raise DocumentError("SOURCE_CHANGED", "Unknown or incompatible claim validator version")
     proposal = {key: action[key] for key in KEYS}
     _shape(proposal)
     action_id = "claim-action-" + stable_hash(action)
@@ -137,7 +165,7 @@ def reduce_claim(graph: dict[str, Any], action: dict[str, Any]) -> dict[str, Any
         result = deepcopy(graph)
         code = exc.code
     result["actions"].append({"type": "CLAIM_PROPOSAL", "action_id": action_id, "action": deepcopy(action),
-        "validator_version": VERSION, "pre_state_hash": state_hash(graph), "post_state_hash": state_hash(result),
+        "validator_version": validator_version, "pre_state_hash": state_hash(graph), "post_state_hash": state_hash(result),
         "result": "REJECTED" if code else "ACCEPTED_PROPOSAL", "rejection_code": code})
     return result
 

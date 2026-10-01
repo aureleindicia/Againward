@@ -10,7 +10,7 @@ from typing import Any
 
 from againward.evidence.hashing import stable_hash
 
-from .case_graph_claims import current_claims, observation_disposition
+from .case_graph_claims import READING_ISSUES, current_claims, observation_disposition
 from .case_graph_relations import relation_view
 from .case_graph_review import current_review
 
@@ -52,6 +52,9 @@ def materiality_frontier(graph: dict[str, Any]) -> dict[str, Any]:
         elif kind == "RELATIONSHIP":
             relation = relations.get(issue.get("details", {}).get("relation_id"))
             settled = bool(relation and relation["state"] in {"CONFIRMED", "REJECTED"})
+        elif kind in READING_ISSUES:
+            resolutions = current_claims(graph, "READING_ISSUE_RESOLUTION", iid)
+            settled = len({row["proposal"]["value"] for row in resolutions}) == 1
         if not settled:
             blockers.append({"kind": kind, "target": iid, "source_id": issue.get("source_id")})
     # Empty/unread sources cannot disappear from the frontier merely because

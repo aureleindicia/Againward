@@ -127,7 +127,7 @@ def replay_evidence(graph: dict[str, Any], root: Path) -> dict[str, Any]:
             from .case_graph_claims import reduce_claim
             closed(event, {"type", "action_id", "action", "validator_version", "result",
                            "pre_state_hash", "post_state_hash", "rejection_code"})
-            rebuilt = reduce_claim(rebuilt, event["action"])
+            rebuilt = reduce_claim(rebuilt, event["action"], validator_version=event["validator_version"])
             continue
         if isinstance(event, dict) and event.get("type") == "RELATION_REFRESH":
             from .case_graph_relations import reduce_relations
@@ -143,7 +143,7 @@ def replay_evidence(graph: dict[str, Any], root: Path) -> dict[str, Any]:
             from .case_graph_actions import reduce_action
             closed(event, {"type", "action_id", "action", "validator_version", "result",
                            "pre_state_hash", "post_state_hash", "rejection_code"})
-            rebuilt = reduce_action(rebuilt, event["action"])
+            rebuilt = reduce_action(rebuilt, event["action"], validator_version=event["validator_version"])
             continue
         closed(event, {"type", "reading_id", "validator_version", "result",
                        "pre_state_hash", "post_state_hash"})
