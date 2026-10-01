@@ -1,7 +1,9 @@
 # Rental Agentic Case Investigator V2 — migration record
 
 Baseline: `c43cb924a7547f081f8d0ffa2dbc349a126b9beb`.
-Status: audit/design in progress; no V2 end-to-end result claimed.
+Status: evidence graph and structural proposal actions implemented; investigator,
+semantic review, readiness and downstream adapter remain in progress. No V2
+end-to-end result claimed.
 
 ## Causal boundary
 
@@ -142,3 +144,31 @@ excludes the append-only action log so a rejected action can record an audit
 event with identical pre/post semantic hashes. The full snapshot hash includes
 that log. Semantic dependency hashes exclude debugging labels and unrelated
 state, but include actual values, evidence and prerequisite decisions.
+
+## Foundation checkpoint
+
+`0d576a5101a7a4d233f7d580a42aa461c6233c7b` is pushed. Both unchanged HOLDOUT
+guards pass on that clean engine. GitHub push and PR workflows
+`36799057422` / `36799061800` both completed successfully.
+
+## Structural proposal actions
+
+`DECLARE_OCCURRENCE` and `ATTACH_OBSERVATIONS` now share one reducer for live
+execution and replay. The model supplies only intent and observation references;
+Python binds local prerequisite hashes, assigns technical IDs and records the
+receipt. Accepted proposals remain `PROPOSED`, with `authority=NONE` and no
+observation promotion. They are not a semantic review or proof of co-reference.
+Unknown witnesses, foreign facts, conflicting field values and stale local
+prerequisites produce rejected receipts with identical pre/post semantic hashes.
+
+The transaction records an immutable snapshot and updates a compare-and-swap
+head. Stale concurrent writers cannot overwrite it. Repeated actions and redundant
+attachments do not change semantic state or occurrence revisions. Unrelated
+actions commute semantically and do not stale local prerequisites. Forged success
+receipts and invented HUMAN/review state fail replay.
+
+31 targeted graph/action tests pass; explicit Ruff and mypy on all three new
+modules pass. The initial full regression/benchmarks above remain the baseline
+checks; another full suite is required as the migration progresses. No A/B live
+run has been launched. Semantic review, relations, material dispositions and the
+readiness gate are not yet supplied by these structural proposal actions.

@@ -104,14 +104,20 @@ def import_reading(graph: dict[str, Any], payload: dict[str, Any], root: Path,
 def replay_evidence(graph: dict[str, Any], root: Path) -> dict[str, Any]:
     """Revalidate persisted evidence against current bytes before using the store.
 
-    Semantic actions are deliberately not accepted yet. Subsequent migration
-    phases must add validated replay, never trust editable graph snapshots.
+    Runtime imports and semantic proposals share an ordered journal. Recompute
+    every event instead of trusting editable graph snapshots or receipt hashes.
     """
     _shape(graph)
     batch = SourceBatch.from_dict(graph["batch"])
     verify_batch(batch, root)
     rebuilt = empty_graph(batch)
     for event in graph["actions"]:
+        if isinstance(event, dict) and event.get("type") == "SEMANTIC_ACTION":
+            from .case_graph_actions import reduce_action
+            closed(event, {"type", "action_id", "action", "validator_version", "result",
+                           "pre_state_hash", "post_state_hash", "rejection_code"})
+            rebuilt = reduce_action(rebuilt, event["action"])
+            continue
         closed(event, {"type", "reading_id", "validator_version", "result",
                        "pre_state_hash", "post_state_hash"})
         if event["type"] != "IMPORT_READING" or not isinstance(event["reading_id"], str):
