@@ -35,7 +35,8 @@ _RESPONSE_SCHEMA: dict[str, Any] = {"type": "object", "additionalProperties": Fa
                                    "required": ["payload"], "properties": {"payload": {"type": "string"}}}
 
 
-def _ask(prompt: str, images: tuple[Path, ...], *, model: str, timeout_seconds: int) -> tuple[dict, float]:
+def _ask(prompt: str, images: tuple[Path, ...], *, model: str, timeout_seconds: int,
+         normalize_json: bool = False) -> tuple[dict, float]:
     with tempfile.TemporaryDirectory(prefix="againward-rental-model-") as directory:
         temp = Path(directory)
         schema, output = temp / "schema.json", temp / "response.json"
@@ -58,10 +59,13 @@ def _ask(prompt: str, images: tuple[Path, ...], *, model: str, timeout_seconds: 
             raise _model_invocation_failure(response.stderr)
         if not output.is_file():
             raise DocumentError("MODEL_EMPTY_RESPONSE", "Rental finding review returned no response")
-        raw = json.loads(output.read_text(encoding="utf-8"))
+        from againward.documents.model_protocol import load_model_json
+        raw = (load_model_json(output.read_bytes(), maximum=1_000_000) if normalize_json else
+               json.loads(output.read_text(encoding="utf-8")))
         if not isinstance(raw, dict) or set(raw) != {"payload"} or not isinstance(raw["payload"], str):
             raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Closed Rental model response required")
-        payload = json.loads(raw["payload"])
+        payload = (load_model_json(raw["payload"].encode("utf-8"), maximum=1_000_000) if normalize_json else
+                   json.loads(raw["payload"]))
         if not isinstance(payload, dict):
             raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Rental model payload must be an object")
         return payload, perf_counter() - started

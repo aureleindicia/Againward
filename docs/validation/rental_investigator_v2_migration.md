@@ -253,3 +253,43 @@ cross-source support, unrelated/ambiguous evidence, rejected subjects, authority
 current dependency invalidation, competing dispositions, forged receipts and
 HUMAN flags. Ruff and explicit mypy on six V2 modules pass. No investigator run,
 readiness success, calculation, or end-to-end validation is claimed yet.
+
+The committed semantic-claims checkpoint
+`e0c0b77771270b0379a20e4c33f6e3155c1053f1` passed the complete suite in a clean,
+detached validation worktree: **1227 passed in 767.84 seconds**. This result
+includes the unchanged HOLDOUT guards. It does not validate later reader edits.
+
+## Atomic source reader (integration in progress)
+
+The V2 reader requests observations and limitations from the original native
+units or rendered pages. Python binds source identity, spans, hashes, types and
+technical identifiers. Intermediate reads do not have an entity-completeness
+requirement. Each response is retained in a content-addressed runtime receipt;
+replay reruns exact binding using the recorded normalization version. Invalid
+observations create explicit potentially material issues while independently
+valid observations remain available. Empty reads and limitations also remain
+visible issues; they are not successful completeness decisions.
+
+A single generic native-source interface probe with `gpt-6-luna` completed in
+16.42 seconds. It supplied a monetary value with an ISO currency annotation,
+although the exact quote supported both. A bounded normalization now accepts
+that representation only when the exact amount/currency pair occurs uniquely
+in its quote. It preserves the digits and citation, does not derive a missing
+currency field, and does not perform FX or locale guessing. Rebinding the same
+historical response recovered all ten observations without another model call.
+This was neither an A/B run nor a calculation test.
+
+Reader regressions cover native and visual binding, invalid citations, unknown
+pages, stale renders, null values, repeated quotes, isolated rate contradictions,
+empty reads, source mutation and unambiguous JSON serialization recovery.
+Monetary tests additionally reject mismatched currencies/amounts, unknown codes,
+ambiguous repeated amounts and unsupported locale notation. The materiality
+gate and investigator still need to resolve or explicitly account for these
+issues before any V2 calculation can be permitted.
+
+Reader checkpoint checks: 211 targeted graph/protocol/provider/review tests pass
+in 87.61 seconds, plus the separately added normalization-version replay guard.
+Repository Ruff, explicit V2 Ruff, configured mypy (18 files), explicit graph
+mypy (7 files), Rental 15/15, privacy 19/19 and `git diff --check` pass.
+The new full regression on this reader checkpoint remains to be run. No A/B
+end-to-end run has been executed on V2.

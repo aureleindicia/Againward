@@ -17,7 +17,7 @@ from againward.domains.rental.entity_contract import (ENUM_ALIASES, ENUM_FIELDS,
 
 from .contracts import DocumentError
 
-VERSION = "model-observation-boundary-v3-typed-integers"
+VERSION = "model-observation-boundary-v4-quoted-money"
 _RATE_DIMENSION_FIELDS = frozenset({"billing_unit", "quantity_basis", "weekends_billable"})
 
 
@@ -120,6 +120,38 @@ def _normalize_quoted_billed_units(row: dict[str, Any]) -> None:
         row["normalization_notes"] = "; ".join(part for part in (previous.strip(), note) if part)
 
 
+def _normalize_quoted_money(row: dict[str, Any], *, visual: bool) -> None:
+    """Remove only a supported ISO annotation around the same quoted numeral.
+
+    This does not infer a currency field, convert currencies, choose between
+    amounts, parse locale-dependent separators, or change any numeric digits.
+    """
+    from againward.domains.rental.models import CURRENCIES
+    if row.get("semantic_type") not in {"net_amount", "unit_rate", "rate", "allocated_amount"}:
+        return
+    value = row.get("value")
+    quote = row.get("visible_text" if visual else "raw_observed_value")
+    if not isinstance(value, str) or not isinstance(quote, str):
+        return
+    numeral = r"[+-]?\d+(?:\.\d+)?"
+    matched = re.fullmatch(rf"\s*(?:([A-Z]{{3}})\s*({numeral})|({numeral})\s*([A-Z]{{3}}))\s*", value)
+    if not matched:
+        return
+    currency = matched.group(1) or matched.group(4)
+    amount = matched.group(2) or matched.group(3)
+    if currency not in CURRENCIES:
+        return
+    token_pattern = rf"(?:{re.escape(currency)}\s*{re.escape(amount)}|{re.escape(amount)}\s*{re.escape(currency)})"
+    occurrences = list(re.finditer(rf"(?<![\w.,+-]){token_pattern}(?!\w|[.,]\d)", quote))
+    if len(occurrences) != 1:
+        return
+    row["value"] = amount
+    previous = row.get("normalization_notes", "")
+    if not visual and isinstance(previous, str):
+        row["normalization_notes"] = "; ".join(part for part in (
+            previous.strip(), "Removed exact quoted ISO currency annotation; numeric digits unchanged.") if part)
+
+
 def normalize_row(row: dict[str, Any], *, visual: bool, rental: bool) -> dict[str, Any]:
     result = deepcopy(row)
     if not visual and "entity_hint" in result and "entity_id" not in result:
@@ -141,6 +173,7 @@ def normalize_row(row: dict[str, Any], *, visual: bool, rental: bool) -> dict[st
             result["value_type"] = "ENUM"
         elif field in DECIMAL_FIELDS:
             result["value_type"] = "DECIMAL"
+            _normalize_quoted_money(result, visual=visual)
             if type(value) is int:
                 result["value"] = str(value)
             if field == "billed_units":

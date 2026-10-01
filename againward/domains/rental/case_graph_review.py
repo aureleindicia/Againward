@@ -151,7 +151,7 @@ def invoke_occurrence_review(graph: dict[str, Any], target: str, root: Path, *,
             "Never claim HUMAN review. The output payload STRING must encode a JSON object with exactly "
             "verdict and reason. No calculations, no corrected values, no replacement case.\n"
             + json.dumps({"request": request, "original_source": context}, ensure_ascii=False))
-        response, duration = _ask(prompt, images, model=model, timeout_seconds=timeout_seconds)
+        response, duration = _ask(prompt, images, model=model, timeout_seconds=timeout_seconds, normalize_json=True)
         response = _response(response)
     # Verify the immutable sources again after the external invocation.
     replay_evidence(graph, root)
