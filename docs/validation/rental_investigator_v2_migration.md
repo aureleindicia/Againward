@@ -293,3 +293,46 @@ Repository Ruff, explicit V2 Ruff, configured mypy (18 files), explicit graph
 mypy (7 files), Rental 15/15, privacy 19/19 and `git diff --check` pass.
 The new full regression on this reader checkpoint remains to be run. No A/B
 end-to-end run has been executed on V2.
+
+Reader checkpoint `e3878cb5704d5e52dd16c7f8a030990dc94024ca`: the clean
+detached-worktree full suite completed with **1257 passed in 739.75 seconds**.
+Both push and PR CI runs completed successfully.
+
+## Materiality frontier and downstream projection
+
+The current frontier derives effective dispositions from current local reviews.
+Editable `RESOLVED`, `USED` or `NON_MATERIAL` flags cannot hide an unresolved
+observation, reading rejection, limitation, unread source or competing commercial
+claim. Explicitly reviewed irrelevant evidence can be accounted for without
+forcing a financial entity. New/unrecognized issue types remain blocking until
+a supported resolution path exists.
+
+The prerequisite view names missing fields, commercial reviews and unique
+relationships. It also supplies the reviewed source role/status consumed by the
+adapter, avoiding a second metadata lookup that might reintroduce rejected
+evidence. Reusing the same amount observation for two invoice/credit containers
+is blocked. A supporting-record grouping does not authorize excluding monetary
+or contractual evidence from the calculation.
+
+The adapter projects a replay-verified graph into the existing `RentalCase`.
+It derives technical line/item/period/term IDs, preserves source-separated
+references and detailed graph lineage, and reuses unchanged Rental pricing and
+reconciliation. Quantity on a rental scope remains the rented quantity; it is
+not copied into a separate per-lot rate denominator. Current commercial claims
+remain prerequisites; exact identity links alone do not grant rate authority or
+credit allocation. Controlled model validation failures produce a structured
+`CASE_READINESS` diagnostic.
+
+Generic integration tests now exercise actual deterministic pricing through this
+adapter, as well as source mutation, unjournaled changes, immutable returned
+lineage, technical IDs and per-lot quantity separation. This is not yet a complete
+V2 workflow: issue resolution/repair actions, derived occurrences, the investigator
+loop, final readiness integration, post-calculation QA/report orchestration and
+DEV/confirmation/HOLDOUT campaigns remain required. Financial conventions not
+supported by the existing engine are not declared supported by this adapter.
+
+The expanded graph suite passes **102 tests in 52.74 seconds**, including 20
+frontier/readiness/projection tests. Repository and explicit V2 Ruff pass;
+configured mypy (18 files) and explicit V2 mypy (10 files) pass. The reader's
+1257-test full result above predates these projection modules; their full
+regression checkpoint is still pending.
