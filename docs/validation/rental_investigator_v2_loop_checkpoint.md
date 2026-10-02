@@ -124,10 +124,28 @@ financial engine refusal. Existing graph tests retain actual-pixel review,
 local staleness, unrelated mutation, stale-source, foreign-citation, ambiguous
 relationships, material frontier and reducer replay coverage.
 
-Targeted V2 suite: **140 passed in 135.22 seconds**. Full regression results
-will be recorded after the clean-engine run. Before commit: repository and explicit V2 Ruff pass; configured mypy (18 files) and
-explicit V2 mypy (12 files) pass; Rental benchmark 15/15; privacy benchmark 19/19;
-`git diff --check` passes. Benchmark outputs/logs are local temporary artifacts.
+Implementation commit: `cea9884bc12fb2532e655b5132cd19edc29f02ad`.
+
+- Targeted V2 suite: **140 passed in 135.22 seconds**, including 28 investigator tests.
+- Full pytest on that clean commit: **1315 passed in 924.76 seconds**, no failures/skips.
+- Both unchanged HOLDOUT integrity guards also passed separately: **2/2 in 3.70 seconds**.
+- Repository Ruff and explicit checks of all graph/investigator modules and new tests pass.
+- Configured mypy: **18 files**; explicit V2 mypy: **12 files**, both pass.
+- Rental benchmark: **15/15**, 3 TP, 0 FP, 0 FN, 12 TN.
+- Privacy benchmark: **19/19**, 11 ordinary/8 unsafe cases, 0 false blocks and 0 unsafe passes.
+- `git diff --check` passes; no benchmark, fixture, HOLDOUT guard or CI file was changed.
+- Environment: Termux, Python 3.14.6, Ruff 0.16.9, mypy 1.20.2.
+
+The empty-graph integration transcript in the full suite records **13 investigator
+turns**, **2 atomic reads**, **5 local reviews**, zero rejected actions, zero
+remaining gaps and a deterministic EUR 5.00 difference. These are **20 scripted
+provider invocations**, not paid/live model calls. Measured local runtime was
+28.24 seconds, principally replay and validation; no live-model latency or legacy
+performance advantage is established.
+
+The follow-up commit changes only documentation. Push and pull-request CI on the
+final SHA (Python 3.11–3.14) are checked separately and reported in the final
+handoff. Local benchmark outputs and test logs remain temporary artifacts.
 
 ## Next milestone
 

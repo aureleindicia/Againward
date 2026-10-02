@@ -1,5 +1,18 @@
 # AGAINWARD — read first (2026-09-25)
 
+## V2 investigator calculation checkpoint (2026-10-03)
+
+The explicit V2 entrypoint now connects issue-local bounded actions and reviews
+through replay-verified deterministic readiness to the existing RentalCase and
+calculation engine. Implementation `cea9884` passes 140 targeted V2 tests and
+1315 full-suite tests on its clean engine; Rental is 15/15, privacy 19/19 and
+both unchanged HOLDOUT integrity guards pass. See the
+[loop checkpoint](validation/rental_investigator_v2_loop_checkpoint.md) for the
+entrypoint, stop rules, scripted source-to-calculation proof and exact boundaries.
+No V2 CASE A/B campaign or final report was run in this checkpoint. Live quality,
+post-calculation adversarial QA and report/delivery integration remain open.
+The historical legacy campaign outcomes below are not V2 results.
+
 The 2026-09-28 follow-up separates isolated source adjudication from reviewed
 package charge classification, preserves compound rate dimensions, and records
 canonical construction errors in workflow receipts. The latest known Luna
