@@ -136,7 +136,29 @@ unverified calculation fallback was added.
 - Ruff configured and explicit V2: pass; mypy configured **18 files**, explicit
   V2 **14 files**: pass.
 - Rental: **15/15**, privacy: **19/19**, zero false blocks / unsafe passes.
-- Clean-engine full suite, HOLDOUT guards and remote CI are recorded after validation.
+- Full suite on clean implementation `ed265a36b5236ac6cfb7c46ebd6f828957cc318f`:
+  **1339 passed in 537.75s (8m57.75s)**, including all 24 new generic tests.
+- Unchanged HOLDOUT integrity guards separately on that clean engine:
+  **2/2 in 4.62s**. No HOLDOUT campaign or case was run.
+- `git diff --check`: pass. Fixtures A/B, HOLDOUT data/guards and financial engines
+  are unchanged.
+- Environment: Termux Python **3.14.6**, pytest **9.1.1**, pytest-xdist **3.8.0**,
+  Ruff **0.16.9**, mypy **1.20.2**.
+- Remote CI must pass on the final pushed tip for Python **3.11–3.14**;
+  the final handoff supplies the exact push/PR run links.
+
+The two full-suite generic proofs each generated a real **five-page PDF** with
+SHA-256 `60a2effa475156f79afa78fec78476910cff48da6d2b66a0a784d2af9d91e98b`.
+Their evidence packs differ appropriately: **25** original observations for the
+direct path, **26** after the historical-rate objection, with distinct graph and
+QA hashes. Each keeps two original sources, one reserved L2 finding and empty
+recovery totals. Artifacts are retained locally (ignored), including original
+sources, complete graph/QA/review lineage, report, PDF and evidence pack:
+
+- `scratch/v2-pdf-checkpoint-tests.CVb0g0/popen-gw0/test_originals_atomic_investig0/`
+- `scratch/v2-pdf-checkpoint-tests.CVb0g0/popen-gw0/test_valid_material_objection_0/`
+
+No confidential source or synthetic runtime transcript was committed.
 
 ## Pytest performance
 
@@ -147,7 +169,12 @@ V2 Ruff/mypy checks. No test, guard, subprocess isolation or evidence check is s
 For single-process debugging use `python -m pytest -q -n 0`; after edits use the
 relevant file/test selection, and run the full suite once for the checkpoint.
 The unchanged 28-investigator-test selection measured **41.79s serial → 35.08s
-with two workers** (about 16%); full-suite timing will be recorded below separately.
+with two workers** (about 16%). The full checkpoint changed from **1315 tests /
+924.76s serial** to **1339 tests / 537.75s with two workers**: about **42% less
+observed wall time** despite 24 additional tests. These are local checkpoint
+measurements, not a guaranteed speedup independent of phone load. The slowest
+remaining tests predominantly exercise original pixels and repeated evidence
+replay; those integrity checks remain enabled.
 
 ## Before the first DEV A×1 / B×1
 
