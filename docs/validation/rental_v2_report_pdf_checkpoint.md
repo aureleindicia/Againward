@@ -79,6 +79,10 @@ legacy fact-review/reviewed-package fabrication. Ingestion verifies replay,
 current graph head, readiness, projection/calculation and latest QA before each use.
 A new OBJECT on the identical graph invalidates an earlier PASS; historical
 objection events still replay against their original receipt and prefix.
+A subsequent PASS at the identical graph cannot erase a previously verified
+OBJECT, including after a zero-cycle/exhausted-budget stop. The investigator must
+first produce a genuinely resolved updated graph; provider failure or an attempted
+fresh PASS retains the precise pending objections and withholds calculation/report.
 The current-calculation and finding-review delivery guards therefore also reject
 changed sources, stale graphs, forged MODEL/HUMAN receipts and altered amounts.
 
@@ -144,6 +148,10 @@ unverified calculation fallback was added.
   are unchanged.
 - Environment: Termux Python **3.14.6**, pytest **9.1.1**, pytest-xdist **3.8.0**,
   Ruff **0.16.9**, mypy **1.20.2**.
+- The later pending-objection guard adds one negative test (**1340 total**).
+  Focused boundary revalidation passed **4/4**, then **2/2** after the stop receipt
+  was updated to retain material objections; the final handoff records its
+  clean-engine full-suite and CI results.
 - Remote CI must pass on the final pushed tip for Python **3.11–3.14**;
   the final handoff supplies the exact push/PR run links.
 

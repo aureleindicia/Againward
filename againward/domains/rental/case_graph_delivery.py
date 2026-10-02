@@ -66,8 +66,20 @@ def _investigate_to_report(graph: dict[str, Any], root: Path, output_directory: 
             sha = invoke_qa(graph, root, model=model, timeout_seconds=budget.timeout_seconds, provider=qa_provider)
             qa = verify_qa(graph, sha, root)
         except Exception as exc:
+            from .case_investigator_context import open_issues
+            remaining = open_issues(graph)
+            # A pending verified OBJECT must remain visible after provider failure
+            # or an attempted fresh PASS at the identical graph state.
+            qa_head = root / "case_graph_v2" / "post_calculation_qa" / (graph_hash(graph) + "-current.json")
+            if qa_head.is_file() and not qa_head.is_symlink():
+                try:
+                    pending = verify_qa(graph, read_json(qa_head)["receipt_sha256"], root)
+                    remaining.update({"qa-objection-" + stable_hash(row): {"kind": "POST_CALC_OBJECTION", **row}
+                                      for row in pending["response"]["objections"]})
+                except (DocumentError, ValueError, OSError, KeyError):
+                    remaining["qa-unverified"] = {"kind": "POST_CALC_QA_NOT_VERIFIED", "target": "case"}
             return {"status": "UNRESOLVED", "stop_reason": "POST_CALC_QA_FAILURE", "graph": graph,
-                    "remaining_issues": {}, "rounds": rounds, "calculation": None, "report": None,
+                    "remaining_issues": remaining, "rounds": rounds, "calculation": None, "report": None,
                     "error_code": getattr(exc, "code", type(exc).__name__)}
         record["qa_receipt_sha256"] = sha
         record["qa_verdict"] = qa["response"]["verdict"]

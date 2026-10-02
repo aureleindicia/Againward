@@ -369,5 +369,20 @@ def test_new_verified_objection_invalidates_earlier_pass_at_same_graph(tmp_path,
     assert verify_qa(graph, current, root)["response"]["verdict"] == "OBJECT"
     reopened = reduce_objections(graph, current, root)
     # A later inspection at the old prefix must not invalidate historical replay.
-    invoke_qa(graph, root, model="scripted", provider=lambda c: PASS)
+    invoke_qa(graph, root, model="scripted", provider=lambda c: {"verdict": "OBJECT", "objections": [objection]})
     assert replay_evidence(reopened, root) == reopened
+
+
+def test_budget_stop_objection_cannot_be_dismissed_by_fresh_pass(tmp_path, monkeypatch):
+    root, graph, _, objection = graph_with_alternative(tmp_path, monkeypatch)
+    stopped = investigate_to_report(graph, root, tmp_path / "report", model="scripted",
+        provider=ready_provider, qa_provider=lambda c: {"verdict": "OBJECT", "objections": [objection]}, max_reopen_cycles=0)
+    assert stopped["stop_reason"] == "REOPEN_BUDGET_EXHAUSTED"
+    sha = stopped["rounds"][0]["qa_receipt_sha256"]
+    resumed = investigate_to_report(stopped["graph"], root, tmp_path / "report", model="scripted",
+        provider=ready_provider, qa_provider=lambda c: PASS)
+    assert resumed["status"] == "UNRESOLVED" and resumed["stop_reason"] == "POST_CALC_QA_FAILURE"
+    assert resumed["calculation"] is resumed["report"] is None
+    assert resumed["remaining_issues"]
+    assert verify_qa(stopped["graph"], sha, root)["response"]["verdict"] == "OBJECT"
+    assert not (tmp_path / "report").exists()

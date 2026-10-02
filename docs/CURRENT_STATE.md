@@ -7,7 +7,9 @@ post-calculation objections, reviewed Issue resolution, re-readiness/recalculati
 and native original-source/lineage adapters into the existing finding/report/PDF
 job. The implementation `ed265a3` passes **1339 tests in 537.75s**, Rental **15/15**,
 privacy **19/19**, both clean HOLDOUT integrity guards, Ruff and configured/explicit
-V2 mypy. The full suite now uses two bounded workers (previous checkpoint: 924.76s).
+V2 mypy. The final pending-objection guard also prevents a fresh PASS from
+erasing an unresolved OBJECT at the identical graph state (1340 tests total).
+The full suite now uses two bounded workers (previous checkpoint: 924.76s).
 Generic scripted tests execute the actual PDF and source-bound evidence pack,
 including a reopened material Issue. No A/B campaign was launched; live quality
 and first-client delivery readiness remain unmeasured. See the

@@ -142,9 +142,19 @@ def invoke_qa(graph: dict[str, Any], root: Path, *, model: str, timeout_seconds:
     sha = stable_hash(body)
     with transaction(root):
         qa_directory = root / "case_graph_v2" / "post_calculation_qa"
+        current_path = qa_directory / (graph_hash(graph) + "-current.json")
+        if current_path.exists():
+            if current_path.is_symlink():
+                raise DocumentError("REVIEW_STALE", "QA head symlink refused")
+            prior = read_json(current_path)
+            closed(prior, {"graph_sha256", "receipt_sha256"})
+            if prior["graph_sha256"] != graph_hash(graph):
+                raise DocumentError("REVIEW_STALE", "QA head belongs to another graph")
+            previous = _verify_replayed_qa(graph, prior["receipt_sha256"], root)
+            if previous["response"]["verdict"] == "OBJECT" and response["verdict"] == "PASS":
+                raise DocumentError("ENTITY_AMBIGUOUS", "Pending objection requires investigator resolution, not another PASS")
         write_json(qa_directory / (sha + ".json"), {**body, "receipt_sha256": sha})
-        write_json(qa_directory / (graph_hash(graph) + "-current.json"),
-                   {"graph_sha256": graph_hash(graph), "receipt_sha256": sha})
+        write_json(current_path, {"graph_sha256": graph_hash(graph), "receipt_sha256": sha})
     return sha
 
 
