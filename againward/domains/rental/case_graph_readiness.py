@@ -129,3 +129,15 @@ def prerequisites(graph: dict[str, Any]) -> dict[str, Any]:
         gap("case", "RENTAL_SCOPE_REQUIRED")
     return {"frontier": frontier, "documents": documents, "gaps": sorted(gaps, key=stable_hash),
             "prerequisites_satisfied": not gaps}
+
+
+def evaluate_readiness(graph: dict[str, Any], root) -> dict[str, Any]:
+    """Python-only authorization; replay precedes any supported status.
+
+    Supported prerequisites authorize projection, whose canonical validation and
+    the financial engine can still refuse unsupported calculation conventions.
+    """
+    from .case_graph import replay_evidence
+    replay_evidence(graph, root)
+    assessment = prerequisites(graph)
+    return {**assessment, "status": "SUPPORTED_DETERMINISTIC" if assessment["prerequisites_satisfied"] else "UNRESOLVED"}

@@ -37,14 +37,26 @@ def _source(graph: dict[str, Any], source_id: str, root: Path):
     return batch, document, read_document(document, root)
 
 
+def _scoped(parsed, locations: list[str] | None):
+    if locations is None:
+        return parsed
+    if (not isinstance(locations, list) or not 1 <= len(locations) <= 256
+            or any(not isinstance(item, str) for item in locations)
+            or len(set(locations)) != len(locations)
+            or not set(locations) <= {unit.location for unit in parsed.units}):
+        raise DocumentError("SOURCE_LOCATION_INVALID", "Bounded known source unit locations required")
+    return replace(parsed, units=tuple(unit for unit in parsed.units if unit.location in locations))
+
+
 def invoke_read(graph: dict[str, Any], source_id: str, root: Path, *, model: str,
-                role: str, timeout_seconds: int = 240) -> str:
+                role: str, timeout_seconds: int = 240, locations: list[str] | None = None) -> str:
     from .autonomous_review import _ask
     from .case_graph import replay_evidence
     replay_evidence(graph, root)
     if not isinstance(role, str) or role not in {"PRIMARY", "INDEPENDENT", "RECOVERY"}:
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown reading role")
     _, document, parsed = _source(graph, source_id, root)
+    parsed = _scoped(parsed, locations)
     if sum(len(unit.text) for unit in parsed.units) > 60_000:
         raise DocumentError("RESOURCE_LIMIT", "Source reading requires bounded unit inspection")
     invocation = str(uuid.uuid4())
@@ -82,6 +94,7 @@ def invoke_read(graph: dict[str, Any], source_id: str, root: Path, *, model: str
         "role": role, "model": model, "invocation_id": invocation,
         "created_at": datetime.now(timezone.utc).isoformat(), "duration_seconds": duration,
         "source_context_sha256": stable_hash(context), "visual_bindings": bindings, "response": raw}
+    body["locations"] = sorted(unit.location for unit in parsed.units)
     sha = stable_hash(body)
     write_json(root / "case_graph_v2" / "reader_invocations" / (sha + ".json"),
                {**body, "receipt_sha256": sha})
@@ -139,7 +152,7 @@ def reduce_read(graph: dict[str, Any], receipt_sha256: str, root: Path) -> dict[
         raise DocumentError("SOURCE_CHANGED", "Runtime reading receipt absent")
     receipt = read_json(path)
     closed(receipt, {"schema_version", "normalization_version", "source_id", "source_sha256", "role", "model", "invocation_id",
-        "created_at", "duration_seconds", "source_context_sha256", "visual_bindings", "response", "receipt_sha256"})
+        "created_at", "duration_seconds", "source_context_sha256", "visual_bindings", "response", "receipt_sha256"}, optional={"locations"})
     if (receipt["receipt_sha256"] != receipt_sha256 or receipt["schema_version"] != VERSION
             or receipt["normalization_version"] != NORMALIZATION_VERSION
             or not isinstance(receipt["role"], str) or receipt["role"] not in {"PRIMARY", "INDEPENDENT", "RECOVERY"}
@@ -150,6 +163,8 @@ def reduce_read(graph: dict[str, Any], receipt_sha256: str, root: Path) -> dict[
                    for binding in receipt["visual_bindings"])):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Runtime visual binding manifest required")
     batch, document, parsed = _source(graph, receipt["source_id"], root)
+    all_locations = sorted(unit.location for unit in parsed.units)
+    parsed = _scoped(parsed, receipt.get("locations"))
     context = {"source_id": document.source_id, "units": [unit.to_dict() for unit in parsed.units],
                "image_locations": [unit.location for unit in parsed.units if unit.route != "NATIVE"]}
     if (document.sha256 != receipt["source_sha256"]
@@ -185,8 +200,14 @@ def reduce_read(graph: dict[str, Any], receipt_sha256: str, root: Path) -> dict[
             "materiality": "POTENTIALLY_MATERIAL", "details": {"text": limitation, "receipt_sha256": receipt_sha256}}
     # This is one replayable invocation event, not a collection of invented
     # independent reads. Its internal exact-bound imports replay as part of it.
-    result["actions"] = [*graph["actions"], {"type": "SOURCE_READ", "receipt_sha256": receipt_sha256,
-        "validator_version": VERSION, "pre_state_hash": state_hash(graph), "post_state_hash": state_hash(result)}]
+    event: dict[str, Any] = {"type": "SOURCE_READ", "receipt_sha256": receipt_sha256,
+        "validator_version": VERSION, "pre_state_hash": state_hash(graph), "post_state_hash": state_hash(result)}
+    if "locations" in receipt:
+        previously_read = any(row["extraction"]["source_id"] == document.source_id for row in graph["readings"].values())
+        previously_scoped = any(row.get("source_id") == document.source_id and "inspected_locations" in row for row in graph["actions"])
+        event.update({"source_id": document.source_id, "inspected_locations": receipt["locations"],
+                      "source_unit_locations": all_locations, "prior_full_read": previously_read and not previously_scoped})
+    result["actions"] = [*graph["actions"], event]
     return result
 
 

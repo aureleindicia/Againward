@@ -120,7 +120,8 @@ def replay_evidence(graph: dict[str, Any], root: Path) -> dict[str, Any]:
     for event in graph["actions"]:
         if isinstance(event, dict) and event.get("type") == "SOURCE_READ":
             from .case_graph_reader import reduce_read
-            closed(event, {"type", "receipt_sha256", "validator_version", "pre_state_hash", "post_state_hash"})
+            closed(event, {"type", "receipt_sha256", "validator_version", "pre_state_hash", "post_state_hash"},
+                   optional={"source_id", "inspected_locations", "source_unit_locations", "prior_full_read"})
             rebuilt = reduce_read(rebuilt, event["receipt_sha256"], root)
             continue
         if isinstance(event, dict) and event.get("type") == "CLAIM_PROPOSAL":

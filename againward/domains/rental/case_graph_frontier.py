@@ -64,5 +64,15 @@ def materiality_frontier(graph: dict[str, Any]) -> dict[str, Any]:
         if document["source_id"] not in read_sources:
             blockers.append({"kind": "SOURCE_UNREAD", "target": document["source_id"],
                              "source_id": document["source_id"]})
+    for sid in sorted(read_sources):
+        scoped = [event for event in graph["actions"] if event.get("source_id") == sid and "inspected_locations" in event]
+        legacy_import = any(event["type"] == "IMPORT_READING" and graph["readings"][event["reading_id"]]["extraction"]["source_id"] == sid
+                            for event in graph["actions"])
+        if scoped and not legacy_import and not any(event["prior_full_read"] for event in scoped):
+            inspected = {location for event in scoped for location in event["inspected_locations"]}
+            required = set(scoped[-1]["source_unit_locations"])
+            if required - inspected:
+                blockers.append({"kind": "SOURCE_PARTIALLY_READ", "target": sid, "source_id": sid,
+                                 "missing_locations": sorted(required - inspected)})
     return {"observations": dispositions, "blockers": sorted(blockers, key=stable_hash),
             "accounted_for": not blockers}
