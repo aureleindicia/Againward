@@ -9,6 +9,9 @@ from againward.evidence.hashing import stable_hash
 def append_document_evidence(case, lineage, rows, row_refs):
     if lineage.get("canonical_case_sha256") != stable_hash(case.to_dict()):
         raise ValueError("Document lineage does not support this canonical Rental case.")
+    if lineage.get("schema_version") == "againward-rental-graph-lineage-v2":
+        append_graph_evidence(lineage, rows, row_refs)
+        return
     facts = {f["fact_id"]: f for f in lineage["facts"]}
 
     def reference(fact):
@@ -47,3 +50,27 @@ def append_document_evidence(case, lineage, rows, row_refs):
                     "authority": link["authority"], "contradictions": json.dumps(link["contradictions"]),
                     "resolution_sha256": resolution["resolution_sha256"]},
                    [reference(f) for eid in (link["left"], link["right"]) for f in entity_facts[eid]])
+
+
+def append_graph_evidence(lineage, rows, row_refs):
+    """Native graph atoms and decisions, with their original evidence references."""
+    observations = lineage["observations"]
+    def append(record, ids):
+        ordinal = len(rows) + 1
+        rows.append({"source_row": ordinal, **record, "graph_sha256": lineage["graph_sha256"]})
+        row_refs[str(ordinal)] = [{"source_id": observations[oid]["source_id"],
+            "location": observations[oid]["location"], "field": observations[oid]["semantic_type"]} for oid in sorted(set(ids))]
+    for oid, atom in sorted(observations.items()):
+        append({"record_type": "graph_observation", "record_id": oid,
+            "source_id": atom["source_id"], "location": atom["location"], "raw_quote": atom["quote"],
+            "semantic_type": atom["semantic_type"], "normalized_value": json.dumps(atom["value"]),
+            "disposition": lineage["frontier"]["observations"][oid]}, [oid])
+    for rid, relation in sorted(lineage["relations"].items()):
+        append({"record_type": "graph_relationship", "record_id": rid,
+            "relationship_type": relation["type"], "state": relation["state"],
+            "authority": relation["authority"]}, relation["evidence_ids"])
+    for iid, claim in sorted(lineage["semantic_claims"].items()):
+        proposal = claim["details"]["proposal"]
+        append({"record_type": "graph_semantic_claim", "record_id": iid,
+            "semantic_type": proposal["kind"], "normalized_value": json.dumps(proposal["value"]),
+            "review_sha256": stable_hash(lineage["reviews"]), "authority": "MODEL_REVIEWED_MEANING_ONLY"}, proposal["evidence_ids"])

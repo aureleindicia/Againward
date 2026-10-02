@@ -118,6 +118,11 @@ def replay_evidence(graph: dict[str, Any], root: Path) -> dict[str, Any]:
     verify_batch(batch, root)
     rebuilt = empty_graph(batch)
     for event in graph["actions"]:
+        if isinstance(event, dict) and event.get("type") == "POST_CALC_OBJECTION":
+            from .case_post_calculation import _reduce_replayed_objections
+            closed(event, {"type", "receipt_sha256", "validator_version", "pre_state_hash", "post_state_hash"})
+            rebuilt = _reduce_replayed_objections(rebuilt, event["receipt_sha256"], root)
+            continue
         if isinstance(event, dict) and event.get("type") == "SOURCE_READ":
             from .case_graph_reader import reduce_read
             closed(event, {"type", "receipt_sha256", "validator_version", "pre_state_hash", "post_state_hash"},

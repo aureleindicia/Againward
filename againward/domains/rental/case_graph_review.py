@@ -166,6 +166,10 @@ def invoke_occurrence_review(graph: dict[str, Any], target: str, root: Path, *,
             "and the full original source. RECOVERED requires reviewed evidence answering precisely "
             "that gap; unrelated valid facts are insufficient. NO_MATERIAL_EFFECT requires a "
             "source-supported reason that this gap cannot change the financial interpretation. "
+            "For POST_CALC_RESOLUTION inspect the bound concrete objection, its source evidence, and "
+            "the current reviewed subject. CORRECTED requires that the exact material error has been "
+            "fixed; NO_MATERIAL_EFFECT requires an independently source-supported explanation for "
+            "why the cited alternative does not apply. Never dismiss material ambiguity. "
             "Neither resolution licenses discarding other open issues or inventing missing facts. "
             "Return SUPPORTED only if the proposed decision is source-supported; UNSUPPORTED if false "
             "or unsupported; AMBIGUOUS if genuinely uncertain. No invented values or relations. ")

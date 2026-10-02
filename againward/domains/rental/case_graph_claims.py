@@ -16,7 +16,7 @@ from againward.evidence.hashing import stable_hash
 from .case_graph_actions import _ids, observation_dependency
 from .entity_contract import CHARGE_TYPES
 
-VERSION = "rental-graph-claims-v2-reading-issues"
+VERSION = "rental-graph-claims-v3-post-calculation"
 KEYS = {"kind", "target", "value", "evidence_ids", "reason"}
 DISPOSITIONS = {"REJECTED_WITH_EVIDENCE", "IRRELEVANT", "DUPLICATE"}
 READING_ISSUES = {"READING_REJECTION", "READING_LIMITATION", "EMPTY_READING"}
@@ -25,14 +25,15 @@ READING_ISSUES = {"READING_REJECTION", "READING_LIMITATION", "EMPTY_READING"}
 def _shape(proposal: dict[str, Any]) -> None:
     closed(proposal, KEYS)
     if (not isinstance(proposal["kind"], str)
-            or proposal["kind"] not in {"CHARGE_MEANING", "GOVERNING_TERM", "OBSERVATION_DISPOSITION", "READING_ISSUE_RESOLUTION"}
+            or proposal["kind"] not in {"CHARGE_MEANING", "GOVERNING_TERM", "OBSERVATION_DISPOSITION", "READING_ISSUE_RESOLUTION", "POST_CALC_RESOLUTION"}
             or not isinstance(proposal["target"], str) or not 1 <= len(proposal["target"]) <= 160
             or not isinstance(proposal["value"], str)
             or not isinstance(proposal["reason"], str) or not 1 <= len(proposal["reason"]) <= 2000):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Bounded semantic claim required")
     allowed = (CHARGE_TYPES if proposal["kind"] == "CHARGE_MEANING" else
                {"GOVERNING", "NOT_GOVERNING"} if proposal["kind"] == "GOVERNING_TERM" else
-               {"RECOVERED", "NO_MATERIAL_EFFECT"} if proposal["kind"] == "READING_ISSUE_RESOLUTION" else DISPOSITIONS)
+               {"RECOVERED", "NO_MATERIAL_EFFECT"} if proposal["kind"] == "READING_ISSUE_RESOLUTION" else
+               {"CORRECTED", "NO_MATERIAL_EFFECT"} if proposal["kind"] == "POST_CALC_RESOLUTION" else DISPOSITIONS)
     if proposal["value"] not in allowed:
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown semantic decision")
     _ids(proposal["evidence_ids"])
@@ -46,16 +47,26 @@ def claim_context(graph: dict[str, Any], proposal: dict[str, Any]) -> dict[str, 
     ids = proposal["evidence_ids"]
     dependencies: dict[str, Any] = {"observations": {oid: observation_dependency(graph["observations"][oid])
                     for oid in ids if oid in graph["observations"]}, "subjects": {}, "relations": {}}
-    if proposal["kind"] == "READING_ISSUE_RESOLUTION":
+    if proposal["kind"] in {"READING_ISSUE_RESOLUTION", "POST_CALC_RESOLUTION"}:
         issue = graph["issues"].get(target)
         dependencies["issue"] = {key: value for key, value in (issue or {}).items() if key != "state"}
         source = issue.get("source_id") if issue else None
         # Later evidence in this source can overturn an old irrelevance or
         # recovery judgment. Unrelated sources do not invalidate it.
-        dependencies["source_observations"] = {oid: observation_dependency(row)
-            for oid, row in graph["observations"].items() if row["source_id"] == source}
+        if proposal["kind"] == "READING_ISSUE_RESOLUTION":
+            dependencies["source_observations"] = {oid: observation_dependency(row)
+                for oid, row in graph["observations"].items() if row["source_id"] == source}
         subjects = {oid for oid, occurrence in graph["occurrences"].items()
                     if set(ids) & {i for group in occurrence["fields"].values() for i in group}}
+        if proposal["kind"] == "POST_CALC_RESOLUTION" and issue:
+            subject = issue["details"]["target"]
+            subjects.add(subject)
+            dependencies["objection_subject"] = deepcopy(graph["occurrences"][subject])
+            # Cosmetic revision counters are not semantic prerequisites.
+            dependencies["objection_subject"].pop("revision", None)
+            field = issue["details"]["field"]
+            if field in {"CHARGE_MEANING", "GOVERNING_TERM"}:
+                dependencies["objection_commercial_claims"] = current_claims(graph, field, subject)
     elif proposal["kind"] == "OBSERVATION_DISPOSITION":
         if target in graph["observations"]:
             dependencies["observations"][target] = observation_dependency(graph["observations"][target])
@@ -89,6 +100,21 @@ def validate_claim(graph: dict[str, Any], proposal: dict[str, Any]) -> None:
         raise DocumentError("SOURCE_LOCATION_INVALID", "Claim cites unknown observations")
     target = proposal["target"]
     context = claim_context(graph, proposal)
+    if proposal["kind"] == "POST_CALC_RESOLUTION":
+        issue = graph["issues"].get(target)
+        if not issue or issue["kind"] != "POST_CALC_OBJECTION" or not set(issue["observation_ids"]) <= ids:
+            raise DocumentError("ENTITY_AMBIGUOUS", "Resolution must inspect the exact post-calculation objection")
+        if any(graph["observations"][oid]["source_id"] != issue["source_id"] for oid in ids):
+            raise DocumentError("SOURCE_LOCATION_INVALID", "Objection resolution cannot borrow foreign evidence")
+        subject = issue["details"]["target"]
+        review = context["subjects"][subject]["review"]
+        if not review or review["verdict"] != "SUPPORTED":
+            raise DocumentError("REVIEW_STALE", "Objection resolution requires a current subject review")
+        if proposal["value"] == "CORRECTED":
+            from .case_post_calculation import objection_value
+            if objection_value(graph, subject, issue["details"]["field"]) != issue["details"]["expected_value"]:
+                raise DocumentError("EXTRACTION_INCOMPLETE", "Claimed correction is not present in the reviewed subject")
+        return
     if proposal["kind"] == "READING_ISSUE_RESOLUTION":
         issue = graph["issues"].get(target)
         if not issue or issue["kind"] not in READING_ISSUES or not issue.get("source_id"):
@@ -143,9 +169,11 @@ def validate_claim(graph: dict[str, Any], proposal: dict[str, Any]) -> None:
 def reduce_claim(graph: dict[str, Any], action: dict[str, Any], *, validator_version: str = VERSION) -> dict[str, Any]:
     from .case_graph import state_hash
     closed(action, KEYS | {"prerequisites"})
-    if validator_version not in {VERSION, "rental-graph-claims-v1"} or (
+    if validator_version not in {VERSION, "rental-graph-claims-v2-reading-issues", "rental-graph-claims-v1"} or (
             validator_version == "rental-graph-claims-v1" and action["kind"] == "READING_ISSUE_RESOLUTION"):
         raise DocumentError("SOURCE_CHANGED", "Unknown or incompatible claim validator version")
+    if action["kind"] == "POST_CALC_RESOLUTION" and validator_version != VERSION:
+        raise DocumentError("SOURCE_CHANGED", "Post-calculation resolution needs the current validator")
     proposal = {key: action[key] for key in KEYS}
     _shape(proposal)
     action_id = "claim-action-" + stable_hash(action)

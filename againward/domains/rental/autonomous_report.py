@@ -31,16 +31,24 @@ def _verified_pack_manifest(pack: dict, root: Path) -> dict:
     if read_json(root / "rental_evidence_pack.json") != pack:
         raise ValueError("Rendered evidence pack differs from current reviewed originals")
     lineage = pack.get("document_lineage", {})
-    facts = lineage.get("facts", []) if isinstance(lineage, dict) else []
+    if lineage.get("schema_version") == "againward-rental-graph-lineage-v2":
+        # The pack came from current_calculations and a replayed native package.
+        observations = list(lineage["observations"].values())
+        evidence = {"source_locations_retained": all(bool(atom["location"]) for atom in observations),
+                    "quoted_spans_retained": sum(bool(atom["quote"]) for atom in observations),
+                    "entity_link_decisions_retained": bool(lineage["relations"]),
+                    "graph_sha256": lineage["graph_sha256"],
+                    "post_calculation_qa_sha256": lineage["post_calculation_qa_sha256"]}
+    else:
+        facts = lineage.get("facts", []) if isinstance(lineage, dict) else []
+        evidence = {"source_locations_retained": all(bool(fact.get("candidate", {}).get("location")) for fact in facts),
+                    "quoted_spans_retained": sum(bool(fact.get("candidate", {}).get("raw_observed_value")) for fact in facts),
+                    "entity_link_decisions_retained": bool(lineage.get("rental_resolution")) if isinstance(lineage, dict) else False}
     return {"schema_version": pack["schema_version"],
             "source_count": len(pack["documents"]),
             "source_integrity_hashes_retained": all(len(doc.get("sha256", "")) == 64
                                                     for doc in pack["documents"]),
-            "source_locations_retained": all(bool(fact.get("candidate", {}).get("location"))
-                                             for fact in facts),
-            "quoted_spans_retained": sum(bool(fact.get("candidate", {}).get("raw_observed_value"))
-                                         for fact in facts),
-            "entity_link_decisions_retained": bool(lineage.get("rental_resolution")) if isinstance(lineage, dict) else False,
+            **evidence,
             "charge_groups_retained": len(pack["charge_groups"]),
             "expected_ledger_entries": len(pack["expected_ledger"]["entries"]),
             "actual_ledger_entries": len(pack["actual_ledger"]["entries"]),

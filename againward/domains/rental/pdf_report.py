@@ -32,6 +32,12 @@ def _allowed_asset_identifiers(pack: dict) -> set[str]:
     lineage = pack.get("document_lineage", {})
     facts = lineage.get("facts", []) if isinstance(lineage, dict) else []
     result = set()
+    if lineage.get("schema_version") == "againward-rental-graph-lineage-v2":
+        for oid, atom in lineage["observations"].items():
+            if (lineage["frontier"]["observations"][oid] == "USED" and atom["semantic_type"] in {"asset_id", "serial_number"}
+                    and isinstance(atom["value"], str) and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/-]{1,63}", atom["value"])):
+                result.add(atom["value"])
+        return result
     for fact in facts:
         candidate = fact.get("candidate", {}) if isinstance(fact, dict) else {}
         if candidate.get("semantic_type") in {"asset_id", "serial_number"}:

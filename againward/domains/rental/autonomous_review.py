@@ -75,12 +75,20 @@ def _source_context(root: Path, temporary: Path) -> tuple[list[dict], tuple[Path
     inventory = read_json(root / "artifact_inventory.json")
     package_path = Path(inventory["extraction"]["path"])
     package = read_json(package_path)
-    if package.get("schema_version") != "againward-rental-document-case-v1":
+    is_graph = package.get("schema_version") == "againward-rental-graph-calculated-case-v2"
+    if not is_graph and package.get("schema_version") != "againward-rental-document-case-v1":
         raise ValueError("Autonomous review requires a reviewed original-document package")
     document_root = package_path.parent.parent
-    batch = SourceBatch.from_dict(package["batch"])
+    if is_graph:
+        from .case_graph_delivery import load_calculated_package
+        _, graph_lineage = load_calculated_package(package, document_root)
+    batch = SourceBatch.from_dict(package["graph"]["batch"] if is_graph else package["batch"])
     verify_batch(batch, document_root)
     visual_quotes: dict[tuple[str, str], list[str]] = {}
+    if is_graph:
+        for oid, atom in graph_lineage["observations"].items():
+            if atom["visual_binding"] and graph_lineage["frontier"]["observations"][oid] == "USED":
+                visual_quotes.setdefault((atom["source_id"], atom["location"]), []).append(atom["quote"])
     fact_review = package.get("fact_review", {})
     if fact_review.get("visual_attestations") or fact_review.get("visual_model_reviews"):
         extractions = tuple(replay_extraction(item, batch, document_root)

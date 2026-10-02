@@ -52,6 +52,9 @@ def materiality_frontier(graph: dict[str, Any]) -> dict[str, Any]:
         elif kind == "RELATIONSHIP":
             relation = relations.get(issue.get("details", {}).get("relation_id"))
             settled = bool(relation and relation["state"] in {"CONFIRMED", "REJECTED"})
+        elif kind == "POST_CALC_OBJECTION":
+            resolutions = current_claims(graph, "POST_CALC_RESOLUTION", iid)
+            settled = len({row["proposal"]["value"] for row in resolutions}) == 1
         elif kind in READING_ISSUES:
             resolutions = current_claims(graph, "READING_ISSUE_RESOLUTION", iid)
             settled = len({row["proposal"]["value"] for row in resolutions}) == 1

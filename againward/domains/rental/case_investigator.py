@@ -59,7 +59,7 @@ def model_provider(model: str, budget: Budget) -> Provider:
             "{type: DECLARE_OCCURRENCE, kind, evidence_ids, anchor_ids}\n"
             "{type: ATTACH_OBSERVATIONS|REPLACE_OBSERVATIONS, target, evidence_ids}\n"
             "{type: PROPOSE_CLAIM, proposal: {kind: CHARGE_MEANING|GOVERNING_TERM|"
-            "OBSERVATION_DISPOSITION|READING_ISSUE_RESOLUTION, target, value, evidence_ids, reason}}\n"
+            "OBSERVATION_DISPOSITION|READING_ISSUE_RESOLUTION|POST_CALC_RESOLUTION, target, value, evidence_ids, reason}}\n"
             "{type: REQUEST_REVIEW, target} (runtime inspects native/pixels independently as MODEL)\n"
             "{type: REQUEST_REREAD, source_id, locations} (unit locations array; empty only for unread source)\n"
             "{type: INSPECT_SOURCE, source_id, location, start, end} (native character window <=4000)\n"

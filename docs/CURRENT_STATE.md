@@ -1,5 +1,16 @@
 # AGAINWARD — read first (2026-09-25)
 
+## V2 post-calculation/report/PDF checkpoint (2026-10-03)
+
+V2 now has an explicit native graph-to-report entrypoint, independent bounded
+post-calculation objections, reviewed Issue resolution, re-readiness/recalculation,
+and native original-source/lineage adapters into the existing finding/report/PDF
+job. Generic scripted tests execute the actual PDF and source-bound evidence pack,
+including a reopened material Issue. No A/B campaign was launched; live quality
+and first-client delivery readiness remain unmeasured. See the
+[report/PDF checkpoint](validation/rental_v2_report_pdf_checkpoint.md) for exact
+contracts, lifetime cycle budget, validation and pytest performance measurements.
+
 ## V2 investigator calculation checkpoint (2026-10-03)
 
 The explicit V2 entrypoint now connects issue-local bounded actions and reviews
@@ -9,8 +20,8 @@ calculation engine. Implementation `cea9884` passes 140 targeted V2 tests and
 both unchanged HOLDOUT integrity guards pass. See the
 [loop checkpoint](validation/rental_investigator_v2_loop_checkpoint.md) for the
 entrypoint, stop rules, scripted source-to-calculation proof and exact boundaries.
-No V2 CASE A/B campaign or final report was run in this checkpoint. Live quality,
-post-calculation adversarial QA and report/delivery integration remain open.
+No V2 CASE A/B campaign or final report was run in this checkpoint. Live quality and real delivery approval remain open; the later checkpoint above
+adds the post-calculation/report/PDF engineering path.
 The historical legacy campaign outcomes below are not V2 results.
 
 The 2026-09-28 follow-up separates isolated source adjudication from reviewed

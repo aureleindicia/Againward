@@ -29,6 +29,11 @@ def _stop(code: str, target: str, field: str) -> None:
 
 def load_graph_case(graph: dict[str, Any], root: Path) -> tuple[RentalCase, dict[str, Any]]:
     replay_evidence(graph, root)
+    return _project_replayed_graph(graph)
+
+
+def _project_replayed_graph(graph: dict[str, Any]) -> tuple[RentalCase, dict[str, Any]]:
+    """Pure projection for the journal reducer, whose prefix is already replayed."""
     assessment = prerequisites(graph)
     if not assessment["prerequisites_satisfied"]:
         first = assessment["gaps"][0]
@@ -156,5 +161,7 @@ def load_graph_case(graph: dict[str, Any], root: Path) -> tuple[RentalCase, dict
     lineage = {"schema_version": "againward-rental-graph-lineage-v2", "graph_sha256": graph_hash(graph),
         "canonical_case_sha256": stable_hash(canonical.to_dict()), "technical_derivations": derivations,
         "observations": graph["observations"], "occurrences": subjects, "relations": relations,
-        "reviews": graph["reviews"], "frontier": assessment["frontier"]}
+        "reviews": graph["reviews"], "frontier": assessment["frontier"],
+        "semantic_claims": {iid: row for iid, row in graph["issues"].items() if row["kind"] == "SEMANTIC_CLAIM"},
+        "post_calculation_issues": {iid: row for iid, row in graph["issues"].items() if row["kind"] == "POST_CALC_OBJECTION"}}
     return canonical, deepcopy(lineage)

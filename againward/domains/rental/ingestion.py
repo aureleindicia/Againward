@@ -148,6 +148,12 @@ def load_rental_case(source: str | Path, *, output_directory=None):
         if source.parent.name == "packages":
             document_root = source.parent.parent
         case, document_lineage = load_document_case(payload, document_root)
+    elif payload.get("schema_version") == "againward-rental-graph-calculated-case-v2":
+        from .case_graph_delivery import load_calculated_package
+        if source.parent.name != "packages":
+            raise ValueError("V2 calculated package must be case-local under packages/")
+        document_root = source.parent.parent
+        case, document_lineage = load_calculated_package(payload, document_root)
     else:
         case = RentalCase.from_dict(payload)
     inventory = []
