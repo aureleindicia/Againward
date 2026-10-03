@@ -82,3 +82,28 @@ configured mypy (18 files) and explicit V2 mypy (15 files) pass. Rental is
 15/15 and privacy is 19/19. The unchanged integrity guards pass 2/2 on the
 frozen base. The full suite is already running and is not restarted. Its initial
 uncommitted-tree integrity refusal will be rechecked on the committed correction.
+
+## Completed full validation
+
+The single full-suite launch completed with **1411 passed, 1 failed in 588.89s**.
+The sole failure is `test_holdout_engine_mutation_invalidates_the_run`: its
+setup selected the frozen base `1c971b7` while the correction was still
+uncommitted, and correctly refused the modified engine before the test mutation.
+This is a validation-context integrity refusal, not an accepted unsafe response
+or a functional regression. No test or gate was skipped, mocked or weakened.
+
+After code commit `4f2bfb72aab068133b3026351beb252ca435ee44`, both unchanged
+integrity guards were rerun on the clean correction: **2 passed in 6.90s**.
+They also passed on the unchanged frozen base: **2 passed in 4.42s**. The full
+suite was not rerun after the user's request to accelerate the commit. Therefore
+this record does not claim a second, completely green clean-start full-suite run.
+All 1412 tests have passing coverage across the full pass and that focused
+clean-engine recheck. No code changed after the code commit; only this evidence
+record is updated.
+
+Ruff, both mypy checks, Rental **15/15**, privacy **19/19** (0 false blocks,
+0 unsafe passes) and the one-call live protocol probe pass. The 74 historical
+campaign artifacts were hashed and verified unchanged. The campaign worktree
+remains clean at the frozen SHA; the original main worktree's existing user
+changes were preserved. No A/B run, financial oracle comparison, HOLDOUT quality
+campaign, remote push, PR or deployment was performed in this correction.
