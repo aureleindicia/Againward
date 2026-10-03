@@ -7,7 +7,8 @@ from dataclasses import replace
 
 import pytest
 
-from againward.core.artifact_store import read_json
+from againward.core.artifact_store import read_json, write_json
+from againward.evidence.hashing import stable_hash
 from againward.documents.sources import inventory_sources
 from againward.domains.energy_billing.loop import Budget, investigate, runtime_lease
 from againward.domains.energy_billing.protocol import ACTION_SCHEMA, READ_SCHEMA, FIELDS, BillingFailure
@@ -130,6 +131,213 @@ def test_execution_failures_are_not_business_unsupported(tmp_path, failure):
     assert len(calls) == (1 if failure == 'MODEL_PROVIDER_FAILURE' else 2)
     assert load_state(root) == state and result['calculation'] is None
     assert result['protocol_repairs'] == (0 if failure == 'MODEL_PROVIDER_FAILURE' else 1)
+
+
+def fail_provider(*_):
+    raise BillingFailure('MODEL_PROVIDER_FAILURE', stage='PROVIDER', cause='USAGE_LIMIT')
+
+
+def test_explicit_provider_resume_retains_evidence_reviews_and_lifetime_counts(tmp_path):
+    root = blank(tmp_path)
+
+    def fail_at_relation(prompt, schema):
+        if schema == ACTION_SCHEMA and context(prompt)['issue']['code'] == 'GOVERNS_MISSING':
+            return fail_provider()
+        return scripted(prompt, schema)
+
+    failed = investigate(root, model='SCRIPTED', transport=fail_at_relation)
+    state = load_state(root)
+    assert failed['terminal_reason']['cause'] == 'USAGE_LIMIT'
+    assert len(state['reviews']) == 2 and len(state['occurrences']) == 2
+    checkpoint = read_json(root / 'energy_billing/investigator.json')
+    assert investigate(root, model='SCRIPTED', transport=scripted) == failed
+
+    def resumed(prompt, schema):
+        persisted = read_json(root / 'energy_billing/investigator.json')
+        assert len(persisted['provider_resumes']) == 1
+        assert persisted['provider_resumes'][0]['previous_receipt_sha256'] == checkpoint['receipt_sha256']
+        assert persisted['model_calls'] > failed['model_calls']
+        return scripted(prompt, schema)
+
+    result = investigate(root, model='SCRIPTED', transport=resumed, resume_provider_failure=True)
+    assert result['terminal_reason']['code'] == 'CALCULATION_CREATED'
+    assert result['calculation']['expected_cents'] == 18462
+    assert result['model_calls'] == 15 and result['turns'] == 10
+    assert result['rereads'] == failed['rereads'] == 2
+    assert result['wall_seconds'] >= failed['wall_seconds']
+    resumed_state = load_state(root)
+    assert state['observations'] == resumed_state['observations']
+    assert all(row in resumed_state['reviews'] for row in state['reviews'])
+
+
+def test_provider_resume_cap_and_default_no_retry(tmp_path):
+    root = blank(tmp_path)
+    first = investigate(root, model='SCRIPTED', transport=fail_provider)
+    result = first
+    for n in (1, 2):
+        result = investigate(root, model='SCRIPTED', transport=fail_provider, resume_provider_failure=True)
+        assert result['model_calls'] == result['turns'] == n + 1
+        assert len(result['provider_resumes']) == n
+        assert result['provider_resumes'][-1]['model_calls'] == n
+    path = root / 'energy_billing/investigator.json'
+    original = path.read_bytes()
+    assert investigate(root, model='SCRIPTED', transport=scripted) == result
+    with pytest.raises(BillingFailure, match='RESOURCE_LIMIT') as error:
+        investigate(root, model='SCRIPTED', transport=scripted, resume_provider_failure=True)
+    assert error.value.diagnostic['budget'] == 'max_provider_resumes'
+    assert path.read_bytes() == original and not load_state(root)['observations']
+
+
+def test_provider_resume_does_not_extend_call_or_time_budget(tmp_path):
+    root = blank(tmp_path)
+    budget = replace(Budget(), max_model_calls=1)
+    failed = investigate(root, model='SCRIPTED', transport=fail_provider, budget=budget)
+    result = investigate(root, model='SCRIPTED', transport=scripted, budget=budget, resume_provider_failure=True)
+    assert result['terminal_reason']['budget'] == 'max_model_calls'
+    assert result['model_calls'] == failed['model_calls'] == 1
+    assert result['protocol_repairs'] == failed['protocol_repairs'] == 0
+    assert result['rereads'] == failed['rereads'] == 0
+
+
+def test_provider_resume_keeps_focused_inspection_feedback_and_stagnation(tmp_path):
+    _, root, *_ = case(tmp_path, reviews=False)
+    calls = 0
+
+    def inspect_then_fail(prompt, schema):
+        nonlocal calls
+        calls += 1
+        if calls == 3:
+            return fail_provider()
+        issue = context(prompt)['issue']
+        source = next(iter(issue['source_handles']))
+        return json.dumps({'issue_id': issue['issue_id'], 'action': {'type': 'REQUEST_INSPECTION',
+                          'source_id': source, 'location': issue['source_handles'][source][0]['location']}}).encode()
+
+    failed = investigate(root, model='SCRIPTED', transport=inspect_then_fail)
+    assert failed['stagnant_turns'] == 2
+
+    def resumed(prompt, schema):
+        issue = context(prompt)['issue']
+        assert issue['feedback']['inspection'] == failed['steps'][-1]['inspection']
+        return inspect_then_fail(prompt, schema)
+
+    result = investigate(root, model='SCRIPTED', transport=resumed, resume_provider_failure=True)
+    assert result['terminal_reason']['code'] == 'NO_SEMANTIC_PROGRESS'
+    assert result['stagnant_turns'] == 3 and result['model_calls'] == 4
+    assert result['visited'][result['steps'][-1]['after_semantic_sha256']] == 3
+
+
+def test_provider_continuation_budget_cannot_exceed_two():
+    with pytest.raises(ValueError, match='At most two'):
+        replace(Budget(), max_provider_resumes=3)
+
+
+def test_provider_resume_refuses_other_terminal_and_fresh_workspace(tmp_path):
+    root = blank(tmp_path)
+    with pytest.raises(BillingFailure, match='RUNTIME_RESUME_REFUSED'):
+        investigate(root, model='SCRIPTED', transport=scripted, resume_provider_failure=True)
+    result = investigate(root, model='SCRIPTED', transport=lambda *_: b'not JSON')
+    assert result['terminal_reason']['code'] == 'MODEL_PROTOCOL_FAILURE'
+    original = (root / 'energy_billing/investigator.json').read_bytes()
+    with pytest.raises(BillingFailure, match='RUNTIME_RESUME_REFUSED'):
+        investigate(root, model='SCRIPTED', transport=scripted, resume_provider_failure=True)
+    assert (root / 'energy_billing/investigator.json').read_bytes() == original
+
+
+def test_explicit_provider_resume_does_not_bypass_pending_call(tmp_path):
+    root = blank(tmp_path)
+
+    def interrupted(*_):
+        raise KeyboardInterrupt
+
+    with pytest.raises(KeyboardInterrupt):
+        investigate(root, model='SCRIPTED', transport=interrupted)
+    original = (root / 'energy_billing/investigator.json').read_bytes()
+    with pytest.raises(BillingFailure, match='RUNTIME_INTERRUPTED'):
+        investigate(root, model='SCRIPTED', transport=scripted, resume_provider_failure=True)
+    assert (root / 'energy_billing/investigator.json').read_bytes() == original
+
+
+def test_explicit_provider_resume_keeps_active_wall_deadline(tmp_path):
+    root = blank(tmp_path)
+    elapsed = [0.0]
+    budget = replace(Budget(), wall_seconds=1)
+
+    def slow_failure(*_):
+        elapsed[0] = 2.0
+        return fail_provider()
+
+    failed = investigate(root, model='SCRIPTED', transport=slow_failure, budget=budget, clock=lambda: elapsed[0])
+    result = investigate(root, model='SCRIPTED', transport=scripted, budget=budget,
+                         resume_provider_failure=True, clock=lambda: elapsed[0])
+    assert result['terminal_reason']['budget'] == 'wall_seconds'
+    assert result['model_calls'] == failed['model_calls'] == 1
+    assert result['turns'] == failed['turns'] == 1 and result['wall_seconds'] == failed['wall_seconds'] == 2.0
+
+
+def test_legacy_failed_runtime_migrates_only_with_verified_explicit_resume(tmp_path):
+    root = blank(tmp_path)
+    failed = investigate(root, model='SCRIPTED', transport=fail_provider)
+    legacy = {**failed, 'schema_version': 'energy-billing-investigator-v1'}
+    legacy.pop('provider_resumes')
+    legacy['budget'] = {k: v for k, v in legacy['budget'].items() if k != 'max_provider_resumes'}
+    path = root / 'energy_billing/investigator.json'
+    write_json(path, {**legacy, 'receipt_sha256': stable_hash(legacy)})
+    original = path.read_bytes()
+    assert investigate(root, model='SCRIPTED', transport=scripted) == legacy
+    assert path.read_bytes() == original
+    result = investigate(root, model='SCRIPTED', transport=scripted, resume_provider_failure=True)
+    assert result['terminal_reason']['code'] == 'CALCULATION_CREATED' and result['model_calls'] == 15
+    assert result['provider_resumes'][0]['previous_schema_version'] == legacy['schema_version']
+    assert result['provider_resumes'][0]['previous_receipt_sha256'] == stable_hash(legacy)
+
+
+def test_continuation_gate_preserves_original_snapshot_and_counters(tmp_path):
+    from benchmarks.energy_billing.investigator_gate import continue_snapshot, snapshot_manifest
+
+    root = blank(tmp_path)
+    failed = investigate(root, model='SCRIPTED', transport=fail_provider)
+    previous = tmp_path / 'previous'
+    previous.mkdir()
+    root.rename(previous / 'snapshot')
+    original = {'schema_version': 'energy-billing-investigator-gate-v1', 'model': 'SCRIPTED',
+                'engine_sha': 'a' * 40, 'engine_dirty': False, 'calculation_reached': False,
+                'report_reached': False, 'runtime': failed, 'batch': load_state(previous / 'snapshot')['batch']}
+    write_json(previous / 'result.json', original)
+    before = snapshot_manifest(previous)
+    output = tmp_path / 'continuation'
+    batch, provenance = continue_snapshot(previous, output, 'SCRIPTED')
+    assert provenance['origin_engine_sha'] == 'a' * 40 and provenance['origin_model_calls'] == 1
+    assert provenance['kind'] == 'PRESERVED_RUNTIME_CONTINUATION'
+    assert batch.to_dict() == original['batch']
+    assert snapshot_manifest(previous / 'snapshot') == snapshot_manifest(output / 'snapshot')
+    result = investigate(output / 'snapshot', model='SCRIPTED', transport=scripted, resume_provider_failure=True)
+    assert result['calculation']['expected_cents'] == 18462 and result['model_calls'] == 15
+    assert snapshot_manifest(previous) == before
+    for path in output.rglob('*'):
+        assert path.stat().st_mode & 0o777 == (0o700 if path.is_dir() else 0o600)
+    with pytest.raises(ValueError, match='separate'):
+        continue_snapshot(previous, previous / 'nested', 'SCRIPTED')
+    with pytest.raises(ValueError, match='Verified terminal'):
+        continue_snapshot(previous, tmp_path / 'wrong-model', 'OTHER')
+
+
+def test_continuation_gate_refuses_changed_result_or_snapshot(tmp_path):
+    from benchmarks.energy_billing.investigator_gate import continue_snapshot
+
+    root = blank(tmp_path)
+    failed = investigate(root, model='SCRIPTED', transport=fail_provider)
+    previous = tmp_path / 'previous'
+    previous.mkdir()
+    root.rename(previous / 'snapshot')
+    original = {'schema_version': 'energy-billing-investigator-gate-v1', 'model': 'SCRIPTED',
+                'engine_sha': 'a' * 40, 'engine_dirty': False, 'calculation_reached': False,
+                'report_reached': False, 'runtime': {**failed, 'model_calls': 0},
+                'batch': load_state(previous / 'snapshot')['batch']}
+    write_json(previous / 'result.json', original)
+    with pytest.raises(ValueError, match='Verified terminal'):
+        continue_snapshot(previous, tmp_path / 'bad-result', 'SCRIPTED')
+    assert not (tmp_path / 'bad-result').exists()
 
 
 def test_source_is_not_review_target_repaired_before_state_mutation(tmp_path):

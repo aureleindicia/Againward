@@ -29,7 +29,8 @@ from .reader import read_source, source_context
 from .review import request_review
 from .state import commit_event, load_state
 
-VERSION = "energy-billing-investigator-v1"
+VERSION = "energy-billing-investigator-v2"
+LEGACY_VERSION = "energy-billing-investigator-v1"
 
 
 @contextmanager
@@ -59,11 +60,14 @@ class Budget:
     max_repeated_state: int = 4
     max_repeated_rejection: int = 2
     max_protocol_repairs: int = 4
+    max_provider_resumes: int = 2
     wall_seconds: int = 900
 
     def __post_init__(self) -> None:
         if any(type(v) is not int or not 1 <= v <= 3600 for v in asdict(self).values()):
             raise ValueError("Positive bounded integer budgets required")
+        if self.max_provider_resumes > 2:
+            raise ValueError("At most two provider continuations")
 
 
 def inspect_sources(state: dict[str, Any], issue: dict[str, Any], root: Path) -> dict[str, dict[str, Any]]:
@@ -85,13 +89,16 @@ def inspect_sources(state: dict[str, Any], issue: dict[str, Any], root: Path) ->
 
 
 def investigate(root: Path, *, model: str, transport: Transport, budget: Budget = Budget(),
-                clock: Callable[[], float] = time.perf_counter) -> dict[str, Any]:
-    """Resume only after external semantic change; counters never reset.
+                clock: Callable[[], float] = time.perf_counter,
+                resume_provider_failure: bool = False) -> dict[str, Any]:
+    """Explicit bounded provider recovery or external semantic change; no resets.
 
     A checkpoint is saved before each model call. An interrupted invocation is
     explicit and cannot silently replay an unknown remote call. The workspace
     job lock prevents concurrent investigators from sharing/resetting budgets.
     """
+    if type(resume_provider_failure) is not bool:
+        raise ValueError("Provider continuation must be an explicit boolean")
     assert_document_action(root, mutation=True)
     with runtime_lease(root):
         state = load_state(root)
@@ -99,24 +106,59 @@ def investigate(root: Path, *, model: str, transport: Transport, budget: Budget 
         if path.exists():
             saved = read_json(path)
             log = {k: v for k, v in saved.items() if k != "receipt_sha256"}
-            if (saved.get("receipt_sha256") != stable_hash(log) or log.get("schema_version") != VERSION
-                    or log.get("model") != model or log.get("budget") != asdict(budget)):
+            legacy = log.get("schema_version") == LEGACY_VERSION
+            expected_budget = asdict(budget)
+            if legacy:
+                expected_budget.pop("max_provider_resumes")
+            if (saved.get("receipt_sha256") != stable_hash(log)
+                    or log.get("schema_version") not in {VERSION, LEGACY_VERSION}
+                    or log.get("model") != model or log.get("budget") != expected_budget
+                    or (legacy and budget.max_provider_resumes != 2)):
                 raise BillingFailure("RUNTIME_REPLAY_INVALID", stage="RUNTIME", expected="same hashed runtime/model/budgets")
             if log["pending"]:
                 raise BillingFailure("RUNTIME_INTERRUPTED", stage="RUNTIME", expected="operator inspection of interrupted turn",
                                      model_calls_reserved=log["model_calls"])
-            if log["state_sha256"] == stable_hash(state) and log["terminal_reason"] is not None:
+            terminal = log["terminal_reason"]
+            if resume_provider_failure:
+                if terminal is None or terminal["code"] != "MODEL_PROVIDER_FAILURE":
+                    raise BillingFailure("RUNTIME_RESUME_REFUSED", stage="RUNTIME",
+                                         expected="explicit terminal provider failure, no pending invocation")
+                resumes = log.get("provider_resumes", []) if legacy else log["provider_resumes"]
+                if len(resumes) >= budget.max_provider_resumes:
+                    raise BillingFailure("RESOURCE_LIMIT", stage="RUNTIME", expected="remaining provider resumptions",
+                                         budget="max_provider_resumes", limit=budget.max_provider_resumes)
+                continuation = {"previous_receipt_sha256": saved["receipt_sha256"],
+                                "previous_schema_version": log["schema_version"], "failure": terminal,
+                                "state_sha256": log["state_sha256"], "current_state_sha256": stable_hash(state),
+                                "model_calls": log["model_calls"], "turns": log["turns"],
+                                "rereads": log["rereads"], "protocol_repairs": log["protocol_repairs"],
+                                "wall_seconds": log["wall_seconds"]}
+            elif terminal is not None and (terminal["code"] == "MODEL_PROVIDER_FAILURE"
+                                          or log["state_sha256"] == stable_hash(state)):
                 return log
+            if legacy:
+                # Verify the original receipt first; migrate without changing any
+                # prior failure, step, evidence or lifetime resource counter.
+                log.update(schema_version=VERSION, budget=asdict(budget), provider_resumes=[])
+            if resume_provider_failure:
+                log["provider_resumes"].append(continuation)
         else:
+            if resume_provider_failure:
+                raise BillingFailure("RUNTIME_RESUME_REFUSED", stage="RUNTIME", expected="existing failed runtime")
             log = {"schema_version": VERSION, "model": model, "budget": asdict(budget),
                    "model_calls": 0, "turns": 0, "rereads": 0, "protocol_repairs": 0,
                    "wall_seconds": 0.0, "stagnant_turns": 0, "visited": {}, "rejections": {},
                    "steps": [], "diagnostics": [], "terminal_reason": None, "pending": False,
-                   "state_sha256": stable_hash(state), "calculation": None, "readiness": None}
+                   "state_sha256": stable_hash(state), "calculation": None, "readiness": None,
+                   "provider_resumes": []}
         log["terminal_reason"] = None
         log["calculation"] = None
         started, previous_wall = clock(), log["wall_seconds"]
         feedback: dict[str, Any] | None = None
+        if log["steps"]:
+            previous_step = log["steps"][-1]
+            feedback = {"issue_id": previous_step["issue_id"],
+                        "value": {key: previous_step[key] for key in ("inspection", "rejection") if key in previous_step}}
 
         def save() -> None:
             log["wall_seconds"] = previous_wall + max(0.0, clock() - started)
@@ -147,6 +189,7 @@ def investigate(root: Path, *, model: str, transport: Transport, budget: Budget 
                 log["protocol_repairs"] += 1
 
         boundary = ModelBoundary(bounded, attempt_observer=observe_attempt)
+        save()  # Persist continuation intent before another turn or remote call.
         try:
             while True:
                 if log["turns"] >= budget.max_turns:

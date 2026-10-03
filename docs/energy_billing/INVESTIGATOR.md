@@ -45,7 +45,9 @@ domain transition still uses the existing short artifact transaction. A long
 transaction is deliberately avoided because staged writes would not survive
 an interrupted model call. The runtime reserves pending turns and preserves
 all counters. Identical terminal state returns its recorded result without new
-calls. External state change may permit continuation under the same lifetime
+calls. Runtime-v2 permits at most two explicit provider continuations under the
+original lifetime budgets, preserving prior hashes/failures and focused feedback;
+see [provider continuation](PROVIDER_CONTINUATION.md). External state change may permit continuation under the same lifetime
 budgets; changing model or budgets is refused. An interrupted pending turn is
 explicit RUNTIME_INTERRUPTED and needs operator inspection; it cannot silently
 rerun a remote call with unknown outcome.

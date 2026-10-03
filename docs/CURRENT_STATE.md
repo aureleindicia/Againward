@@ -12,6 +12,12 @@ on a CLI usage-limit provider failure. The earlier fixed thin vertical evidence
 below is not a live result for this new scheduler. See
 [the runtime record](energy_billing/INVESTIGATOR.md).
 
+The next runtime-v2 change adds explicit bounded provider continuation, preserves
+all consumed budgets/reviews/evidence, and separates terminal CLI errors from
+echoed source text. Billing-focused tests pass 137 cases; Ruff and configured
+mypy pass. Clean full regressions and the actual continuation are pending; see
+[the continuation contract](energy_billing/PROVIDER_CONTINUATION.md).
+
 Branch `feat/energy-billing-v1` adds a separate evidence-first Billing domain.
 Clean engine `d4a6211` passes 1510 tests and an actual-model synthetic
 PDF → bound observations → local facts/authority reviews → exact scoped

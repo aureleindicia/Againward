@@ -19,6 +19,31 @@ from .protocol import VERSION, BillingFailure, decode, validate
 Transport = Callable[[str, dict[str, Any]], bytes]
 
 
+def _cli_exit_cause(stderr: bytes, prompt: str) -> str:
+    """Classify terminal CLI errors, excluding its verbatim echoed input.
+
+    Unknown/unrecognized log formats stay CLI_EXIT. Neither a source keyword
+    nor a successful model response is an authoritative provider diagnostic.
+    """
+    encoded = prompt.encode("utf-8")
+    if b"\nuser\n" in stderr and encoded not in stderr:
+        return "CLI_EXIT"  # Truncated/changed echo cannot establish a trusted error boundary.
+    lines = stderr.replace(encoded, b"[input omitted]").splitlines()
+    errors = []
+    for line in reversed(lines):
+        if not line.strip():
+            continue
+        if not line.startswith(b"ERROR:"):
+            break
+        errors.append(line.lower().replace(b"\xe2\x80\x99", b"'"))
+    if any(b"hit your usage limit" in line for line in errors):
+        return "USAGE_LIMIT"
+    if any(fragment in line for line in errors for fragment in (
+            b"invalid schema", b"invalid_json_schema", b"schema_validation_error")):
+        return "SCHEMA_REJECTED"
+    return "CLI_EXIT"
+
+
 def _private_write(root: Path, name: str, body: bytes) -> None:
     if any(p.is_symlink() for p in (root, *root.parents)):
         raise BillingFailure("EVALUATION_RETENTION_FAILURE", stage="PROVIDER", expected="unlinked private directory")
@@ -63,12 +88,11 @@ class CodexTransport:
                 raw = output.read_bytes() if output.is_file() else b""
                 if result.returncode:
                     # Schema rejection is a model-contract failure, not domain unsupported.
-                    stderr = result.stderr.lower()
-                    schema_failure = any(fragment in stderr for fragment in (
-                        b"invalid schema", b"invalid_json_schema", b"schema_validation_error"))
+                    cause = _cli_exit_cause(result.stderr, prompt)
+                    schema_failure = cause == "SCHEMA_REJECTED"
                     failure = BillingFailure("MODEL_PROTOCOL_FAILURE" if schema_failure else "MODEL_PROVIDER_FAILURE",
                         stage="PROVIDER", expected="provider accepts exact output schema" if schema_failure else "successful CLI",
-                        cause="SCHEMA_REJECTED" if schema_failure else "CLI_EXIT", exit_code=result.returncode)
+                        cause=cause, exit_code=result.returncode)
                 elif not raw:
                     failure = BillingFailure("MODEL_PROTOCOL_INVALID", stage="PROVIDER", expected="nonempty output",
                                              cause="EMPTY_RESPONSE")

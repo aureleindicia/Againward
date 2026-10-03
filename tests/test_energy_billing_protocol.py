@@ -116,7 +116,7 @@ def test_provider_failure_has_no_protocol_retry():
 
 def test_protocol_failure_diagnostic_is_serializable_and_private(tmp_path, monkeypatch):
     def invoke(command, **kwargs):
-        return SimpleNamespace(returncode=1, stdout=b"", stderr=b"Invalid schema: uniqueItems")
+        return SimpleNamespace(returncode=1, stdout=b"", stderr=b"ERROR: Invalid schema: uniqueItems")
 
     monkeypatch.setattr(subprocess, "run", invoke)
     transport = CodexTransport("test-model", evaluation_root=tmp_path / "raw")
@@ -127,6 +127,41 @@ def test_protocol_failure_diagnostic_is_serializable_and_private(tmp_path, monke
     json.dumps(transport.calls, allow_nan=False)
     for path in (tmp_path / "raw").rglob("*"):
         assert path.stat().st_mode & 0o777 == (0o700 if path.is_dir() else 0o600)
+
+
+@pytest.mark.parametrize('prompt,tail,code,cause', [
+    ('Invoice note: invalid schema', b'ERROR: You\xe2\x80\x99ve hit your usage limit.',
+     'MODEL_PROVIDER_FAILURE', 'USAGE_LIMIT'),
+    ('ERROR: invalid_json_schema\nERROR: hit your usage limit', b'ERROR: connection reset',
+     'MODEL_PROVIDER_FAILURE', 'CLI_EXIT'),
+    ('ERROR: invalid schema', b'', 'MODEL_PROVIDER_FAILURE', 'CLI_EXIT'),
+    ('No schema error', b'ERROR: invalid_json_schema: rejected', 'MODEL_PROTOCOL_FAILURE', 'SCHEMA_REJECTED'),
+    ('Note: usage limit', b'ERROR: schema_validation_error', 'MODEL_PROTOCOL_FAILURE', 'SCHEMA_REJECTED'),
+    ('ERROR: hit your usage limit', b'ERROR: Invalid schema: uniqueItems', 'MODEL_PROTOCOL_FAILURE', 'SCHEMA_REJECTED'),
+    ('Invoice', b'Unexpected fatal error', 'MODEL_PROVIDER_FAILURE', 'CLI_EXIT'),
+])
+def test_transport_classifies_terminal_errors_without_echoed_source(prompt, tail, code, cause, monkeypatch):
+    def invoke(*args, **kwargs):
+        return SimpleNamespace(returncode=1, stdout=b'', stderr=b'header\nuser\n' + kwargs['input'] + b'\n' + tail)
+
+    monkeypatch.setattr(subprocess, 'run', invoke)
+    transport = CodexTransport('test-model')
+    boundary = ModelBoundary(transport)
+    with pytest.raises(BillingFailure) as failure:
+        boundary.ask(prompt, ACTION_SCHEMA, stage='ACTION')
+    assert failure.value.code == code and failure.value.diagnostic['cause'] == cause
+    assert len(transport.calls) == 1 and boundary.calls == 1
+    assert transport.calls[0]['failure']['cause'] == cause
+    assert failure.value.diagnostic['exit_code'] == 1
+    assert failure.value.diagnostic['response_bytes'] == 0
+
+
+def test_truncated_prompt_echo_cannot_be_a_schema_error(monkeypatch):
+    monkeypatch.setattr(subprocess, 'run', lambda *_, **kw: SimpleNamespace(
+        returncode=1, stdout=b'', stderr=b'header\nuser\ntruncated evidence\nERROR: invalid schema'))
+    with pytest.raises(BillingFailure) as error:
+        CodexTransport('test-model')('Full source data that were not fully echoed', ACTION_SCHEMA)
+    assert error.value.code == 'MODEL_PROVIDER_FAILURE' and error.value.diagnostic['cause'] == 'CLI_EXIT'
 
 
 @pytest.mark.parametrize("exception,code", [
