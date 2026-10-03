@@ -24,13 +24,22 @@ def propose_action(state: dict[str, Any], issue: dict[str, Any], boundary: Model
     local = {"issue": issue, "observations": evidence, "occurrences": occurrences, "relations": relations,
              "quarantine": {key: row for key, row in state["quarantine"].items() if row["source_id"] in sources},
              "reviews": {key: row for key, row in state["reviews"].items() if key in subjects}}
+    if state.get('dispositions'):
+        from .disposition import semantic_decisions, target as disposition_target
+        local['dispositions'] = {key: meaning for key, meaning in semantic_decisions(state).items()
+                                 if disposition_target(state, key)[1]['source_id'] in sources}
 
     def check(value):
-        validate_action(value, issue_id=issue["issue_id"], targets=subjects | sources)
+        validate_action(value, issue_id=issue["issue_id"], targets=subjects | sources | set(evidence) | set(local['quarantine']))
         if any(eid not in evidence for eid in value["action"].get("evidence_ids", [])):
             raise BillingFailure("MODEL_PROTOCOL_INVALID", stage="ACTION", path="$.action.evidence_ids",
                                  expected="known focused evidence IDs")
         action = value["action"]
+        if action['type'] == 'REQUEST_DISPOSITION':
+            from .disposition import validate_proposal
+            validate_proposal(state, action)
+            if any(key not in sources | set(evidence) for key in action['replacement_ids']):
+                raise BillingFailure('MODEL_PROTOCOL_INVALID', stage='ACTION', path='$.action.replacement_ids', expected='focused replacements')
         if action["type"] == "REQUEST_REVIEW" and action["target"] not in occurrences | relations:
             raise BillingFailure("MODEL_PROTOCOL_INVALID", stage="ACTION", path="$.action.target",
                                  expected="focused occurrence or relation review target")
@@ -65,6 +74,12 @@ def propose_action(state: dict[str, Any], issue: dict[str, Any], boundary: Model
         "REQUEST_REVIEW targets a focused occurrence or relation and asks an independent model to check original sources. "
         "REQUEST_INSPECTION returns one listed native source unit; REQUEST_REREAD extracts new original-source atoms "
         "without seeing earlier candidates. These actions cannot approve facts. Repeated identical reads are not progress. "
+        "REQUEST_DISPOSITION proposes a source, atom or quarantine decision to a separate independent reviewer; "
+        "it never deletes evidence or approves itself. SUPERSEDED/DUPLICATE need explicit replacement_ids; others use []. "
+        "Source replacements use source IDs; atom/quarantine replacements use valid same-source/field evidence IDs. "
+        "IRRELEVANT is decorative content only. Competing accepted prices or two genuine PDLs remain unresolved. "
+        "An extraction mistake may be REJECTED_WITH_EVIDENCE or replaced after a new valid reading; cite supporting "
+        "evidence_ids and explain the exact cause. Use no convenient value selection. "
         "PROPOSE_READY only requests Python readiness and calculation, never overrides a gap. "
         "Ambiguity means MARK_UNRESOLVED with a concrete cause, never choose arbitrary PDL/tariff.\n"
         + json.dumps(local, ensure_ascii=False)
@@ -77,9 +92,13 @@ def semantic_hash(state: dict[str, Any]) -> str:
 
     # Receipts/calls/model wording are not semantic progress. A fresh negative
     # review or identical reread must not extend the runtime budget.
-    return stable_hash({"observations": state["observations"], "quarantine": state["quarantine"],
-                        "occurrences": state["occurrences"], "relations": state["relations"],
-                        "supported_reviews": sorted(supported_review_keys(state))})
+    from .disposition import semantic_decisions
+    body = {"observations": state["observations"], "quarantine": state["quarantine"],
+            "occurrences": state["occurrences"], "relations": state["relations"],
+            "supported_reviews": sorted(supported_review_keys(state))}
+    if state.get('dispositions'):
+        body['dispositions'] = semantic_decisions(state)
+    return stable_hash(body)
 
 
 def supported_review_keys(state: dict[str, Any]) -> set[tuple[str, str]]:
@@ -103,7 +122,10 @@ def supported_review_keys(state: dict[str, Any]) -> set[tuple[str, str]]:
 
 def semantic_progress(before: dict[str, Any], after: dict[str, Any]) -> bool:
     """New invalid rows or loss of review support are changes, not progress."""
-    return (any(set(after[key]) - set(before[key]) for key in ("observations", "occurrences", "relations"))
+    from .disposition import semantic_decisions, excluded_ids
+    gained = excluded_ids(after) - excluded_ids(before)
+    return (bool(gained) and semantic_decisions(after) != semantic_decisions(before)
+            or any(set(after[key]) - set(before[key]) for key in ("observations", "occurrences", "relations"))
             or any(set(row["evidence_ids"]) - set(before["occurrences"].get(key, {}).get("evidence_ids", []))
                    for key, row in after["occurrences"].items())
             or bool(supported_review_keys(after) - supported_review_keys(before)))

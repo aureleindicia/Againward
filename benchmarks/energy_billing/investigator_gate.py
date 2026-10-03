@@ -22,7 +22,7 @@ from againward.domains.energy_billing.provider import CodexTransport
 from againward.domains.energy_billing.reporting import render_report
 from againward.domains.energy_billing.state import initialize, load_state
 
-from .native_gate import make_sources
+from .frontier_cases import SCENARIOS, make_sources
 
 
 def frozen_sha() -> str:
@@ -84,14 +84,16 @@ def continue_snapshot(previous: Path, output: Path, model: str) -> tuple[SourceB
                        'origin_active_wall_seconds': runtime['wall_seconds']}
 
 
-def run(model: str, output: Path, *, continue_from: Path | None = None) -> dict:
+def run(model: str, output: Path, *, continue_from: Path | None = None, scenario: str = 'thin') -> dict:
+    if scenario not in SCENARIOS or (continue_from is not None and scenario != 'thin'):
+        raise ValueError('Known fresh scenario or preserved continuation required')
     sha = frozen_sha()
     started = time.perf_counter()
     root = output / "snapshot"
     continuation = None
     if continue_from is None:
         output.mkdir(parents=True, exist_ok=False, mode=0o700)
-        make_sources(output / "input")
+        make_sources(output / "input", scenario)
         batch = inventory_sources(output / "input", root)
         initialize(batch, root)
     else:
@@ -124,6 +126,10 @@ def run(model: str, output: Path, *, continue_from: Path | None = None) -> dict:
               "protocol_retries": runtime["protocol_repairs"], "diagnostics": runtime["diagnostics"],
               "provider_calls": transport.calls,
               "continuation": continuation,
+              "scenario": scenario if continuation is None else None,
+              "dispositions": {key: {'disposition': row['proposal']['disposition'], 'verdict': row['response']['verdict'],
+                                     'basis': row['response']['basis'], 'receipt_sha256': row['receipt_sha256']}
+                               for key, row in state.get('dispositions', {}).items()},
               "new_model_calls": runtime['model_calls'] - (continuation['origin_model_calls'] if continuation else 0),
               "new_turns": runtime['turns'] - (continuation['origin_turns'] if continuation else 0),
               "provider_failures": sum(row["code"] == "MODEL_PROVIDER_FAILURE" for row in runtime["diagnostics"]),
@@ -144,8 +150,9 @@ def main() -> None:
     parser.add_argument("--model", required=True)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--continue-from", type=Path, help="Preserve a failed synthetic gate in a separate new output")
+    parser.add_argument('--scenario', choices=SCENARIOS, default='thin', help='Fresh synthetic original document variation')
     args = parser.parse_args()
-    result = run(args.model, args.output, continue_from=args.continue_from)
+    result = run(args.model, args.output, continue_from=args.continue_from, scenario=args.scenario)
     raise SystemExit(0 if result["report_reached"] else 1)
 
 

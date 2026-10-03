@@ -23,6 +23,7 @@ from againward.domains.energy_billing.protocol import (
     FACT_REVIEW_SCHEMA,
     TARIFF_REVIEW_SCHEMA,
     AUTHORITY_REVIEW_SCHEMA,
+    DISPOSITION_REVIEW_SCHEMA,
     BillingFailure,
     validate,
     validate_action,
@@ -33,7 +34,8 @@ from againward.domains.energy_billing.reader import source_context
 from againward.documents.readers import ParsedDocument, SourceUnit
 
 
-def run(model: str, output: Path, *, authority_only: bool = False, actions_only: bool = False) -> dict:
+def run(model: str, output: Path, *, authority_only: bool = False, actions_only: bool = False,
+        dispositions_only: bool = False) -> dict:
     output.mkdir(parents=True, exist_ok=False, mode=0o700)
     transport = CodexTransport(model, evaluation_root=output / "raw")
     boundary = ModelBoundary(transport)
@@ -56,7 +58,9 @@ def run(model: str, output: Path, *, authority_only: bool = False, actions_only:
     for kind, fields in ACTION_FIELDS.items():
         action: dict[str, Any] = {"type": kind}
         for name in fields:
-            action[name] = ["e-1"] if name == "evidence_ids" else "Not enough evidence." if name == "reason" else "target-1"
+            action[name] = (["e-1"] if name == "evidence_ids" else [] if name == 'replacement_ids'
+                            else 'IRRELEVANT' if name == 'disposition'
+                            else "Not enough evidence." if name == "reason" else "target-1")
         proposal = {"issue_id": "issue-1", "action": action}
         tasks.append((kind, ACTION_SCHEMA,
             "Protocol-only echo of this action; do not investigate a case or calculate:\n" + json.dumps(proposal),
@@ -86,6 +90,23 @@ def run(model: str, output: Path, *, authority_only: bool = False, actions_only:
         tasks = [task for task in tasks if task[0].startswith("BOUND_AUTHORITY")]
     if actions_only:
         tasks = [task for task in tasks if task[0] in ACTION_FIELDS or task[0] == "LIVE_REPAIR"]
+    if dispositions_only:
+        from againward.domains.energy_billing.disposition import check_response as check_disposition
+        proposal = {'type': 'REQUEST_DISPOSITION', 'target': 'e-note', 'disposition': 'IRRELEVANT',
+                    'replacement_ids': [], 'evidence_ids': [], 'reason': 'Protocol-only decorative text.'}
+        deps = {'target_kind': 'OBSERVATION', 'target': {'source_id': 'probe-source', 'field': 'note'}}
+        disposition_response: dict[str, Any] = {'verdict': 'SUPPORTED', 'reason': 'Protocol-only supplied decorative text.',
+                    'basis': 'DECORATIVE', 'coverage': 'ALL_MATERIAL_FACTS_ACCOUNTED',
+                    'proofs': [{'source_id': 'probe-source', 'location': 'line:1', 'quote': 'Accepted agreement.'}]}
+        tasks = [task for task in tasks if task[0] == 'REQUEST_DISPOSITION']
+        for name, fault in (('DISPOSITION_REVIEW', False), ('DISPOSITION_REPAIR', True)):
+            answer = {**disposition_response, 'proofs': [{**disposition_response['proofs'][0], 'location': 'line:999' if fault else 'line:1'}]}
+            prompt = ('Protocol-only proof binding, no financial case or semantic truth decision. '
+                      "Source probe-source at line:1 contains exactly 'Accepted agreement.'. " +
+                      ('First use deliberate invalid line:999; after the runtime rejects it, repair to line:1. ' if fault else '') +
+                      'Return this direct native object:\n' + json.dumps(answer))
+            tasks.append((name, DISPOSITION_REVIEW_SCHEMA, prompt,
+                          partial(check_disposition, proposal=proposal, deps=deps, originals=[context])))
     for name, schema, prompt, checker in tasks:
         before = boundary.calls
         try:
@@ -100,7 +121,7 @@ def run(model: str, output: Path, *, authority_only: bool = False, actions_only:
         write_json(output / "progress.json", {"probes": probes, "calls": transport.calls})
         print(json.dumps({"probe": name, "passed": probes[-1]["passed"], "calls": probes[-1]["calls"]}), flush=True)
         # A schema/provider failure means later contracts cannot be presumed viable.
-        if not probes[-1]["passed"] and probes[-1]["failure"].get("cause") in {"SCHEMA_REJECTED", "CLI_EXIT", "TIMEOUT"}:
+        if not probes[-1]["passed"] and probes[-1]["failure"].get("cause") in {"SCHEMA_REJECTED", "CLI_EXIT", "TIMEOUT", 'USAGE_LIMIT'}:
             break
     receipt = {"schema_version": "energy-billing-probe-v1",
         "engine_sha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
@@ -119,10 +140,12 @@ def main() -> None:
     parser.add_argument("--model", required=True)
     parser.add_argument("--output", required=True, type=Path)
     modes = parser.add_mutually_exclusive_group()
+    modes.add_argument('--dispositions-only', action='store_true')
     modes.add_argument("--authority-only", action="store_true")
     modes.add_argument("--actions-only", action="store_true")
     args = parser.parse_args()
-    result = run(args.model, args.output, authority_only=args.authority_only, actions_only=args.actions_only)
+    result = run(args.model, args.output, authority_only=args.authority_only, actions_only=args.actions_only,
+                 dispositions_only=args.dispositions_only)
     raise SystemExit(0 if result["passed"] else 1)
 
 

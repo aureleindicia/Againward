@@ -37,13 +37,20 @@ def dependencies(state: dict[str, Any], target: str) -> dict[str, Any]:
     occurrences = {oid: state["occurrences"][oid] for oid in ids}
     sources = {row["source_id"] for row in occurrences.values()}
     batch = SourceBatch.from_dict(state["batch"])
-    return {"target": target, "subject": subject, "occurrences": occurrences,
+    deps = {"target": target, "subject": subject, "occurrences": occurrences,
             "source_hashes": {d.source_id: d.sha256 for d in batch.documents if d.source_id in sources},
             "observations": {eid: row for eid, row in sorted(state["observations"].items()) if row["source_id"] in sources},
             "quarantine": {key: row for key, row in state["quarantine"].items() if row["source_id"] in sources},
             "limitations": sorted({limit for reading in state["readings"].values()
                                     if any(row["source_id"] in sources for row in reading["observations"].values())
                                     for limit in reading["limitations"]})}
+    if state.get('dispositions'):
+        from .disposition import semantic_decisions, target as disposition_target
+        local = {key: meaning for key, meaning in semantic_decisions(state).items()
+                 if disposition_target(state, key)[1]['source_id'] in sources}
+        if local:
+            deps['dispositions'] = local
+    return deps
 
 
 def current_sources(state: dict[str, Any], target: str, root: Path) -> list[dict[str, Any]]:

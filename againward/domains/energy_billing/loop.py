@@ -222,6 +222,10 @@ def investigate(root: Path, *, model: str, transport: Transport, budget: Budget 
                     elif kind == "REQUEST_REVIEW":
                         digest = request_review(state, action["target"], root, model=model, boundary=boundary)
                         state = commit_event(state, {"type": "REVIEW", "receipt_sha256": digest}, root)
+                    elif kind == 'REQUEST_DISPOSITION':
+                        from .disposition import request_disposition
+                        digest = request_disposition(state, action, root, model=model, boundary=boundary)
+                        state = commit_event(state, {'type': 'DISPOSITION', 'receipt_sha256': digest}, root)
                     elif kind == "REQUEST_REREAD":
                         if log["rereads"] >= budget.max_rereads:
                             limit("max_rereads")

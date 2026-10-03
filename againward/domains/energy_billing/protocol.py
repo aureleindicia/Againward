@@ -59,6 +59,9 @@ ACTION_FIELDS = {
     "REQUEST_REVIEW": {"target": REFERENCE},
     "REQUEST_INSPECTION": {"source_id": REFERENCE, "location": REFERENCE},
     "REQUEST_REREAD": {"source_id": REFERENCE},
+    "REQUEST_DISPOSITION": {"target": REFERENCE,
+        "disposition": enum("SUPERSEDED", "DUPLICATE", "REJECTED_WITH_EVIDENCE", "IRRELEVANT", "UNRESOLVED"),
+        "replacement_ids": {**IDS, "minItems": 0}, "evidence_ids": {**IDS, "minItems": 0}, "reason": REASON},
     "MARK_UNRESOLVED": {"reason": REASON},
     "PROPOSE_READY": {},
 }
@@ -90,6 +93,14 @@ AUTHORITY_REVIEW_SCHEMA = obj({
     "authority_source_id": REFERENCE,
     "authority_location": REFERENCE,
     "authority_quote": {"type": "string", "minLength": 1, "maxLength": 2000},
+})
+DISPOSITION_REVIEW_SCHEMA = obj({
+    "verdict": enum("SUPPORTED", "AMBIGUOUS", "REJECTED"), "reason": REASON,
+    "basis": enum("DECORATIVE", "DUPLICATE_CONTENT", "EXPLICIT_SUPERSESSION", "EXTRACTION_ERROR", "NONBINDING_SOURCE", "UNRESOLVED"),
+    "coverage": enum("ALL_MATERIAL_FACTS_ACCOUNTED", "INCOMPLETE"),
+    "proofs": {"type": "array", "minItems": 0, "maxItems": 8, "items": obj({
+        "source_id": REFERENCE, "location": REFERENCE,
+        "quote": {"type": "string", "minLength": 1, "maxLength": 2000}})},
 })
 
 
@@ -136,7 +147,7 @@ def validate(value: Any, schema: dict[str, Any], *, stage: str, path: str = "$")
             fail("bounded array")
         for index, item in enumerate(value):
             validate(item, schema["items"], stage=stage, path=f"{path}[{index}]")
-        if path.endswith(".evidence_ids") and len(value) != len(set(value)):
+        if path.endswith((".evidence_ids", ".replacement_ids")) and len(value) != len(set(value)):
             fail("unique references")
     else:
         raise RuntimeError(f"Internal unsupported schema vocabulary: {kind}")

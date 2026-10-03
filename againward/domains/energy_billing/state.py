@@ -43,6 +43,11 @@ def fields(state: dict[str, Any], ids: list[str]) -> dict[str, str]:
 
 
 def declare(state: dict[str, Any], kind: str, ids: list[str]) -> str:
+    from .disposition import excluded_ids
+
+    excluded = excluded_ids(state)
+    if set(ids) & excluded:
+        raise BillingFailure('BUSINESS_AMBIGUITY', stage='ACTION', expected='current non-discarded occurrence evidence')
     sources = {state["observations"][eid]["source_id"] for eid in ids}
     if len(sources) != 1:
         raise BillingFailure("OCCURRENCE_AMBIGUOUS", stage="ACTION", expected="one original document per occurrence")
@@ -54,13 +59,13 @@ def declare(state: dict[str, Any], kind: str, ids: list[str]) -> str:
     # Every observation of those same scalar fields in this source participates
     # in conflict detection. Selecting convenient evidence cannot hide two PDLs.
     all_ids = [eid for eid, row in state["observations"].items()
-               if row["source_id"] == source and row["field"] in REQUIRED[kind]]
+               if row["source_id"] == source and row["field"] in REQUIRED[kind] and eid not in excluded]
     fields(state, all_ids)
     identity = {key: value[key] for key in REQUIRED[kind]}
     oid = "eb-o-" + stable_hash({"kind": kind, "source_id": source, "identity": identity})
     old = state["occurrences"].get(oid, {})
     state["occurrences"][oid] = {"kind": kind, "source_id": source,
-                               "evidence_ids": sorted(set(ids) | set(old.get("evidence_ids", [])))}
+                               "evidence_ids": sorted(set(ids) | (set(old.get("evidence_ids", [])) - excluded))}
     return oid
 
 
@@ -109,6 +114,11 @@ def reduce_event(state: dict[str, Any], event: dict[str, Any], root: Path) -> di
             raise BillingFailure("STATE_REPLAY_INVALID", stage="REPLAY", expected="closed review event")
         from .review import reduce_review
         return reduce_review(result, event["receipt_sha256"], root)
+    elif event['type'] == 'DISPOSITION':
+        if set(event) != {'type', 'receipt_sha256'}:
+            raise BillingFailure('STATE_REPLAY_INVALID', stage='REPLAY', expected='closed disposition event')
+        from .disposition import reduce_disposition
+        return reduce_disposition(result, event['receipt_sha256'], root)
     else:
         raise BillingFailure("STATE_REPLAY_INVALID", stage="REPLAY", expected="known event type")
     return result

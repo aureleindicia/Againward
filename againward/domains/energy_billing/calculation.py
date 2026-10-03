@@ -51,21 +51,27 @@ def numeric_proof(state: dict[str, Any], ids: list[str], names: set[str]) -> Non
 
 
 def _prerequisites(state: dict[str, Any], root: Path) -> tuple[str, ConsumptionLine, TariffTerm]:
+    from .disposition import active_occurrences, excluded_ids, validate_current
+
+    validate_current(state, root)
+    excluded = excluded_ids(state)
     # Root causes, in dependency order. No expected-amount/report pseudo-issues.
-    material = [row["root_issue_id"] for row in state["quarantine"].values() if row["potentially_material"]]
+    material = [row["root_issue_id"] for row in state["quarantine"].values()
+                if row["potentially_material"] and row['root_issue_id'] not in excluded]
     if material:
         raise BillingFailure("MATERIAL_EVIDENCE_MISSING", stage="READINESS", expected="material quarantine resolved",
                              root_issue_ids=sorted(material))
     # Coverage wording cannot make a known credit or invoice-level total vanish
     # from a single-line calculation. These need a supported explicit treatment.
     other_financial = sorted(eid for eid, row in state["observations"].items()
-                             if row["field"] in {"credit_amount", "invoice_total"})
+                             if row["field"] in {"credit_amount", "invoice_total"} and eid not in excluded and row['source_id'] not in excluded)
     if other_financial:
         raise BillingFailure("MATERIAL_EVIDENCE_MISSING", stage="READINESS",
                              expected="explicit supported disposition of credit / invoice-level amount",
                              unresolved_evidence_ids=other_financial)
-    invoices = {key: row for key, row in state["occurrences"].items() if row["kind"] == "INVOICE"}
-    tariffs = {key: row for key, row in state["occurrences"].items() if row["kind"] == "TARIFF"}
+    active = active_occurrences(state)
+    invoices = {key: row for key, row in active.items() if row["kind"] == "INVOICE"}
+    tariffs = {key: row for key, row in active.items() if row["kind"] == "TARIFF"}
     if len(invoices) != 1:
         raise BillingFailure("OCCURRENCE_AMBIGUOUS" if invoices else "MATERIAL_EVIDENCE_MISSING", stage="IDENTITY",
                              expected="one scoped invoice consumption line", count=len(invoices))
@@ -77,7 +83,7 @@ def _prerequisites(state: dict[str, Any], root: Path) -> tuple[str, ConsumptionL
     # This first slice covers two complete scoped documents. Unknown documents
     # cannot quietly disappear. A later source-disposition action can widen this.
     used = {invoice["source_id"], tariff["source_id"]}
-    unknown = {d.source_id for d in SourceBatch.from_dict(state["batch"]).documents} - used
+    unknown = {d.source_id for d in SourceBatch.from_dict(state["batch"]).documents} - used - excluded
     if unknown:
         raise BillingFailure("MATERIAL_EVIDENCE_MISSING", stage="READINESS", expected="source disposition before calculation",
                              source_ids=sorted(unknown))
@@ -93,7 +99,8 @@ def _prerequisites(state: dict[str, Any], root: Path) -> tuple[str, ConsumptionL
         if response["charge_kind"] != "CONSUMPTION_HT":
             raise BillingFailure("BUSINESS_AMBIGUITY", stage="READINESS", expected="established consumption HT scope")
     dismissed = set(ir["nonmaterial_quarantine_ids"] + tr["nonmaterial_quarantine_ids"])
-    pending_notes = sorted(set(state["quarantine"]) - dismissed)
+    pending_notes = sorted(key for key, row in state['quarantine'].items()
+                           if key not in dismissed | excluded and row['source_id'] not in excluded)
     if pending_notes:
         raise BillingFailure("MATERIAL_EVIDENCE_MISSING", stage="READINESS", expected="independent disposition of quarantined notes",
                              root_issue_ids=pending_notes)
@@ -171,6 +178,10 @@ def calculate(state: dict[str, Any], root: Path, *, persist: bool = True) -> dic
                                                        if target in {rid, state["relations"][rid]["invoice_id"],
                                                                      state["relations"][rid]["tariff_id"]})},
                 "qualification": "Observed billed difference on one HT consumption line; not a recoverable amount or legal entitlement."}
+        if state.get('dispositions'):
+            from .disposition import excluded_ids, frontier
+            body['disposition_receipts'] = {key: state['dispositions'][key]['receipt_sha256'] for key in sorted(excluded_ids(state))}
+            body['material_frontier'] = frontier(state, [state['relations'][rid]['invoice_id'], state['relations'][rid]['tariff_id']])
         digest = stable_hash(body)
         result = {**body, "calculation_sha256": digest}
         if persist:

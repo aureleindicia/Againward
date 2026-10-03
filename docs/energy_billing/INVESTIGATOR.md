@@ -130,9 +130,11 @@ INTERNAL_REVIEW_REQUIRED. Financial DEV/HOLDOUT accuracy is not established.
 
 ## Remaining full Goal work
 
-This checkpoint does not implement material-quarantine replacement adjudication,
-supersession/irrelevance dispositions, competing authority resolution or the
-complete material frontier. Those issues abstain and preserve evidence.
+The subsequent [local disposition implementation](MATERIAL_DISPOSITIONS.md)
+adds independent material-quarantine recovery, supersession/irrelevance decisions
+and a preserved material inventory. Its actual-model acceptance measurements
+remain separate from the earlier thin checkpoint described above. Competing
+authority and multi-PDL ambiguity must abstain without arbitrary selection.
 Post-calculation objections need source-bound independent receipts, local
 reopening/resolution, the same lifetime budgets and at most two reopen cycles;
 a later PASS must never erase a pending objection. Subscription, simple bands/

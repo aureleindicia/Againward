@@ -27,7 +27,8 @@ from againward.domains.energy_billing.provider import CodexTransport, ModelBound
 def intent(kind="MARK_UNRESOLVED"):
     action = {"type": kind}
     for key in ACTION_FIELDS[kind]:
-        action[key] = ["e-1"] if key == "evidence_ids" else "No evidence." if key == "reason" else "target-1"
+        action[key] = (["e-1"] if key == "evidence_ids" else [] if key == 'replacement_ids'
+                       else 'IRRELEVANT' if key == 'disposition' else "No evidence." if key == "reason" else "target-1")
     return {"issue_id": "issue-1", "action": action}
 
 
