@@ -6,11 +6,13 @@ before findings are recorded; deterministic reconciliation owns every amount.
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 import subprocess
 import tempfile
 from time import perf_counter
 from typing import Any
+import uuid
 
 from againward.core.artifact_store import read_json, write_json
 from againward.documents.codex_provider import _images, _model_invocation_failure
@@ -36,11 +38,19 @@ _RESPONSE_SCHEMA: dict[str, Any] = {"type": "object", "additionalProperties": Fa
 
 
 def _ask(prompt: str, images: tuple[Path, ...], *, model: str, timeout_seconds: int,
-         normalize_json: bool = False) -> tuple[dict, float]:
+         normalize_json: bool = False, response_schema: dict[str, Any] | None = None,
+         evaluation_root: Path | None = None) -> tuple[dict, float]:
+    """Legacy string envelope, or an explicit native structured-output contract.
+
+    Only evaluation calls may opt into private raw invocation retention. No
+    transport retry, schema repair, alias mapping or evidence mutation occurs.
+    """
+    selected_schema = response_schema if response_schema is not None else _RESPONSE_SCHEMA
+    invocation_id = str(uuid.uuid4())
     with tempfile.TemporaryDirectory(prefix="againward-rental-model-") as directory:
         temp = Path(directory)
         schema, output = temp / "schema.json", temp / "response.json"
-        schema.write_text(json.dumps(_RESPONSE_SCHEMA), encoding="utf-8")
+        schema.write_text(json.dumps(selected_schema), encoding="utf-8")
         command = ["codex", "exec", "--ephemeral", "--skip-git-repo-check", "--sandbox", "read-only",
                    "--cd", str(temp), "--model", model, "--config", "model_reasoning_effort=medium",
                    "--output-schema", str(schema), "--output-last-message", str(output)]
@@ -48,26 +58,50 @@ def _ask(prompt: str, images: tuple[Path, ...], *, model: str, timeout_seconds: 
             command.extend(["--image", str(image)])
         command.append("-")
         started = perf_counter()
+        def retain(stdout, stderr, returncode, *, timed_out=False):
+            if evaluation_root is not None:
+                from againward.documents.codex_provider import _write_evaluation_invocation_artifacts
+                _write_evaluation_invocation_artifacts(evaluation_root, invocation_id, 0,
+                    command=command, cwd=str(temp), schema=schema, output=output,
+                    stdout=stdout, stderr=stderr, returncode=returncode, timed_out=timed_out)
+
         try:
             response = subprocess.run(command, input=prompt, text=True, capture_output=True,
                                       timeout=timeout_seconds, check=False)
         except subprocess.TimeoutExpired as exc:
+            retain(exc.stdout, exc.stderr, None, timed_out=True)
             raise DocumentError("MODEL_TIMEOUT", "Rental finding review timed out") from exc
         except FileNotFoundError as exc:
             raise DocumentError("MODEL_UNAVAILABLE", "Codex CLI unavailable") from exc
+        retain(getattr(response, "stdout", ""), response.stderr, response.returncode)
         if response.returncode:
             raise _model_invocation_failure(response.stderr)
         if not output.is_file():
             raise DocumentError("MODEL_EMPTY_RESPONSE", "Rental finding review returned no response")
         from againward.documents.model_protocol import load_model_json
-        raw = (load_model_json(output.read_bytes(), maximum=1_000_000) if normalize_json else
-               json.loads(output.read_text(encoding="utf-8")))
-        if not isinstance(raw, dict) or set(raw) != {"payload"} or not isinstance(raw["payload"], str):
-            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Closed Rental model response required")
-        payload = (load_model_json(raw["payload"].encode("utf-8"), maximum=1_000_000) if normalize_json else
-                   json.loads(raw["payload"]))
-        if not isinstance(payload, dict):
-            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Rental model payload must be an object")
+        raw_bytes = output.read_bytes()
+        path = "$"
+        try:
+            raw = (load_model_json(raw_bytes, maximum=1_000_000) if normalize_json else json.loads(raw_bytes))
+            if response_schema is not None:
+                if not isinstance(raw, dict):
+                    raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Native model object required")
+                return raw, perf_counter() - started
+            if not isinstance(raw, dict) or set(raw) != {"payload"} or not isinstance(raw["payload"], str):
+                raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Closed Rental model response required")
+            path = "$.payload"
+            payload = (load_model_json(raw["payload"].encode("utf-8"), maximum=1_000_000) if normalize_json else
+                       json.loads(raw["payload"]))
+            if not isinstance(payload, dict):
+                raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Rental model payload must be an object")
+        except (DocumentError, ValueError, UnicodeError, RecursionError) as exc:
+            code = exc.code if isinstance(exc, DocumentError) else "EXTRACTION_SCHEMA_INVALID"
+            diagnostic = {**(exc.diagnostic or {} if isinstance(exc, DocumentError) else {}),
+                "stage": "MODEL_RESPONSE_JSON", "schema_path": path,
+                "model": model, "invocation_id": invocation_id,
+                "response_sha256": hashlib.sha256(raw_bytes).hexdigest(), "response_bytes": len(raw_bytes),
+                "response_schema_sha256": stable_hash(selected_schema), "raw_retained": evaluation_root is not None}
+            raise DocumentError(code, "Bounded unambiguous model object required", diagnostic=diagnostic) from exc
         return payload, perf_counter() - started
 
 

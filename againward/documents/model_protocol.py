@@ -68,7 +68,16 @@ def load_model_json(raw: bytes, *, maximum: int) -> dict[str, Any]:
             raise ValueError("Object required")
         return result
     except (UnicodeError, ValueError, RecursionError) as exc:
-        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unambiguous bounded model JSON required") from exc
+        rule = ("invalid_utf8" if isinstance(exc, UnicodeError) else
+                "json_syntax" if isinstance(exc, json.JSONDecodeError) else
+                "depth" if isinstance(exc, RecursionError) else
+                "duplicate_member" if str(exc) == "Duplicate object member" else
+                "nonfinite_number" if str(exc) == "Nonfinite number" else "object_required")
+        diagnostic: dict[str, Any] = {"stage": "MODEL_JSON", "schema_path": "$", "rule": rule}
+        if isinstance(exc, json.JSONDecodeError):
+            diagnostic.update(line=exc.lineno, column=exc.colno, offset=exc.pos)
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unambiguous bounded model JSON required",
+                            diagnostic=diagnostic) from exc
 
 
 def token(value: str) -> str:

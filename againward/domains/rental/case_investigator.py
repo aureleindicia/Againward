@@ -26,6 +26,7 @@ from .case_graph_readiness import evaluate_readiness
 from .case_graph_relations import reduce_relations
 from .case_graph_review import invoke_occurrence_review, reduce_review
 from .case_investigator_context import local_context, open_issues, progress_view
+from .case_investigator_contract import RESPONSE_SCHEMA, VERSION as RESPONSE_VERSION, validate_response
 from .reconciliation import reconcile
 
 Provider = Callable[[dict[str, Any]], dict[str, Any]]
@@ -46,7 +47,7 @@ class Budget:
                 raise ValueError("Positive bounded investigator budgets required")
 
 
-def model_provider(model: str, budget: Budget) -> Provider:
+def model_provider(model: str, budget: Budget, *, evaluation_root: Path | None = None) -> Provider:
     from .autonomous_review import _ask
 
     def propose(context: dict[str, Any]) -> dict[str, Any]:
@@ -71,8 +72,12 @@ def model_provider(model: str, budget: Budget) -> Provider:
             "Use evidence IDs, never new fact values. A structure review grants no commercial authority. "
             "Claims need their own review. Repair only the affected occurrence and preserve untouched "
             "observations. Ask to inspect/re-read the smallest relevant original units. "
-            "Output payload STRING contains the JSON object.\n" + json.dumps(context, ensure_ascii=False))
-        response, _ = _ask(prompt, (), model=model, timeout_seconds=budget.timeout_seconds, normalize_json=True)
+            "Return the JSON object directly using the supplied closed output schema. "
+            "Each claim kind has its own allowed value enum. Never invent an enum or infer a "
+            "semantic decision from an unrecognized value. Nonempty evidence_ids must cite the actual inspected observations.\n"
+            + json.dumps(context, ensure_ascii=False))
+        response, _ = _ask(prompt, (), model=model, timeout_seconds=budget.timeout_seconds, normalize_json=True,
+                           response_schema=RESPONSE_SCHEMA, evaluation_root=evaluation_root)
         return response
     return propose
 
@@ -186,12 +191,14 @@ def _execute(graph: dict[str, Any], action: dict[str, Any], root: Path, *,
 
 
 def investigate(graph: dict[str, Any], root: Path, *, model: str,
-                provider: Provider | None = None, budget: Budget = Budget()) -> dict[str, Any]:
+                provider: Provider | None = None, budget: Budget = Budget(),
+                evaluation_only: bool = False) -> dict[str, Any]:
     """Continue a canonical graph, commit each valid delta, stop without fallback."""
     graph = replay_evidence(deepcopy(graph), root)
     if not isinstance(model, str) or not model.strip():
         raise ValueError("Explicit model required")
-    propose = provider if provider is not None else model_provider(model, budget)
+    propose = provider if provider is not None else model_provider(model, budget,
+        evaluation_root=root / "case_graph_v2" if evaluation_only else None)
     started = perf_counter()
     start_hash = graph_hash(graph)
     events: list[dict[str, Any]] = []
@@ -226,24 +233,15 @@ def investigate(graph: dict[str, Any], root: Path, *, model: str,
             response = propose(deepcopy(context))
         except Exception as exc:
             code = exc.code if isinstance(exc, DocumentError) else "MODEL_INVOCATION_FAILURE"
-            feedback = {"result": "FAILED", "rejection_code": code}
+            feedback = {"result": "FAILED", "rejection_code": code,
+                        "diagnostic": exc.diagnostic if isinstance(exc, DocumentError) else None}
             events.append({"turn": turn, "issue_id": focus, "action": None, "feedback": feedback,
                            "pre_state_hash": before, "post_state_hash": before})
             stop = "PROVIDER_FAILURE"
             break
         try:
-            try:
-                size = len(json.dumps(response).encode("utf-8"))
-            except (ValueError, TypeError) as exc:
-                raise DocumentError("EXTRACTION_SCHEMA_INVALID", "JSON action required") from exc
-            if size > 32_000:
-                raise DocumentError("RESOURCE_LIMIT", "Single bounded action exceeds response budget")
-            closed(response, {"issue_id", "action"})
-            if response["issue_id"] != focus or not isinstance(response["action"], dict):
-                raise DocumentError("EXTRACTION_SCHEMA_INVALID", "One action for the current issue required")
+            validate_response(response, focus)
             action = response["action"]
-            if not isinstance(action.get("type"), str):
-                raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Action type required")
             _scope(graph, context, action)
             graph, feedback = _execute(graph, action, root, model=model, budget=budget, calls=calls)
         except DocumentError as exc:
@@ -314,6 +312,7 @@ def investigate(graph: dict[str, Any], root: Path, *, model: str,
                                                      "diagnostic": (feedback or {}).get("diagnostic")}]
         remaining.update({"gap-" + stable_hash(gap): gap for gap in engine_gaps})
     result = {"schema_version": "againward-rental-investigator-v2", "status": status, "stop_reason": stop,
+        "response_contract_version": RESPONSE_VERSION,
         "graph": graph, "starting_graph_sha256": start_hash, "final_graph_sha256": graph_hash(graph),
         "remaining_issues": remaining, "feedback": feedback,
         "rental_case": case_payload, "lineage": lineage, "calculation": calculation,
@@ -334,10 +333,12 @@ def main() -> None:
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--model", required=True)
     parser.add_argument("--max-turns", type=int, default=64)
+    parser.add_argument("--evaluation-only", action="store_true", help="Retain raw model calls in private local scratch")
     args = parser.parse_args()
     payload = read_json(args.input)
     graph = payload if payload.get("schema_version") == "againward-rental-case-graph-v2" else empty_graph(SourceBatch.from_dict(payload))
-    result = investigate(graph, args.root, model=args.model, budget=Budget(max_turns=args.max_turns))
+    result = investigate(graph, args.root, model=args.model, budget=Budget(max_turns=args.max_turns),
+                         evaluation_only=args.evaluation_only)
     print(json.dumps({key: value for key, value in result.items() if key != "graph"}, ensure_ascii=False, indent=2))
 
 

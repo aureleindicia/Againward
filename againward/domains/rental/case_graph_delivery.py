@@ -53,7 +53,8 @@ def _investigate_to_report(graph: dict[str, Any], root: Path, output_directory: 
     used_cycles = sum(event["type"] == "POST_CALC_OBJECTION" for event in graph["actions"])
     remaining_cycles = min(max_reopen_cycles, max(0, MAX_REOPEN_CYCLES - used_cycles))
     for cycle in range(remaining_cycles + 1):
-        investigation = investigate(graph, root, model=model, provider=provider, budget=budget)
+        investigation = investigate(graph, root, model=model, provider=provider, budget=budget,
+                                    evaluation_only=evaluation_only)
         graph = investigation["graph"]
         record = {"cycle": cycle, "graph_sha256": graph_hash(graph), "investigator_status": investigation["status"],
                   "investigator_stop_reason": investigation["stop_reason"]}

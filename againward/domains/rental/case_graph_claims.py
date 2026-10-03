@@ -20,20 +20,24 @@ VERSION = "rental-graph-claims-v3-post-calculation"
 KEYS = {"kind", "target", "value", "evidence_ids", "reason"}
 DISPOSITIONS = {"REJECTED_WITH_EVIDENCE", "IRRELEVANT", "DUPLICATE"}
 READING_ISSUES = {"READING_REJECTION", "READING_LIMITATION", "EMPTY_READING"}
+CLAIM_VALUES = {
+    "CHARGE_MEANING": CHARGE_TYPES,
+    "GOVERNING_TERM": frozenset({"GOVERNING", "NOT_GOVERNING"}),
+    "OBSERVATION_DISPOSITION": frozenset(DISPOSITIONS),
+    "READING_ISSUE_RESOLUTION": frozenset({"RECOVERED", "NO_MATERIAL_EFFECT"}),
+    "POST_CALC_RESOLUTION": frozenset({"CORRECTED", "NO_MATERIAL_EFFECT"}),
+}
 
 
 def _shape(proposal: dict[str, Any]) -> None:
     closed(proposal, KEYS)
     if (not isinstance(proposal["kind"], str)
-            or proposal["kind"] not in {"CHARGE_MEANING", "GOVERNING_TERM", "OBSERVATION_DISPOSITION", "READING_ISSUE_RESOLUTION", "POST_CALC_RESOLUTION"}
+            or proposal["kind"] not in CLAIM_VALUES
             or not isinstance(proposal["target"], str) or not 1 <= len(proposal["target"]) <= 160
             or not isinstance(proposal["value"], str)
             or not isinstance(proposal["reason"], str) or not 1 <= len(proposal["reason"]) <= 2000):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Bounded semantic claim required")
-    allowed = (CHARGE_TYPES if proposal["kind"] == "CHARGE_MEANING" else
-               {"GOVERNING", "NOT_GOVERNING"} if proposal["kind"] == "GOVERNING_TERM" else
-               {"RECOVERED", "NO_MATERIAL_EFFECT"} if proposal["kind"] == "READING_ISSUE_RESOLUTION" else
-               {"CORRECTED", "NO_MATERIAL_EFFECT"} if proposal["kind"] == "POST_CALC_RESOLUTION" else DISPOSITIONS)
+    allowed = CLAIM_VALUES[proposal["kind"]]
     if proposal["value"] not in allowed:
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown semantic decision")
     _ids(proposal["evidence_ids"])

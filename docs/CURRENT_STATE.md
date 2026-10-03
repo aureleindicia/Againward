@@ -1,5 +1,16 @@
 # AGAINWARD — read first (2026-09-25)
 
+## V2 Investigator response-contract correction (2026-10-03)
+
+The first frozen V2 DEV A×1/B×1 campaign stopped before calculation on
+`EXTRACTION_SCHEMA_INVALID` at the Investigator model boundary. A's retained
+intermediate proposal also used an unsupported disposition enum and no evidence.
+The correction gives the Investigator a closed native action schema shared with
+Python, preserves precise failure diagnostics, and retains raw calls only in
+explicit private evaluation mode. It does not infer historical terminal payloads,
+resolve B's reader issues, or claim A/B success. No A/B rerun was launched. See
+[the response-contract evidence](validation/rental_v2_investigator_response_contract_20261003.md).
+
 ## V2 post-calculation/report/PDF checkpoint (2026-10-03)
 
 V2 now has an explicit native graph-to-report entrypoint, independent bounded
