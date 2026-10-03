@@ -17,6 +17,11 @@ current product acceptance. Do not mechanically delete or move their evidence.
 
 ## Active architecture
 
+- [Energy Billing V1 checkpoint](energy_billing/CHECKPOINT_0.md),
+  [official-source research](energy_billing/REGULATORY_RESEARCH.md),
+  [early live boundary validation](energy_billing/VALIDATION.md) — separate new
+  domain; full financial E2E and pilot readiness are still open.
+
 - [Architecture](ARCHITECTURE.md), [document architecture](REAL_WORLD_DOCUMENT_ARCHITECTURE.md),
   [entity resolution](ENTITY_RESOLUTION.md), [client workflow](CLIENT_WORKFLOW.md).
 

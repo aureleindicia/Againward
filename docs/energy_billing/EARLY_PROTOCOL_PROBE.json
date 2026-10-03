@@ -1,0 +1,89 @@
+{
+  "schema_version": "energy-billing-probe-v1",
+  "engine_sha": "8a066e0a5cbb9eb29f528169a981d0c09fc99fb3",
+  "engine_dirty": true,
+  "model": "gpt-6.1-sol",
+  "cli_version": "codex-cli 0.159.3",
+  "financial_fixture": false,
+  "oracle": false,
+  "domain_state_mutated": false,
+  "planned_probes": 10,
+  "passed": true,
+  "wall_seconds": 80.93918638900504,
+  "diagnostics": [
+    {
+      "actual_type": "str",
+      "code": "MODEL_PROTOCOL_INVALID",
+      "component": "energy_billing",
+      "expected": "focused issue issue-1",
+      "path": "$.issue_id",
+      "response_sha256": "55939af0682983d7d5a122ed13fa9f8cdd3fae9277b6de4458fcc1a614f9dc96",
+      "retry_count": 0,
+      "schema_sha256": "2389ac81dfcbb77c78cb06d9515db78139b1fc466be8ad72d392ca5694e8a899",
+      "schema_version": "energy-billing-model-v1",
+      "source_id": null,
+      "stage": "LIVE_REPAIR",
+      "state_mutated": false
+    }
+  ],
+  "probes": [
+    {
+      "name": "READ",
+      "passed": true,
+      "calls": 1
+    },
+    {
+      "name": "REVIEW",
+      "passed": true,
+      "calls": 1
+    },
+    {
+      "name": "DECLARE_INVOICE",
+      "passed": true,
+      "calls": 1
+    },
+    {
+      "name": "DECLARE_TARIFF",
+      "passed": true,
+      "calls": 1
+    },
+    {
+      "name": "LINK_TARIFF",
+      "passed": true,
+      "calls": 1
+    },
+    {
+      "name": "REQUEST_REVIEW",
+      "passed": true,
+      "calls": 1
+    },
+    {
+      "name": "REQUEST_INSPECTION",
+      "passed": true,
+      "calls": 1
+    },
+    {
+      "name": "MARK_UNRESOLVED",
+      "passed": true,
+      "calls": 1
+    },
+    {
+      "name": "PROPOSE_READY",
+      "passed": true,
+      "calls": 1
+    },
+    {
+      "name": "LIVE_REPAIR",
+      "passed": true,
+      "calls": 2
+    }
+  ],
+  "model_calls": 11,
+  "schema_hashes": [
+    "2389ac81dfcbb77c78cb06d9515db78139b1fc466be8ad72d392ca5694e8a899",
+    "404068d98f6cbd4178c1bf28a9ef3042767cd7c02be575619efc368cd1ae81f8",
+    "44b8ed2265bdd27450a6c2f79a575b77423c432d4a32259d1d49c0f510045159"
+  ],
+  "artifact_sha256": "d758fc686d081beb3c9a3f8ee8db0a5d38d8d6941ce94f5db1124e788468d370",
+  "qualification": "Early engineering protocol probe; dirty tree, not frozen DEV quality or financial E2E."
+}
