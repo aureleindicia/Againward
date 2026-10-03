@@ -102,6 +102,7 @@ class ModelBoundary:
     transport: Transport
     diagnostics: list[dict[str, Any]] = field(default_factory=list)
     calls: int = 0
+    attempt_observer: Callable[[int], None] | None = None
 
     def ask(self, prompt: str, schema: dict[str, Any], *, stage: str,
             checker: Callable[[Any], None] | None = None,
@@ -115,6 +116,8 @@ class ModelBoundary:
         for attempt in range(2):
             raw = b""
             try:
+                if self.attempt_observer is not None:
+                    self.attempt_observer(attempt)
                 self.calls += 1
                 raw = self.transport(attempt_prompt, schema)
                 value = decode(raw, stage=stage)
@@ -130,8 +133,10 @@ class ModelBoundary:
                         exc.diagnostic.get("response_sha256"), "state_mutated": False}
                 self.diagnostics.append(diagnostic)
                 if exc.code != "MODEL_PROTOCOL_INVALID":
-                    raise BillingFailure(exc.code, stage=stage, cause=exc.diagnostic.get("cause"),
-                                         diagnostics=self.diagnostics[-1]) from exc
+                    # Retain the causal metadata (budget, root IDs, invocation,
+                    # transport cause), not only a generic wrapper error code.
+                    exc.diagnostic = diagnostic
+                    raise
                 if attempt == 1:
                     raise BillingFailure("MODEL_PROTOCOL_FAILURE", stage=stage,
                         expected="valid output after one repair", root_cause=diagnostic,

@@ -58,6 +58,7 @@ ACTION_FIELDS = {
     "LINK_TARIFF": {"invoice_id": REFERENCE, "tariff_id": REFERENCE, "evidence_ids": IDS},
     "REQUEST_REVIEW": {"target": REFERENCE},
     "REQUEST_INSPECTION": {"source_id": REFERENCE, "location": REFERENCE},
+    "REQUEST_REREAD": {"source_id": REFERENCE},
     "MARK_UNRESOLVED": {"reason": REASON},
     "PROPOSE_READY": {},
 }

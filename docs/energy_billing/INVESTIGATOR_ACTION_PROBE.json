@@ -1,0 +1,149 @@
+{
+  "schema_version": "energy-billing-probe-v1",
+  "engine_sha": "6a7feb0299880bccd8fd8d5eb5c09f6f03558112",
+  "engine_dirty": true,
+  "model": "gpt-6.1-sol",
+  "cli_version": "codex-cli 0.159.3",
+  "financial_fixture": false,
+  "oracle": false,
+  "domain_state_mutated": false,
+  "planned_probes": 9,
+  "probes": [
+    {
+      "calls": 1,
+      "name": "DECLARE_INVOICE",
+      "passed": true,
+      "response": {
+        "action": {
+          "evidence_ids": [
+            "e-1"
+          ],
+          "type": "DECLARE_INVOICE"
+        },
+        "issue_id": "issue-1"
+      }
+    },
+    {
+      "calls": 1,
+      "name": "DECLARE_TARIFF",
+      "passed": true,
+      "response": {
+        "action": {
+          "evidence_ids": [
+            "e-1"
+          ],
+          "type": "DECLARE_TARIFF"
+        },
+        "issue_id": "issue-1"
+      }
+    },
+    {
+      "calls": 1,
+      "name": "LINK_TARIFF",
+      "passed": true,
+      "response": {
+        "action": {
+          "evidence_ids": [
+            "e-1"
+          ],
+          "invoice_id": "target-1",
+          "tariff_id": "target-1",
+          "type": "LINK_TARIFF"
+        },
+        "issue_id": "issue-1"
+      }
+    },
+    {
+      "calls": 1,
+      "name": "REQUEST_REVIEW",
+      "passed": true,
+      "response": {
+        "action": {
+          "target": "target-1",
+          "type": "REQUEST_REVIEW"
+        },
+        "issue_id": "issue-1"
+      }
+    },
+    {
+      "calls": 1,
+      "name": "REQUEST_INSPECTION",
+      "passed": true,
+      "response": {
+        "action": {
+          "location": "target-1",
+          "source_id": "target-1",
+          "type": "REQUEST_INSPECTION"
+        },
+        "issue_id": "issue-1"
+      }
+    },
+    {
+      "calls": 1,
+      "name": "REQUEST_REREAD",
+      "passed": true,
+      "response": {
+        "action": {
+          "source_id": "target-1",
+          "type": "REQUEST_REREAD"
+        },
+        "issue_id": "issue-1"
+      }
+    },
+    {
+      "calls": 1,
+      "name": "MARK_UNRESOLVED",
+      "passed": true,
+      "response": {
+        "action": {
+          "reason": "Not enough evidence.",
+          "type": "MARK_UNRESOLVED"
+        },
+        "issue_id": "issue-1"
+      }
+    },
+    {
+      "calls": 1,
+      "name": "PROPOSE_READY",
+      "passed": true,
+      "response": {
+        "action": {
+          "type": "PROPOSE_READY"
+        },
+        "issue_id": "issue-1"
+      }
+    },
+    {
+      "calls": 2,
+      "name": "LIVE_REPAIR",
+      "passed": true,
+      "response": {
+        "action": {
+          "reason": "Protocol probe",
+          "type": "MARK_UNRESOLVED"
+        },
+        "issue_id": "issue-1"
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "actual_type": "str",
+      "code": "MODEL_PROTOCOL_INVALID",
+      "component": "energy_billing",
+      "expected": "focused issue issue-1",
+      "path": "$.issue_id",
+      "response_sha256": "55939af0682983d7d5a122ed13fa9f8cdd3fae9277b6de4458fcc1a614f9dc96",
+      "retry_count": 0,
+      "schema_sha256": "d2ea4c5e751bd70b1acbabb439944ecb01a89834adc74ed467e01f5bc77c1dd8",
+      "schema_version": "energy-billing-model-v1",
+      "source_id": null,
+      "stage": "LIVE_REPAIR",
+      "state_mutated": false
+    }
+  ],
+  "wall_seconds": 99.0310650060128,
+  "passed": true,
+  "model_calls": 10,
+  "qualification": "Dirty-tree engineering compatibility probe of all eight action forms and one real repair; not frozen financial quality or Investigator E2E."
+}

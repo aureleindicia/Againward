@@ -12,11 +12,17 @@ def propose_action(state: dict[str, Any], issue: dict[str, Any], boundary: Model
     source = issue.get("source_id")
     subjects = set(issue.get("targets", []))
     occurrences = {key: row for key, row in state["occurrences"].items() if key in subjects}
-    sources = {source} if source else {row["source_id"] for row in occurrences.values()}
+    relations = {key: row for key, row in state["relations"].items() if key in subjects}
+    for row in relations.values():
+        for oid in (row["invoice_id"], row["tariff_id"]):
+            occurrences[oid] = state["occurrences"][oid]
+            subjects.add(oid)
+    sources = ({source} if source else set()) | {row["source_id"] for row in occurrences.values()}
     evidence = {key: row for key, row in state["observations"].items() if row["source_id"] in sources}
     if len(evidence) > 128:
         raise BillingFailure("RESOURCE_LIMIT", stage="ACTION", expected="bounded local action context")
-    local = {"issue": issue, "observations": evidence, "occurrences": occurrences,
+    local = {"issue": issue, "observations": evidence, "occurrences": occurrences, "relations": relations,
+             "quarantine": {key: row for key, row in state["quarantine"].items() if row["source_id"] in sources},
              "reviews": {key: row for key, row in state["reviews"].items() if key in subjects}}
 
     def check(value):
@@ -25,6 +31,17 @@ def propose_action(state: dict[str, Any], issue: dict[str, Any], boundary: Model
             raise BillingFailure("MODEL_PROTOCOL_INVALID", stage="ACTION", path="$.action.evidence_ids",
                                  expected="known focused evidence IDs")
         action = value["action"]
+        if action["type"] == "REQUEST_REVIEW" and action["target"] not in occurrences | relations:
+            raise BillingFailure("MODEL_PROTOCOL_INVALID", stage="ACTION", path="$.action.target",
+                                 expected="focused occurrence or relation review target")
+        if action["type"] in {"REQUEST_REREAD", "REQUEST_INSPECTION"} and action["source_id"] not in sources:
+            raise BillingFailure("MODEL_PROTOCOL_INVALID", stage="ACTION", path="$.action.source_id",
+                                 expected="focused original source")
+        if action["type"] == "REQUEST_INSPECTION" and "source_handles" in issue:
+            locations = {row["location"] for row in issue["source_handles"].get(action["source_id"], [])}
+            if action["location"] not in locations:
+                raise BillingFailure("MODEL_PROTOCOL_INVALID", stage="ACTION", path="$.action.location",
+                                     expected="listed native source location", locations=sorted(locations))
         if action["type"] == "LINK_TARIFF":
             left, right = action["invoice_id"], action["tariff_id"]
             if occurrences.get(left, {}).get("kind") != "INVOICE" or occurrences.get(right, {}).get("kind") != "TARIFF":
@@ -45,6 +62,10 @@ def propose_action(state: dict[str, Any], issue: dict[str, Any], boundary: Model
         "Declarations are candidates requiring independent original-source review, not authority. "
         "If missing tariff link: propose LINK_TARIFF only when invoice/tariff identities and periods are compatible; "
         "cite the supporting identities/dates from both subjects. Independent authority review follows. "
+        "REQUEST_REVIEW targets a focused occurrence or relation and asks an independent model to check original sources. "
+        "REQUEST_INSPECTION returns one listed native source unit; REQUEST_REREAD extracts new original-source atoms "
+        "without seeing earlier candidates. These actions cannot approve facts. Repeated identical reads are not progress. "
+        "PROPOSE_READY only requests Python readiness and calculation, never overrides a gap. "
         "Ambiguity means MARK_UNRESOLVED with a concrete cause, never choose arbitrary PDL/tariff.\n"
         + json.dumps(local, ensure_ascii=False)
     )
@@ -58,7 +79,31 @@ def semantic_hash(state: dict[str, Any]) -> str:
     # review or identical reread must not extend the runtime budget.
     return stable_hash({"observations": state["observations"], "quarantine": state["quarantine"],
                         "occurrences": state["occurrences"], "relations": state["relations"],
-                        "supported_reviews": {key: {"dependencies_sha256": row["dependencies_sha256"],
-                                                   "verdict": row["response"]["verdict"]}
-                                              for key, row in state["reviews"].items()
-                                              if row["response"]["verdict"] == "SUPPORTED"}})
+                        "supported_reviews": sorted(supported_review_keys(state))})
+
+
+def supported_review_keys(state: dict[str, Any]) -> set[tuple[str, str]]:
+    from againward.evidence.hashing import stable_hash
+    from .review import dependencies
+
+    result = set()
+    for key, row in state["reviews"].items():
+        if (row["response"]["verdict"] != "SUPPORTED"
+                or row["dependencies_sha256"] != stable_hash(dependencies(state, key))):
+            continue
+        # Coverage/date conventions/authority/dispositions are business meaning.
+        # Another receipt, wording or citation ordering alone is not progress.
+        meaning = {k: v for k, v in row["response"].items() if k not in {"reason", "evidence_ids"}}
+        if "nonmaterial_quarantine_ids" in meaning:
+            meaning["nonmaterial_quarantine_ids"] = sorted(meaning["nonmaterial_quarantine_ids"])
+        result.add((key, stable_hash({"dependencies_sha256": row["dependencies_sha256"], "meaning": meaning,
+                                     "authority_evidence": row.get("authority_evidence")})))
+    return result
+
+
+def semantic_progress(before: dict[str, Any], after: dict[str, Any]) -> bool:
+    """New invalid rows or loss of review support are changes, not progress."""
+    return (any(set(after[key]) - set(before[key]) for key in ("observations", "occurrences", "relations"))
+            or any(set(row["evidence_ids"]) - set(before["occurrences"].get(key, {}).get("evidence_ids", []))
+                   for key, row in after["occurrences"].items())
+            or bool(supported_review_keys(after) - supported_review_keys(before)))

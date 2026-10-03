@@ -2,6 +2,13 @@
 
 ## Energy Billing isolated thin checkpoint (2026-10-03)
 
+The next Billing checkpoint adds an issue-local Investigator runtime, persistent
+lifetime call/turn/reread/repair limits, source inspection, independent reviews
+and deterministic readiness. All eight action forms pass actual CLI probes;
+118 focused tests, Ruff and mypy pass. Clean full-suite and frozen runtime gate
+results remain pending. The earlier fixed thin vertical evidence below is not
+a live result for this new scheduler. See [the runtime record](energy_billing/INVESTIGATOR.md).
+
 Branch `feat/energy-billing-v1` adds a separate evidence-first Billing domain.
 Clean engine `d4a6211` passes 1510 tests and an actual-model synthetic
 PDF → bound observations → local facts/authority reviews → exact scoped

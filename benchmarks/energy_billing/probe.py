@@ -33,7 +33,7 @@ from againward.domains.energy_billing.reader import source_context
 from againward.documents.readers import ParsedDocument, SourceUnit
 
 
-def run(model: str, output: Path, *, authority_only: bool = False) -> dict:
+def run(model: str, output: Path, *, authority_only: bool = False, actions_only: bool = False) -> dict:
     output.mkdir(parents=True, exist_ok=False, mode=0o700)
     transport = CodexTransport(model, evaluation_root=output / "raw")
     boundary = ModelBoundary(transport)
@@ -84,6 +84,8 @@ def run(model: str, output: Path, *, authority_only: bool = False) -> dict:
         tasks.append((name, AUTHORITY_REVIEW_SCHEMA, prompt, partial(check_response, deps=deps, contexts=[context])))
     if authority_only:
         tasks = [task for task in tasks if task[0].startswith("BOUND_AUTHORITY")]
+    if actions_only:
+        tasks = [task for task in tasks if task[0] in ACTION_FIELDS or task[0] == "LIVE_REPAIR"]
     for name, schema, prompt, checker in tasks:
         before = boundary.calls
         try:
@@ -116,9 +118,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", required=True)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--authority-only", action="store_true")
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument("--authority-only", action="store_true")
+    modes.add_argument("--actions-only", action="store_true")
     args = parser.parse_args()
-    result = run(args.model, args.output, authority_only=args.authority_only)
+    result = run(args.model, args.output, authority_only=args.authority_only, actions_only=args.actions_only)
     raise SystemExit(0 if result["passed"] else 1)
 
 
