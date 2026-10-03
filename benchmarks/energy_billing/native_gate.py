@@ -14,9 +14,7 @@ from againward.domains.energy_billing.reader import read_source, reading_summary
 from benchmarking.document_renderers import pdf
 
 
-def run(model: str, output: Path) -> dict:
-    output.mkdir(parents=True, exist_ok=False, mode=0o700)
-    source = output / "input"
+def make_sources(source: Path) -> None:
     source.mkdir()
     pdf(source / "facture.pdf", [
         "Facture ELECTRICITE B2B FRANCE - EXTRAIT DE LIGNE HT",
@@ -35,6 +33,10 @@ def run(model: str, output: Path) -> dict:
         "Ce prix exclut abonnement, reseau et taxes.",
         "Montant de chaque ligne arrondi au centime EUR le plus proche; demi au dessus.",
     ])
+def run(model: str, output: Path) -> dict:
+    output.mkdir(parents=True, exist_ok=False, mode=0o700)
+    source = output / "input"
+    make_sources(source)
     root = output / "snapshot"
     batch = inventory_sources(source, root)
     transport = CodexTransport(model, evaluation_root=output / "raw")

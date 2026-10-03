@@ -20,6 +20,9 @@ from againward.domains.energy_billing.protocol import (
     ATOM_SCHEMA,
     READ_SCHEMA,
     REVIEW_SCHEMA,
+    FACT_REVIEW_SCHEMA,
+    TARIFF_REVIEW_SCHEMA,
+    AUTHORITY_REVIEW_SCHEMA,
     BillingFailure,
     validate,
     validate_action,
@@ -38,6 +41,13 @@ def run(model: str, output: Path) -> dict:
         "Return one invoice_id observation value SAMPLE group document quote 'Reference: SAMPLE', no limitations.", None),
         ("REVIEW", REVIEW_SCHEMA,
          "Protocol probe only. Return AMBIGUOUS with evidence_ids ['e-1'], reason 'No business evidence supplied.'", None)]
+    for name, schema in (("FACT_REVIEW", FACT_REVIEW_SCHEMA), ("TARIFF_REVIEW", TARIFF_REVIEW_SCHEMA),
+                         ("AUTHORITY_REVIEW", AUTHORITY_REVIEW_SCHEMA)):
+        response = {"verdict": "AMBIGUOUS", "evidence_ids": ["e-1"], "reason": "No business evidence supplied."}
+        for key in schema["properties"]:
+            if key not in response:
+                response[key] = [] if key == "nonmaterial_quarantine_ids" else "INCOMPLETE" if key == "coverage" else "UNRESOLVED"
+        tasks.append((name, schema, "Protocol-only echo; no money fixture or business decision:\n" + json.dumps(response), None))
     for kind, fields in ACTION_FIELDS.items():
         action: dict[str, Any] = {"type": kind}
         for name in fields:

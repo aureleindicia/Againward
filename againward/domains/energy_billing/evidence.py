@@ -66,6 +66,7 @@ def bind_reading(payload: dict[str, Any], parsed: ParsedDocument) -> Reading:
                 "source": parsed.source_id, "row": row, "diagnostic": exc.diagnostic}),
                 "source_id": parsed.source_id, "row_index": index,
                 "row_sha256": stable_hash(row), "potentially_material": material,
+                "raw_observation": row,
                 "diagnostic": exc.diagnostic})
             continue
         accepted[atom.evidence_id] = atom

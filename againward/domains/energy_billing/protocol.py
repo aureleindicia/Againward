@@ -67,6 +67,22 @@ ACTION_SCHEMA = obj({
 })
 REVIEW_SCHEMA = obj({"verdict": enum("SUPPORTED", "AMBIGUOUS", "REJECTED"),
                      "evidence_ids": IDS, "reason": REASON})
+FACT_REVIEW_SCHEMA = obj({
+    **REVIEW_SCHEMA["properties"],
+    "coverage": enum("ALL_MATERIAL_FACTS_BOUND", "INCOMPLETE"),
+    "charge_kind": enum("CONSUMPTION_HT", "OTHER", "UNRESOLVED"),
+    "end_convention": enum("EXCLUSIVE", "INCLUSIVE", "UNRESOLVED"),
+    "nonmaterial_quarantine_ids": {"type": "array", "minItems": 0, "maxItems": 32, "items": REFERENCE},
+})
+TARIFF_REVIEW_SCHEMA = obj({
+    **FACT_REVIEW_SCHEMA["properties"],
+    "tariff_type": enum("FIXED", "INDEXED", "OTHER", "UNRESOLVED"),
+    "rounding_rule": enum("HALF_UP_PER_LINE", "HALF_EVEN_PER_LINE", "OTHER", "UNRESOLVED"),
+})
+AUTHORITY_REVIEW_SCHEMA = obj({
+    **REVIEW_SCHEMA["properties"],
+    "authority_kind": enum("ACCEPTED_CONTRACT", "INVOICE_PRICE", "UNRESOLVED"),
+})
 
 
 def validate(value: Any, schema: dict[str, Any], *, stage: str, path: str = "$") -> None:

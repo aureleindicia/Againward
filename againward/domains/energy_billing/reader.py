@@ -7,7 +7,7 @@ from typing import Any
 
 from againward.core.artifact_store import read_json, write_json
 from againward.documents.contracts import SourceBatch
-from againward.documents.readers import ParsedDocument, read_document
+from againward.documents.readers import ParsedDocument, SourceUnit, read_document
 from againward.documents.sources import assert_document_action, verify_batch
 from againward.evidence.hashing import stable_hash
 
@@ -15,7 +15,7 @@ from .evidence import Reading, bind_reading
 from .protocol import READ_SCHEMA, BillingFailure, validate_read_envelope
 from .provider import ModelBoundary
 
-VERSION = "energy-billing-native-reading-v1"
+VERSION = "energy-billing-native-reading-v2"
 
 
 def source_context(parsed: ParsedDocument) -> dict[str, Any]:
@@ -26,6 +26,35 @@ def source_context(parsed: ParsedDocument) -> dict[str, Any]:
             "units": [unit.to_dict() for unit in parsed.units if unit.route == "NATIVE"],
             "unread_locations": [unit.location for unit in parsed.units if unit.route != "NATIVE"],
             "parser_limitations": list(parsed.limitations)}
+
+
+def archived_document(context: Any, source_id: str) -> ParsedDocument:
+    """Closed archive contract; no permissive object construction on replay."""
+    try:
+        if (not isinstance(context, dict) or set(context) != {"source_id", "reader_version", "units", "unread_locations", "parser_limitations"}
+                or context["source_id"] != source_id or not isinstance(context["reader_version"], str)
+                or not 1 <= len(context["reader_version"]) <= 160
+                or not isinstance(context["units"], list) or not 1 <= len(context["units"]) <= 32):
+            raise ValueError("archive_envelope")
+        units = []
+        for row in context["units"]:
+            if (not isinstance(row, dict) or set(row) != {"source_id", "location", "text", "route", "metadata", "unit_sha256"}
+                    or row["source_id"] != source_id or row["route"] != "NATIVE"
+                    or not isinstance(row["text"], str) or not isinstance(row["metadata"], dict)
+                    or not isinstance(row["location"], str) or not 1 <= len(row["location"]) <= 160):
+                raise ValueError("archive_unit")
+            unit = SourceUnit(**{key: value for key, value in row.items() if key != "unit_sha256"})
+            if unit.unit_sha256 != row["unit_sha256"]:
+                raise ValueError("archive_unit_hash")
+            units.append(unit)
+        if sum(len(u.text) for u in units) > 40_000 or len({u.location for u in units}) != len(units):
+            raise ValueError("archive_bounds")
+        for key in ("parser_limitations", "unread_locations"):
+            if not isinstance(context[key], list) or any(not isinstance(v, str) for v in context[key]):
+                raise ValueError("archive_metadata")
+        return ParsedDocument(source_id, context["reader_version"], tuple(units), tuple(context["parser_limitations"]))
+    except (TypeError, ValueError, KeyError) as exc:
+        raise BillingFailure("EVIDENCE_BINDING_INVALID", stage="REPLAY", expected="closed bounded archived context") from exc
 
 
 def read_source(batch: SourceBatch, source_id: str, root: Path, *, model: str,
@@ -70,7 +99,8 @@ def read_source(batch: SourceBatch, source_id: str, root: Path, *, model: str,
                              expected="same source context after invocation")
     body = {"schema_version": VERSION, "batch_id": batch.batch_id, "source_id": source_id,
             "source_sha256": document.sha256, "context_sha256": stable_hash(context),
-            "role": role, "model": model, "response": response, "model_calls": boundary.calls - before_calls}
+            "role": role, "model": model, "response": response, "model_calls": boundary.calls - before_calls,
+            "context": context}
     digest = stable_hash(body)
     path = root / "energy_billing" / "readings" / (digest + ".json")
     if not path.exists():
@@ -78,10 +108,10 @@ def read_source(batch: SourceBatch, source_id: str, root: Path, *, model: str,
     return digest
 
 
-def replay_reading(batch: SourceBatch, root: Path, receipt_sha256: str) -> Reading:
+def replay_reading(batch: SourceBatch, root: Path, receipt_sha256: str, *, verify_current: bool = True) -> Reading:
     import re
 
-    if not re.fullmatch(r"[0-9a-f]{64}", receipt_sha256):
+    if not isinstance(receipt_sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", receipt_sha256):
         raise BillingFailure("EVIDENCE_BINDING_INVALID", stage="REPLAY", expected="receipt hash")
     path = root / "energy_billing" / "readings" / (receipt_sha256 + ".json")
     if not path.is_file() or any(p.is_symlink() for p in (path, *path.parents)):
@@ -89,7 +119,10 @@ def replay_reading(batch: SourceBatch, root: Path, receipt_sha256: str) -> Readi
     receipt = read_json(path)
     fields = {"schema_version", "batch_id", "source_id", "source_sha256", "context_sha256",
               "role", "model", "response", "model_calls", "receipt_sha256"}
-    if (set(receipt) != fields or receipt["schema_version"] != VERSION
+    archived = receipt.get("schema_version") == VERSION
+    if archived:
+        fields.add("context")
+    if (set(receipt) != fields or receipt["schema_version"] not in {VERSION, "energy-billing-native-reading-v1"}
             or receipt["batch_id"] != batch.batch_id or receipt["receipt_sha256"] != receipt_sha256
             or receipt["role"] not in {"PRIMARY", "INDEPENDENT", "RECOVERY"}
             or not isinstance(receipt["model"], str) or not 1 <= len(receipt["model"]) <= 160
@@ -101,9 +134,17 @@ def replay_reading(batch: SourceBatch, root: Path, receipt_sha256: str) -> Readi
         raise BillingFailure("SOURCE_CHANGED", stage="REPLAY", expected="receipt source in current batch")
     # Only these source bytes are dependencies of this reading. A separate
     # corrupted blob remains a root issue for its own consumers, not this atom.
-    verify_batch(replace(batch, documents=(document,)), root)
-    parsed = read_document(document, root)
-    context = source_context(parsed)
+    if verify_current or not archived:
+        verify_batch(replace(batch, documents=(document,)), root)
+        parsed = read_document(document, root)
+        context = source_context(parsed)
+        if archived and receipt["context"] != context:
+            raise BillingFailure("SOURCE_CHANGED", stage="REPLAY", expected="original archived context")
+    else:
+        # Rebuild durable atoms even if a current blob is broken. This never
+        # authorizes calculation: consumers must verify their current sources.
+        context = receipt["context"]
+        parsed = archived_document(context, document.source_id)
     if receipt["context_sha256"] != stable_hash(context):
         raise BillingFailure("SOURCE_CHANGED", stage="REPLAY", expected="same parser context")
     bound = bind_reading(receipt["response"], parsed)

@@ -15,8 +15,8 @@ the objective. This file is a continuation map, not reduced acceptance criteria.
 | 0 Audit | Checkpoint delivered; verification ongoing | CHECKPOINT_0 contains the fifteen requested artifacts, reuse matrix, ADR, scope and research; frozen regression results pending. |
 | 1 Skeleton | Partial | Dedicated namespace, typed period/line/tariff and exact money primitives; no complete case readiness/domain entrypoint yet. |
 | 2 Atomic evidence | Native boundary demonstrated | Actual synthetic PDFs → model → source-bound atoms → receipts/replay; invalid sibling quarantine tested. Visual scope, issue recovery and durable state not complete. |
-| 3 Minimal state | Open; next | Reducers must own invoice/line/tariff relations, local issues, reviews and disposition. Do not import Rental graph wholesale. |
-| 4 Thin E2E | Open; immediate priority | These same two PDFs need source-bound authority review, deterministic readiness and scoped HT line calculation/report/PDF. Verify Gate B/C before expansion. |
+| 3 Minimal state | Thin scope implemented | Python journal/reducers own INVOICE/TARIFF/GOVERNS, local reviews and exact replay. Supplemental/irrelevant source disposition and recovery remain open. |
+| 4 Thin E2E | Scripted path passes; frozen live due | Source-bound authority, deterministic readiness and scoped HT line calculation/report/PDF implemented. Actual model progression must be verified before expansion. |
 | 5 Investigator | Contract probed only | Actual model must resolve a real issue, not just echo protocol forms. Bounded calls/turns/rereads/no-progress; Gate D. |
 | 6 Expansion | Open | Subscription, explicit simple periods/bands, dated taxes, issued credit/regularization; one family at a time after stable thin slice. |
 | 7 QA/PDF | Open | Independent bounded objection, local reopening and recalculation, provenance-replayed report/PDF; Gate E. |
