@@ -1,0 +1,517 @@
+{
+  "schema_version": "energy-billing-frozen-investigator-recovery-record-v1",
+  "engine_sha": "81497e9aca7224552b86b023eec6e07415e45ac8",
+  "focused_tests": {
+    "passed": 137,
+    "seconds": 28.93
+  },
+  "full_tests": {
+    "passed": 1549,
+    "seconds": 653.61,
+    "clean_engine": true,
+    "holdout_guards_unchanged": true
+  },
+  "ruff": "PASS",
+  "mypy": {
+    "status": "PASS",
+    "files": 36
+  },
+  "runs": {
+    "preserved_continuation": {
+      "engine_sha": "81497e9aca7224552b86b023eec6e07415e45ac8",
+      "engine_dirty": false,
+      "model": "gpt-6.1-sol",
+      "python_version": "3.14.6",
+      "platform": "Android",
+      "cli_version": "codex-cli 0.159.3",
+      "observations": 33,
+      "invalid_observations": 0,
+      "occurrences": 2,
+      "relations": 1,
+      "reviews": 3,
+      "model_calls": 17,
+      "investigator_turns": 12,
+      "new_model_calls": 4,
+      "new_turns": 3,
+      "protocol_retries": 0,
+      "calculation_reached": true,
+      "report_reached": true,
+      "terminal_reason": {
+        "code": "INTERNAL_SCOPED_REPORT_CREATED",
+        "stage": "REPORT"
+      },
+      "wall_seconds": 126.65898654601187,
+      "continuation": {
+        "kind": "PRESERVED_RUNTIME_CONTINUATION",
+        "origin_active_wall_seconds": 278.1421052470105,
+        "origin_engine_sha": "0d753490f8c4cf798ea0e8bf5eccc572e0dee03b",
+        "origin_model_calls": 13,
+        "origin_result_sha256": "c9a2d5aff84c91f2334144b969b77c0e722b440223fbfe2c33faf698b0f3745c",
+        "origin_runtime_receipt_sha256": "670d0c81b997cd06240ab9b3b92b86482eed19aa968f4d9271da2466c9c02e07",
+        "origin_snapshot_manifest_sha256": "f0c2d17ad9e7fe34d4bf5bc0f0fe82e510dd4baabd5cfcc8498be04f09069c88",
+        "origin_turns": 9
+      },
+      "source_hashes": [
+        "47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2",
+        "aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203"
+      ],
+      "completed_turns": 11,
+      "active_wall_seconds": 400.8761794080201,
+      "provider_calls_this_segment": 4,
+      "provider_failures_lifetime": 1,
+      "budget": {
+        "max_model_calls": 32,
+        "max_protocol_repairs": 4,
+        "max_provider_resumes": 2,
+        "max_repeated_rejection": 2,
+        "max_repeated_state": 4,
+        "max_rereads": 4,
+        "max_stagnant_turns": 3,
+        "max_turns": 24,
+        "wall_seconds": 900
+      },
+      "provider_resumes": 1,
+      "step_summary": [
+        {
+          "turn": 1,
+          "issue_code": "SOURCE_NOT_READ",
+          "before_semantic_sha256": "bf2d25ceb1903808883d4488603882e5ef3ad37f8d2ca099d84d9686a4bc3272",
+          "after_semantic_sha256": "bf2d25ceb1903808883d4488603882e5ef3ad37f8d2ca099d84d9686a4bc3272",
+          "progress": false,
+          "model_calls_before": 0,
+          "model_calls_after": 1,
+          "wall_seconds": 11.98759469302604,
+          "action_type": "REQUEST_INSPECTION"
+        },
+        {
+          "turn": 2,
+          "issue_code": "SOURCE_NOT_READ",
+          "before_semantic_sha256": "bf2d25ceb1903808883d4488603882e5ef3ad37f8d2ca099d84d9686a4bc3272",
+          "after_semantic_sha256": "f4b3661bd3876d82d063b1b446f44a14a99ff66ddcf7d91d0a015f1994ee2897",
+          "progress": true,
+          "model_calls_before": 1,
+          "model_calls_after": 3,
+          "wall_seconds": 38.6242443099909,
+          "action_type": "REQUEST_REREAD"
+        },
+        {
+          "turn": 3,
+          "issue_code": "SOURCE_OCCURRENCE_MISSING",
+          "before_semantic_sha256": "f4b3661bd3876d82d063b1b446f44a14a99ff66ddcf7d91d0a015f1994ee2897",
+          "after_semantic_sha256": "a736ace33b741ff4580ba90aa8fe8c8af17e770a5bc4ee824d89b44e22031013",
+          "progress": true,
+          "model_calls_before": 3,
+          "model_calls_after": 4,
+          "wall_seconds": 27.076121310004964,
+          "action_type": "DECLARE_INVOICE"
+        },
+        {
+          "turn": 4,
+          "issue_code": "SOURCE_NOT_READ",
+          "before_semantic_sha256": "a736ace33b741ff4580ba90aa8fe8c8af17e770a5bc4ee824d89b44e22031013",
+          "after_semantic_sha256": "a736ace33b741ff4580ba90aa8fe8c8af17e770a5bc4ee824d89b44e22031013",
+          "progress": false,
+          "model_calls_before": 4,
+          "model_calls_after": 5,
+          "wall_seconds": 12.367539155005943,
+          "action_type": "REQUEST_INSPECTION"
+        },
+        {
+          "turn": 5,
+          "issue_code": "SOURCE_NOT_READ",
+          "before_semantic_sha256": "a736ace33b741ff4580ba90aa8fe8c8af17e770a5bc4ee824d89b44e22031013",
+          "after_semantic_sha256": "75147bffb438607716f0825ccf6eababc6c75c9ef2ad008fb63658d24b81e5d0",
+          "progress": true,
+          "model_calls_before": 5,
+          "model_calls_after": 7,
+          "wall_seconds": 43.81735008000396,
+          "action_type": "REQUEST_REREAD"
+        },
+        {
+          "turn": 6,
+          "issue_code": "SOURCE_OCCURRENCE_MISSING",
+          "before_semantic_sha256": "75147bffb438607716f0825ccf6eababc6c75c9ef2ad008fb63658d24b81e5d0",
+          "after_semantic_sha256": "ed95add9f4153b188de2c8a6363d65eebbc18dd45350d83060be88402036c3f5",
+          "progress": true,
+          "model_calls_before": 7,
+          "model_calls_after": 8,
+          "wall_seconds": 34.703106539993314,
+          "action_type": "DECLARE_TARIFF"
+        },
+        {
+          "turn": 7,
+          "issue_code": "MATERIAL_EVIDENCE_MISSING",
+          "before_semantic_sha256": "ed95add9f4153b188de2c8a6363d65eebbc18dd45350d83060be88402036c3f5",
+          "after_semantic_sha256": "63e772d687c68e0fa3064f09e8426b28dd5cd2a97b37efa046d02dcc97219297",
+          "progress": true,
+          "model_calls_before": 8,
+          "model_calls_after": 10,
+          "wall_seconds": 47.66858831001446,
+          "action_type": "REQUEST_REVIEW"
+        },
+        {
+          "turn": 8,
+          "issue_code": "MATERIAL_EVIDENCE_MISSING",
+          "before_semantic_sha256": "63e772d687c68e0fa3064f09e8426b28dd5cd2a97b37efa046d02dcc97219297",
+          "after_semantic_sha256": "6bd194fda274b1ef2a4712617f8b2aa64f6d42542e3e666b14c713fc3aa625b4",
+          "progress": true,
+          "model_calls_before": 10,
+          "model_calls_after": 12,
+          "wall_seconds": 50.612282771995524,
+          "action_type": "REQUEST_REVIEW"
+        },
+        {
+          "turn": 10,
+          "issue_code": "GOVERNS_MISSING",
+          "before_semantic_sha256": "6bd194fda274b1ef2a4712617f8b2aa64f6d42542e3e666b14c713fc3aa625b4",
+          "after_semantic_sha256": "4ce56c224ff3a2d3b8ac5c72c0737d2516ff0f36931ac332feb380d3f85805e9",
+          "progress": true,
+          "model_calls_before": 13,
+          "model_calls_after": 14,
+          "wall_seconds": 38.6327431560203,
+          "action_type": "LINK_TARIFF"
+        },
+        {
+          "turn": 11,
+          "issue_code": "MATERIAL_EVIDENCE_MISSING",
+          "before_semantic_sha256": "4ce56c224ff3a2d3b8ac5c72c0737d2516ff0f36931ac332feb380d3f85805e9",
+          "after_semantic_sha256": "caf416a3939922184b30f61a3f302e5467b1a486a102c34abe6c02b7c6f976aa",
+          "progress": true,
+          "model_calls_before": 14,
+          "model_calls_after": 16,
+          "wall_seconds": 56.554243695980404,
+          "action_type": "REQUEST_REVIEW"
+        },
+        {
+          "turn": 12,
+          "issue_code": "READY_PROPOSAL",
+          "before_semantic_sha256": "caf416a3939922184b30f61a3f302e5467b1a486a102c34abe6c02b7c6f976aa",
+          "after_semantic_sha256": "caf416a3939922184b30f61a3f302e5467b1a486a102c34abe6c02b7c6f976aa",
+          "progress": false,
+          "model_calls_before": 16,
+          "model_calls_after": 17,
+          "wall_seconds": 18.04012530797627,
+          "action_type": "PROPOSE_READY"
+        }
+      ],
+      "money": {
+        "expected_cents": 16500,
+        "billed_cents": 19208,
+        "discrepancy_cents": 2708,
+        "calculation_sha256": "adecfb47a3f66b037531cba38ad9111aba863418c1d0b067eccf3e0bfc0a808c"
+      },
+      "independent_check": {
+        "schema_version": "energy-billing-independent-thin-check-v2",
+        "engine_sha": "81497e9aca7224552b86b023eec6e07415e45ac8",
+        "pipeline_received_oracle": false,
+        "checks": {
+          "terminal_calculation_and_report": true,
+          "line_identity": true,
+          "line_period": true,
+          "quantity": true,
+          "tariff_identity": true,
+          "tariff_period": true,
+          "tariff_rule": true,
+          "exact_expected": true,
+          "exact_actual": true,
+          "exact_difference": true,
+          "calculation_hash": true,
+          "original_source_hashes": true,
+          "source_hashes_valid": true,
+          "all_spans_and_hashes": true,
+          "financial_evidence_source_ownership": true,
+          "selected_invoice_facts": true,
+          "selected_tariff_facts": true,
+          "acceptance_authority_proof": true,
+          "three_current_scoped_reviews": true,
+          "report_hashes": true,
+          "report_model_binding": true,
+          "pdf_money_and_scope": true
+        },
+        "strict_pass": true,
+        "pdf_pages": 4,
+        "expected_cents": 16500,
+        "billed_cents": 19208,
+        "discrepancy_cents": 2708,
+        "qualification": "Post-terminal independent known-synthetic truth/source/money/report check. Not DEV/HOLDOUT or model post-calculation QA."
+      },
+      "visual_review": {
+        "mode": "Codex inspected rasterizations of actual PDF pages 1 and 4",
+        "pages": [
+          1,
+          4
+        ],
+        "readable": true,
+        "human_approval": false
+      },
+      "qa_performed": false,
+      "delivery_state": "INTERNAL_REVIEW_REQUIRED",
+      "original_snapshot_unchanged": true,
+      "original_result_unchanged": true
+    },
+    "fresh_runtime": {
+      "engine_sha": "81497e9aca7224552b86b023eec6e07415e45ac8",
+      "engine_dirty": false,
+      "model": "gpt-6.1-sol",
+      "python_version": "3.14.6",
+      "platform": "Android",
+      "cli_version": "codex-cli 0.159.3",
+      "observations": 32,
+      "invalid_observations": 0,
+      "occurrences": 2,
+      "relations": 1,
+      "reviews": 3,
+      "model_calls": 16,
+      "investigator_turns": 11,
+      "new_model_calls": 16,
+      "new_turns": 11,
+      "protocol_retries": 0,
+      "calculation_reached": true,
+      "report_reached": true,
+      "terminal_reason": {
+        "code": "INTERNAL_SCOPED_REPORT_CREATED",
+        "stage": "REPORT"
+      },
+      "wall_seconds": 374.3264076380001,
+      "continuation": null,
+      "source_hashes": [
+        "47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2",
+        "aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203"
+      ],
+      "completed_turns": 11,
+      "active_wall_seconds": 369.6973356369999,
+      "provider_calls_this_segment": 16,
+      "provider_failures_lifetime": 0,
+      "budget": {
+        "max_model_calls": 32,
+        "max_protocol_repairs": 4,
+        "max_provider_resumes": 2,
+        "max_repeated_rejection": 2,
+        "max_repeated_state": 4,
+        "max_rereads": 4,
+        "max_stagnant_turns": 3,
+        "max_turns": 24,
+        "wall_seconds": 900
+      },
+      "provider_resumes": 0,
+      "step_summary": [
+        {
+          "turn": 1,
+          "issue_code": "SOURCE_NOT_READ",
+          "before_semantic_sha256": "bf2d25ceb1903808883d4488603882e5ef3ad37f8d2ca099d84d9686a4bc3272",
+          "after_semantic_sha256": "bf2d25ceb1903808883d4488603882e5ef3ad37f8d2ca099d84d9686a4bc3272",
+          "progress": false,
+          "model_calls_before": 0,
+          "model_calls_after": 1,
+          "wall_seconds": 9.857020231022034,
+          "action_type": "REQUEST_INSPECTION"
+        },
+        {
+          "turn": 2,
+          "issue_code": "SOURCE_NOT_READ",
+          "before_semantic_sha256": "bf2d25ceb1903808883d4488603882e5ef3ad37f8d2ca099d84d9686a4bc3272",
+          "after_semantic_sha256": "81e1cff8a88a77cbca1ebe19143878a830df9713d5cabee718e50a3e60f395b3",
+          "progress": true,
+          "model_calls_before": 1,
+          "model_calls_after": 3,
+          "wall_seconds": 35.65976400198997,
+          "action_type": "REQUEST_REREAD"
+        },
+        {
+          "turn": 3,
+          "issue_code": "SOURCE_OCCURRENCE_MISSING",
+          "before_semantic_sha256": "81e1cff8a88a77cbca1ebe19143878a830df9713d5cabee718e50a3e60f395b3",
+          "after_semantic_sha256": "33083916b6c1d3abcb1835d64b4710f7f1fb92e4dc564765fad3027c7c09e28f",
+          "progress": true,
+          "model_calls_before": 3,
+          "model_calls_after": 4,
+          "wall_seconds": 27.67065407798509,
+          "action_type": "DECLARE_INVOICE"
+        },
+        {
+          "turn": 4,
+          "issue_code": "SOURCE_NOT_READ",
+          "before_semantic_sha256": "33083916b6c1d3abcb1835d64b4710f7f1fb92e4dc564765fad3027c7c09e28f",
+          "after_semantic_sha256": "33083916b6c1d3abcb1835d64b4710f7f1fb92e4dc564765fad3027c7c09e28f",
+          "progress": false,
+          "model_calls_before": 4,
+          "model_calls_after": 5,
+          "wall_seconds": 11.71035715501057,
+          "action_type": "REQUEST_INSPECTION"
+        },
+        {
+          "turn": 5,
+          "issue_code": "SOURCE_NOT_READ",
+          "before_semantic_sha256": "33083916b6c1d3abcb1835d64b4710f7f1fb92e4dc564765fad3027c7c09e28f",
+          "after_semantic_sha256": "9fa374c57d4778940eaace9656f4c0f4c2054a429e5fc58734f2cad8c0359d51",
+          "progress": true,
+          "model_calls_before": 5,
+          "model_calls_after": 7,
+          "wall_seconds": 38.62306954001542,
+          "action_type": "REQUEST_REREAD"
+        },
+        {
+          "turn": 6,
+          "issue_code": "SOURCE_OCCURRENCE_MISSING",
+          "before_semantic_sha256": "9fa374c57d4778940eaace9656f4c0f4c2054a429e5fc58734f2cad8c0359d51",
+          "after_semantic_sha256": "f2e796091c9f2b98925902f24a22a79a2ec6a61fad902163059b5aaf95cf68fd",
+          "progress": true,
+          "model_calls_before": 7,
+          "model_calls_after": 8,
+          "wall_seconds": 31.282212616992183,
+          "action_type": "DECLARE_TARIFF"
+        },
+        {
+          "turn": 7,
+          "issue_code": "MATERIAL_EVIDENCE_MISSING",
+          "before_semantic_sha256": "f2e796091c9f2b98925902f24a22a79a2ec6a61fad902163059b5aaf95cf68fd",
+          "after_semantic_sha256": "f3e588f85519e3b6604045e253b86d5a917984fe5ff5c682dc8c2fbf6dbcbc97",
+          "progress": true,
+          "model_calls_before": 8,
+          "model_calls_after": 10,
+          "wall_seconds": 46.89149384901975,
+          "action_type": "REQUEST_REVIEW"
+        },
+        {
+          "turn": 8,
+          "issue_code": "MATERIAL_EVIDENCE_MISSING",
+          "before_semantic_sha256": "f3e588f85519e3b6604045e253b86d5a917984fe5ff5c682dc8c2fbf6dbcbc97",
+          "after_semantic_sha256": "6f79a95d03a700828cebc47c88f7617d7f2db66c66ba2836039e23d03eb590e5",
+          "progress": true,
+          "model_calls_before": 10,
+          "model_calls_after": 12,
+          "wall_seconds": 45.439032617985504,
+          "action_type": "REQUEST_REVIEW"
+        },
+        {
+          "turn": 9,
+          "issue_code": "GOVERNS_MISSING",
+          "before_semantic_sha256": "6f79a95d03a700828cebc47c88f7617d7f2db66c66ba2836039e23d03eb590e5",
+          "after_semantic_sha256": "83bd90b67e0c2bfd384f3dd3dfc80a29143661947f63a26d725bda214383b0f2",
+          "progress": true,
+          "model_calls_before": 12,
+          "model_calls_after": 13,
+          "wall_seconds": 30.755799693986773,
+          "action_type": "LINK_TARIFF"
+        },
+        {
+          "turn": 10,
+          "issue_code": "MATERIAL_EVIDENCE_MISSING",
+          "before_semantic_sha256": "83bd90b67e0c2bfd384f3dd3dfc80a29143661947f63a26d725bda214383b0f2",
+          "after_semantic_sha256": "4678f5a95f3219ebfc41e956d6f60c03ac00f3398fac82fdda77c74508cfdfcc",
+          "progress": true,
+          "model_calls_before": 13,
+          "model_calls_after": 15,
+          "wall_seconds": 50.23044469501474,
+          "action_type": "REQUEST_REVIEW"
+        },
+        {
+          "turn": 11,
+          "issue_code": "READY_PROPOSAL",
+          "before_semantic_sha256": "4678f5a95f3219ebfc41e956d6f60c03ac00f3398fac82fdda77c74508cfdfcc",
+          "after_semantic_sha256": "4678f5a95f3219ebfc41e956d6f60c03ac00f3398fac82fdda77c74508cfdfcc",
+          "progress": false,
+          "model_calls_before": 15,
+          "model_calls_after": 16,
+          "wall_seconds": 22.319050692982273,
+          "action_type": "PROPOSE_READY"
+        }
+      ],
+      "money": {
+        "expected_cents": 16500,
+        "billed_cents": 19208,
+        "discrepancy_cents": 2708,
+        "calculation_sha256": "815a1bb9a82ca55917e25d0857f6b1e98fde774d580f0b7cefee3ec402fb8a45"
+      },
+      "independent_check": {
+        "schema_version": "energy-billing-independent-thin-check-v2",
+        "engine_sha": "81497e9aca7224552b86b023eec6e07415e45ac8",
+        "pipeline_received_oracle": false,
+        "checks": {
+          "terminal_calculation_and_report": true,
+          "line_identity": true,
+          "line_period": true,
+          "quantity": true,
+          "tariff_identity": true,
+          "tariff_period": true,
+          "tariff_rule": true,
+          "exact_expected": true,
+          "exact_actual": true,
+          "exact_difference": true,
+          "calculation_hash": true,
+          "original_source_hashes": true,
+          "source_hashes_valid": true,
+          "all_spans_and_hashes": true,
+          "financial_evidence_source_ownership": true,
+          "selected_invoice_facts": true,
+          "selected_tariff_facts": true,
+          "acceptance_authority_proof": true,
+          "three_current_scoped_reviews": true,
+          "report_hashes": true,
+          "report_model_binding": true,
+          "pdf_money_and_scope": true
+        },
+        "strict_pass": true,
+        "pdf_pages": 4,
+        "expected_cents": 16500,
+        "billed_cents": 19208,
+        "discrepancy_cents": 2708,
+        "qualification": "Post-terminal independent known-synthetic truth/source/money/report check. Not DEV/HOLDOUT or model post-calculation QA."
+      },
+      "visual_review": {
+        "mode": "Codex inspected rasterizations of actual PDF pages 1 and 4",
+        "pages": [
+          1,
+          4
+        ],
+        "readable": true,
+        "human_approval": false
+      },
+      "qa_performed": false,
+      "delivery_state": "INTERNAL_REVIEW_REQUIRED"
+    }
+  },
+  "evaluator_sha256": "9c13781473ae5de7ca64de79bdf732fa3a84afd9d735b72c3fe33fdf4eb459a9",
+  "evaluator_versioned": false,
+  "evaluator_location": "ignored development scratch; not the future frozen corpus scorer",
+  "evaluator_negatives": {
+    "cases": [
+      {
+        "case": "wrong_authority_source",
+        "amount_checks_pass": true,
+        "strict_pass": false,
+        "failed_checks": [
+          "acceptance_authority_proof",
+          "report_model_binding"
+        ]
+      },
+      {
+        "case": "missing_quantity_evidence",
+        "amount_checks_pass": true,
+        "strict_pass": false,
+        "failed_checks": [
+          "selected_invoice_facts",
+          "report_model_binding"
+        ]
+      },
+      {
+        "case": "compensating_quantity_price",
+        "amount_checks_pass": true,
+        "strict_pass": false,
+        "failed_checks": [
+          "quantity",
+          "tariff_rule",
+          "report_model_binding"
+        ]
+      }
+    ],
+    "qualification": "Post-terminal evaluator challenge on separate disposable synthetic copies; no pipeline input or engine mutation."
+  },
+  "retained_failure_reclassification": {
+    "mode": "retained actual CLI failure reclassified offline; no new provider invocation",
+    "cause": "USAGE_LIMIT",
+    "stderr_sha256": "7978313c91115f95e040d06e9aa10c2f8b38a88969d49ad823b7c6d5ddd2b758",
+    "original_invocation_id": "495e5646-2c2b-4b32-8d92-2e026ee8d5d8"
+  },
+  "qualification": "Known synthetic one-consumption-HT-line runtime development evidence. No DEV/HOLDOUT corpus quality, post-calculation model QA or client delivery approval. Full regressions overlap actual-model gates; wall durations are not isolated performance benchmarks."
+}

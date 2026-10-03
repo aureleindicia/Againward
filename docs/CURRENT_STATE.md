@@ -2,21 +2,23 @@
 
 ## Energy Billing isolated thin checkpoint (2026-10-03)
 
-The next Billing checkpoint adds an issue-local Investigator runtime, persistent
-lifetime call/turn/reread/repair limits, source inspection, independent reviews
-and deterministic readiness. All eight action forms pass actual CLI probes;
-118 focused tests, Ruff and mypy pass. Clean `0d75349` passes 1530 full tests,
-including unchanged HOLDOUT guards. The live runtime gate preserves 33 atoms,
-two occurrences and two facts reviews, then stops before linking/calculation
-on a CLI usage-limit provider failure. The earlier fixed thin vertical evidence
-below is not a live result for this new scheduler. See
-[the runtime record](energy_billing/INVESTIGATOR.md).
+Clean `81497e9` passes **1549 full tests**, 137 Billing-focused tests, Ruff and
+configured mypy. Its bounded local Investigator reaches calculation and a
+four-page internal PDF from blank state with the real model: 32 atoms, two
+occurrences, one relation, three independent reviews, 16 calls, 11 turns,
+zero protocol repair, 374.3264076380001 seconds. The known synthetic HT line
+calculates 16500 expected cents, 19208 billed cents and 2708 difference cents;
+22 independent post-terminal checks pass. This is not corpus accuracy or QA.
 
-The next runtime-v2 change adds explicit bounded provider continuation, preserves
-all consumed budgets/reviews/evidence, and separates terminal CLI errors from
-echoed source text. Billing-focused tests pass 137 cases; Ruff and configured
-mypy pass. Clean full regressions and the actual continuation are pending; see
-[the continuation contract](energy_billing/PROVIDER_CONTINUATION.md).
+Explicit runtime-v2 continuation also recovers the earlier `0d75349` usage-limit
+stop in four new calls, preserving its 33 atoms, two facts reviews and all
+lifetime counters. Original failure artifacts are unchanged. Source text echoed
+by the CLI cannot itself classify provider errors. See [measured fresh/recovery
+results](energy_billing/FROZEN_INVESTIGATOR_RECOVERY.json),
+[the runtime record](energy_billing/INVESTIGATOR.md) and
+[continuation](energy_billing/PROVIDER_CONTINUATION.md). Material dispositions,
+conflict recovery, post-calculation QA, charge expansion and DEV/HOLDOUT remain
+open. The full Goal is active; internal PDF success is not pilot readiness.
 
 Branch `feat/energy-billing-v1` adds a separate evidence-first Billing domain.
 Clean engine `d4a6211` passes 1510 tests and an actual-model synthetic

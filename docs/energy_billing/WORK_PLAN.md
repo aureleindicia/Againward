@@ -12,12 +12,12 @@ the objective. This file is a continuation map, not reduced acceptance criteria.
 
 | Phase | State | Evidence / remaining work |
 |---|---|---|
-| 0 Audit | Checkpoint and regressions delivered | CHECKPOINT_0 contains the fifteen requested artifacts, reuse matrix, ADR, scope and research; latest clean full suite passes 1510 tests. |
+| 0 Audit | Checkpoint and regressions delivered | CHECKPOINT_0 contains the fifteen requested artifacts, reuse matrix, ADR, scope and research; latest clean full suite passes 1549 tests on 81497e9. |
 | 1 Skeleton | Thin scope implemented | Dedicated namespace, typed period/line/tariff, exact money and scoped readiness; complete domain intake entrypoint remains open. |
 | 2 Atomic evidence | Native boundary demonstrated | Actual synthetic PDFs → model → source-bound atoms → receipts/replay; invalid sibling quarantine tested. Visual scope, issue recovery and durable state not complete. |
 | 3 Minimal state | Thin scope implemented | Python journal/reducers own INVOICE/TARIFF/GOVERNS, local reviews and exact replay. Supplemental/irrelevant source disposition and recovery remain open. |
 | 4 Thin E2E | Frozen live reaches calculation/PDF | Clean d4a6211: 34 atoms, 2 occurrences, 1 relation, 3 reviews, 9 calls, one actual local repair; independent source/arithmetic/report checks pass. One known synthetic HT line, not corpus quality. |
-| 5 Investigator | Local runtime and explicit continuation tested; live result incomplete | Clean 0d75349 passes 1530 tests. Live local actions reach 33 atoms, 2 occurrences, 2 reviews; CLI usage limit stops before relation/calculation. Runtime-v2 continuation preserves all lifetime budgets and proof (137 focused tests). Clean full regressions/live continuation are pending; material dispositions/replacement and complete fresh runtime E2E remain open. See INVESTIGATOR.md and PROVIDER_CONTINUATION.md. |
+| 5 Investigator | Thin fresh runtime E2E and preserved recovery verified; material frontier open | Clean 81497e9 passes 1549 tests. Fresh real-model blank-state run: 32 atoms, 2 occurrences, 1 relation, 3 reviews, 16 calls, 11 turns, calculation/internal PDF, 22 independent checks. Four-call continuation preserves the earlier 33 atoms/reviews/budgets. Material dispositions/replacement, competing authority and multi-PDL acceptance cases remain open. See INVESTIGATOR.md, PROVIDER_CONTINUATION.md and FROZEN_INVESTIGATOR_RECOVERY.json. |
 | 6 Expansion | Open | Subscription, explicit simple periods/bands, dated taxes, issued credit/regularization; one family at a time after stable thin slice. |
 | 7 QA/PDF | Open | Independent bounded objection, local reopening and recalculation, provenance-replayed report/PDF; Gate E. |
 | 8 Frozen DEV | Open | Clean worktree/model/runtime, fresh outputs, hidden scorer truth, case-pass includes authority and evidence. |

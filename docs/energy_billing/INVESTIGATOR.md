@@ -2,6 +2,15 @@
 
 ## Entry and ownership
 
+Latest clean engine `81497e9` passes **1549 full tests** and a fresh actual-model
+blank-state path through this runtime to calculation/internal PDF: 16 calls,
+11 turns, 32 atoms, two occurrences, one relation, three reviews, zero repair.
+The earlier usage-limit stop below is preserved and explicitly continued in four
+new calls. Both outputs pass 22 independent post-terminal checks on the known
+synthetic one-line truth. See [the measured record](FROZEN_INVESTIGATOR_RECOVERY.json)
+and [continuation details](PROVIDER_CONTINUATION.md). Material frontier/conflicts,
+post-calculation model QA and corpus quality remain open.
+
 `againward.domains.energy_billing.loop.investigate(root, model, transport, budget)`
 starts from an existing initialized and privacy-approved SourceBatch. It is an
 internal callable, not a real-client intake command. No source approval, HUMAN

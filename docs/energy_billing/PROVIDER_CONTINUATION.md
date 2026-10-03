@@ -63,7 +63,29 @@ reviews and atoms surviving, all consumed calls retained, the two-resume ceiling
 active wall and call exhaustion, pending-call refusal, legacy migration, focused
 inspection/stagnation preservation, immutable original snapshot and refused
 changed result/model. Scripted transports prove engineering invariants only.
-Clean full regressions and actual-model continuation are measured separately.
+Clean `81497e9` subsequently passes **1549 full tests in 653.61 seconds**, with
+both unchanged HOLDOUT integrity guards. The actual-model preserved continuation
+reaches calculation and a four-page internal PDF in **4 new calls**, 3 new
+reserved/completed turns and 126.65898654601187 seconds. Lifetime counts are
+17 calls, 12 reserved turns, 11 completed turns, 400.8761794080201 active wall
+seconds and one provider resumption. The original failure's reserved turn/call
+are retained, not refunded. The original snapshot/result hashes are unchanged.
+
+A separate fresh blank-state run on the same clean engine reaches the same
+calculation/PDF in **16 calls, 11 turns and 374.3264076380001 seconds**, with
+32 bound atoms and no quarantine/protocol repair. Both results pass 22 independent
+post-terminal checks for truth, sources, selected proof, authority, money and
+report/PDF. A development evaluator in ignored scratch additionally rejects
+three challenged results with the correct total: wrong authority source, missing
+quantity proof and compensating quantity/price errors. This is not the future
+frozen financial corpus scorer. Its hash and measured results are in
+[the safe record](FROZEN_INVESTIGATOR_RECOVERY.json); raw prompts/responses stay
+private. Pages 1 and 4 of both PDFs were visually inspected by Codex, not HUMAN.
+
+Full regressions and actual-model runs overlap; their timing is not an isolated
+performance benchmark. The old real usage-limit stderr is separately replayed
+through the new classifier and yields USAGE_LIMIT without a new remote call;
+its original failure receipt is not rewritten.
 
 This does not complete material dispositions/conflict recovery, post-calculation
 QA, charge expansion, frozen DEV/HOLDOUT or client delivery. See WORK_PLAN.md.
