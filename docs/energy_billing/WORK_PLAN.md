@@ -12,19 +12,19 @@ the objective. This file is a continuation map, not reduced acceptance criteria.
 
 | Phase | State | Evidence / remaining work |
 |---|---|---|
-| 0 Audit | Checkpoint delivered; verification ongoing | CHECKPOINT_0 contains the fifteen requested artifacts, reuse matrix, ADR, scope and research; frozen regression results pending. |
-| 1 Skeleton | Partial | Dedicated namespace, typed period/line/tariff and exact money primitives; no complete case readiness/domain entrypoint yet. |
+| 0 Audit | Checkpoint and regressions delivered | CHECKPOINT_0 contains the fifteen requested artifacts, reuse matrix, ADR, scope and research; latest clean full suite passes 1510 tests. |
+| 1 Skeleton | Thin scope implemented | Dedicated namespace, typed period/line/tariff, exact money and scoped readiness; complete domain intake entrypoint remains open. |
 | 2 Atomic evidence | Native boundary demonstrated | Actual synthetic PDFs → model → source-bound atoms → receipts/replay; invalid sibling quarantine tested. Visual scope, issue recovery and durable state not complete. |
 | 3 Minimal state | Thin scope implemented | Python journal/reducers own INVOICE/TARIFF/GOVERNS, local reviews and exact replay. Supplemental/irrelevant source disposition and recovery remain open. |
-| 4 Thin E2E | Scripted path passes; frozen live due | Source-bound authority, deterministic readiness and scoped HT line calculation/report/PDF implemented. Actual model progression must be verified before expansion. |
-| 5 Investigator | Contract probed only | Actual model must resolve a real issue, not just echo protocol forms. Bounded calls/turns/rereads/no-progress; Gate D. |
+| 4 Thin E2E | Frozen live reaches calculation/PDF | Clean d4a6211: 34 atoms, 2 occurrences, 1 relation, 3 reviews, 9 calls, one actual local repair; independent source/arithmetic/report checks pass. One known synthetic HT line, not corpus quality. |
+| 5 Investigator | Three live declarations/link decisions | Full issue-local scheduler, inspection/recovery, local dispositions, reread/no-progress budgets and terminal diagnostics remain open. |
 | 6 Expansion | Open | Subscription, explicit simple periods/bands, dated taxes, issued credit/regularization; one family at a time after stable thin slice. |
 | 7 QA/PDF | Open | Independent bounded objection, local reopening and recalculation, provenance-replayed report/PDF; Gate E. |
 | 8 Frozen DEV | Open | Clean worktree/model/runtime, fresh outputs, hidden scorer truth, case-pass includes authority and evidence. |
 | 9 HOLDOUT | Open | Sealed independent untuned corpus and actual independent result scoring. |
 | 10 Pilot readiness | Open | Controlled intake/privacy policy, operator rehearsal, human time measurement, commercially useful docs offer; no outreach authorized. |
 
-Reader Gate A is deliberately not a completed financial pipeline. Model text
+The demonstrated vertical calculates one synthetic consumption HT line. Model text
 for charge/tariff/rounding meaning can vary by language. The next state/review
 boundary must establish canonical calculation conventions from original quoted
 terms with explicit evidence; aliases must never silently turn an unsupported
@@ -36,18 +36,18 @@ blockers. The raw quotes remain immutable regardless of interpretation.
 
 | Goal case | Current proof | Required additional evidence |
 |---|---|---|
-| 1 clean supported calculation | Money primitive only | Full source/authority/readiness calculation. |
-| 2 invalid nonmaterial atom | Native PDF + local quarantine tests | Continue through state and calculation. |
-| 3 invalid material atom | Local potentially-material quarantine | UNRESOLVED in actual readiness. |
-| 4 invalid action → bounded retry, no mutation | Protocol tests + real bad-focus repair | Same invariant on durable domain reducers. |
+| 1 clean supported calculation | Frozen live source/authority/readiness/calc/PDF; independent checks pass | Additional frozen financial cases, not just this known synthetic. |
+| 2 invalid nonmaterial atom | Local readiness permits only explicit independent nonmaterial disposition | Full live recovery/campaign evidence. |
+| 3 invalid material atom | Readiness tests return UNRESOLVED despite positive review | Full live recovery/campaign evidence. |
+| 4 invalid action → bounded retry, no mutation | Reducer tests + live bad-focus/authority-location repair | Complete Investigator campaign diagnostics. |
 | 5 repeated invalid action | Two-call explicit MODEL_PROTOCOL_FAILURE | Investigator terminal state/campaign diagnostics. |
-| 6 unrelated evidence preserves review | Independent source replay after other blob changed | Actual local authority-review lifetime test. |
-| 7 prerequisite change invalidates review | Source/span mutation replay tests | Targeted review invalidation, preserve unrelated reviews. |
+| 6 unrelated evidence preserves review | Local review lifetime tests preserve unrelated tariff review after invoice change | Full supplemental-batch live scenario. |
+| 7 prerequisite change invalidates review | Source/subject dependency mutation tests invalidate only dependent reviews | Full live mutation/recovery scenario. |
 | 8 unsupported tariff early | Unsupported units/conventions fail locally | Early envelope tariff decision before long investigation. |
 | 9 competing authority unresolved | No proof yet | Competing valid tariff/amendment case. |
 | 10 right amount wrong proof fails | Wrong span/source refuses replay | Strict complete-case evaluator with compensating-error negative. |
 | 11 two PDL no arbitrary selection | No proof yet | Ambiguity in state, relations and readiness. |
-| 12 duplicate no double count | Group-label invariant evidence ID | Monetary ownership / duplicate invoice-line enforcement. |
+| 12 duplicate no double count | Stable evidence IDs and idempotent duplicate declarations/links; one-line monetary scope | Expanded multi-line/credit monetary ownership. |
 
 ## Evaluation and final completion audit
 

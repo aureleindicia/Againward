@@ -1,0 +1,294 @@
+{
+  "schema_version": "energy-billing-frozen-thin-convergence-v1",
+  "qualification": "Three known synthetic development runs; not sealed HOLDOUT, financial corpus accuracy or client delivery approval. Expected values were evaluated after terminal pipeline output, never provided to the model. Raw synthetic artifacts remain in ignored private scratch.",
+  "scope": "ONE_CONSUMPTION_HT_LINE",
+  "runs": [
+    {
+      "run_id": "eb-vertical-01",
+      "engine_sha": "514dd7a986d29e282824b1be9396d74370d197dc",
+      "engine_dirty": false,
+      "model": "gpt-6.1-sol",
+      "cli_version": "codex-cli 0.159.3",
+      "python_version": "3.14.6",
+      "platform": "Android",
+      "observations": 33,
+      "invalid_observations": 0,
+      "occurrences": 2,
+      "relations": 1,
+      "reviews": 2,
+      "model_calls": 9,
+      "protocol_retries": 2,
+      "investigator_turns": 3,
+      "wall_seconds": 340.1551340970036,
+      "calculation_reached": false,
+      "report_reached": false,
+      "qa_performed": false,
+      "terminal_reason": {
+        "actual_type": "NoneType",
+        "code": "MODEL_PROTOCOL_FAILURE",
+        "component": "energy_billing",
+        "expected": "valid output after one repair",
+        "path": "$",
+        "retry_count": 1,
+        "root_cause": {
+          "actual_type": "NoneType",
+          "code": "MODEL_PROTOCOL_INVALID",
+          "component": "energy_billing",
+          "expected": "all subject evidence reviewed",
+          "path": "$",
+          "response_sha256": "f63645dc1f526421aeaa3ceb24e98afa663d5c168fe884a9299f9738dfb2fc1c",
+          "retry_count": 1,
+          "schema_sha256": "bdd2fe5906f5d3537249423b59746c2b53bee47f3ac5e00c255768a0c5d94f12",
+          "schema_version": "energy-billing-model-v1",
+          "source_id": null,
+          "stage": "REVIEW",
+          "state_mutated": false
+        },
+        "schema_version": "energy-billing-model-v1",
+        "stage": "REVIEW",
+        "state_mutated": false
+      },
+      "diagnostics": [
+        {
+          "actual_type": "NoneType",
+          "code": "MODEL_PROTOCOL_INVALID",
+          "component": "energy_billing",
+          "expected": "all subject evidence reviewed",
+          "path": "$",
+          "response_sha256": "735779b669dd18a767bd2c588736777773609de8216c70c8c0e2089cc904302e",
+          "retry_count": 0,
+          "schema_sha256": "bdd2fe5906f5d3537249423b59746c2b53bee47f3ac5e00c255768a0c5d94f12",
+          "schema_version": "energy-billing-model-v1",
+          "source_id": null,
+          "stage": "REVIEW",
+          "state_mutated": false
+        },
+        {
+          "actual_type": "NoneType",
+          "code": "MODEL_PROTOCOL_INVALID",
+          "component": "energy_billing",
+          "expected": "all subject evidence reviewed",
+          "path": "$",
+          "response_sha256": "f63645dc1f526421aeaa3ceb24e98afa663d5c168fe884a9299f9738dfb2fc1c",
+          "retry_count": 1,
+          "schema_sha256": "bdd2fe5906f5d3537249423b59746c2b53bee47f3ac5e00c255768a0c5d94f12",
+          "schema_version": "energy-billing-model-v1",
+          "source_id": null,
+          "stage": "REVIEW",
+          "state_mutated": false
+        }
+      ],
+      "provider_failures": 0,
+      "actual_repair_attempts": 1,
+      "retry_instrumentation_note": "Historical protocol_retries counts rejected responses, not repair attempts."
+    },
+    {
+      "run_id": "eb-vertical-02",
+      "engine_sha": "247ccc66deccbfb31802bed4f188d7f4671ade0d",
+      "engine_dirty": false,
+      "model": "gpt-6.1-sol",
+      "cli_version": "codex-cli 0.159.3",
+      "python_version": "3.14.6",
+      "platform": "Android",
+      "observations": 33,
+      "invalid_observations": 0,
+      "occurrences": 2,
+      "relations": 1,
+      "reviews": 2,
+      "model_calls": 9,
+      "protocol_retries": 1,
+      "investigator_turns": 3,
+      "wall_seconds": 331.3655854810204,
+      "calculation_reached": false,
+      "report_reached": false,
+      "qa_performed": false,
+      "terminal_reason": {
+        "actual_type": "NoneType",
+        "code": "MODEL_PROTOCOL_FAILURE",
+        "component": "energy_billing",
+        "expected": "valid output after one repair",
+        "path": "$",
+        "retry_count": 1,
+        "root_cause": {
+          "actual_type": "NoneType",
+          "code": "MODEL_PROTOCOL_INVALID",
+          "component": "energy_billing",
+          "expected": "all subject evidence reviewed",
+          "path": "$",
+          "response_sha256": "ce6066fc73ef1980e6bdfc4549342983fdb71256055ba0c29007a4dacd6722d0",
+          "retry_count": 1,
+          "schema_sha256": "845b9b5f9b7af76dd4816ffb5e395817dc1041cac61e9b8802d641e1ded5ed77",
+          "schema_version": "energy-billing-model-v1",
+          "source_id": null,
+          "stage": "REVIEW",
+          "state_mutated": false
+        },
+        "schema_version": "energy-billing-model-v1",
+        "stage": "REVIEW",
+        "state_mutated": false
+      },
+      "diagnostics": [
+        {
+          "actual_type": "NoneType",
+          "code": "MODEL_PROTOCOL_INVALID",
+          "component": "energy_billing",
+          "expected": "all subject evidence reviewed",
+          "path": "$",
+          "response_sha256": "7c5a8f4888c9b3bf361747c06ccdc0bbe77d472e93580ea5a8ddfaca5a72eb4f",
+          "retry_count": 0,
+          "schema_sha256": "845b9b5f9b7af76dd4816ffb5e395817dc1041cac61e9b8802d641e1ded5ed77",
+          "schema_version": "energy-billing-model-v1",
+          "source_id": null,
+          "stage": "REVIEW",
+          "state_mutated": false
+        },
+        {
+          "actual_type": "NoneType",
+          "code": "MODEL_PROTOCOL_INVALID",
+          "component": "energy_billing",
+          "expected": "all subject evidence reviewed",
+          "path": "$",
+          "response_sha256": "ce6066fc73ef1980e6bdfc4549342983fdb71256055ba0c29007a4dacd6722d0",
+          "retry_count": 1,
+          "schema_sha256": "845b9b5f9b7af76dd4816ffb5e395817dc1041cac61e9b8802d641e1ded5ed77",
+          "schema_version": "energy-billing-model-v1",
+          "source_id": null,
+          "stage": "REVIEW",
+          "state_mutated": false
+        }
+      ],
+      "provider_failures": 0
+    },
+    {
+      "run_id": "eb-vertical-03",
+      "engine_sha": "d4a6211cae370abbba9f16e60535c4659475b47e",
+      "engine_dirty": false,
+      "model": "gpt-6.1-sol",
+      "cli_version": "codex-cli 0.159.3",
+      "python_version": "3.14.6",
+      "platform": "Android",
+      "observations": 34,
+      "invalid_observations": 0,
+      "occurrences": 2,
+      "relations": 1,
+      "reviews": 3,
+      "model_calls": 9,
+      "protocol_retries": 1,
+      "investigator_turns": 3,
+      "wall_seconds": 353.9375803289877,
+      "calculation_reached": true,
+      "report_reached": true,
+      "qa_performed": false,
+      "terminal_reason": {
+        "code": "INTERNAL_SCOPED_REPORT_CREATED",
+        "stage": "REPORT"
+      },
+      "diagnostics": [
+        {
+          "actual_type": "NoneType",
+          "code": "MODEL_PROTOCOL_INVALID",
+          "component": "energy_billing",
+          "expected": "unique exact native authority clause",
+          "path": "$.authority_quote",
+          "response_sha256": "970290b3ae20988dd67809d113748211f40ffabd60bb4fc83291bfc88e77233f",
+          "retry_count": 0,
+          "root_cause": {
+            "actual_type": "str",
+            "code": "EVIDENCE_BINDING_INVALID",
+            "component": "energy_billing",
+            "expected": "known native unit",
+            "path": "$.location",
+            "schema_version": "energy-billing-model-v1",
+            "source_id": "src-aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203",
+            "stage": "OBSERVATION",
+            "state_mutated": false
+          },
+          "schema_sha256": "d45bcaac2a48214cb71944a957e0bc7152d31db7d8067d09cccfd4e266e91b88",
+          "schema_version": "energy-billing-model-v1",
+          "source_id": "src-aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203",
+          "stage": "REVIEW",
+          "state_mutated": false
+        }
+      ],
+      "provider_failures": 0,
+      "calculation": {
+        "billed_cents": 19208,
+        "expected_cents": 16500,
+        "discrepancy_cents": 2708,
+        "calculation_sha256": "53730da8f57a756389b286bac77b27d49382f576e8860fc34338f67ec964a57f"
+      },
+      "report": {
+        "calculation_sha256": "53730da8f57a756389b286bac77b27d49382f576e8860fc34338f67ec964a57f",
+        "delivery_state": "INTERNAL_REVIEW_REQUIRED",
+        "files": {
+          "report.html": {
+            "path": "energy_billing/reports/10ee629f1d9904346f0589892198ae2e8367635759f4e33d6d37bf497f6b8ae3/report.html",
+            "sha256": "30274b57a503388eae19b060af1cc6c43b3dbcb85f6d229e584fb3cc75e92755"
+          },
+          "report.md": {
+            "path": "energy_billing/reports/10ee629f1d9904346f0589892198ae2e8367635759f4e33d6d37bf497f6b8ae3/report.md",
+            "sha256": "09fb2b30af2b734e12e54ede98a8d62b3acbe3c05c7e472a0597be2126608691"
+          },
+          "report.pdf": {
+            "path": "energy_billing/reports/10ee629f1d9904346f0589892198ae2e8367635759f4e33d6d37bf497f6b8ae3/report.pdf",
+            "sha256": "bcb0c73f375e8ddf2af0ef307471fdb6e8354443618920b306e12491a27f1277"
+          },
+          "report_model.json": {
+            "path": "energy_billing/reports/10ee629f1d9904346f0589892198ae2e8367635759f4e33d6d37bf497f6b8ae3/report_model.json",
+            "sha256": "2aab13a46b27746a0600b4470ac4464d06f7967c4d8976355dd212ecdb9592d8"
+          }
+        },
+        "qa_state": "NOT_PERFORMED",
+        "report_sha256": "10ee629f1d9904346f0589892198ae2e8367635759f4e33d6d37bf497f6b8ae3"
+      }
+    }
+  ],
+  "independent_check": {
+    "schema_version": "energy-billing-independent-thin-check-v1",
+    "pipeline_received_oracle": false,
+    "engine_sha": "d4a6211cae370abbba9f16e60535c4659475b47e",
+    "checks": {
+      "line_identity": true,
+      "line_period": true,
+      "quantity": true,
+      "tariff_identity": true,
+      "tariff_period": true,
+      "tariff_rule": true,
+      "exact_expected": true,
+      "exact_actual": true,
+      "exact_difference": true,
+      "calculation_hash": true,
+      "all_spans_and_hashes": true,
+      "financial_evidence_source_ownership": true,
+      "acceptance_authority_proof": true,
+      "report_hashes": true,
+      "pdf_money_and_scope": true
+    },
+    "strict_pass": true,
+    "pdf_pages": 4,
+    "expected_cents": 16500,
+    "billed_cents": 19208,
+    "discrepancy_cents": 2708,
+    "qualification": "Independent evaluator after pipeline terminal result; one known synthetic vertical, not sealed HOLDOUT or model post-calc QA.",
+    "evaluator_note": "PDF text whitespace normalized for assertions: original extraction wrapped the scope sentence across a line. No pipeline or report artifact changed."
+  },
+  "software_validation": {
+    "engine_sha": "d4a6211cae370abbba9f16e60535c4659475b47e",
+    "full_tests_passed": 1510,
+    "full_suite_seconds": 595.5,
+    "focused_tests_passed": 98,
+    "focused_suite_seconds": 21.63,
+    "ruff": "PASS",
+    "mypy_source_files": 33,
+    "mypy": "PASS",
+    "timing_note": "Full suite and actual-model vertical overlapped; these are not isolated performance benchmarks."
+  },
+  "pdf_visual_review": {
+    "pages_reviewed": [
+      1,
+      4
+    ],
+    "result": "Readable without visible clipping on inspected pages; all four pages independently text-extracted and file hashes verified.",
+    "reviewer": "Codex technical inspection, not human delivery approval."
+  }
+}

@@ -115,3 +115,26 @@ The full 1447-test clean result belongs specifically to `9524184`, not the
 later reader/money checkpoint. Full latest-code validation remains due before
 financial benchmark campaigns. Gates B–E, DEV, holdout and pilot remain open.
 Continuation and all twelve acceptance cases: [WORK_PLAN](WORK_PLAN.md).
+
+## Frozen source-to-calculation-to-PDF checkpoint (2026-10-03)
+
+Latest clean engine `d4a6211` passes **1510 tests in 595.50 seconds**,
+**98 focused tests in 21.63 seconds**, Ruff and configured mypy (33 files).
+One known synthetic actual-model vertical reaches calculation and four-page PDF:
+34 observations, two occurrences, one relation, three independent reviews,
+nine calls, one bounded repair, 353.9375803289877 seconds. Independent post-run
+checks verify source ownership, exact spans/hashes, contractual acceptance,
+16500 expected cents, 19208 billed cents and 2708 discrepancy cents, plus every
+report hash and PDF amounts/scope. The evaluator normalizes PDF text whitespace;
+the original pipeline artifacts remain unchanged.
+
+Both preceding failed frozen runs remain recorded with their actual causes:
+authority cardinality at `514dd7a`, followed by overbroad authority-review scope
+at `247ccc6`. The final correction separates facts review from authority proof.
+[Convergence data](FROZEN_THIN_CONVERGENCE.json) and
+[state/calculation record](STATE_AND_CALCULATION.md) provide exact evidence.
+This supersedes the earlier pending thin-run status, not the remaining full
+Goal requirements. Post-calculation model QA, complete Investigator recovery,
+additional charge families, frozen financial DEV/HOLDOUT and pilot remain open.
+No client approval or whole-invoice audit is claimed. Timing overlaps with full
+tests and does not establish isolated performance.

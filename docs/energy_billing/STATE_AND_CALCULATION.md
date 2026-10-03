@@ -196,3 +196,36 @@ New protocol probes pass the changed closed schema (13 tasks, 14 calls,
 agreement and repair a deliberately wrong location once; no billing fixture,
 oracle, source rejection or durable state mutation is involved. Targeted and
 fresh frozen results for this simplification are recorded after completion.
+
+## Third frozen result: actual model reaches calculation and PDF
+
+Clean engine `d4a6211cae370abbba9f16e60535c4659475b47e` reaches 34 bound
+observations, zero quarantine, two occurrences, one GOVERNS relation and three
+independent reviews. Nine actual `gpt-6.1-sol` CLI calls take
+353.9375803289877 seconds. One authority response cites an unknown native unit;
+the exact source/location diagnostic triggers one repair, which succeeds. No
+invalid response mutates state. All earlier valid evidence and reviews survive.
+
+Deterministic readiness approves exactly one consumption HT line: 1375 kWh at
+accepted fixed EUR 0.120/kWh, HALF_UP_PER_LINE. Billed amount is 19208 cents,
+expected amount 16500 cents and signed discrepancy 2708 cents. Accepted terms
+are bound to the original contract clause, independently of invoice pricing.
+The actual run produces shared-model Markdown, HTML, JSON and a four-page PDF.
+Terminal state is INTERNAL_SCOPED_REPORT_CREATED, with
+INTERNAL_REVIEW_REQUIRED and post-calculation QA NOT_PERFORMED.
+
+A separate evaluator, run after terminal output without providing expected
+answers to the pipeline, passes all fifteen checks: identity, periods, units,
+rule, exact arithmetic, source ownership, acceptance clause, every evidence
+span/hash, artifact hashes and PDF amounts/scope. Its initial PDF assertion
+missed a sentence because text extraction wrapped it across a line. Normalizing
+whitespace fixes the evaluator; no pipeline or report artifact was changed.
+Visual inspection of pages 1 and 4 finds readable content without clipping.
+
+Current engine passes **1510 tests in 595.50 seconds**, focused **98 tests in
+21.63 seconds**, Ruff and configured mypy on 33 source files. Full tests and
+the live vertical overlapped; these are not isolated performance benchmarks.
+Bound-authority CLI probes pass two tasks in three calls and 29.92036677 seconds.
+[Measured convergence](FROZEN_THIN_CONVERGENCE.json) retains both failed runs
+and this success. This demonstrates one known synthetic thin vertical, not
+sealed HOLDOUT quality, the full financial envelope or client readiness.

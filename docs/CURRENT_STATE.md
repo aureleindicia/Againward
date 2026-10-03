@@ -1,5 +1,19 @@
 # AGAINWARD — read first (2026-09-25)
 
+## Energy Billing isolated thin checkpoint (2026-10-03)
+
+Branch `feat/energy-billing-v1` adds a separate evidence-first Billing domain.
+Clean engine `d4a6211` passes 1510 tests and an actual-model synthetic
+PDF → bound observations → local facts/authority reviews → exact scoped
+consumption HT calculation → internal PDF. The independent evaluator verifies
+16500 expected cents against 19208 billed cents, original proof and report hashes.
+Nine calls include one successful bounded location repair. Post-calculation QA
+is not performed; this is not pilot readiness or a whole-invoice audit.
+See [measured convergence](energy_billing/FROZEN_THIN_CONVERGENCE.json),
+[implementation evidence](energy_billing/STATE_AND_CALCULATION.md) and
+[the full remaining work](energy_billing/WORK_PLAN.md). Existing Rental/Energy
+semantics remain preserved; no automatic merge is authorized.
+
 ## V2 Investigator response-contract correction (2026-10-03)
 
 The first frozen V2 DEV A×1/B×1 campaign stopped before calculation on
