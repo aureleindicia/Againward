@@ -10,7 +10,7 @@ from datetime import date
 import json
 from pathlib import Path
 import re
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
 
 from againward.core.artifact_store import transaction, write_json
 from againward.evidence.hashing import stable_hash
@@ -22,6 +22,116 @@ from .readers import ParsedDocument, SourceUnit, read_document
 from .sources import assert_document_action, verify_batch
 
 SCHEMA = "againward-document-extraction-v1"
+_MONETARY_DECIMAL_SEMANTICS = frozenset({"net_amount", "rate", "unit_rate", "allocated_amount"})
+
+
+def contradictory_source_limitations(extraction: "DocumentExtraction") -> list[dict[str, str]]:
+    """Find explicit source-absence claims that conflict with emitted facts.
+
+    A separate invoice total is distinct from a line net amount; preserve that
+    distinction while treating a direct absence claim about the emitted amount
+    as a contradiction that requires independent reconciliation.
+    """
+    absence_markers = ("no ", "not visible", "not present", "absent", "missing",
+                       "unreadable", "unavailable", "cannot read", "can't read",
+                       "does not show", "doesn't show", "not shown")
+    aliases = {
+        "net_amount": ("net amount", "net total", "invoice total", "total amount"),
+        "rate": ("rate", "rates", "price", "prices"),
+        "invoice_id": ("invoice id", "invoice number", "invoice identifier"),
+        "date": ("date", "dates"),
+        "asset_id": ("asset id", "asset identifier"),
+        "serial_number": ("serial number", "serial"),
+    }
+    present = {candidate.semantic_type for candidate in extraction.candidates}
+    conflicts: list[dict[str, str]] = []
+    for limitation in extraction.limitations:
+        lowered = limitation.casefold()
+        if not any(marker in lowered for marker in absence_markers):
+            continue
+        for semantic_type, phrases in aliases.items():
+            if semantic_type not in present or not any(phrase in lowered for phrase in phrases):
+                continue
+            if semantic_type == "net_amount":
+                # A limitation may mention an existing amount to distinguish it
+                # from an additional line/invoice total (for example, "no
+                # separate line amount beyond the stated net amount"). That
+                # preserves the observed net amount; it does not deny it.
+                if "separate invoice total" in lowered or re.search(
+                    r"\b(?:no|not\s+(?:show|visible))\b.{0,80}\bseparate\b.{0,35}"
+                    r"\b(?:invoice total|line amount|total amount)\b.{0,40}"
+                    r"\b(?:beyond|in addition to|other than|apart from)\b.{0,30}"
+                    r"\b(?:stated|reported|observed|visible)\s+net amount\b",
+                    lowered,
+                ):
+                    continue
+            conflicts.append({"semantic_type": semantic_type, "limitation": limitation})
+    return conflicts
+
+
+def validate_semantic_value_type(semantic_type: str, value_type: str) -> None:
+    """Keep monetary amounts numeric and ISO currency codes in their own field."""
+    if semantic_type in {"entity_kind", "document_role", "document_status"} and value_type != "ENUM":
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID",
+                            f"{semantic_type} requires a canonical ENUM value")
+    if semantic_type in _MONETARY_DECIMAL_SEMANTICS and value_type != "DECIMAL":
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID",
+                            f"{semantic_type} requires DECIMAL; currency is a separate semantic field")
+    if semantic_type == "currency" and value_type != "CURRENCY":
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "currency requires an ISO-code CURRENCY value")
+    if value_type == "CURRENCY" and semantic_type != "currency":
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "CURRENCY is reserved for the separate currency field")
+
+
+def visual_only_limited_extraction(extraction: "DocumentExtraction", batch: SourceBatch,
+                                   root: Path) -> bool:
+    """Identify limited proposals that can proceed only into bound pixel review.
+
+    This is deliberately narrower than general completeness: the proposal must
+    contain only candidates sourced from rendered units, and every declared
+    limitation must either describe the native-text/pixel boundary or make a
+    page-scoped visual-content claim about pages that were actually rendered.
+    Missing pages, unreadable sources, and other extraction limits remain hard
+    stops. Limitations are retained and all visual candidates still require the
+    existing original-pixel review before downstream use.
+    """
+    if not extraction.limitations or extraction.status == "FAILED" or not extraction.candidates:
+        return False
+    conflicts = contradictory_source_limitations(extraction)
+    if conflicts:
+        raise DocumentError("EXTRACTION_CONTRADICTION",
+                            "Visual proposal has a source limitation conflicting with its own observation")
+    document = next((item for item in batch.documents if item.source_id == extraction.source_id), None)
+    if document is None or document.sha256 != extraction.source_sha256:
+        raise DocumentError("SOURCE_CHANGED", "Visual limitation does not bind the current source")
+    parsed = read_document(document, root)
+    visual_locations = {unit.location for unit in parsed.units if unit.route != "NATIVE"}
+    if not visual_locations or any(candidate.source_span is not None
+                                   or candidate.location not in visual_locations
+                                   or "VISUAL_TRANSCRIPTION_UNVERIFIED" not in candidate.ambiguity_flags
+                                   for candidate in extraction.candidates):
+        return False
+    for limitation in extraction.limitations:
+        value = limitation.casefold()
+        visual_scope = any(word in value for word in ("visual", "image", "pixel", "scan"))
+        requires_pixels = "pixel" in value and any(word in value for word in ("verif", "review", "inspect"))
+        native_gap = ("visible" in value and "native" in value
+                      and any(word in value for word in ("text", "quote", "substring", "citation"))
+                      and any(word in value for word in ("absent", "omitted", "cannot", "not in", "unavailable")))
+        page_numbers = {int(number) for number in re.findall(r"\bpage\s*(?:#|:)?\s*(\d+)\b", value)}
+        page_scoped_content_limit = (
+            bool(page_numbers)
+            and all(f"page:{number}" in visual_locations for number in page_numbers)
+            and any(phrase in value for phrase in (
+                "does not show", "doesn't show", "not shown", "not visible", "no separate ",
+                "no ", "unreadable", "cannot read", "can't read"))
+            and not any(phrase in value for phrase in (
+                "only page", "missing page", "page missing", "page omitted", "not provided",
+                "cropped", "cut off", "source is unreadable"))
+        )
+        if not ((visual_scope and (requires_pixels or native_gap)) or page_scoped_content_limit):
+            return False
+    return True
 
 
 @dataclass(frozen=True)
@@ -54,12 +164,23 @@ class DocumentExtraction:
     model: str
     prompt_version: str
     created_at: str
+    visual_bindings: tuple[dict[str, Any], ...]
+    invocation_id: str | None
     status: str
     candidates: tuple[FactCandidate, ...]
     limitations: tuple[str, ...]
+    assembly_receipt_sha256: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         body = {"schema_version": SCHEMA, **asdict(self)}
+        if self.assembly_receipt_sha256 is None:
+            body.pop("assembly_receipt_sha256")
+        # Preserve the established native proposal/receipt representation byte
+        # for byte. Visual bindings are an additive contract only for sources
+        # that actually contain non-native units.
+        if not self.visual_bindings and self.invocation_id is None:
+            body.pop("visual_bindings")
+            body.pop("invocation_id")
         return json.loads(json.dumps({**body, "extraction_sha256": stable_hash(body)}))
 
     @property
@@ -133,6 +254,7 @@ def _candidate(raw: Any, source_id: str, units: dict[str, SourceUnit]) -> FactCa
                      "ambiguity_flags", "source_span", "confidence"})
     for key in ("candidate_id", "entity_id", "semantic_type"):
         identifier(p[key])
+    validate_semantic_value_type(p["semantic_type"], p["value_type"])
     unit = units.get(p["location"]) if isinstance(p["location"], str) else None
     if unit is None or p["unit_sha256"] != unit.unit_sha256:
         raise DocumentError("SOURCE_LOCATION_INVALID", "Missing location or changed source unit")
@@ -181,7 +303,10 @@ def validate_proposal(payload: Any, batch: SourceBatch, root: Path, *,
     """Re-read immutable sources, never trust a model-supplied parsed-text snapshot."""
     p = closed(payload, {"schema_version", "source_id", "source_sha256", "batch_id", "reader_version",
                          "extractor_version", "model", "prompt_version", "created_at", "status",
-                         "candidates", "limitations"})
+                         "candidates", "limitations"},
+               optional={"visual_bindings", "invocation_id", "assembly_receipt_sha256"})
+    p.setdefault("visual_bindings", [])
+    p.setdefault("invocation_id", None)
     try:
         encoded_size = len(json.dumps(p, allow_nan=False).encode("utf-8"))
     except (ValueError, TypeError, RecursionError) as exc:
@@ -198,6 +323,42 @@ def validate_proposal(payload: Any, batch: SourceBatch, root: Path, *,
     parsed = read_document(doc, root, limits=limits)
     if p["reader_version"] != parsed.reader_version:
         raise DocumentError("SOURCE_CHANGED", "Reader changed; explicit re-extraction required")
+    visual_units = [unit for unit in parsed.units if unit.route != "NATIVE"]
+    bindings = p["visual_bindings"]
+    if not isinstance(bindings, list) or len(bindings) != len(visual_units):
+        raise DocumentError("SOURCE_LOCATION_INVALID", "Every visual page needs a deterministic render binding")
+    if visual_units:
+        from .codex_provider import (VISUAL_RENDER_DPI, VISUAL_RENDER_VERSION, _images)
+        import hashlib
+        import tempfile
+        expected_locations = {unit.location for unit in visual_units}
+        if not isinstance(p["invocation_id"], str) or not p["invocation_id"]:
+            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Visual invocation identity missing")
+        seen_locations: set[str] = set()
+        with tempfile.TemporaryDirectory(prefix="againward-visual-binding-check-") as directory:
+            images = _images(doc, parsed, root, Path(directory))
+            for unit, image, binding in zip(visual_units, images, bindings, strict=True):
+                if (not isinstance(binding, dict) or set(binding) != {
+                        "source_id", "source_sha256", "location", "unit_sha256", "render_sha256",
+                        "reader_version", "render_version", "render_dpi", "model", "prompt_version",
+                        "invocation_id"}):
+                    raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Visual evidence binding shape invalid")
+                render_sha = hashlib.sha256(image.read_bytes()).hexdigest()
+                expected_dpi = VISUAL_RENDER_DPI if doc.media_type == "application/pdf" else None
+                expected_render = VISUAL_RENDER_VERSION if doc.media_type == "application/pdf" else "original-image-v1"
+                if (binding["source_id"] != doc.source_id or binding["source_sha256"] != doc.sha256
+                        or binding["location"] != unit.location or binding["unit_sha256"] != unit.unit_sha256
+                        or binding["render_sha256"] != render_sha
+                        or binding["reader_version"] != parsed.reader_version
+                        or binding["render_version"] != expected_render or binding["render_dpi"] != expected_dpi
+                        or binding["model"] != p["model"] or binding["prompt_version"] != p["prompt_version"]
+                        or binding["invocation_id"] != p["invocation_id"] or unit.location in seen_locations):
+                    raise DocumentError("SOURCE_LOCATION_INVALID", "Visual observation binding is stale or invalid")
+                seen_locations.add(unit.location)
+        if seen_locations != expected_locations:
+            raise DocumentError("SOURCE_LOCATION_INVALID", "Visual page binding set is incomplete")
+    elif bindings or p["invocation_id"] is not None:
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Native-only extraction cannot carry visual binding")
     for key in ("model", "extractor_version", "prompt_version"):
         text(p[key], maximum=160)
     timestamp(p["created_at"])
@@ -217,9 +378,14 @@ def validate_proposal(payload: Any, batch: SourceBatch, root: Path, *,
     status = p["status"]
     if status == "SUCCESS" and (limitations or any(c.ambiguity_flags for c in candidates) or parsed.status != "SUCCESS"):
         status = "NEEDS_REVIEW"
-    return DocumentExtraction(doc.source_id, doc.sha256, batch.batch_id, parsed.reader_version,
+    result = DocumentExtraction(doc.source_id, doc.sha256, batch.batch_id, parsed.reader_version,
                               p["extractor_version"], p["model"], p["prompt_version"], p["created_at"],
-                              status, candidates, tuple(sorted(limitations)))
+                              tuple(bindings), p["invocation_id"], status, candidates,
+                              tuple(sorted(limitations)), p.get("assembly_receipt_sha256"))
+    from .reconciliation import ASSEMBLY_VERSION, verify_assembly_extraction
+    if result.extractor_version == ASSEMBLY_VERSION or result.assembly_receipt_sha256 is not None:
+        verify_assembly_extraction(result, batch, root)
+    return result
 
 
 def persist_extraction(extraction: DocumentExtraction, root: Path) -> Path:
@@ -236,6 +402,85 @@ def persist_extraction(extraction: DocumentExtraction, root: Path) -> Path:
         else:
             write_json(destination, body)
     return destination
+
+
+def append_adjudicator_visual_observations(extraction: DocumentExtraction,
+                                           observations: list[dict[str, Any]],
+                                           batch: SourceBatch, root: Path,
+                                           adjudication_sha256: str, *,
+                                           unique_required_entity: Callable[[str, str, list[FactCandidate]], str | None]
+                                           | None = None) -> DocumentExtraction:
+    """Bind newly read pixel observations into an unapproved extraction queue."""
+    from dataclasses import replace
+    from .contracts import digest
+
+    digest(adjudication_sha256)
+    doc = next((item for item in batch.documents if item.source_id == extraction.source_id), None)
+    if doc is None or doc.sha256 != extraction.source_sha256:
+        raise DocumentError("SOURCE_CHANGED", "Adjudicator observation source is stale")
+    parsed = read_document(doc, root)
+    units = {unit.location: unit for unit in parsed.units if unit.route != "NATIVE"}
+    bindings = {row["location"]: row for row in extraction.visual_bindings}
+    candidates = list(extraction.candidates)
+    from hashlib import sha256
+    for index, observation in enumerate(observations, 1):
+        required = {"source_id", "source_sha256", "location", "unit_sha256", "render_sha256",
+                    "origin", "semantic_type", "value_type", "value", "visible_text", "ambiguity", "entity_hint"}
+        if (not isinstance(observation, dict) or not required <= set(observation)
+                or set(observation) - required - {"adjudicator_model", "adjudication_version"}):
+            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Bound pixel observation fields invalid")
+        location = text(observation["location"], maximum=160)
+        unit = units.get(location)
+        binding = bindings.get(location)
+        if (unit is None or binding is None or observation["source_id"] != doc.source_id
+                or observation["source_sha256"] != doc.sha256
+                or observation["origin"] != "ADJUDICATOR_PIXEL_OBSERVATION"
+                or observation["unit_sha256"] != unit.unit_sha256
+                or observation["render_sha256"] != binding["render_sha256"]):
+            raise DocumentError("SOURCE_LOCATION_INVALID", "Adjudicator observation is not bound to current pixels")
+        semantic = identifier(observation["semantic_type"])
+        observed = text(observation["visible_text"], maximum=2000)
+        validate_semantic_value_type(semantic, observation["value_type"])
+        value = _value(observation["value"], observation["value_type"])
+        ambiguity = observation["ambiguity"]
+        if not isinstance(ambiguity, list) or len(ambiguity) > 20:
+            raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Bounded pixel ambiguity notes required")
+        flags = {"VISUAL_AMBIGUITY_" + __import__("hashlib").sha256(
+            text(note, maximum=500).encode("utf-8")).hexdigest()[:12] for note in ambiguity}
+        flags.update({"VISUAL_TRANSCRIPTION_UNVERIFIED", "COMPONENT_REVIEW_REQUIRED",
+                      "ADJUDICATOR_PIXEL_OBSERVATION"})
+        hint = text(observation["entity_hint"], maximum=240)
+        # If the adjudicator reobserves the exact same source quote for an
+        # already-proposed semantic field on this page, keep it on that
+        # proposal's entity. A new entity hint must not split a corroborating
+        # observation away from its structural metadata. Ambiguous or genuinely
+        # different observations retain their own pixel-derived entity ID.
+        matching_entities = {candidate.entity_id for candidate in candidates
+                             if candidate.location == location
+                             and candidate.semantic_type == semantic
+                             and candidate.raw_observed_value == observed}
+        required_entity = (unique_required_entity(semantic, location, candidates)
+                           if not matching_entities and unique_required_entity is not None else None)
+        entity_id = (next(iter(matching_entities)) if len(matching_entities) == 1 else
+                     (hint if hint in {c.entity_id for c in candidates} else None) or required_entity or "pixel-" + sha256(f"{location}\0{hint}".encode()).hexdigest()[:20])
+        comparable = str(value).lower() if type(value) is bool else str(value)
+        notes = "Pixel ambiguity: " + "; ".join(text(note, maximum=500) for note in ambiguity) if ambiguity else ""
+        if value is not None and comparable != observed:
+            notes = "; ".join(part for part in (notes,
+                "Normalized from adjudicator pixel observation; independent fact review required.") if part)
+        if value is not None and comparable != observed:
+            flags.add("NUMERIC_NORMALIZATION_REQUIRES_REVIEW" if observation["value_type"] == "DECIMAL"
+                      else "UNEXPLAINED_NORMALIZATION")
+        candidate_id = "pixel-" + sha256(
+            f"{adjudication_sha256}\0{doc.source_id}\0{location}\0{index}\0{semantic}\0{observed}".encode()
+        ).hexdigest()[:28]
+        candidates.append(FactCandidate(candidate_id, entity_id, semantic, observation["value_type"],
+            value, observed, location, doc.source_id, unit.unit_sha256, notes,
+            tuple(sorted(flags)), None, None))
+    ids = [candidate.candidate_id for candidate in candidates]
+    if len(ids) != len(set(ids)):
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Duplicate adjudicator observation ID")
+    return replace(extraction, candidates=tuple(candidates), status="NEEDS_REVIEW")
 
 
 def replay_extraction(payload: Any, batch: SourceBatch, root: Path) -> DocumentExtraction:
@@ -274,11 +519,12 @@ def promote_facts(extractions: tuple[DocumentExtraction, ...], review: Any,
     """Review binds a candidate set. Confidence never selects or promotes facts.
 
     Reviewer identity is a supplied assertion, not authentication. Delivery still
-    needs its separate human approval. Visual checks must name a HUMAN reviewer.
+    needs its separate human delivery approval. Visual facts require current
+    pixel-bound HUMAN attestations or model receipts backed by source QA.
     Formula values cannot be promoted; request an evidenced fixed-value export.
     """
     p = closed(review, {"schema_version", "extraction_hashes", "reviewer_role", "reviewed_at",
-                        "decisions", "limitations_acknowledged"})
+                        "decisions", "limitations_acknowledged"}, optional={"visual_attestations", "visual_model_reviews"})
     if (p["schema_version"] != "againward-fact-review-v1" or not isinstance(p["reviewer_role"], str)
             or p["reviewer_role"] not in {"ANALYST", "HUMAN"}):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Invalid fact review")
@@ -297,6 +543,16 @@ def promote_facts(extractions: tuple[DocumentExtraction, ...], review: Any,
             candidates[c.candidate_id] = (c, e)
     if not isinstance(p["decisions"], list) or len(p["decisions"]) != len(candidates):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Explicit decision required for every candidate")
+    # A self-declared HUMAN role is never a substitute for source/pixel-bound
+    # inspection. This applies to legacy full-human reviews as well as the
+    # narrower analyst review plus visual-only human attestation.
+    from .visual_fact_review import verify_model_visual_reviews, verify_visual_attestations
+    if p.get("visual_model_reviews"):
+        if p.get("visual_attestations"):
+            raise DocumentError("REVIEW_STALE", "Mixed HUMAN and MODEL visual claims are not allowed")
+        verify_model_visual_reviews(batch, validated, p, root)
+    else:
+        verify_visual_attestations(batch, validated, p, root)
     facts = []
     seen = set()
     for decision in p["decisions"]:
@@ -320,8 +576,8 @@ def promote_facts(extractions: tuple[DocumentExtraction, ...], review: Any,
             raise DocumentError("UNSUPPORTED_PROMOTION", "Formula needs an evidenced fixed-value source")
         if set(c.ambiguity_flags) - resolved:
             raise DocumentError("UNSUPPORTED_PROMOTION", "Unresolved ambiguity")
-        if "VISUAL_TRANSCRIPTION_UNVERIFIED" in resolved and p["reviewer_role"] != "HUMAN":
-            raise DocumentError("UNSUPPORTED_PROMOTION", "Visual transcription requires human source inspection")
+        # An ANALYST review can include visual facts only after a separate
+        # source/pixel/candidate-bound visual receipt was verified above.
         facts.append(CanonicalFact("fact-" + stable_hash({"candidate": c.to_dict(),
                                                         "extraction": extraction.to_dict()["extraction_sha256"]}),
                                    c, extraction.to_dict()["extraction_sha256"], stable_hash(p), reason))
@@ -333,3 +589,38 @@ def promote_facts(extractions: tuple[DocumentExtraction, ...], review: Any,
     if any(len(values) > 1 for values in by_field.values()):
         raise DocumentError("UNSUPPORTED_PROMOTION", "Conflicting candidate values must stay disputed")
     return tuple(facts)
+
+
+def append_adjudicator_native_observations(extraction: DocumentExtraction,
+                                           observations: list[dict[str, Any]],
+                                           batch: SourceBatch, root: Path,
+                                           adjudication_sha256: str, *,
+                                           unique_required_entity: Callable[[str, str, list[FactCandidate]], str | None]
+                                           | None = None) -> DocumentExtraction:
+    """Recover exact native observations into a fresh unreviewed extraction."""
+    from dataclasses import replace
+    digest(adjudication_sha256)
+    verify_batch(batch, root)
+    document = next((d for d in batch.documents if d.source_id == extraction.source_id), None)
+    if document is None or document.sha256 != extraction.source_sha256:
+        raise DocumentError("SOURCE_CHANGED", "Recovered observation source changed")
+    units = {u.location: u for u in read_document(document, root).units if u.route == "NATIVE"}
+    candidates = list(extraction.candidates)
+    for observation in observations:
+        payload = dict(observation)
+        if payload.pop("source_id", None) != document.source_id:
+            raise DocumentError("SOURCE_CHANGED", "Recovered candidate source mismatch")
+        candidate = _candidate(payload, document.source_id, units)
+        if candidate.source_span is None:
+            raise DocumentError("SOURCE_LOCATION_INVALID", "Recovered native fact needs an exact span")
+        existing = {c.entity_id for c in candidates if c.semantic_type == candidate.semantic_type
+                    and c.raw_observed_value == candidate.raw_observed_value and c.location == candidate.location}
+        target = (next(iter(existing)) if len(existing) == 1 else
+                  unique_required_entity(candidate.semantic_type, candidate.location, candidates)
+                  if not existing and unique_required_entity else None)
+        candidates.append(replace(candidate,
+            entity_id=target or candidate.entity_id,
+            candidate_id="native-" + stable_hash({"adjudication": adjudication_sha256,
+                                                  "observation": observation})[:28],
+            ambiguity_flags=tuple(sorted(set(candidate.ambiguity_flags) | {"ADJUDICATOR_NATIVE_OBSERVATION"}))))
+    return replace(extraction, candidates=tuple(candidates), status="NEEDS_REVIEW")

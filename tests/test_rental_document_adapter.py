@@ -8,13 +8,18 @@ from againward.core.artifact_store import read_json, write_json
 from againward.core.workflow import prepare_investigation
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import SCHEMA, validate_proposal
+from againward.documents.codex_provider import EXTRACTOR_VERSION, prompt_version_for_guidance
 from againward.documents.readers import read_batch
 from againward.documents.sources import inventory_sources
-from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
+from againward.domains.rental.document_adapter import (DOCUMENT_CASE_SCHEMA,
+    _current_extraction_prompt_versions, _source_document_metadata, load_document_case)
+from againward.domains.rental.semantic_guidance import STRUCTURE_RETRY_INSTRUCTIONS, visual_guidance
+from againward.documents.independent_qa import QA_INSTRUCTIONS, VISUAL_RETRY_INSTRUCTIONS
 from againward.domains.rental.ingestion import build_evidence_dataset, load_rental_case
 from againward.domains.rental.reconciliation import reconcile
 from againward.domains.rental.workflow import current_calculations
 from againward.entrypoints import get_domain
+from againward.evidence.hashing import stable_hash
 
 
 CONTRACT = """Synthetic rental agreement A-781, accepted by VENDOR and CLIENT.
@@ -30,7 +35,9 @@ Net amount EUR 850.00 excluding tax.
 """
 
 
-def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=None, contact_email=None):
+def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=None,
+           supporting_text=None, contact_email=None, omit_invoice_fields=frozenset(),
+           omit_contract_fields=frozenset()):
     """Manual semantic annotations of prose, reviewed solely as test fixtures."""
     incoming, root = tmp_path / "input", tmp_path / "documents"
     incoming.mkdir(parents=True)
@@ -40,19 +47,21 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=N
         (incoming / "amendment.txt").write_text(amendment_text)
     if credit_text is not None:
         (incoming / "credit.txt").write_text(credit_text)
+    if supporting_text is not None:
+        (incoming / "rate-card.txt").write_text(supporting_text)
     batch = inventory_sources(incoming, root)
     parsed = {p.source_id: p for p in read_batch(batch, root)}
     shared = {
         "supplier_id": ("VENDOR", "VENDOR", "TEXT"),
         "agreement_id": ("A-781", "A-781", "TEXT"),
         "asset_id": ("LIFT-92", "LIFT-92", "TEXT"),
-        "document_status": ("ACCEPTED", "accepted", "TEXT"),
+        "document_status": ("ACCEPTED", "accepted", "ENUM"),
         "currency": ("EUR", "EUR", "CURRENCY"),
     }
     annotations = {
         "agreement.txt": {**shared,
-            "entity_kind": ("RENTAL_SCOPE", "rental agreement", "TEXT"),
-            "document_role": ("RENTAL_AGREEMENT", "rental agreement", "TEXT"),
+            "entity_kind": ("RENTAL_SCOPE", "rental agreement", "ENUM"),
+            "document_role": ("RENTAL_AGREEMENT", "rental agreement", "ENUM"),
             "client_id": ("CLIENT", "CLIENT", "TEXT"),
             "description": ("electric lift", "electric lift", "TEXT"),
             "quantity": ("2", "2.", "DECIMAL"),
@@ -68,8 +77,8 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=N
             "stop_event": ("CONTRACT_END", "contract end", "TEXT"),
         },
         "invoice.txt": {**shared,
-            "entity_kind": ("INVOICE_LINE", "Line L1", "TEXT"),
-            "document_role": ("INVOICE", "invoice", "TEXT"),
+            "entity_kind": ("INVOICE_LINE", "Line L1", "ENUM"),
+            "document_role": ("INVOICE", "invoice", "ENUM"),
             "invoice_id": ("INV-83", "INV-83", "TEXT"),
             "invoice_line_id": ("L1", "L1", "TEXT"),
             "charge_key": ("hire", "rental", "TEXT"),
@@ -79,11 +88,15 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=N
     }
     if contact_email is not None:
         annotations["invoice.txt"]["contact_email"] = (contact_email, contact_email, "TEXT")
+    for field in omit_invoice_fields:
+        annotations["invoice.txt"].pop(field)
+    for field in omit_contract_fields:
+        annotations["agreement.txt"].pop(field)
     if amendment_text is not None:
         annotations["amendment.txt"] = {
-            "entity_kind": ("RATE_AMENDMENT", "rate amendment", "TEXT"),
-            "document_role": ("AMENDMENT", "amendment", "TEXT"),
-            "document_status": ("ACCEPTED", "accepted", "TEXT"),
+            "entity_kind": ("RATE_AMENDMENT", "rate amendment", "ENUM"),
+            "document_role": ("AMENDMENT", "amendment", "ENUM"),
+            "document_status": ("ACCEPTED", "accepted", "ENUM"),
             "supplier_id": ("VENDOR", "VENDOR", "TEXT"),
             "agreement_id": ("A-781", "A-781", "TEXT"),
             "asset_id": ("LIFT-92", "LIFT-92", "TEXT"),
@@ -96,9 +109,9 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=N
         }
     if credit_text is not None:
         annotations["credit.txt"] = {
-            "entity_kind": ("CREDIT", "credit note", "TEXT"),
-            "document_role": ("CREDIT_NOTE", "credit note", "TEXT"),
-            "document_status": ("ACCEPTED", "accepted", "TEXT"),
+            "entity_kind": ("CREDIT", "credit note", "ENUM"),
+            "document_role": ("CREDIT_NOTE", "credit note", "ENUM"),
+            "document_status": ("ACCEPTED", "accepted", "ENUM"),
             "supplier_id": ("VENDOR", "VENDOR", "TEXT"),
             "invoice_id": ("INV-83", "INV-83", "TEXT"),
             "credit_id": ("CR-9", "CR-9", "TEXT"),
@@ -110,6 +123,15 @@ def packet(tmp_path, *, invoice_text=INVOICE, amendment_text=None, credit_text=N
             annotations["credit.txt"]["allocated_amount"] = ("80.00", "80.00", "DECIMAL")
         if "line L1" in credit_text:
             annotations["credit.txt"]["invoice_line_id"] = ("L1", "L1", "TEXT")
+    if supporting_text is not None:
+        annotations["rate-card.txt"] = {
+            "entity_kind": ("SUPPORTING_DOCUMENT", "duplicate rate card", "ENUM"),
+            "document_role": ("RATE_CARD", "rate card", "ENUM"),
+            "document_status": ("ACCEPTED", "Accepted", "ENUM"),
+            "agreement_id": ("A-781", "A-781", "TEXT"),
+            "asset_id": ("LIFT-92", "LIFT-92", "TEXT"),
+            "rate": ("50.00", "50.00", "DECIMAL"),
+        }
     extractions = []
     decisions = []
     for doc in batch.documents:
@@ -162,6 +184,105 @@ def test_reviewed_native_facts_resolve_to_exact_rental_ledgers_and_query_rows(tm
     assert any(r.get("raw_quote") == "850.00" for r in dataset.rows)
     assert all("/chars:" in ref.location for c in case.actual_charges for ref in c.evidence_refs)
     assert load_document_case(package, source.parent)[1] == lineage
+
+
+def test_package_derives_only_technical_invoice_keys_after_review(tmp_path):
+    source, _ = packet(tmp_path, omit_invoice_fields={"invoice_line_id", "charge_key"},
+                       omit_contract_fields={"charge_key"})
+    case, inventory = load_rental_case(source)
+    assert case.actual_charges[0].invoice_line_id == "L1"
+    assert case.actual_charges[0].charge_key == "rental"
+    assert case.actual_charges[0].net_amount == "850.00"
+    derivations = inventory["document_lineage"]["technical_derivations"]
+    assert derivations == [
+        {"entity_id": derivations[0]["entity_id"],
+         "field": "charge_key", "rule": "REVIEWED_TERM_CHARGE_TYPE"},
+        {"entity_id": derivations[1]["entity_id"],
+         "field": "invoice_line_id", "rule": "REVIEWED_PRINTED_LINE_LABEL"},
+        {"entity_id": derivations[2]["entity_id"],
+         "field": "charge_key", "rule": "UNIQUE_REVIEWED_TERM_SCOPE"},
+    ]
+
+
+def test_package_never_derives_commercial_charge_type(tmp_path):
+    source, _ = packet(tmp_path, omit_invoice_fields={"charge_type"})
+    with pytest.raises(DocumentError, match="Missing package classification review"):
+        load_rental_case(source)
+
+
+def test_corroborating_rate_card_remains_evidence_without_second_rental(tmp_path):
+    source, _ = packet(tmp_path, supporting_text=(
+        "Accepted duplicate rate card for agreement A-781, asset LIFT-92: "
+        "rate 50.00 EUR per day; no separate booking."))
+    case, inventory = load_rental_case(source)
+    result = reconcile(case)
+    assert len(case.documents) == 3
+    assert len(case.periods) == 1
+    assert len(case.terms) == 1
+    assert result["groups"][0]["difference"] == "150.00"
+    assert any(entity["kind"] == "SUPPORTING_DOCUMENT"
+               for entity in inventory["document_lineage"]["entities"])
+
+
+def test_changed_rental_model_guidance_requires_fresh_extraction_review(tmp_path):
+    source, package = packet(tmp_path)
+    stale = deepcopy(package)
+    extraction = stale["extractions"][0]
+    extraction["extractor_version"] = EXTRACTOR_VERSION
+    extraction["prompt_version"] = "old-unbound-guidance"
+    extraction["extraction_sha256"] = stable_hash({key: value for key, value in extraction.items()
+                                                   if key != "extraction_sha256"})
+    with pytest.raises(DocumentError, match="REVIEW_STALE") as caught:
+        load_document_case(stale, source.parent)
+    assert caught.value.diagnostic["validation_code"] == "PROMPT_VERSION_NOT_CURRENT"
+    assert caught.value.diagnostic["schema_path"] == "$.extractions[].prompt_version"
+    assert caught.value.diagnostic["source_id"] == extraction["source_id"]
+    assert caught.value.diagnostic["source_sha256"] == extraction["source_sha256"]
+    assert caught.value.diagnostic["prompt_version"] == "old-unbound-guidance"
+
+
+def test_current_visual_and_structural_retry_prompt_versions_are_package_valid():
+    current = _current_extraction_prompt_versions()
+    assert prompt_version_for_guidance(visual_guidance()) in current
+    assert prompt_version_for_guidance(
+        visual_guidance() + QA_INSTRUCTIONS + VISUAL_RETRY_INSTRUCTIONS + STRUCTURE_RETRY_INSTRUCTIONS
+    ) in current
+
+
+def test_multientity_source_document_role_and_status_are_not_row_level_defaults():
+    from types import SimpleNamespace
+
+    def facts(**values):
+        return [SimpleNamespace(candidate=SimpleNamespace(semantic_type=key, value=value))
+                for key, value in values.items()]
+
+    roles, statuses = _source_document_metadata(
+        facts(document_role="PAYMENT_EXPORT", document_status="EXTRACTED")
+        + facts(entity_kind="SUPPORTING_DOCUMENT")
+        + facts(entity_kind="SUPPORTING_DOCUMENT"))
+    assert roles == {"PAYMENT_EXPORT"}
+    assert statuses == {"EXTRACTED"}
+    conflicting_roles, _ = _source_document_metadata(
+        facts(document_role="PAYMENT_EXPORT") + facts(document_role="INVOICE"))
+    assert conflicting_roles == {"PAYMENT_EXPORT", "INVOICE"}
+
+
+def test_adjudicated_challenger_prompt_remains_a_current_reviewed_source(tmp_path):
+    source, package = packet(tmp_path)
+    from againward.documents.codex_provider import prompt_version_for_guidance
+    from againward.documents.independent_qa import QA_INSTRUCTIONS
+    from againward.domains.rental.semantic_guidance import guidance
+
+    challenger = deepcopy(package)
+    extraction = challenger["extractions"][0]
+    extraction["extractor_version"] = EXTRACTOR_VERSION
+    extraction["prompt_version"] = prompt_version_for_guidance(guidance() + QA_INSTRUCTIONS)
+    extraction["extraction_sha256"] = stable_hash({key: value for key, value in extraction.items()
+                                                   if key != "extraction_sha256"})
+    challenger["fact_review"]["extraction_hashes"] = sorted(
+        item["extraction_sha256"] for item in challenger["extractions"])
+    case, _ = load_document_case(challenger, source.parent)
+    assert len(case.actual_charges) == 1
 
 
 def test_lineage_integrates_with_kernel_and_inventory_tamper_invalidates_replay(tmp_path):

@@ -50,15 +50,33 @@ native units: PDF pages, CSV cells, exact XLSX XML values/styles/formulas/merges
 DOCX body paragraphs or EML text parts. Unread components and image pages remain
 explicit. Sources are never truncated to satisfy a limit.
 
-Supply a model/analyst proposal using the closed contract in
+The opt-in `documents extract DOCUMENT_ROOT BATCH_RECEIPT --model gpt-6-sol`
+command invokes the configured Codex CLI on approved source units and stores
+validated **candidates only**. It does not authorize facts or money. Alternatively,
+supply a model/analyst proposal using the closed contract in
 `documents/extraction.py::proposal_context`, then use:
 
 ```sh
 python investigate.py documents validate DOCUMENT_ROOT BATCH_RECEIPT PROPOSAL
+python investigate.py documents review-template DOCUMENT_ROOT BATCH_RECEIPT EXTRACTION...
 python investigate.py documents promote DOCUMENT_ROOT BATCH_RECEIPT FACT_REVIEW EXTRACTION...
+python investigate.py documents link-review-template DOCUMENT_ROOT BATCH_RECEIPT FACT_REVIEW EXTRACTION...
+python investigate.py documents package-rental DOCUMENT_ROOT BATCH_RECEIPT FACT_REVIEW EXTRACTION...
 ```
 
-No command calls a provider, changes question budgets or creates delivery approval.
+Only `extract` calls a provider. No document command changes question budgets or
+creates delivery approval. `review-template` writes an unreviewed worksheet with
+every candidate, source location and ambiguity; its JSON has no reviewer/time,
+all decisions DEFER and limitations unacknowledged. A person must inspect and
+complete it before `promote` can accept a fact.
+`package-rental` assembles and replays the reviewed batch/extractions into the
+Rental source package without manual JSON concatenation, then calls the strict
+document adapter. Ambiguous material links still require optional explicit
+`--rental-links`/`--credit-links` reviewed decisions and cannot be guessed.
+`link-review-template` lists unresolved Rental/credit relationships, exact
+source IDs, matching/contradicting fields and eligible fact IDs. Its templates
+have no reviewer identity or decisions; only a real source review can fill
+them. A contradicted link cannot be manually confirmed.
 Every proposal carries source/batch identity, reader/extractor/model/prompt version,
 status and source-local candidates. A native quote must match exact half-open
 character offsets. A visual transcription is only a proposal and requires supplied
@@ -116,8 +134,10 @@ returns and uncertain extensions remain unknown, with explicit limitations.
 
 The reviewed native-document path is connected to Rental, but the mission's full
 real-world capability is not implemented or validated yet.
-The real-client privacy gate still refuses binary files it cannot post-check.
-Native parsing does not authorize them. Poor scans, signatures and handwritten
-text need source review. PDF annotations/forms and non-body DOCX components are
-flagged, not silently treated as fully extracted. The PDF process guard accounts
-for Android virtual reservations and is not a universal document sandbox.
+The real-client privacy gate now inspects bounded native PDFs and requires an
+exact-source human path for scans/hybrid visual pages. Native parsing by itself
+does not authorize them. Poor scans, signatures and handwritten text need
+actual operator review; unresolved PDF annotations/forms and non-body DOCX
+components are flagged, not silently treated as fully extracted. The PDF
+process guard accounts for Android virtual reservations and is not a universal
+document sandbox. See [visual operations](VISUAL_REVIEW_OPERATIONS.md).

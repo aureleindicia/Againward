@@ -12,7 +12,7 @@ from .arithmetic import deterministic_decimal
 FINDING_FAMILIES = frozenset({"DUPLICATE_BILLING", "WRONG_RATE", "WRONG_RATE_TIER",
     "POST_OFF_HIRE_BILLING", "POST_RETURN_BILLING", "INCORRECT_QUANTITY", "INCORRECT_DURATION",
     "UNAUTHORIZED_FEE", "MISSING_DISCOUNT", "MISSING_CREDIT", "PROMISED_CREDIT_NOT_APPLIED",
-    "UNALLOCATED_CREDIT",
+    "UNALLOCATED_CREDIT", "DOCUMENTARY_CHARGE_DIFFERENCE",
     "TRANSPORT_CHARGE_MISMATCH", "DELIVERY_CHARGE_MISMATCH", "COLLECTION_CHARGE_MISMATCH",
     "DAMAGE_WAIVER_MISMATCH", "FUEL_CHARGE_MISMATCH", "UNKNOWN_CONTRACTUAL_BASIS"})
 
@@ -24,6 +24,7 @@ ALTERNATIVES = {
     "POST_OFF_HIRE_BILLING": "The agreement may stop billing at collection rather than at the off-hire request.",
     "INCORRECT_QUANTITY": "A second asset, replacement or partial delivery may justify the invoiced quantity.",
     "INCORRECT_DURATION": "Minimum periods, weekend charging, extensions or inclusive dates may explain duration.",
+    "DOCUMENTARY_CHARGE_DIFFERENCE": "An accepted amendment or a credit outside the supplied records may explain the difference; its cause is not established.",
     "MISSING_DISCOUNT": "The discount may be conditional or already reflected in the net amount.",
     "PROMISED_CREDIT_NOT_APPLIED": "A credit may be issued outside the supplied export or allocated to another invoice.",
     "UNALLOCATED_CREDIT": "An issued credit may offset one of these charges, but its invoice-line allocation is unconfirmed.",
@@ -115,7 +116,7 @@ def _families(actual, expected, difference):
         if fee_family:
             families.append(fee_family)
         if not families:
-            families.append("INCORRECT_DURATION" if actual[0]["charge_type"] == "RENTAL" else "UNAUTHORIZED_FEE")
+            families.append("DOCUMENTARY_CHARGE_DIFFERENCE" if actual[0]["charge_type"] == "RENTAL" else "UNAUTHORIZED_FEE")
     signatures = defaultdict(int)
     for row in actual:
         signature = tuple(row.get(key) for key in ("charge_type", "start", "end", "quantity", "unit_rate", "billed_units", "invoiced_amount"))

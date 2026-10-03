@@ -1,0 +1,3060 @@
+{
+  "schema_version": "againward-luna-visual-robustness-v1",
+  "title": "Luna visual robustness on known synthetic Rental scans",
+  "purpose": "Development/regression repeatability characterization only; not blinded accuracy evidence or a population accuracy estimate.",
+  "experiment": {
+    "performed_on_utc_date": "2026-09-25",
+    "commit_sha": "371db0d08161cf663500255972595e345f6808db",
+    "model": "gpt-6-luna",
+    "codex_cli": "codex-cli 0.156.1",
+    "workspace_root": "scratch/luna_visual_robustness_20260925",
+    "fresh_workspace_per_run": true,
+    "runs": 10,
+    "case_A_runs": 5,
+    "case_B_runs": 5,
+    "code_prompt_policy_unchanged_between_runs": true,
+    "production_code_modified": false,
+    "prompt_modified": false,
+    "policy_modified": false,
+    "unseen_adversarial_cases_used": 0,
+    "retry_policy": "Normal workflow behavior only; at most existing bounded repair/retry; no external reruns or manual repairs.",
+    "source_hashes_case_A": {
+      "billing.pdf": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+      "commercial.pdf": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+    },
+    "source_hashes_case_B": {
+      "supplier_email.eml": "1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42",
+      "issued_credit.pdf": "1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729",
+      "accounting_export.xlsx": "45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d",
+      "accepted_rate_sheet.pdf": "4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b",
+      "accepted_agreement.pdf": "507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b",
+      "signed_return_scan.pdf": "86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4",
+      "invoice_02.pdf": "ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b",
+      "invoice_01.pdf": "b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb"
+    },
+    "oracle_use": "Known truth used only after each workflow completed/failed, for score interpretation; never included in model prompts or retry guidance.",
+    "policy_prompt_binding": {
+      "prompt_version": "againward-source-facts-v3-3c5241952f9688d9",
+      "versions": [
+        "againward-rental-approved-sources-job-v1",
+        "rental-independent-source-reread-v2",
+        "againward-source-adjudication-v5",
+        "againward-codex-analyst-review-v4",
+        "againward-codex-visual-analyst-v2+againward-visual-model-evidence-v1+againward-rental-visual-limitation-routing-v1",
+        "againward-rental-autonomous-report-v4",
+        "againward-rental-autonomous-finding-review-v6",
+        "againward-rental-reviewed-evidence-v2"
+      ],
+      "source_job_version": "againward-rental-approved-sources-job-v1"
+    },
+    "visual_candidate_count_note": "Counts are per target scanned source. A04 had two raw primary rows (entity_kind and document_role only); it had zero material invoice values."
+  },
+  "case_definitions": {
+    "A": {
+      "case_id": "c06894c2744f1010",
+      "known_visual_evidence": "Raster invoice with native text only “Invoice attachment follows”.",
+      "known_result_EUR": "150.00"
+    },
+    "B": {
+      "case_id": "known_eight_source_rental_dev_signed_return_scan",
+      "known_visual_evidence": "Eight-source DEV dossier, including the signed_return_scan.pdf; prior known run had passed original-pixel adjudication and MODEL visual review.",
+      "expected_financial_result": {
+        "LIFT-5_documentary_difference_EUR": "150.00",
+        "LIFT-50_difference_EUR": "0.00"
+      }
+    }
+  },
+  "metrics_definition": {
+    "visual_candidate_success": "At least one material factual candidate from the target scanned source (invoice or return evidence); structural labels alone do not count. A source pass not reached is a miss for the success-rate numerator and remains in denominator.",
+    "pixel_adjudication_reach": "Source comparison entered adjudication and an original-visual attachment was passed to the model, even if deterministic validation rejected the response.",
+    "formal_visual_review_reach": "A persisted analyst visual fact-review receipt after FACT_REVIEW; adjudicator image attachment alone is not counted.",
+    "safe_wait_rate": "Workflow ended in WAITING_FOR_REQUIRED_INFORMATION (reported separately from correctness).",
+    "zero_candidate_count": "Both primary and challenger target-source reads completed and each returned zero material factual candidates."
+  },
+  "records": [
+    {
+      "case_id": "c06894c2744f1010",
+      "run_id": "A_run_01",
+      "case_group": "A",
+      "workspace": "scratch/luna_visual_robustness_20260925/A_run_01",
+      "commit_sha": "371db0d08161cf663500255972595e345f6808db",
+      "runtime_model": "gpt-6-luna",
+      "model_identifier_source": "--model gpt-6-luna passed explicitly; source-job binding and extraction receipts record same model",
+      "codex_cli_version": "codex-cli 0.156.1",
+      "model_reasoning_effort": {
+        "source_extraction_and_independent_reread": "low (explicit codex_provider CLI argument)",
+        "source_adjudication": "low (explicit adjudication CLI argument if reached)",
+        "downstream": "not reached"
+      },
+      "policy_prompt_binding": {
+        "prompt_version": "againward-source-facts-v3-3c5241952f9688d9",
+        "versions": [
+          "againward-rental-approved-sources-job-v1",
+          "rental-independent-source-reread-v2",
+          "againward-source-adjudication-v5",
+          "againward-codex-analyst-review-v4",
+          "againward-codex-visual-analyst-v2+againward-visual-model-evidence-v1+againward-rental-visual-limitation-routing-v1",
+          "againward-rental-autonomous-report-v4",
+          "againward-rental-autonomous-finding-review-v6",
+          "againward-rental-reviewed-evidence-v2"
+        ],
+        "source_job_version": "againward-rental-approved-sources-job-v1"
+      },
+      "source_hashes": {
+        "billing.pdf": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+        "commercial.pdf": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+      },
+      "primary": {
+        "attempted_source_count": 2,
+        "candidate_count_total": 23,
+        "sources": [
+          {
+            "source_name": "billing.pdf",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "source_sha256": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "status": "PARTIAL",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [
+              "The native text unit contains only “Invoice attachment follows”; the invoice details shown in the image are not present in the supplied native unit."
+            ],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "commercial.pdf",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "source_sha256": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 23,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 5,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "supplier_id",
+              "client_id",
+              "item_id",
+              "asset_id",
+              "serial_number",
+              "description",
+              "quantity",
+              "start",
+              "end",
+              "charge_key",
+              "charge_type",
+              "currency",
+              "rate",
+              "billing_unit",
+              "minimum_days",
+              "discount_fraction",
+              "weekends_billable",
+              "stop_event",
+              "stop_day_billable"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          }
+        ],
+        "visual_source_candidate_count": 0,
+        "visual_source_material_fact_candidate_count": 0,
+        "visual_source_status": "PARTIAL",
+        "visual_source_limitations": [
+          "The native text unit contains only “Invoice attachment follows”; the invoice details shown in the image are not present in the supplied native unit."
+        ]
+      },
+      "challenger": {
+        "attempted_source_count": 2,
+        "candidate_count_total": 21,
+        "sources": [
+          {
+            "source_name": "billing.pdf",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "source_sha256": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "status": "PARTIAL",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [
+              "Only the text “Invoice attachment follows” is present in the named source unit; the invoice attachment content is omitted."
+            ],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          },
+          {
+            "source_name": "commercial.pdf",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "source_sha256": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 21,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 4,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "supplier_id",
+              "client_id",
+              "asset_id",
+              "serial_number",
+              "description",
+              "quantity",
+              "start",
+              "end",
+              "charge_key",
+              "charge_type",
+              "currency",
+              "rate",
+              "billing_unit",
+              "minimum_days",
+              "discount_fraction",
+              "weekends_billable",
+              "stop_event"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          }
+        ],
+        "visual_source_candidate_count": 0,
+        "visual_source_material_fact_candidate_count": 0,
+        "visual_source_status": "PARTIAL",
+        "visual_source_limitations": [
+          "Only the text “Invoice attachment follows” is present in the named source unit; the invoice attachment content is omitted."
+        ]
+      },
+      "comparison_visual": {
+        "comparison_reached": true,
+        "material_disagreement_count": 2,
+        "original_visual_pixels_attached_to_adjudication_model_call": true,
+        "pixel_adjudication_reached": true,
+        "adjudication_receipt_created": true,
+        "adjudication_status": "RECONCILIATION_REQUIRED",
+        "adjudication_result_for_visual_source": "UNRESOLVED",
+        "visual_citations_in_adjudication": 0,
+        "formal_visual_fact_review_reached": false,
+        "visual_candidates_actually_reviewed_by_formal_visual_reviewer": 0,
+        "model_visual_receipt_created": false,
+        "human_escalation_requested": false,
+        "human_evidence_created": false
+      },
+      "downstream": {
+        "fact_review_reached": false,
+        "calculation_reached": false,
+        "report_generation_reached": false,
+        "report_produced": false,
+        "final_pdf_sha256": null,
+        "final_pdf_qa_passed": false,
+        "final_workflow_state": "WAITING_FOR_REQUIRED_INFORMATION",
+        "final_stage": "SOURCE_ADJUDICATION",
+        "stop_wait_error": {
+          "kind": "WAIT",
+          "code": "WAITING_FOR_REQUIRED_INFORMATION",
+          "stage": "SOURCE_ADJUDICATION",
+          "smallest_concrete_cause": "Material source disagreement remained unresolved because no disputed-proposal invoice values could be cited from the original scan."
+        }
+      },
+      "financial": {
+        "known_oracle": {
+          "known_documentary_difference_EUR": "150.00",
+          "expected_description": "supported invoice discrepancy from known scan"
+        },
+        "result_reached": false,
+        "calculated_amounts": null,
+        "known_EUR_150_reached": false
+      },
+      "timing": {
+        "workflow_elapsed_seconds_from_state_event_span": 110.245,
+        "sum_of_recorded_model_wall_seconds": 105.997,
+        "model_wall_time_limitation": "Only completed event timings are recorded; failed in-flight calls have no per-call wall time in state.",
+        "timed_model_events": [
+          {
+            "at_utc": "2026-09-25T21:28:04.653286+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 7.007,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7"
+          },
+          {
+            "at_utc": "2026-09-25T21:28:35.379101+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 30.375,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+          },
+          {
+            "at_utc": "2026-09-25T21:28:43.968409+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 7.599,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7"
+          },
+          {
+            "at_utc": "2026-09-25T21:29:11.574259+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 27.269,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+          },
+          {
+            "at_utc": "2026-09-25T21:29:47.431609+00:00",
+            "model_wall_seconds": 33.747,
+            "phase": "QA_DISAGREEMENT_RESOLVED",
+            "unresolved": 1
+          }
+        ],
+        "monetary_cost": "not metered"
+      },
+      "source_job_state_sha256": "c7d3fe97f9778831418c26bc361d62a35eecead2029b40afdc7d6ab2f10095e2",
+      "independent_oracle_prompting_used": false,
+      "oracle_adjudication": {
+        "known_supported_visual_result_exists": true,
+        "workflow_wait_was_justified_by_genuine_evidence_ambiguity": false,
+        "case_outcome": "UNJUSTIFIED_WAIT_AND_MATERIAL_MISS",
+        "reason": "Known source bytes visibly support the documented material result; this run did not calculate it."
+      }
+    },
+    {
+      "case_id": "c06894c2744f1010",
+      "run_id": "A_run_02",
+      "case_group": "A",
+      "workspace": "scratch/luna_visual_robustness_20260925/A_run_02",
+      "commit_sha": "371db0d08161cf663500255972595e345f6808db",
+      "runtime_model": "gpt-6-luna",
+      "model_identifier_source": "--model gpt-6-luna passed explicitly; source-job binding and extraction receipts record same model",
+      "codex_cli_version": "codex-cli 0.156.1",
+      "model_reasoning_effort": {
+        "source_extraction_and_independent_reread": "low (explicit codex_provider CLI argument)",
+        "source_adjudication": "low (explicit adjudication CLI argument if reached)",
+        "downstream": "not reached"
+      },
+      "policy_prompt_binding": {
+        "prompt_version": "againward-source-facts-v3-3c5241952f9688d9",
+        "versions": [
+          "againward-rental-approved-sources-job-v1",
+          "rental-independent-source-reread-v2",
+          "againward-source-adjudication-v5",
+          "againward-codex-analyst-review-v4",
+          "againward-codex-visual-analyst-v2+againward-visual-model-evidence-v1+againward-rental-visual-limitation-routing-v1",
+          "againward-rental-autonomous-report-v4",
+          "againward-rental-autonomous-finding-review-v6",
+          "againward-rental-reviewed-evidence-v2"
+        ],
+        "source_job_version": "againward-rental-approved-sources-job-v1"
+      },
+      "source_hashes": {
+        "billing.pdf": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+        "commercial.pdf": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+      },
+      "primary": {
+        "attempted_source_count": 2,
+        "candidate_count_total": 23,
+        "sources": [
+          {
+            "source_name": "billing.pdf",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "source_sha256": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "status": "PARTIAL",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [
+              "The supplied native text unit contains only “Invoice attachment follows”; invoice details are visible only in the image, and image values cannot be proposed as native-source candidates under this task contract."
+            ],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "commercial.pdf",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "source_sha256": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 23,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 5,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "supplier_id",
+              "client_id",
+              "item_id",
+              "asset_id",
+              "serial_number",
+              "description",
+              "quantity",
+              "start",
+              "end",
+              "rate",
+              "charge_key",
+              "charge_type",
+              "currency",
+              "billing_unit",
+              "minimum_days",
+              "discount_fraction",
+              "weekends_billable",
+              "stop_event",
+              "stop_day_billable"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          }
+        ],
+        "visual_source_candidate_count": 0,
+        "visual_source_material_fact_candidate_count": 0,
+        "visual_source_status": "PARTIAL",
+        "visual_source_limitations": [
+          "The supplied native text unit contains only “Invoice attachment follows”; invoice details are visible only in the image, and image values cannot be proposed as native-source candidates under this task contract."
+        ]
+      },
+      "challenger": {
+        "attempted_source_count": 2,
+        "candidate_count_total": 23,
+        "sources": [
+          {
+            "source_name": "billing.pdf",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "source_sha256": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "status": "PARTIAL",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [
+              "The supplied native text unit contains only “Invoice attachment follows”; the invoice details are visible only in the image, so source-bound candidate spans are unavailable."
+            ],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          },
+          {
+            "source_name": "commercial.pdf",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "source_sha256": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 23,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 5,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "supplier_id",
+              "client_id",
+              "item_id",
+              "asset_id",
+              "serial_number",
+              "description",
+              "quantity",
+              "start",
+              "end",
+              "charge_key",
+              "charge_type",
+              "currency",
+              "rate",
+              "billing_unit",
+              "minimum_days",
+              "discount_fraction",
+              "weekends_billable",
+              "stop_event",
+              "terms_unchanged"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          }
+        ],
+        "visual_source_candidate_count": 0,
+        "visual_source_material_fact_candidate_count": 0,
+        "visual_source_status": "PARTIAL",
+        "visual_source_limitations": [
+          "The supplied native text unit contains only “Invoice attachment follows”; the invoice details are visible only in the image, so source-bound candidate spans are unavailable."
+        ]
+      },
+      "comparison_visual": {
+        "comparison_reached": true,
+        "material_disagreement_count": 2,
+        "original_visual_pixels_attached_to_adjudication_model_call": true,
+        "pixel_adjudication_reached": true,
+        "adjudication_receipt_created": true,
+        "adjudication_status": "RECONCILIATION_REQUIRED",
+        "adjudication_result_for_visual_source": "UNRESOLVED",
+        "visual_citations_in_adjudication": 0,
+        "formal_visual_fact_review_reached": false,
+        "visual_candidates_actually_reviewed_by_formal_visual_reviewer": 0,
+        "model_visual_receipt_created": false,
+        "human_escalation_requested": false,
+        "human_evidence_created": false
+      },
+      "downstream": {
+        "fact_review_reached": false,
+        "calculation_reached": false,
+        "report_generation_reached": false,
+        "report_produced": false,
+        "final_pdf_sha256": null,
+        "final_pdf_qa_passed": false,
+        "final_workflow_state": "WAITING_FOR_REQUIRED_INFORMATION",
+        "final_stage": "SOURCE_ADJUDICATION",
+        "stop_wait_error": {
+          "kind": "WAIT",
+          "code": "WAITING_FOR_REQUIRED_INFORMATION",
+          "stage": "SOURCE_ADJUDICATION",
+          "smallest_concrete_cause": "Material source disagreement remained unresolved because no disputed-proposal invoice values could be cited from the original scan."
+        }
+      },
+      "financial": {
+        "known_oracle": {
+          "known_documentary_difference_EUR": "150.00",
+          "expected_description": "supported invoice discrepancy from known scan"
+        },
+        "result_reached": false,
+        "calculated_amounts": null,
+        "known_EUR_150_reached": false
+      },
+      "timing": {
+        "workflow_elapsed_seconds_from_state_event_span": 122.038,
+        "sum_of_recorded_model_wall_seconds": 117.729,
+        "model_wall_time_limitation": "Only completed event timings are recorded; failed in-flight calls have no per-call wall time in state.",
+        "timed_model_events": [
+          {
+            "at_utc": "2026-09-25T21:30:06.249501+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 5.583,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7"
+          },
+          {
+            "at_utc": "2026-09-25T21:30:37.784554+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 31.211,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+          },
+          {
+            "at_utc": "2026-09-25T21:30:46.505748+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 7.645,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7"
+          },
+          {
+            "at_utc": "2026-09-25T21:31:15.950129+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 29.107,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+          },
+          {
+            "at_utc": "2026-09-25T21:32:02.258879+00:00",
+            "model_wall_seconds": 44.183,
+            "phase": "QA_DISAGREEMENT_RESOLVED",
+            "unresolved": 1
+          }
+        ],
+        "monetary_cost": "not metered"
+      },
+      "source_job_state_sha256": "d51156da781d24f10a9a9744a79ab740ccfabca63c900d70121dba4e3a41150c",
+      "independent_oracle_prompting_used": false,
+      "oracle_adjudication": {
+        "known_supported_visual_result_exists": true,
+        "workflow_wait_was_justified_by_genuine_evidence_ambiguity": false,
+        "case_outcome": "UNJUSTIFIED_WAIT_AND_MATERIAL_MISS",
+        "reason": "Known source bytes visibly support the documented material result; this run did not calculate it."
+      }
+    },
+    {
+      "case_id": "c06894c2744f1010",
+      "run_id": "A_run_03",
+      "case_group": "A",
+      "workspace": "scratch/luna_visual_robustness_20260925/A_run_03",
+      "commit_sha": "371db0d08161cf663500255972595e345f6808db",
+      "runtime_model": "gpt-6-luna",
+      "model_identifier_source": "--model gpt-6-luna passed explicitly; source-job binding and extraction receipts record same model",
+      "codex_cli_version": "codex-cli 0.156.1",
+      "model_reasoning_effort": {
+        "source_extraction_and_independent_reread": "low (explicit codex_provider CLI argument)",
+        "source_adjudication": "low (explicit adjudication CLI argument if reached)",
+        "downstream": "not reached"
+      },
+      "policy_prompt_binding": {
+        "prompt_version": "againward-source-facts-v3-3c5241952f9688d9",
+        "versions": [
+          "againward-rental-approved-sources-job-v1",
+          "rental-independent-source-reread-v2",
+          "againward-source-adjudication-v5",
+          "againward-codex-analyst-review-v4",
+          "againward-codex-visual-analyst-v2+againward-visual-model-evidence-v1+againward-rental-visual-limitation-routing-v1",
+          "againward-rental-autonomous-report-v4",
+          "againward-rental-autonomous-finding-review-v6",
+          "againward-rental-reviewed-evidence-v2"
+        ],
+        "source_job_version": "againward-rental-approved-sources-job-v1"
+      },
+      "source_hashes": {
+        "billing.pdf": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+        "commercial.pdf": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+      },
+      "primary": {
+        "attempted_source_count": 2,
+        "candidate_count_total": 23,
+        "sources": [
+          {
+            "source_name": "billing.pdf",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "source_sha256": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "status": "PARTIAL",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [
+              "The provided native source unit contains only “Invoice attachment follows”; invoice attachment details shown in the image are not available in the named source unit."
+            ],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "commercial.pdf",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "source_sha256": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 23,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 5,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "supplier_id",
+              "client_id",
+              "item_id",
+              "asset_id",
+              "serial_number",
+              "description",
+              "start",
+              "end",
+              "quantity",
+              "charge_key",
+              "charge_type",
+              "currency",
+              "rate",
+              "billing_unit",
+              "minimum_days",
+              "discount_fraction",
+              "weekends_billable",
+              "stop_event",
+              "stop_day_billable"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          }
+        ],
+        "visual_source_candidate_count": 0,
+        "visual_source_material_fact_candidate_count": 0,
+        "visual_source_status": "PARTIAL",
+        "visual_source_limitations": [
+          "The provided native source unit contains only “Invoice attachment follows”; invoice attachment details shown in the image are not available in the named source unit."
+        ]
+      },
+      "challenger": {
+        "attempted_source_count": 2,
+        "candidate_count_total": 0,
+        "sources": [
+          {
+            "source_name": "billing.pdf",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "source_sha256": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "status": "PARTIAL",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [
+              "This unit contains only “Invoice attachment follows”; the invoice content is not present in the named source unit."
+            ],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          },
+          {
+            "source_name": "commercial.pdf",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "source_sha256": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "status": "SUCCESS",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-5c5fbd800cdcc30b"
+          }
+        ],
+        "visual_source_candidate_count": 0,
+        "visual_source_material_fact_candidate_count": 0,
+        "visual_source_status": "PARTIAL",
+        "visual_source_limitations": [
+          "This unit contains only “Invoice attachment follows”; the invoice content is not present in the named source unit."
+        ]
+      },
+      "comparison_visual": {
+        "comparison_reached": true,
+        "material_disagreement_count": 2,
+        "original_visual_pixels_attached_to_adjudication_model_call": true,
+        "pixel_adjudication_reached": true,
+        "adjudication_receipt_created": true,
+        "adjudication_status": "RECONCILIATION_REQUIRED",
+        "adjudication_result_for_visual_source": "UNRESOLVED",
+        "visual_citations_in_adjudication": 0,
+        "formal_visual_fact_review_reached": false,
+        "visual_candidates_actually_reviewed_by_formal_visual_reviewer": 0,
+        "model_visual_receipt_created": false,
+        "human_escalation_requested": false,
+        "human_evidence_created": false
+      },
+      "downstream": {
+        "fact_review_reached": false,
+        "calculation_reached": false,
+        "report_generation_reached": false,
+        "report_produced": false,
+        "final_pdf_sha256": null,
+        "final_pdf_qa_passed": false,
+        "final_workflow_state": "WAITING_FOR_REQUIRED_INFORMATION",
+        "final_stage": "SOURCE_ADJUDICATION",
+        "stop_wait_error": {
+          "kind": "WAIT",
+          "code": "WAITING_FOR_REQUIRED_INFORMATION",
+          "stage": "SOURCE_ADJUDICATION",
+          "smallest_concrete_cause": "Material source disagreement remained unresolved because no disputed-proposal invoice values could be cited from the original scan."
+        }
+      },
+      "financial": {
+        "known_oracle": {
+          "known_documentary_difference_EUR": "150.00",
+          "expected_description": "supported invoice discrepancy from known scan"
+        },
+        "result_reached": false,
+        "calculated_amounts": null,
+        "known_EUR_150_reached": false
+      },
+      "timing": {
+        "workflow_elapsed_seconds_from_state_event_span": 172.517,
+        "sum_of_recorded_model_wall_seconds": 168.105,
+        "model_wall_time_limitation": "Only completed event timings are recorded; failed in-flight calls have no per-call wall time in state.",
+        "timed_model_events": [
+          {
+            "at_utc": "2026-09-25T21:32:13.590820+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 6.453,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7"
+          },
+          {
+            "at_utc": "2026-09-25T21:32:46.630035+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 32.679,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+          },
+          {
+            "at_utc": "2026-09-25T21:32:53.437979+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 5.755,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7"
+          },
+          {
+            "at_utc": "2026-09-25T21:33:32.692413+00:00",
+            "model_attempts": 2,
+            "model_wall_seconds": 38.87,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+          },
+          {
+            "at_utc": "2026-09-25T21:34:59.181187+00:00",
+            "model_wall_seconds": 84.348,
+            "phase": "QA_DISAGREEMENT_RESOLVED",
+            "unresolved": 1
+          }
+        ],
+        "monetary_cost": "not metered"
+      },
+      "source_job_state_sha256": "8710198062334abf799d37bebfee14dc7c646db0a26b86569da9752a69724b79",
+      "independent_oracle_prompting_used": false,
+      "oracle_adjudication": {
+        "known_supported_visual_result_exists": true,
+        "workflow_wait_was_justified_by_genuine_evidence_ambiguity": false,
+        "case_outcome": "UNJUSTIFIED_WAIT_AND_MATERIAL_MISS",
+        "reason": "Known source bytes visibly support the documented material result; this run did not calculate it."
+      }
+    },
+    {
+      "case_id": "c06894c2744f1010",
+      "run_id": "A_run_04",
+      "case_group": "A",
+      "workspace": "scratch/luna_visual_robustness_20260925/A_run_04",
+      "commit_sha": "371db0d08161cf663500255972595e345f6808db",
+      "runtime_model": "gpt-6-luna",
+      "model_identifier_source": "--model gpt-6-luna passed explicitly; source-job binding and extraction receipts record same model",
+      "codex_cli_version": "codex-cli 0.156.1",
+      "model_reasoning_effort": {
+        "source_extraction_and_independent_reread": "low (explicit codex_provider CLI argument)",
+        "source_adjudication": "low (explicit adjudication CLI argument if reached)",
+        "downstream": "not reached"
+      },
+      "policy_prompt_binding": {
+        "prompt_version": "againward-source-facts-v3-3c5241952f9688d9",
+        "versions": [
+          "againward-rental-approved-sources-job-v1",
+          "rental-independent-source-reread-v2",
+          "againward-source-adjudication-v5",
+          "againward-codex-analyst-review-v4",
+          "againward-codex-visual-analyst-v2+againward-visual-model-evidence-v1+againward-rental-visual-limitation-routing-v1",
+          "againward-rental-autonomous-report-v4",
+          "againward-rental-autonomous-finding-review-v6",
+          "againward-rental-reviewed-evidence-v2"
+        ],
+        "source_job_version": "againward-rental-approved-sources-job-v1"
+      },
+      "source_hashes": {
+        "billing.pdf": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+        "commercial.pdf": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+      },
+      "primary": {
+        "attempted_source_count": 2,
+        "candidate_count_total": 2,
+        "sources": [
+          {
+            "source_name": "billing.pdf",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "source_sha256": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "status": "PARTIAL",
+            "candidate_count": 2,
+            "visual_pixel_candidate_count": 2,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role"
+            ],
+            "limitations": [
+              "Only the page 1 text unit “Invoice attachment follows” is available; the invoice attachment’s contents are omitted."
+            ],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "commercial.pdf",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "source_sha256": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "status": "SUCCESS",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          }
+        ],
+        "visual_source_candidate_count": 2,
+        "visual_source_material_fact_candidate_count": 0,
+        "visual_source_status": "PARTIAL",
+        "visual_source_limitations": [
+          "Only the page 1 text unit “Invoice attachment follows” is available; the invoice attachment’s contents are omitted."
+        ]
+      },
+      "challenger": {
+        "attempted_source_count": 2,
+        "candidate_count_total": 0,
+        "sources": [
+          {
+            "source_name": "billing.pdf",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "source_sha256": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          },
+          {
+            "source_name": "commercial.pdf",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "source_sha256": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "status": "SUCCESS",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          }
+        ],
+        "visual_source_candidate_count": 0,
+        "visual_source_material_fact_candidate_count": 0,
+        "visual_source_status": "NEEDS_REVIEW",
+        "visual_source_limitations": []
+      },
+      "comparison_visual": {
+        "comparison_reached": true,
+        "material_disagreement_count": 1,
+        "original_visual_pixels_attached_to_adjudication_model_call": true,
+        "pixel_adjudication_reached": true,
+        "adjudication_receipt_created": false,
+        "adjudication_status": "FAILED_VALIDATION",
+        "adjudication_result_for_visual_source": null,
+        "visual_citations_in_adjudication": 0,
+        "formal_visual_fact_review_reached": false,
+        "visual_candidates_actually_reviewed_by_formal_visual_reviewer": 0,
+        "model_visual_receipt_created": false,
+        "human_escalation_requested": false,
+        "human_evidence_created": false
+      },
+      "downstream": {
+        "fact_review_reached": false,
+        "calculation_reached": false,
+        "report_generation_reached": false,
+        "report_produced": false,
+        "final_pdf_sha256": null,
+        "final_pdf_qa_passed": false,
+        "final_workflow_state": "FAILED",
+        "final_stage": "SOURCE_ADJUDICATION",
+        "stop_wait_error": {
+          "kind": "ERROR",
+          "code": "SOURCE_LOCATION_INVALID",
+          "stage": "SOURCE_ADJUDICATION",
+          "smallest_concrete_cause": "Model-generated source location/span failed deterministic source-bound validation; failed response detail was not retained in the job receipt."
+        }
+      },
+      "financial": {
+        "known_oracle": {
+          "known_documentary_difference_EUR": "150.00",
+          "expected_description": "supported invoice discrepancy from known scan"
+        },
+        "result_reached": false,
+        "calculated_amounts": null,
+        "known_EUR_150_reached": false
+      },
+      "timing": {
+        "workflow_elapsed_seconds_from_state_event_span": 59.431,
+        "sum_of_recorded_model_wall_seconds": 23.499,
+        "model_wall_time_limitation": "Only completed event timings are recorded; failed in-flight calls have no per-call wall time in state.",
+        "timed_model_events": [
+          {
+            "at_utc": "2026-09-25T21:35:12.014964+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 8.329,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7"
+          },
+          {
+            "at_utc": "2026-09-25T21:35:17.352749+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 4.922,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+          },
+          {
+            "at_utc": "2026-09-25T21:35:23.921795+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 5.349,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7"
+          },
+          {
+            "at_utc": "2026-09-25T21:35:29.244076+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 4.899,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+          }
+        ],
+        "monetary_cost": "not metered"
+      },
+      "source_job_state_sha256": "f6408b6b490e6550185c191b1a269cfbe6a84bd22e5f4a573ad54e207b18fc46",
+      "independent_oracle_prompting_used": false,
+      "oracle_adjudication": {
+        "known_supported_visual_result_exists": true,
+        "workflow_wait_was_justified_by_genuine_evidence_ambiguity": null,
+        "case_outcome": "MATERIAL_MISS_WITH_PIPELINE_ERROR",
+        "reason": "Known source bytes visibly support the documented material result; this run did not calculate it."
+      }
+    },
+    {
+      "case_id": "c06894c2744f1010",
+      "run_id": "A_run_05",
+      "case_group": "A",
+      "workspace": "scratch/luna_visual_robustness_20260925/A_run_05",
+      "commit_sha": "371db0d08161cf663500255972595e345f6808db",
+      "runtime_model": "gpt-6-luna",
+      "model_identifier_source": "--model gpt-6-luna passed explicitly; source-job binding and extraction receipts record same model",
+      "codex_cli_version": "codex-cli 0.156.1",
+      "model_reasoning_effort": {
+        "source_extraction_and_independent_reread": "low (explicit codex_provider CLI argument)",
+        "source_adjudication": "low (explicit adjudication CLI argument if reached)",
+        "downstream": "not reached"
+      },
+      "policy_prompt_binding": {
+        "prompt_version": "againward-source-facts-v3-3c5241952f9688d9",
+        "versions": [
+          "againward-rental-approved-sources-job-v1",
+          "rental-independent-source-reread-v2",
+          "againward-source-adjudication-v5",
+          "againward-codex-analyst-review-v4",
+          "againward-codex-visual-analyst-v2+againward-visual-model-evidence-v1+againward-rental-visual-limitation-routing-v1",
+          "againward-rental-autonomous-report-v4",
+          "againward-rental-autonomous-finding-review-v6",
+          "againward-rental-reviewed-evidence-v2"
+        ],
+        "source_job_version": "againward-rental-approved-sources-job-v1"
+      },
+      "source_hashes": {
+        "billing.pdf": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+        "commercial.pdf": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+      },
+      "primary": {
+        "attempted_source_count": 2,
+        "candidate_count_total": 23,
+        "sources": [
+          {
+            "source_name": "billing.pdf",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "source_sha256": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "status": "PARTIAL",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [
+              "Visible invoice attachment content is omitted from the provided native source unit; only the introductory text is available."
+            ],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "commercial.pdf",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "source_sha256": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 23,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 5,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "supplier_id",
+              "client_id",
+              "item_id",
+              "asset_id",
+              "serial_number",
+              "description",
+              "quantity",
+              "start",
+              "end",
+              "charge_key",
+              "charge_type",
+              "currency",
+              "rate",
+              "billing_unit",
+              "minimum_days",
+              "discount_fraction",
+              "weekends_billable",
+              "stop_event",
+              "stop_day_billable"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          }
+        ],
+        "visual_source_candidate_count": 0,
+        "visual_source_material_fact_candidate_count": 0,
+        "visual_source_status": "PARTIAL",
+        "visual_source_limitations": [
+          "Visible invoice attachment content is omitted from the provided native source unit; only the introductory text is available."
+        ]
+      },
+      "challenger": {
+        "attempted_source_count": 2,
+        "candidate_count_total": 23,
+        "sources": [
+          {
+            "source_name": "billing.pdf",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "source_sha256": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+            "status": "PARTIAL",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [
+              "The native text unit contains only “Invoice attachment follows”; the visible invoice details are present only in the supplied image and are not included in the named native source unit."
+            ],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          },
+          {
+            "source_name": "commercial.pdf",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "source_sha256": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 23,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 5,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "supplier_id",
+              "client_id",
+              "item_id",
+              "asset_id",
+              "serial_number",
+              "description",
+              "quantity",
+              "start",
+              "end",
+              "charge_key",
+              "charge_type",
+              "currency",
+              "rate",
+              "billing_unit",
+              "weekends_billable",
+              "minimum_days",
+              "discount_fraction",
+              "stop_event",
+              "stop_day_billable"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          }
+        ],
+        "visual_source_candidate_count": 0,
+        "visual_source_material_fact_candidate_count": 0,
+        "visual_source_status": "PARTIAL",
+        "visual_source_limitations": [
+          "The native text unit contains only “Invoice attachment follows”; the visible invoice details are present only in the supplied image and are not included in the named native source unit."
+        ]
+      },
+      "comparison_visual": {
+        "comparison_reached": true,
+        "material_disagreement_count": 1,
+        "original_visual_pixels_attached_to_adjudication_model_call": true,
+        "pixel_adjudication_reached": true,
+        "adjudication_receipt_created": false,
+        "adjudication_status": "FAILED_VALIDATION",
+        "adjudication_result_for_visual_source": null,
+        "visual_citations_in_adjudication": 0,
+        "formal_visual_fact_review_reached": false,
+        "visual_candidates_actually_reviewed_by_formal_visual_reviewer": 0,
+        "model_visual_receipt_created": false,
+        "human_escalation_requested": false,
+        "human_evidence_created": false
+      },
+      "downstream": {
+        "fact_review_reached": false,
+        "calculation_reached": false,
+        "report_generation_reached": false,
+        "report_produced": false,
+        "final_pdf_sha256": null,
+        "final_pdf_qa_passed": false,
+        "final_workflow_state": "FAILED",
+        "final_stage": "SOURCE_ADJUDICATION",
+        "stop_wait_error": {
+          "kind": "ERROR",
+          "code": "REVIEW_STALE",
+          "stage": "SOURCE_ADJUDICATION",
+          "smallest_concrete_cause": "Adjudication/review response failed stale-binding validation; invalid field detail was not retained in the job receipt."
+        }
+      },
+      "financial": {
+        "known_oracle": {
+          "known_documentary_difference_EUR": "150.00",
+          "expected_description": "supported invoice discrepancy from known scan"
+        },
+        "result_reached": false,
+        "calculated_amounts": null,
+        "known_EUR_150_reached": false
+      },
+      "timing": {
+        "workflow_elapsed_seconds_from_state_event_span": 113.761,
+        "sum_of_recorded_model_wall_seconds": 78.842,
+        "model_wall_time_limitation": "Only completed event timings are recorded; failed in-flight calls have no per-call wall time in state.",
+        "timed_model_events": [
+          {
+            "at_utc": "2026-09-25T21:36:12.935615+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 5.579,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7"
+          },
+          {
+            "at_utc": "2026-09-25T21:36:44.361681+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 31.1,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+          },
+          {
+            "at_utc": "2026-09-25T21:36:51.349430+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 5.745,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7"
+          },
+          {
+            "at_utc": "2026-09-25T21:37:28.192863+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 36.418,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+          }
+        ],
+        "monetary_cost": "not metered"
+      },
+      "source_job_state_sha256": "f4e2ef408694de1bed2419e62ab2b8bc0a74e3c3adbe2c73100bb40b830cddeb",
+      "independent_oracle_prompting_used": false,
+      "oracle_adjudication": {
+        "known_supported_visual_result_exists": true,
+        "workflow_wait_was_justified_by_genuine_evidence_ambiguity": null,
+        "case_outcome": "MATERIAL_MISS_WITH_PIPELINE_ERROR",
+        "reason": "Known source bytes visibly support the documented material result; this run did not calculate it."
+      }
+    },
+    {
+      "case_id": "known_eight_source_rental_dev_signed_return_scan",
+      "run_id": "B_run_01",
+      "case_group": "B",
+      "workspace": "scratch/luna_visual_robustness_20260925/B_run_01",
+      "commit_sha": "371db0d08161cf663500255972595e345f6808db",
+      "runtime_model": "gpt-6-luna",
+      "model_identifier_source": "--model gpt-6-luna passed explicitly; source-job binding and extraction receipts record same model",
+      "codex_cli_version": "codex-cli 0.156.1",
+      "model_reasoning_effort": {
+        "source_extraction_and_independent_reread": "low (explicit codex_provider CLI argument)",
+        "source_adjudication": "low (explicit adjudication CLI argument if reached)",
+        "downstream": "not reached"
+      },
+      "policy_prompt_binding": {
+        "prompt_version": "againward-source-facts-v3-3c5241952f9688d9",
+        "versions": [
+          "againward-rental-approved-sources-job-v1",
+          "rental-independent-source-reread-v2",
+          "againward-source-adjudication-v5",
+          "againward-codex-analyst-review-v4",
+          "againward-codex-visual-analyst-v2+againward-visual-model-evidence-v1+againward-rental-visual-limitation-routing-v1",
+          "againward-rental-autonomous-report-v4",
+          "againward-rental-autonomous-finding-review-v6",
+          "againward-rental-reviewed-evidence-v2"
+        ],
+        "source_job_version": "againward-rental-approved-sources-job-v1"
+      },
+      "source_hashes": {
+        "supplier_email.eml": "1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42",
+        "issued_credit.pdf": "1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729",
+        "accounting_export.xlsx": "45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d",
+        "accepted_rate_sheet.pdf": "4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b",
+        "accepted_agreement.pdf": "507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b",
+        "signed_return_scan.pdf": "86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4",
+        "invoice_02.pdf": "ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b",
+        "invoice_01.pdf": "b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb"
+      },
+      "primary": {
+        "attempted_source_count": 0,
+        "candidate_count_total": 0,
+        "sources": [],
+        "visual_source_candidate_count": null,
+        "visual_source_material_fact_candidate_count": null,
+        "visual_source_status": "NOT_ATTEMPTED",
+        "visual_source_limitations": []
+      },
+      "challenger": {
+        "attempted_source_count": 0,
+        "candidate_count_total": 0,
+        "sources": [],
+        "visual_source_candidate_count": null,
+        "visual_source_material_fact_candidate_count": null,
+        "visual_source_status": "NOT_ATTEMPTED",
+        "visual_source_limitations": []
+      },
+      "comparison_visual": {
+        "comparison_reached": false,
+        "material_disagreement_count": null,
+        "original_visual_pixels_attached_to_adjudication_model_call": false,
+        "pixel_adjudication_reached": false,
+        "adjudication_receipt_created": false,
+        "adjudication_status": null,
+        "adjudication_result_for_visual_source": null,
+        "visual_citations_in_adjudication": 0,
+        "formal_visual_fact_review_reached": false,
+        "visual_candidates_actually_reviewed_by_formal_visual_reviewer": 0,
+        "model_visual_receipt_created": false,
+        "human_escalation_requested": false,
+        "human_evidence_created": false
+      },
+      "downstream": {
+        "fact_review_reached": false,
+        "calculation_reached": false,
+        "report_generation_reached": false,
+        "report_produced": false,
+        "final_pdf_sha256": null,
+        "final_pdf_qa_passed": false,
+        "final_workflow_state": "FAILED",
+        "final_stage": "PRIMARY_EXTRACTION",
+        "stop_wait_error": {
+          "kind": "ERROR",
+          "code": "SOURCE_LOCATION_INVALID",
+          "stage": "PRIMARY_EXTRACTION",
+          "smallest_concrete_cause": "Model-generated source location/span failed deterministic source-bound validation; failed response detail was not retained in the job receipt."
+        }
+      },
+      "financial": {
+        "known_oracle": {
+          "LIFT-5_expected_EUR": "650.00",
+          "LIFT-5_invoiced_EUR": "900.00",
+          "LIFT-5_issued_credit_EUR": "100.00",
+          "LIFT-5_documentary_difference_EUR": "150.00",
+          "LIFT-50_expected_EUR": "270.00",
+          "LIFT-50_invoiced_EUR": "270.00",
+          "LIFT-50_difference_EUR": "0.00"
+        },
+        "result_reached": false,
+        "calculated_amounts": null,
+        "known_EUR_150_reached": null
+      },
+      "timing": {
+        "workflow_elapsed_seconds_from_state_event_span": 32.688,
+        "sum_of_recorded_model_wall_seconds": 0.0,
+        "model_wall_time_limitation": "Only completed event timings are recorded; failed in-flight calls have no per-call wall time in state.",
+        "timed_model_events": [],
+        "monetary_cost": "not metered"
+      },
+      "source_job_state_sha256": "ed63be7725a5b16685a6e965b0025eee1b60774d1c8071968d5f3b09fbc1b71f",
+      "independent_oracle_prompting_used": false,
+      "oracle_adjudication": {
+        "known_supported_visual_result_exists": true,
+        "workflow_wait_was_justified_by_genuine_evidence_ambiguity": null,
+        "case_outcome": "MATERIAL_MISS_WITH_PIPELINE_ERROR",
+        "reason": "Known source bytes visibly support the documented material result; this run did not calculate it."
+      }
+    },
+    {
+      "case_id": "known_eight_source_rental_dev_signed_return_scan",
+      "run_id": "B_run_02",
+      "case_group": "B",
+      "workspace": "scratch/luna_visual_robustness_20260925/B_run_02",
+      "commit_sha": "371db0d08161cf663500255972595e345f6808db",
+      "runtime_model": "gpt-6-luna",
+      "model_identifier_source": "--model gpt-6-luna passed explicitly; source-job binding and extraction receipts record same model",
+      "codex_cli_version": "codex-cli 0.156.1",
+      "model_reasoning_effort": {
+        "source_extraction_and_independent_reread": "low (explicit codex_provider CLI argument)",
+        "source_adjudication": "low (explicit adjudication CLI argument if reached)",
+        "downstream": "not reached"
+      },
+      "policy_prompt_binding": {
+        "prompt_version": "againward-source-facts-v3-3c5241952f9688d9",
+        "versions": [
+          "againward-rental-approved-sources-job-v1",
+          "rental-independent-source-reread-v2",
+          "againward-source-adjudication-v5",
+          "againward-codex-analyst-review-v4",
+          "againward-codex-visual-analyst-v2+againward-visual-model-evidence-v1+againward-rental-visual-limitation-routing-v1",
+          "againward-rental-autonomous-report-v4",
+          "againward-rental-autonomous-finding-review-v6",
+          "againward-rental-reviewed-evidence-v2"
+        ],
+        "source_job_version": "againward-rental-approved-sources-job-v1"
+      },
+      "source_hashes": {
+        "supplier_email.eml": "1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42",
+        "issued_credit.pdf": "1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729",
+        "accounting_export.xlsx": "45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d",
+        "accepted_rate_sheet.pdf": "4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b",
+        "accepted_agreement.pdf": "507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b",
+        "signed_return_scan.pdf": "86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4",
+        "invoice_02.pdf": "ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b",
+        "invoice_01.pdf": "b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb"
+      },
+      "primary": {
+        "attempted_source_count": 8,
+        "candidate_count_total": 52,
+        "sources": [
+          {
+            "source_name": "accepted_agreement.pdf",
+            "source_id": "src-507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b",
+            "source_sha256": "507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b",
+            "status": "SUCCESS",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "accepted_rate_sheet.pdf",
+            "source_id": "src-4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b",
+            "source_sha256": "4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 24,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 6,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "item_id",
+              "serial_number",
+              "currency",
+              "rate",
+              "billing_unit",
+              "description",
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "item_id",
+              "serial_number",
+              "currency",
+              "rate",
+              "billing_unit",
+              "description"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3fda63d0a3eaee77"
+          },
+          {
+            "source_name": "accounting_export.xlsx",
+            "source_id": "src-45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d",
+            "source_sha256": "45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d",
+            "status": "SUCCESS",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3fda63d0a3eaee77"
+          },
+          {
+            "source_name": "invoice_01.pdf",
+            "source_id": "src-b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb",
+            "source_sha256": "b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb",
+            "status": "SUCCESS",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "invoice_02.pdf",
+            "source_id": "src-ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b",
+            "source_sha256": "ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 14,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 5,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "invoice_id",
+              "invoice_line_id",
+              "agreement_id",
+              "supplier_id",
+              "asset_id",
+              "serial_number",
+              "description",
+              "charge_key",
+              "charge_type",
+              "currency",
+              "net_amount"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "issued_credit.pdf",
+            "source_id": "src-1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729",
+            "source_sha256": "1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 10,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 5,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "credit_id",
+              "supplier_id",
+              "currency",
+              "net_amount",
+              "invoice_id",
+              "invoice_line_id",
+              "item_id"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "signed_return_scan.pdf",
+            "source_id": "src-86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4",
+            "source_sha256": "86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4",
+            "status": "PARTIAL",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [
+              "The named native source unit contains no text; the image is visually readable, but this extraction cannot provide native-source evidence."
+            ],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "supplier_email.eml",
+            "source_id": "src-1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42",
+            "source_sha256": "1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 4,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [
+              "document_role",
+              "document_status",
+              "entity_kind",
+              "agreement_id"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3fda63d0a3eaee77"
+          }
+        ],
+        "visual_source_candidate_count": 0,
+        "visual_source_material_fact_candidate_count": 0,
+        "visual_source_status": "PARTIAL",
+        "visual_source_limitations": [
+          "The named native source unit contains no text; the image is visually readable, but this extraction cannot provide native-source evidence."
+        ]
+      },
+      "challenger": {
+        "attempted_source_count": 0,
+        "candidate_count_total": 0,
+        "sources": [],
+        "visual_source_candidate_count": null,
+        "visual_source_material_fact_candidate_count": null,
+        "visual_source_status": "NOT_ATTEMPTED",
+        "visual_source_limitations": []
+      },
+      "comparison_visual": {
+        "comparison_reached": false,
+        "material_disagreement_count": null,
+        "original_visual_pixels_attached_to_adjudication_model_call": false,
+        "pixel_adjudication_reached": false,
+        "adjudication_receipt_created": false,
+        "adjudication_status": null,
+        "adjudication_result_for_visual_source": null,
+        "visual_citations_in_adjudication": 0,
+        "formal_visual_fact_review_reached": false,
+        "visual_candidates_actually_reviewed_by_formal_visual_reviewer": 0,
+        "model_visual_receipt_created": false,
+        "human_escalation_requested": false,
+        "human_evidence_created": false
+      },
+      "downstream": {
+        "fact_review_reached": false,
+        "calculation_reached": false,
+        "report_generation_reached": false,
+        "report_produced": false,
+        "final_pdf_sha256": null,
+        "final_pdf_qa_passed": false,
+        "final_workflow_state": "FAILED",
+        "final_stage": "INDEPENDENT_REREAD",
+        "stop_wait_error": {
+          "kind": "ERROR",
+          "code": "SOURCE_LOCATION_INVALID",
+          "stage": "INDEPENDENT_REREAD",
+          "smallest_concrete_cause": "Model-generated source location/span failed deterministic source-bound validation; failed response detail was not retained in the job receipt."
+        }
+      },
+      "financial": {
+        "known_oracle": {
+          "LIFT-5_expected_EUR": "650.00",
+          "LIFT-5_invoiced_EUR": "900.00",
+          "LIFT-5_issued_credit_EUR": "100.00",
+          "LIFT-5_documentary_difference_EUR": "150.00",
+          "LIFT-50_expected_EUR": "270.00",
+          "LIFT-50_invoiced_EUR": "270.00",
+          "LIFT-50_difference_EUR": "0.00"
+        },
+        "result_reached": false,
+        "calculated_amounts": null,
+        "known_EUR_150_reached": null
+      },
+      "timing": {
+        "workflow_elapsed_seconds_from_state_event_span": 259.201,
+        "sum_of_recorded_model_wall_seconds": 210.134,
+        "model_wall_time_limitation": "Only completed event timings are recorded; failed in-flight calls have no per-call wall time in state.",
+        "timed_model_events": [
+          {
+            "at_utc": "2026-09-25T21:39:17.774159+00:00",
+            "model_attempts": 2,
+            "model_wall_seconds": 29.753,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42"
+          },
+          {
+            "at_utc": "2026-09-25T21:39:37.283866+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 19.006,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729"
+          },
+          {
+            "at_utc": "2026-09-25T21:40:20.405818+00:00",
+            "model_attempts": 2,
+            "model_wall_seconds": 42.785,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d"
+          },
+          {
+            "at_utc": "2026-09-25T21:41:26.501668+00:00",
+            "model_attempts": 2,
+            "model_wall_seconds": 65.664,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b"
+          },
+          {
+            "at_utc": "2026-09-25T21:41:31.836846+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 5.008,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b"
+          },
+          {
+            "at_utc": "2026-09-25T21:41:38.453025+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 6.254,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4"
+          },
+          {
+            "at_utc": "2026-09-25T21:42:15.697660+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 36.931,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b"
+          },
+          {
+            "at_utc": "2026-09-25T21:42:20.784610+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 4.733,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb"
+          }
+        ],
+        "monetary_cost": "not metered"
+      },
+      "source_job_state_sha256": "b97605fb759aa224954350ece0b2f4817c9e652df8fca3560ab53050c7c8ff65",
+      "independent_oracle_prompting_used": false,
+      "oracle_adjudication": {
+        "known_supported_visual_result_exists": true,
+        "workflow_wait_was_justified_by_genuine_evidence_ambiguity": null,
+        "case_outcome": "MATERIAL_MISS_WITH_PIPELINE_ERROR",
+        "reason": "Known source bytes visibly support the documented material result; this run did not calculate it."
+      }
+    },
+    {
+      "case_id": "known_eight_source_rental_dev_signed_return_scan",
+      "run_id": "B_run_03",
+      "case_group": "B",
+      "workspace": "scratch/luna_visual_robustness_20260925/B_run_03",
+      "commit_sha": "371db0d08161cf663500255972595e345f6808db",
+      "runtime_model": "gpt-6-luna",
+      "model_identifier_source": "--model gpt-6-luna passed explicitly; source-job binding and extraction receipts record same model",
+      "codex_cli_version": "codex-cli 0.156.1",
+      "model_reasoning_effort": {
+        "source_extraction_and_independent_reread": "low (explicit codex_provider CLI argument)",
+        "source_adjudication": "low (explicit adjudication CLI argument if reached)",
+        "downstream": "not reached"
+      },
+      "policy_prompt_binding": {
+        "prompt_version": "againward-source-facts-v3-3c5241952f9688d9",
+        "versions": [
+          "againward-rental-approved-sources-job-v1",
+          "rental-independent-source-reread-v2",
+          "againward-source-adjudication-v5",
+          "againward-codex-analyst-review-v4",
+          "againward-codex-visual-analyst-v2+againward-visual-model-evidence-v1+againward-rental-visual-limitation-routing-v1",
+          "againward-rental-autonomous-report-v4",
+          "againward-rental-autonomous-finding-review-v6",
+          "againward-rental-reviewed-evidence-v2"
+        ],
+        "source_job_version": "againward-rental-approved-sources-job-v1"
+      },
+      "source_hashes": {
+        "supplier_email.eml": "1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42",
+        "issued_credit.pdf": "1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729",
+        "accounting_export.xlsx": "45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d",
+        "accepted_rate_sheet.pdf": "4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b",
+        "accepted_agreement.pdf": "507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b",
+        "signed_return_scan.pdf": "86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4",
+        "invoice_02.pdf": "ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b",
+        "invoice_01.pdf": "b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb"
+      },
+      "primary": {
+        "attempted_source_count": 8,
+        "candidate_count_total": 74,
+        "sources": [
+          {
+            "source_name": "accepted_agreement.pdf",
+            "source_id": "src-507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b",
+            "source_sha256": "507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b",
+            "status": "SUCCESS",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "accepted_rate_sheet.pdf",
+            "source_id": "src-4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b",
+            "source_sha256": "4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b",
+            "status": "SUCCESS",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3fda63d0a3eaee77"
+          },
+          {
+            "source_name": "accounting_export.xlsx",
+            "source_id": "src-45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d",
+            "source_sha256": "45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 28,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 13,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "invoice_id",
+              "invoice_line_id",
+              "agreement_id",
+              "item_id",
+              "net_amount",
+              "currency",
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "invoice_id",
+              "invoice_line_id",
+              "agreement_id",
+              "item_id",
+              "net_amount",
+              "currency",
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "credit_id",
+              "agreement_id",
+              "item_id",
+              "net_amount",
+              "currency",
+              "invoice_id",
+              "invoice_line_id"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3fda63d0a3eaee77"
+          },
+          {
+            "source_name": "invoice_01.pdf",
+            "source_id": "src-b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb",
+            "source_sha256": "b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 22,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 9,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "invoice_id",
+              "supplier_id",
+              "date",
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "invoice_id",
+              "invoice_line_id",
+              "agreement_id",
+              "asset_id",
+              "serial_number",
+              "charge_key",
+              "charge_type",
+              "currency",
+              "net_amount",
+              "quantity",
+              "billed_units",
+              "start",
+              "end"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "invoice_02.pdf",
+            "source_id": "src-ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b",
+            "source_sha256": "ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 16,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 6,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "invoice_id",
+              "invoice_line_id",
+              "agreement_id",
+              "supplier_id",
+              "asset_id",
+              "serial_number",
+              "charge_key",
+              "charge_type",
+              "currency",
+              "net_amount",
+              "quantity",
+              "start",
+              "end"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "issued_credit.pdf",
+            "source_id": "src-1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729",
+            "source_sha256": "1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729",
+            "status": "SUCCESS",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "signed_return_scan.pdf",
+            "source_id": "src-86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4",
+            "source_sha256": "86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "supplier_email.eml",
+            "source_id": "src-1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42",
+            "source_sha256": "1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42",
+            "status": "SUCCESS",
+            "candidate_count": 8,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 4,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "asset_id",
+              "event_type",
+              "date",
+              "verification"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          }
+        ],
+        "visual_source_candidate_count": 0,
+        "visual_source_material_fact_candidate_count": 0,
+        "visual_source_status": "NEEDS_REVIEW",
+        "visual_source_limitations": []
+      },
+      "challenger": {
+        "attempted_source_count": 8,
+        "candidate_count_total": 98,
+        "sources": [
+          {
+            "source_name": "accepted_agreement.pdf",
+            "source_id": "src-507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b",
+            "source_sha256": "507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b",
+            "status": "SUCCESS",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          },
+          {
+            "source_name": "accepted_rate_sheet.pdf",
+            "source_id": "src-4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b",
+            "source_sha256": "4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 18,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 6,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "item_id",
+              "serial_number",
+              "currency",
+              "rate",
+              "billing_unit",
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "item_id",
+              "serial_number",
+              "currency",
+              "rate",
+              "billing_unit"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          },
+          {
+            "source_name": "accounting_export.xlsx",
+            "source_id": "src-45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d",
+            "source_sha256": "45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d",
+            "status": "SUCCESS",
+            "candidate_count": 20,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 13,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "invoice_id",
+              "invoice_line_id",
+              "agreement_id",
+              "item_id",
+              "currency",
+              "net_amount",
+              "invoice_id",
+              "invoice_line_id",
+              "agreement_id",
+              "item_id",
+              "net_amount",
+              "credit_id",
+              "agreement_id",
+              "item_id",
+              "net_amount",
+              "invoice_id",
+              "invoice_line_id"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          },
+          {
+            "source_name": "invoice_01.pdf",
+            "source_id": "src-b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb",
+            "source_sha256": "b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 18,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 10,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "invoice_id",
+              "supplier_id",
+              "date",
+              "invoice_line_id",
+              "agreement_id",
+              "item_id",
+              "asset_id",
+              "serial_number",
+              "charge_key",
+              "charge_type",
+              "currency",
+              "net_amount",
+              "quantity",
+              "billed_units",
+              "unit_rate"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          },
+          {
+            "source_name": "invoice_02.pdf",
+            "source_id": "src-ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b",
+            "source_sha256": "ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 22,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 10,
+            "candidate_semantic_types": [
+              "invoice_id",
+              "document_role",
+              "document_status",
+              "entity_kind",
+              "supplier_id",
+              "date",
+              "invoice_line_id",
+              "agreement_id",
+              "item_id",
+              "serial_number",
+              "currency",
+              "net_amount",
+              "charge_key",
+              "charge_type",
+              "description",
+              "billed_units",
+              "unit_rate",
+              "start",
+              "end",
+              "quantity",
+              "asset_id",
+              "description"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          },
+          {
+            "source_name": "issued_credit.pdf",
+            "source_id": "src-1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729",
+            "source_sha256": "1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 11,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 6,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "credit_id",
+              "supplier_id",
+              "currency",
+              "net_amount",
+              "invoice_id",
+              "invoice_line_id",
+              "item_id",
+              "allocated_amount"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          },
+          {
+            "source_name": "signed_return_scan.pdf",
+            "source_id": "src-86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4",
+            "source_sha256": "86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4",
+            "status": "PARTIAL",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [
+              "The provided native text unit is empty, so the image's document facts cannot be verified as native-source observations."
+            ],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          },
+          {
+            "source_name": "supplier_email.eml",
+            "source_id": "src-1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42",
+            "source_sha256": "1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42",
+            "status": "SUCCESS",
+            "candidate_count": 9,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 5,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "item_id",
+              "event_type",
+              "date",
+              "quantity",
+              "verification"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-e8d791135fc49cc5"
+          }
+        ],
+        "visual_source_candidate_count": 0,
+        "visual_source_material_fact_candidate_count": 0,
+        "visual_source_status": "PARTIAL",
+        "visual_source_limitations": [
+          "The provided native text unit is empty, so the image's document facts cannot be verified as native-source observations."
+        ]
+      },
+      "comparison_visual": {
+        "comparison_reached": true,
+        "material_disagreement_count": 6,
+        "original_visual_pixels_attached_to_adjudication_model_call": true,
+        "pixel_adjudication_reached": true,
+        "adjudication_receipt_created": false,
+        "adjudication_status": "FAILED_VALIDATION",
+        "adjudication_result_for_visual_source": null,
+        "visual_citations_in_adjudication": 0,
+        "formal_visual_fact_review_reached": false,
+        "visual_candidates_actually_reviewed_by_formal_visual_reviewer": 0,
+        "model_visual_receipt_created": false,
+        "human_escalation_requested": false,
+        "human_evidence_created": false
+      },
+      "downstream": {
+        "fact_review_reached": false,
+        "calculation_reached": false,
+        "report_generation_reached": false,
+        "report_produced": false,
+        "final_pdf_sha256": null,
+        "final_pdf_qa_passed": false,
+        "final_workflow_state": "FAILED",
+        "final_stage": "SOURCE_ADJUDICATION",
+        "stop_wait_error": {
+          "kind": "ERROR",
+          "code": "EXTRACTION_INCOMPLETE",
+          "stage": "SOURCE_ADJUDICATION",
+          "smallest_concrete_cause": "Adjudication response remained incomplete under deterministic validation after the workflow’s bounded repair; invalid detail was not retained in the job receipt."
+        }
+      },
+      "financial": {
+        "known_oracle": {
+          "LIFT-5_expected_EUR": "650.00",
+          "LIFT-5_invoiced_EUR": "900.00",
+          "LIFT-5_issued_credit_EUR": "100.00",
+          "LIFT-5_documentary_difference_EUR": "150.00",
+          "LIFT-50_expected_EUR": "270.00",
+          "LIFT-50_invoiced_EUR": "270.00",
+          "LIFT-50_difference_EUR": "0.00"
+        },
+        "result_reached": false,
+        "calculated_amounts": null,
+        "known_EUR_150_reached": null
+      },
+      "timing": {
+        "workflow_elapsed_seconds_from_state_event_span": 475.335,
+        "sum_of_recorded_model_wall_seconds": 384.091,
+        "model_wall_time_limitation": "Only completed event timings are recorded; failed in-flight calls have no per-call wall time in state.",
+        "timed_model_events": [
+          {
+            "at_utc": "2026-09-25T21:43:29.481732+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 15.861,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42"
+          },
+          {
+            "at_utc": "2026-09-25T21:43:35.302293+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 5.119,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729"
+          },
+          {
+            "at_utc": "2026-09-25T21:44:51.016299+00:00",
+            "model_attempts": 2,
+            "model_wall_seconds": 75.403,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d"
+          },
+          {
+            "at_utc": "2026-09-25T21:45:22.186430+00:00",
+            "model_attempts": 2,
+            "model_wall_seconds": 30.621,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b"
+          },
+          {
+            "at_utc": "2026-09-25T21:45:27.730670+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 5.15,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b"
+          },
+          {
+            "at_utc": "2026-09-25T21:45:33.955901+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 5.609,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4"
+          },
+          {
+            "at_utc": "2026-09-25T21:46:00.624414+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 26.315,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b"
+          },
+          {
+            "at_utc": "2026-09-25T21:46:31.922754+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 30.958,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb"
+          },
+          {
+            "at_utc": "2026-09-25T21:46:51.636651+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 17.584,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42"
+          },
+          {
+            "at_utc": "2026-09-25T21:47:39.665561+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 47.623,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729"
+          },
+          {
+            "at_utc": "2026-09-25T21:48:07.728506+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 28.049,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d"
+          },
+          {
+            "at_utc": "2026-09-25T21:48:35.146418+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 26.988,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b"
+          },
+          {
+            "at_utc": "2026-09-25T21:48:41.149344+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 5.689,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b"
+          },
+          {
+            "at_utc": "2026-09-25T21:48:47.640063+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 6.149,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4"
+          },
+          {
+            "at_utc": "2026-09-25T21:49:19.270941+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 31.261,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b"
+          },
+          {
+            "at_utc": "2026-09-25T21:49:45.316352+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 25.712,
+            "phase": "QA_SOURCE_REREAD",
+            "source_id": "src-b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb"
+          }
+        ],
+        "monetary_cost": "not metered"
+      },
+      "source_job_state_sha256": "4d122526475e7230764c5c83db8ba98da7b6d14d08a88a51471f681e330d75ac",
+      "independent_oracle_prompting_used": false,
+      "oracle_adjudication": {
+        "known_supported_visual_result_exists": true,
+        "workflow_wait_was_justified_by_genuine_evidence_ambiguity": null,
+        "case_outcome": "MATERIAL_MISS_WITH_PIPELINE_ERROR",
+        "reason": "Known source bytes visibly support the documented material result; this run did not calculate it."
+      }
+    },
+    {
+      "case_id": "known_eight_source_rental_dev_signed_return_scan",
+      "run_id": "B_run_04",
+      "case_group": "B",
+      "workspace": "scratch/luna_visual_robustness_20260925/B_run_04",
+      "commit_sha": "371db0d08161cf663500255972595e345f6808db",
+      "runtime_model": "gpt-6-luna",
+      "model_identifier_source": "--model gpt-6-luna passed explicitly; source-job binding and extraction receipts record same model",
+      "codex_cli_version": "codex-cli 0.156.1",
+      "model_reasoning_effort": {
+        "source_extraction_and_independent_reread": "low (explicit codex_provider CLI argument)",
+        "source_adjudication": "low (explicit adjudication CLI argument if reached)",
+        "downstream": "not reached"
+      },
+      "policy_prompt_binding": {
+        "prompt_version": "againward-source-facts-v3-3c5241952f9688d9",
+        "versions": [
+          "againward-rental-approved-sources-job-v1",
+          "rental-independent-source-reread-v2",
+          "againward-source-adjudication-v5",
+          "againward-codex-analyst-review-v4",
+          "againward-codex-visual-analyst-v2+againward-visual-model-evidence-v1+againward-rental-visual-limitation-routing-v1",
+          "againward-rental-autonomous-report-v4",
+          "againward-rental-autonomous-finding-review-v6",
+          "againward-rental-reviewed-evidence-v2"
+        ],
+        "source_job_version": "againward-rental-approved-sources-job-v1"
+      },
+      "source_hashes": {
+        "supplier_email.eml": "1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42",
+        "issued_credit.pdf": "1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729",
+        "accounting_export.xlsx": "45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d",
+        "accepted_rate_sheet.pdf": "4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b",
+        "accepted_agreement.pdf": "507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b",
+        "signed_return_scan.pdf": "86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4",
+        "invoice_02.pdf": "ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b",
+        "invoice_01.pdf": "b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb"
+      },
+      "primary": {
+        "attempted_source_count": 8,
+        "candidate_count_total": 57,
+        "sources": [
+          {
+            "source_name": "accepted_agreement.pdf",
+            "source_id": "src-507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b",
+            "source_sha256": "507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b",
+            "status": "SUCCESS",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "accepted_rate_sheet.pdf",
+            "source_id": "src-4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b",
+            "source_sha256": "4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 18,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 6,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "item_id",
+              "serial_number",
+              "currency",
+              "rate",
+              "billing_unit",
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "item_id",
+              "serial_number",
+              "currency",
+              "rate",
+              "billing_unit"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "accounting_export.xlsx",
+            "source_id": "src-45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d",
+            "source_sha256": "45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d",
+            "status": "SUCCESS",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "invoice_01.pdf",
+            "source_id": "src-b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb",
+            "source_sha256": "b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb",
+            "status": "SUCCESS",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "invoice_02.pdf",
+            "source_id": "src-ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b",
+            "source_sha256": "ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 19,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 9,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "invoice_id",
+              "supplier_id",
+              "invoice_line_id",
+              "agreement_id",
+              "item_id",
+              "asset_id",
+              "serial_number",
+              "charge_key",
+              "charge_type",
+              "currency",
+              "net_amount",
+              "billed_units",
+              "unit_rate",
+              "start",
+              "end",
+              "quantity"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "issued_credit.pdf",
+            "source_id": "src-1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729",
+            "source_sha256": "1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729",
+            "status": "SUCCESS",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "signed_return_scan.pdf",
+            "source_id": "src-86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4",
+            "source_sha256": "86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 0,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 0,
+            "candidate_semantic_types": [],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          },
+          {
+            "source_name": "supplier_email.eml",
+            "source_id": "src-1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42",
+            "source_sha256": "1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42",
+            "status": "NEEDS_REVIEW",
+            "candidate_count": 20,
+            "visual_pixel_candidate_count": 0,
+            "material_fact_candidate_count": 7,
+            "candidate_semantic_types": [
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "agreement_id",
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "event_type",
+              "date",
+              "quantity",
+              "item_id",
+              "verification",
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "date",
+              "entity_kind",
+              "document_role",
+              "document_status",
+              "item_id"
+            ],
+            "limitations": [],
+            "model": "gpt-6-luna",
+            "prompt_version": "againward-source-facts-v3-3c5241952f9688d9"
+          }
+        ],
+        "visual_source_candidate_count": 0,
+        "visual_source_material_fact_candidate_count": 0,
+        "visual_source_status": "NEEDS_REVIEW",
+        "visual_source_limitations": []
+      },
+      "challenger": {
+        "attempted_source_count": 0,
+        "candidate_count_total": 0,
+        "sources": [],
+        "visual_source_candidate_count": null,
+        "visual_source_material_fact_candidate_count": null,
+        "visual_source_status": "NOT_ATTEMPTED",
+        "visual_source_limitations": []
+      },
+      "comparison_visual": {
+        "comparison_reached": false,
+        "material_disagreement_count": null,
+        "original_visual_pixels_attached_to_adjudication_model_call": false,
+        "pixel_adjudication_reached": false,
+        "adjudication_receipt_created": false,
+        "adjudication_status": null,
+        "adjudication_result_for_visual_source": null,
+        "visual_citations_in_adjudication": 0,
+        "formal_visual_fact_review_reached": false,
+        "visual_candidates_actually_reviewed_by_formal_visual_reviewer": 0,
+        "model_visual_receipt_created": false,
+        "human_escalation_requested": false,
+        "human_evidence_created": false
+      },
+      "downstream": {
+        "fact_review_reached": false,
+        "calculation_reached": false,
+        "report_generation_reached": false,
+        "report_produced": false,
+        "final_pdf_sha256": null,
+        "final_pdf_qa_passed": false,
+        "final_workflow_state": "FAILED",
+        "final_stage": "INDEPENDENT_REREAD",
+        "stop_wait_error": {
+          "kind": "ERROR",
+          "code": "SOURCE_LOCATION_INVALID",
+          "stage": "INDEPENDENT_REREAD",
+          "smallest_concrete_cause": "Model-generated source location/span failed deterministic source-bound validation; failed response detail was not retained in the job receipt."
+        }
+      },
+      "financial": {
+        "known_oracle": {
+          "LIFT-5_expected_EUR": "650.00",
+          "LIFT-5_invoiced_EUR": "900.00",
+          "LIFT-5_issued_credit_EUR": "100.00",
+          "LIFT-5_documentary_difference_EUR": "150.00",
+          "LIFT-50_expected_EUR": "270.00",
+          "LIFT-50_invoiced_EUR": "270.00",
+          "LIFT-50_difference_EUR": "0.00"
+        },
+        "result_reached": false,
+        "calculated_amounts": null,
+        "known_EUR_150_reached": null
+      },
+      "timing": {
+        "workflow_elapsed_seconds_from_state_event_span": 156.681,
+        "sum_of_recorded_model_wall_seconds": 107.497,
+        "model_wall_time_limitation": "Only completed event timings are recorded; failed in-flight calls have no per-call wall time in state.",
+        "timed_model_events": [
+          {
+            "at_utc": "2026-09-25T21:51:42.245764+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 29.0,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42"
+          },
+          {
+            "at_utc": "2026-09-25T21:51:48.563297+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 5.974,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729"
+          },
+          {
+            "at_utc": "2026-09-25T21:51:53.153227+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 4.294,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d"
+          },
+          {
+            "at_utc": "2026-09-25T21:52:19.744663+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 26.243,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b"
+          },
+          {
+            "at_utc": "2026-09-25T21:52:25.355316+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 5.251,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b"
+          },
+          {
+            "at_utc": "2026-09-25T21:52:30.869001+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 5.173,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4"
+          },
+          {
+            "at_utc": "2026-09-25T21:52:57.420568+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 26.189,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b"
+          },
+          {
+            "at_utc": "2026-09-25T21:53:03.124927+00:00",
+            "model_attempts": 1,
+            "model_wall_seconds": 5.373,
+            "phase": "DOCUMENT_PARSED",
+            "source_id": "src-b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb"
+          }
+        ],
+        "monetary_cost": "not metered"
+      },
+      "source_job_state_sha256": "7342b55b41cbbfc54c2bd39db08ba728678179f5730487db663fa1a3a4e45692",
+      "independent_oracle_prompting_used": false,
+      "oracle_adjudication": {
+        "known_supported_visual_result_exists": true,
+        "workflow_wait_was_justified_by_genuine_evidence_ambiguity": null,
+        "case_outcome": "MATERIAL_MISS_WITH_PIPELINE_ERROR",
+        "reason": "Known source bytes visibly support the documented material result; this run did not calculate it."
+      }
+    },
+    {
+      "case_id": "known_eight_source_rental_dev_signed_return_scan",
+      "run_id": "B_run_05",
+      "case_group": "B",
+      "workspace": "scratch/luna_visual_robustness_20260925/B_run_05",
+      "commit_sha": "371db0d08161cf663500255972595e345f6808db",
+      "runtime_model": "gpt-6-luna",
+      "model_identifier_source": "--model gpt-6-luna passed explicitly; source-job binding and extraction receipts record same model",
+      "codex_cli_version": "codex-cli 0.156.1",
+      "model_reasoning_effort": {
+        "source_extraction_and_independent_reread": "low (explicit codex_provider CLI argument)",
+        "source_adjudication": "low (explicit adjudication CLI argument if reached)",
+        "downstream": "not reached"
+      },
+      "policy_prompt_binding": {
+        "prompt_version": "againward-source-facts-v3-3c5241952f9688d9",
+        "versions": [
+          "againward-rental-approved-sources-job-v1",
+          "rental-independent-source-reread-v2",
+          "againward-source-adjudication-v5",
+          "againward-codex-analyst-review-v4",
+          "againward-codex-visual-analyst-v2+againward-visual-model-evidence-v1+againward-rental-visual-limitation-routing-v1",
+          "againward-rental-autonomous-report-v4",
+          "againward-rental-autonomous-finding-review-v6",
+          "againward-rental-reviewed-evidence-v2"
+        ],
+        "source_job_version": "againward-rental-approved-sources-job-v1"
+      },
+      "source_hashes": {
+        "supplier_email.eml": "1a54df7c6524bfe066e05f664fc09b4d567b614f9ab003d0204764542fe2ea42",
+        "issued_credit.pdf": "1c155ef52e0f9c6f570949b39203cfc36b30ba4e0fbd1daac2eb52c7c68d9729",
+        "accounting_export.xlsx": "45fe271a8a035d9b8229fbee454b1f5e19bf5140155747e83fcb54a940d77b0d",
+        "accepted_rate_sheet.pdf": "4859e47b714ae15d80b98eeeed9598cc05aae4d9f3e9b66b3fa00d34d4a37f6b",
+        "accepted_agreement.pdf": "507b47a239dbcad34da5030673d3886f97f6a580b1f4ab998797e2e7b50a6a2b",
+        "signed_return_scan.pdf": "86adf5d440419a956208ab35c3292b0ab6e0d39f1158fc614a337d988ce747a4",
+        "invoice_02.pdf": "ac8d41f4bc5455bb5bdede7498a363f9c8c13b573111491220fb34dbe10c312b",
+        "invoice_01.pdf": "b86d1e5152c8ada26525100963f453956ec67fc2ab9a21f2dc11a939f3770efb"
+      },
+      "primary": {
+        "attempted_source_count": 0,
+        "candidate_count_total": 0,
+        "sources": [],
+        "visual_source_candidate_count": null,
+        "visual_source_material_fact_candidate_count": null,
+        "visual_source_status": "NOT_ATTEMPTED",
+        "visual_source_limitations": []
+      },
+      "challenger": {
+        "attempted_source_count": 0,
+        "candidate_count_total": 0,
+        "sources": [],
+        "visual_source_candidate_count": null,
+        "visual_source_material_fact_candidate_count": null,
+        "visual_source_status": "NOT_ATTEMPTED",
+        "visual_source_limitations": []
+      },
+      "comparison_visual": {
+        "comparison_reached": false,
+        "material_disagreement_count": null,
+        "original_visual_pixels_attached_to_adjudication_model_call": false,
+        "pixel_adjudication_reached": false,
+        "adjudication_receipt_created": false,
+        "adjudication_status": null,
+        "adjudication_result_for_visual_source": null,
+        "visual_citations_in_adjudication": 0,
+        "formal_visual_fact_review_reached": false,
+        "visual_candidates_actually_reviewed_by_formal_visual_reviewer": 0,
+        "model_visual_receipt_created": false,
+        "human_escalation_requested": false,
+        "human_evidence_created": false
+      },
+      "downstream": {
+        "fact_review_reached": false,
+        "calculation_reached": false,
+        "report_generation_reached": false,
+        "report_produced": false,
+        "final_pdf_sha256": null,
+        "final_pdf_qa_passed": false,
+        "final_workflow_state": "FAILED",
+        "final_stage": "PRIMARY_EXTRACTION",
+        "stop_wait_error": {
+          "kind": "ERROR",
+          "code": "SOURCE_LOCATION_INVALID",
+          "stage": "PRIMARY_EXTRACTION",
+          "smallest_concrete_cause": "Model-generated source location/span failed deterministic source-bound validation; failed response detail was not retained in the job receipt."
+        }
+      },
+      "financial": {
+        "known_oracle": {
+          "LIFT-5_expected_EUR": "650.00",
+          "LIFT-5_invoiced_EUR": "900.00",
+          "LIFT-5_issued_credit_EUR": "100.00",
+          "LIFT-5_documentary_difference_EUR": "150.00",
+          "LIFT-50_expected_EUR": "270.00",
+          "LIFT-50_invoiced_EUR": "270.00",
+          "LIFT-50_difference_EUR": "0.00"
+        },
+        "result_reached": false,
+        "calculated_amounts": null,
+        "known_EUR_150_reached": null
+      },
+      "timing": {
+        "workflow_elapsed_seconds_from_state_event_span": 40.412,
+        "sum_of_recorded_model_wall_seconds": 0.0,
+        "model_wall_time_limitation": "Only completed event timings are recorded; failed in-flight calls have no per-call wall time in state.",
+        "timed_model_events": [],
+        "monetary_cost": "not metered"
+      },
+      "source_job_state_sha256": "0232cefebf145c22e9538a67a1db9b69b80a46d6d2a91d5a40c7249e245e49ce",
+      "independent_oracle_prompting_used": false,
+      "oracle_adjudication": {
+        "known_supported_visual_result_exists": true,
+        "workflow_wait_was_justified_by_genuine_evidence_ambiguity": null,
+        "case_outcome": "MATERIAL_MISS_WITH_PIPELINE_ERROR",
+        "reason": "Known source bytes visibly support the documented material result; this run did not calculate it."
+      }
+    }
+  ],
+  "aggregate": {
+    "attempted_cases": 10,
+    "reports_produced": 0,
+    "correct_reports": 0,
+    "justified_stops": 0,
+    "justified_abstentions_waits": 0,
+    "unjustified_stops": 3,
+    "material_false_positives": null,
+    "material_misses": 10,
+    "material_amount_errors": null,
+    "provenance_evidence_errors": null,
+    "human_escalations": 0,
+    "pipeline_coverage_reports_or_correct_wait": 0.0,
+    "report_level_material_correctness_delivered_reports": null,
+    "end_to_end_correct_outcome_rate": 0.0,
+    "zero_primary_and_challenger_material_candidate_runs": 6,
+    "useful_visual_evidence_but_both_passes_no_material_candidates": 6,
+    "pixel_adjudication_model_calls_with_original_visuals_attached": 6,
+    "successful_recoveries_through_pixel_adjudication": 0,
+    "model_visual_review_receipts": 0,
+    "qa_checked_reports": 0,
+    "metrics_by_case": {
+      "case_A": {
+        "attempted": 5,
+        "primary_visual_material_candidate_success": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "challenger_visual_material_candidate_success": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "at_least_one_pass_visual_material_candidate_success": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "pixel_adjudication_reach": {
+          "count": 5,
+          "rate": 1.0
+        },
+        "formal_visual_review_reach": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "calculation_reach": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "correct_known_financial_result": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "final_qa_passed_report": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "failure_stage_distribution": {
+          "SOURCE_ADJUDICATION:WAITING_FOR_REQUIRED_INFORMATION": 3,
+          "SOURCE_ADJUDICATION:SOURCE_LOCATION_INVALID": 1,
+          "SOURCE_ADJUDICATION:REVIEW_STALE": 1
+        },
+        "workflow_wait_behavior": {
+          "count": 3,
+          "rate": 0.6
+        },
+        "oracle_justified_safe_wait": {
+          "count": 0,
+          "rate": 0.0
+        }
+      },
+      "case_B": {
+        "attempted": 5,
+        "primary_visual_material_candidate_success": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "challenger_visual_material_candidate_success": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "at_least_one_pass_visual_material_candidate_success": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "pixel_adjudication_reach": {
+          "count": 1,
+          "rate": 0.2
+        },
+        "formal_visual_review_reach": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "calculation_reach": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "correct_known_financial_result": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "final_qa_passed_report": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "failure_stage_distribution": {
+          "PRIMARY_EXTRACTION:SOURCE_LOCATION_INVALID": 2,
+          "INDEPENDENT_REREAD:SOURCE_LOCATION_INVALID": 2,
+          "SOURCE_ADJUDICATION:EXTRACTION_INCOMPLETE": 1
+        },
+        "workflow_wait_behavior": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "oracle_justified_safe_wait": {
+          "count": 0,
+          "rate": 0.0
+        }
+      }
+    },
+    "candidate_variation": {
+      "case_A": {
+        "primary_visual_source_raw_candidate_counts": [
+          0,
+          0,
+          0,
+          2,
+          0
+        ],
+        "challenger_visual_source_raw_candidate_counts": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "primary_material_visual_fact_candidate_counts": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "challenger_material_visual_fact_candidate_counts": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "case_B": {
+        "primary_visual_source_raw_candidate_counts": [
+          null,
+          0,
+          0,
+          0,
+          null
+        ],
+        "challenger_visual_source_raw_candidate_counts": [
+          null,
+          null,
+          0,
+          null,
+          null
+        ],
+        "primary_material_visual_fact_candidate_counts": [
+          null,
+          0,
+          0,
+          0,
+          null
+        ],
+        "challenger_material_visual_fact_candidate_counts": [
+          null,
+          null,
+          0,
+          null,
+          null
+        ]
+      },
+      "total_candidate_counts_by_run": {
+        "A_run_01": {
+          "primary": 23,
+          "challenger": 21
+        },
+        "A_run_02": {
+          "primary": 23,
+          "challenger": 23
+        },
+        "A_run_03": {
+          "primary": 23,
+          "challenger": 0
+        },
+        "A_run_04": {
+          "primary": 2,
+          "challenger": 0
+        },
+        "A_run_05": {
+          "primary": 23,
+          "challenger": 23
+        },
+        "B_run_01": {
+          "primary": null,
+          "challenger": null
+        },
+        "B_run_02": {
+          "primary": 52,
+          "challenger": null
+        },
+        "B_run_03": {
+          "primary": 74,
+          "challenger": 98
+        },
+        "B_run_04": {
+          "primary": 57,
+          "challenger": null
+        },
+        "B_run_05": {
+          "primary": null,
+          "challenger": null
+        }
+      }
+    },
+    "failure_stage_counts": {
+      "INDEPENDENT_REREAD:SOURCE_LOCATION_INVALID": 2,
+      "PRIMARY_EXTRACTION:SOURCE_LOCATION_INVALID": 2,
+      "SOURCE_ADJUDICATION:EXTRACTION_INCOMPLETE": 1,
+      "SOURCE_ADJUDICATION:REVIEW_STALE": 1,
+      "SOURCE_ADJUDICATION:SOURCE_LOCATION_INVALID": 1,
+      "SOURCE_ADJUDICATION:WAITING_FOR_REQUIRED_INFORMATION (oracle-unjustified)": 3
+    },
+    "workflow_waits": 3,
+    "oracle_justified_waits": 0,
+    "outcome_note": "The 3 WAITs withheld unsupported promotion, but they were not oracle-justified abstentions: the known scan supports the EUR 150 result. The 7 other runs failed closed on pipeline validation errors.",
+    "raw_zero_primary_and_zero_challenger_visual_candidate_runs": {
+      "count": 5,
+      "run_ids": [
+        "A_run_01",
+        "A_run_02",
+        "A_run_03",
+        "A_run_05",
+        "B_run_03"
+      ]
+    },
+    "complete_pass_pairs_with_zero_material_visual_facts": {
+      "count": 6,
+      "run_ids": [
+        "A_run_01",
+        "A_run_02",
+        "A_run_03",
+        "A_run_04",
+        "A_run_05",
+        "B_run_03"
+      ]
+    },
+    "validated_provenance_errors_promoted": 0,
+    "source_location_validation_failures": 5,
+    "adjudication_validation_failures": 2,
+    "not_scored_note": "No finding, calculation, or report was delivered; false-positive, amount-error, and downstream provenance-error rates are not scored. Source-location and adjudication validation failures are counted separately; none was promoted."
+  },
+  "interpretation": {
+    "zero_candidate_behavior_case_A": "Reproduced: all five primary reads had no material invoice facts; all five challengers also returned zero. Primary raw candidate counts were 0,0,2,0,0; the two in run A04 were only structural entity_kind/document_role labels, not invoice values. Useful visual facts existed in the scan in all five cases.",
+    "luna_useful_visual_extraction_case_A": "0/5 runs produced material invoice values in either pass. The useful extraction behavior was not observed in this cohort.",
+    "pixel_adjudication_recovery": "No run recovered a citeable candidate through pixel adjudication. In A, image adjudication was invoked all five times: three persisted UNRESOLVED receipts and two failed deterministic response validation. In B it was invoked once and failed with EXTRACTION_INCOMPLETE. No run proceeded to formal visual fact review.",
+    "both_passes_miss": "Where both visual-source reads actually completed, the zero-candidate behavior was observed in six runs (five A, B03). Original pixels were attached to adjudication, but no supported candidate could be selected/promoted; runs stopped or errored before fact review/calculation.",
+    "case_B_stability": "Not stable as an end-to-end path: 0/5 calculations, 0/5 visual reviews and 0/5 QA reports. Four runs failed source-location validation and one failed adjudication completeness. Only B03 reached image adjudication.",
+    "dominant_limitation": "Mixed, dominated by visual extraction/model capability on the scan (zero useful scan facts in every completed target-source read), with orchestration/validator failures also material: SOURCE_LOCATION_INVALID in five runs and adjudication REVIEW_STALE/EXTRACTION_INCOMPLETE in three more. Pixel adjudication did not recover the result.",
+    "suitability": "Not suitable for the current visual path as configured on measured evidence: 0/10 correct known financial results, 0/10 calculations, 0/10 QA reports, and 0/10 successful pixel recoveries. A safe wait in three A runs prevented false promotion, but did not deliver the supported result.",
+    "population_limit": "Ten repeats of only two known synthetic dossiers characterize repeatability only and cannot establish or estimate ≥99% material correctness.",
+    "safe_waits": "Three CASE A runs ended WAITING_FOR_REQUIRED_INFORMATION (3/5); none is counted as a correct/justified abstention because the known original scan supports the discrepancy. The other seven runs failed on deterministic source/adjudication validation errors."
+  },
+  "limitations": [
+    "No report or financial calculation was produced in any of the ten runs; report correctness is therefore not measurable, rather than a zero accuracy rate among delivered reports.",
+    "Failed model responses are rejected safely, but source_job_state persists reason codes rather than invalid response payloads; detailed malformed field contents cannot be reconstructed.",
+    "Recorded model wall time sums completed model-bearing state events; time spent in a failing in-flight model call is absent. Total workflow duration is the event timestamp span and is approximate.",
+    "Attaching original pixels to an adjudication call is evidenced by control flow and receipt/state; model-internal visual cognition cannot be independently verified.",
+    "No monetary model cost was metered. Same-model adjudication is not independent correctness evidence."
+  ]
+}

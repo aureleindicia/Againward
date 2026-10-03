@@ -1,4 +1,4 @@
-"""Local document proposal workflow. No provider call or approval is fabricated."""
+"""Local document workflow; extract is opt-in, and no approval is fabricated."""
 from __future__ import annotations
 
 import argparse
@@ -33,6 +33,12 @@ def main(argv: list[str] | None = None) -> int:
     inspect = commands.add_parser("inspect", help="Native source units and multimodal needs")
     inspect.add_argument("root", type=Path)
     inspect.add_argument("batch", type=Path)
+    extract = commands.add_parser("extract", help="Opt-in Codex source-grounded proposals; no approval")
+    extract.add_argument("root", type=Path)
+    extract.add_argument("batch", type=Path)
+    extract.add_argument("--model", required=True)
+    extract.add_argument("--source-id")
+    extract.add_argument("--timeout-seconds", type=int, default=180)
     validate = commands.add_parser("validate", help="Validate and store a supplied model/analyst proposal")
     validate.add_argument("root", type=Path)
     validate.add_argument("batch", type=Path)
@@ -42,6 +48,60 @@ def main(argv: list[str] | None = None) -> int:
     promote.add_argument("batch", type=Path)
     promote.add_argument("review", type=Path)
     promote.add_argument("extractions", nargs="+", type=Path)
+    template = commands.add_parser("review-template", help="Unreviewed fact worksheet from validated extractions")
+    template.add_argument("root", type=Path)
+    template.add_argument("batch", type=Path)
+    template.add_argument("extractions", nargs="+", type=Path)
+    visual_facts = commands.add_parser("visual-fact-attest", help="Interactive human check of accepted visual facts only")
+    visual_facts.add_argument("root", type=Path)
+    visual_facts.add_argument("batch", type=Path)
+    visual_facts.add_argument("review", type=Path)
+    visual_facts.add_argument("extractions", nargs="+", type=Path)
+    visual_facts.add_argument("--actor-id", required=True)
+    independent = commands.add_parser("independent-qa", help="Blind second source reread; no approval")
+    independent.add_argument("root", type=Path)
+    independent.add_argument("batch", type=Path)
+    independent.add_argument("primary_extractions", nargs="+", type=Path)
+    independent.add_argument("--model", required=True)
+    independent.add_argument("--timeout-seconds", type=int, default=180)
+    compare_qa = commands.add_parser("compare-independent-qa", help="Recompare saved primary/challenger extracts; no model call")
+    compare_qa.add_argument("root", type=Path)
+    compare_qa.add_argument("batch", type=Path)
+    compare_qa.add_argument("primary_extractions", nargs="+", type=Path)
+    compare_qa.add_argument("--challenger-extractions", nargs="+", required=True, type=Path)
+    adjudicate = commands.add_parser("adjudicate-qa", help="Reopen original sources to resolve material QA differences")
+    adjudicate.add_argument("root", type=Path)
+    adjudicate.add_argument("batch", type=Path)
+    adjudicate.add_argument("qa", type=Path)
+    adjudicate.add_argument("primary_extractions", nargs="+", type=Path)
+    adjudicate.add_argument("--challenger-extractions", nargs="+", required=True, type=Path)
+    adjudicate.add_argument("--model", required=True)
+    adjudicate.add_argument("--timeout-seconds", type=int, default=180)
+    analyst = commands.add_parser("analyst-review", help="Codex review of native facts; defer original visual pixels")
+    analyst.add_argument("root", type=Path)
+    analyst.add_argument("batch", type=Path)
+    analyst.add_argument("extractions", nargs="+", type=Path)
+    analyst.add_argument("--model", required=True)
+    analyst.add_argument("--timeout-seconds", type=int, default=180)
+    visual_analyst = commands.add_parser("visual-analyst-review", help="Codex visual proposal before real operator attestation")
+    visual_analyst.add_argument("root", type=Path)
+    visual_analyst.add_argument("batch", type=Path)
+    visual_analyst.add_argument("native_review", type=Path)
+    visual_analyst.add_argument("extractions", nargs="+", type=Path)
+    visual_analyst.add_argument("--model", required=True)
+    visual_analyst.add_argument("--timeout-seconds", type=int, default=180)
+    package = commands.add_parser("package-rental", help="Assemble reviewed document inputs; stop on unresolved links")
+    package.add_argument("root", type=Path)
+    package.add_argument("batch", type=Path)
+    package.add_argument("fact_review", type=Path)
+    package.add_argument("extractions", nargs="+", type=Path)
+    package.add_argument("--rental-links", type=Path)
+    package.add_argument("--credit-links", type=Path)
+    links = commands.add_parser("link-review-template", help="Unreviewed Rental/credit relationship worksheets")
+    links.add_argument("root", type=Path)
+    links.add_argument("batch", type=Path)
+    links.add_argument("fact_review", type=Path)
+    links.add_argument("extractions", nargs="+", type=Path)
     args = parser.parse_args(argv)
     try:
         if args.command == "inventory":
@@ -52,11 +112,210 @@ def main(argv: list[str] | None = None) -> int:
             if args.command == "inspect":
                 result = {"batch_id": batch.batch_id,
                           "documents": [d.to_dict() for d in read_batch(batch, args.root)]}
+            elif args.command == "extract":
+                from againward.documents.codex_provider import CodexCliProvider
+                from againward.domains.rental.semantic_guidance import guidance
+                from .readers import read_document
+                provider = CodexCliProvider(args.root, model=args.model,
+                                            timeout_seconds=args.timeout_seconds)
+                selected = [d for d in batch.documents
+                            if args.source_id is None or d.source_id == args.source_id]
+                if not selected:
+                    raise ValueError("Source ID absent from current batch")
+                entries = []
+                for document in selected:
+                    parsed = read_document(document, args.root)
+                    proposal = provider.propose(document, parsed,
+                                                {"batch": batch, "semantic_guidance": guidance()})
+                    extraction = validate_proposal(proposal, batch, args.root)
+                    path = persist_extraction(extraction, args.root)
+                    entries.append({"source_id": document.source_id, "status": extraction.status,
+                                    "candidate_count": len(extraction.candidates),
+                                    "extraction_path": str(path),
+                                    "limitations": list(extraction.limitations)})
+                result = {"batch_id": batch.batch_id, "model": args.model,
+                          "approved_facts": 0, "extractions": entries}
             elif args.command == "validate":
                 extraction = validate_proposal(_load(args.proposal, args.root), batch, args.root)
                 path = persist_extraction(extraction, args.root)
                 result = {"status": extraction.status, "extraction_path": str(path),
                           "candidate_count": len(extraction.candidates), "canonical_facts": 0}
+            elif args.command == "review-template":
+                from .review_template import fact_review_template
+                assert_document_action(args.root, mutation=True)
+                extractions = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                    for path in args.extractions)
+                body, worksheet = fact_review_template(batch, extractions)
+                prefix = args.root / "review_templates" / stable_hash(body)
+                json_path = prefix.with_suffix(".json")
+                sheet_path = prefix.with_suffix(".md")
+                if json_path.exists() or sheet_path.exists():
+                    raise ValueError("REVIEW_STALE: worksheet already exists; do not overwrite operator edits")
+                json_path.parent.mkdir(parents=True, exist_ok=True)
+                write_json(json_path, body)
+                sheet_path.write_text(worksheet, encoding="utf-8")
+                result = {"status": "UNREVIEWED_TEMPLATE", "candidate_count": len(body["decisions"]),
+                          "review_template": str(json_path), "worksheet": str(sheet_path),
+                          "approved_facts": 0}
+            elif args.command == "visual-fact-attest":
+                from .visual_fact_review import attest_visual_facts
+                assert_document_action(args.root, mutation=True)
+                extractions = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                    for path in args.extractions)
+                reviewed = attest_visual_facts(batch, extractions, _load(args.review, args.root), args.root,
+                                               actor_id=args.actor_id, ask=input,
+                                               interactive=sys.stdin.isatty() and sys.stdout.isatty())
+                destination = args.root / "review_templates" / ("attested-" + stable_hash(reviewed) + ".json")
+                with transaction(args.root):
+                    if destination.exists():
+                        raise ValueError("REVIEW_STALE: visual fact attestation already exists")
+                    write_json(destination, reviewed)
+                result = {"status": "VISUAL_FACTS_ATTESTED", "review": str(destination),
+                          "attested_components": len(reviewed["visual_attestations"]),
+                          "approved_for_delivery": False}
+            elif args.command in {"independent-qa", "compare-independent-qa"}:
+                from .independent_qa import compare_extractions, reread_sources
+                assert_document_action(args.root, mutation=True)
+                primary = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                for path in args.primary_extractions)
+                if args.command == "independent-qa":
+                    body, challenger_paths = reread_sources(batch, primary, args.root,
+                                                            model=args.model,
+                                                            timeout_seconds=args.timeout_seconds)
+                else:
+                    challenger_paths = tuple(args.challenger_extractions)
+                    challenger = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                       for path in challenger_paths)
+                    body = compare_extractions(batch, primary, challenger, args.root)
+                destination = args.root / "independent_qa" / (body["qa_sha256"] + ".json")
+                with transaction(args.root):
+                    if destination.exists() and _load(destination, args.root) != body:
+                        raise ValueError("SOURCE_CHANGED: prior independent QA artifact altered")
+                    write_json(destination, body)
+                result = {"status": body["status"], "qa_artifact": str(destination),
+                          "material_status": body["material_status"],
+                          "challenger_extractions": [str(path) for path in challenger_paths],
+                          "sources_needing_reconciliation": sum(row["needs_reconciliation"]
+                                                                for row in body["source_results"]),
+                          "material_sources_needing_reconciliation": sum(row["material_needs_reconciliation"]
+                                                                         for row in body["source_results"]),
+                          "approved_for_delivery": False}
+            elif args.command == "adjudicate-qa":
+                from .adjudication import adjudicate_with_codex
+                assert_document_action(args.root, mutation=True)
+                primary = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                for path in args.primary_extractions)
+                challenger = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                   for path in args.challenger_extractions)
+                body = adjudicate_with_codex(batch, primary, challenger, _load(args.qa, args.root),
+                                             args.root, model=args.model,
+                                             timeout_seconds=args.timeout_seconds)
+                destination = args.root / "adjudications" / (body["adjudication_sha256"] + ".json")
+                with transaction(args.root):
+                    if destination.exists() and _load(destination, args.root) != body:
+                        raise ValueError("SOURCE_CHANGED: prior adjudication artifact altered")
+                    write_json(destination, body)
+                paths = {e.to_dict()["extraction_sha256"]: str(path)
+                         for e, path in [*zip(primary, args.primary_extractions, strict=True),
+                                         *zip(challenger, args.challenger_extractions, strict=True)]}
+                result = {"status": body["status"], "adjudication_artifact": str(destination),
+                          "selected_extractions": [paths[body["selected_extractions"][source.source_id]]
+                                                   for source in batch.documents
+                                                   if source.source_id in body["selected_extractions"]],
+                          "material_unresolved_source_ids": body["material_unresolved_source_ids"],
+                          "advisory_differences_remaining": body["advisory_differences_remaining"],
+                          "facts_approved": 0, "approved_for_delivery": False}
+            elif args.command == "analyst-review":
+                from .analyst_review import review_with_codex
+                assert_document_action(args.root, mutation=True)
+                extractions = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                    for path in args.extractions)
+                body = review_with_codex(batch, extractions, args.root, model=args.model,
+                                         timeout_seconds=args.timeout_seconds)
+                destination = args.root / "analyst_reviews" / (body["receipt_sha256"] + ".json")
+                with transaction(args.root):
+                    if destination.exists() and _load(destination, args.root) != body:
+                        raise ValueError("SOURCE_CHANGED: prior analyst review receipt altered")
+                    write_json(destination, body)
+                result = {"status": body["status"], "review_artifact": str(destination),
+                          "native_facts_accepted": body["native_facts_accepted"],
+                          "visual_candidates_deferred": body["visual_candidates_deferred"],
+                          "model_calls": body["model_calls"], "cached_sources": body["cached_sources"],
+                          "human_approval": False, "approved_for_delivery": False}
+            elif args.command == "visual-analyst-review":
+                from .analyst_review import review_visual_with_codex
+                assert_document_action(args.root, mutation=True)
+                extractions = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                    for path in args.extractions)
+                body = review_visual_with_codex(batch, extractions, _load(args.native_review, args.root),
+                                                args.root, model=args.model,
+                                                timeout_seconds=args.timeout_seconds)
+                destination = args.root / "analyst_reviews" / (body["receipt_sha256"] + ".json")
+                review_path = (args.root / "review_templates" / (body["receipt_sha256"] + ".json")
+                               if body["status"] == "WAITING_FOR_VISUAL_ATTESTATION" else None)
+                with transaction(args.root):
+                    if destination.exists() or (review_path is not None and review_path.exists()):
+                        raise ValueError("REVIEW_STALE: visual analyst review already exists")
+                    write_json(destination, body)
+                    if review_path is not None:
+                        write_json(review_path, body["review"])
+                result = {"status": body["status"], "review_artifact": str(destination),
+                          "fact_review": str(review_path) if review_path is not None else None,
+                          "visual_candidates_pending_attestation": body["visual_candidates_pending_attestation"],
+                          "human_approval": False, "approved_for_delivery": False}
+            elif args.command == "package-rental":
+                from againward.domains.rental.document_adapter import DOCUMENT_CASE_SCHEMA, load_document_case
+                assert_document_action(args.root, mutation=True)
+                package_body = {"schema_version": DOCUMENT_CASE_SCHEMA, "batch": batch.to_dict(),
+                                "extractions": [_load(path, args.root) for path in args.extractions],
+                                "fact_review": _load(args.fact_review, args.root),
+                                "rental_relationship_review": _load(args.rental_links, args.root)
+                                if args.rental_links else None,
+                                "credit_relationship_review": _load(args.credit_links, args.root)
+                                if args.credit_links else None}
+                canonical, lineage = load_document_case(package_body, args.root)
+                destination = args.root / "packages" / (stable_hash(package_body) + ".json")
+                with transaction(args.root):
+                    if destination.exists() and _load(destination, args.root) != package_body:
+                        raise ValueError("SOURCE_CHANGED: prior Rental package altered")
+                    write_json(destination, package_body)
+                result = {"status": "REVIEWED_DOCUMENT_PACKAGE", "package": str(destination),
+                          "canonical_case_sha256": lineage["canonical_case_sha256"],
+                          "source_documents": len(batch.documents), "reviewed_facts": len(lineage["facts"]),
+                          "invoice_lines": len(canonical.actual_charges),
+                          "approved_for_delivery": False}
+            elif args.command == "link-review-template":
+                from .resolution import entities_from_facts, resolve_entities, RelationshipState
+                from .review_template import relationship_review_template
+                from againward.domains.rental.document_adapter import RENTAL_MATCH, CREDIT_MATCH
+                from againward.domains.rental.entity_contract import CREDIT_REFERENCE_FIELDS
+                assert_document_action(args.root, mutation=True)
+                extractions = tuple(replay_extraction(_load(path, args.root), batch, args.root)
+                                    for path in args.extractions)
+                facts = promote_facts(extractions, _load(args.fact_review, args.root), batch, args.root)
+                entities = entities_from_facts(
+                    facts, reference_fields_by_kind={"CREDIT": CREDIT_REFERENCE_FIELDS})
+                views = []
+                planned = []
+                for policy in (RENTAL_MATCH, CREDIT_MATCH):
+                    resolved = resolve_entities(entities, policy)
+                    draft, worksheet = relationship_review_template(resolved)
+                    prefix = args.root / "review_templates" / (policy.relationship_type.lower() + "-" + stable_hash(draft))
+                    json_path, sheet_path = prefix.with_suffix(".json"), prefix.with_suffix(".md")
+                    if json_path.exists() or sheet_path.exists():
+                        raise ValueError("REVIEW_STALE: relationship worksheet already exists")
+                    planned.append((policy, resolved, draft, worksheet, json_path, sheet_path))
+                for policy, resolved, draft, worksheet, json_path, sheet_path in planned:
+                    json_path.parent.mkdir(parents=True, exist_ok=True)
+                    write_json(json_path, draft)
+                    sheet_path.write_text(worksheet, encoding="utf-8")
+                    views.append({"relationship_type": policy.relationship_type,
+                                  "unresolved": sum(r.state in {RelationshipState.CANDIDATE,
+                                                                    RelationshipState.AMBIGUOUS}
+                                                    for r in resolved.relationships),
+                                  "review_template": str(json_path), "worksheet": str(sheet_path)})
+                result = {"status": "UNREVIEWED_RELATIONSHIP_TEMPLATES", "relationships": views,
+                          "human_approved_links": 0}
             else:
                 assert_document_action(args.root, mutation=True)
                 extractions = tuple(replay_extraction(_load(path, args.root), batch, args.root)

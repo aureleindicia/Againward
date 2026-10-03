@@ -17,7 +17,7 @@ from againward.core.contract_policy import (
     contract_policy_digest, contract_policy_template, record_contract_policy,
 )
 from againward.core.privacy import POLICY_VERSION, REVIEW_SCHEMA, validate_codex_privacy_review
-from againward.core.privacy_inspection import INSPECTION_VERSION
+from againward.core.visual_review import attest_visual_packet, prepare_visual_packet
 from againward.core.workspace import create_client_workspace
 from againward.documents.readers import read_batch
 from againward.documents.sources import inventory_sources
@@ -92,21 +92,11 @@ def _case(root: Path, name: str) -> Path:
     return case
 
 
-def _visual(path: Path, *, categories=()) -> dict:
-    return {"location": "page:1", "source_sha256": sha256(path.read_bytes()).hexdigest(),
-            "inspection_version": INSPECTION_VERSION, "reviewer_role": "HUMAN",
-            "reviewed_at_utc": "2026-09-23T09:00:00Z", "decision": "PASS",
-            "detected_categories": list(categories), "business_evidence_preserved": True,
-            "prompt_injection_ignored": True}
-
-
-def _spec(path: Path, case: Path, index: int, *, visual_categories=None,
-          confidentiality="RESTRICTED_CLIENT", sanitized=None, remove_category=None) -> dict:
+def _spec(path: Path, case: Path, index: int, *, confidentiality="RESTRICTED_CLIENT",
+          sanitized=None, remove_category=None) -> dict:
     spec = {"file_id": f"FILE-{index:03d}", "source": "incoming/" + path.relative_to(case / "incoming").as_posix(),
             "action": "SANITIZED" if sanitized else "PASS", "sanitized": sanitized,
             "categories": [], "transformations": [], "business_confidentiality": confidentiality}
-    if visual_categories is not None:
-        spec["visual_reviews"] = [_visual(path, categories=visual_categories)]
     if remove_category:
         spec["transformations"] = [{"category": remove_category, "action": "REMOVED", "count": 1,
                                     "preserves_relations": True, "reason_code": "ANALYSIS_MINIMIZATION"}]
@@ -140,10 +130,13 @@ def _render_single(case: Path, scenario: dict) -> tuple[list[dict], Path]:
               else None)
     if scenario.get("omit_visual"):
         visual = None
-    spec = _spec(path, case, 1, visual_categories=visual,
+    spec = _spec(path, case, 1,
                  confidentiality=scenario.get("confidentiality", "RESTRICTED_CLIENT"),
                  sanitized=sanitized, remove_category=scenario.get("remove_category"))
-    return [spec], _review(case, [spec], removed=scenario.get("remove_category"))
+    review = _review(case, [spec], removed=scenario.get("remove_category"))
+    if visual is not None:
+        _scripted_visual(case, review, {spec["source"]: visual})
+    return [spec], review
 
 
 def _render_folder(case: Path, *, high_risk: bool) -> tuple[list[dict], Path]:
@@ -175,10 +168,23 @@ def _render_folder(case: Path, *, high_risk: bool) -> tuple[list[dict], Path]:
     specs = []
     for index, path in enumerate(sorted(incoming.iterdir()), 1):
         specs.append(_spec(path, case, index,
-                           visual_categories=["PROFESSIONAL_SIGNATURE"] if path.name == "return_note_scan.pdf" else None,
                            confidentiality="BUSINESS_CONFIDENTIAL" if path.name in {"contract.pdf", "rate_sheet.pdf"}
                            else "RESTRICTED_CLIENT"))
-    return specs, _review(case, specs)
+    review = _review(case, specs)
+    _scripted_visual(case, review, {"incoming/return_note_scan.pdf": ["PROFESSIONAL_SIGNATURE"]})
+    return specs, review
+
+
+def _scripted_visual(case: Path, review: Path, by_source: dict[str, list[str]]) -> None:
+    """Synthetic benchmark driver only: proves binding, not an operator's eyes."""
+    packet = prepare_visual_packet(case, review)
+    responses = []
+    for component in packet["components"]:
+        responses.extend(["INSPECTED " + component["source_sha256"][:12], "PASS",
+                          ",".join(by_source.get(component["source"], [])), "YES"])
+    answers = iter(responses)
+    attest_visual_packet(case, review, actor_id="TEST_FIXTURE_ONLY",
+                         ask=lambda _: next(answers), interactive=True)
 
 
 _REASON_CODES = ("AUTHENTICATION_SECRET", "HIGH_RISK_PERSONAL_DATA", "PARTIAL_DOCUMENT_INSPECTION",

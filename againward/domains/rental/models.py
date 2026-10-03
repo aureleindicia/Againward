@@ -13,15 +13,11 @@ from functools import cached_property
 import re
 from typing import Any
 
+from .entity_contract import BILLING_UNITS, CHARGE_TYPES, DOCUMENT_ROLES, DOCUMENT_STATUSES
+
 SCHEMA = "againward-rental-case-v1"
-DOCUMENT_ROLES = frozenset({"RENTAL_AGREEMENT", "RATE_CARD", "QUOTE", "PURCHASE_ORDER", "AMENDMENT",
-    "INVOICE", "CREDIT_NOTE", "DELIVERY_NOTE", "RETURN_NOTE", "OFF_HIRE_NOTICE", "EMAIL_EVIDENCE",
-    "ASSET_LIST", "PAYMENT_EXPORT", "TEXT_NOTE", "UNKNOWN", "IRRELEVANT"})
 EVENT_TYPES = frozenset({"BOOKED", "RESERVED", "DELIVERED", "ON_HIRE", "EXTENDED", "RATE_CHANGED",
     "OFF_HIRE_REQUESTED", "COLLECTION_REQUESTED", "COLLECTED", "RETURNED", "INVOICED", "CREDITED", "CANCELLED"})
-CHARGE_TYPES = frozenset({"RENTAL", "TRANSPORT", "DELIVERY", "COLLECTION", "FUEL", "REFUELING",
-    "DAMAGE_WAIVER", "ENVIRONMENTAL_FEE", "CONSUMABLE", "CLEANING", "SURCHARGE", "OTHER"})
-BILLING_UNITS = frozenset({"DAY", "WEEK", "MONTH", "FIXED", "PERCENT"})
 # Do not silently impose two decimal places on other currencies.
 CURRENCIES = frozenset({"EUR", "USD", "GBP", "CHF", "CAD", "AUD", "NZD"})
 
@@ -83,7 +79,7 @@ class Document:
 
     def __post_init__(self):
         _identifier(self.document_id, "document_id")
-        if self.role not in DOCUMENT_ROLES or self.status not in {"EXTRACTED", "ACCEPTED", "PROPOSED", "VOID"}:
+        if self.role not in DOCUMENT_ROLES or self.status not in DOCUMENT_STATUSES:
             raise ValueError("Unknown document role/status.")
         if not isinstance(self.path, str) or not self.path.strip():
             raise ValueError("Document source path required.")
@@ -152,6 +148,7 @@ class RateTerm:
     currency: str
     evidence_refs: tuple[EvidenceRef, ...]
     billing_unit: str | None = None
+    quantity_basis: str | None = None
     rate: str | None = None
     quantity: str | None = None
     weekends_billable: bool | None = None
@@ -173,6 +170,9 @@ class RateTerm:
         _evidence(self.evidence_refs)
         if self.charge_type not in CHARGE_TYPES or self.billing_unit not in BILLING_UNITS | {None}:
             raise ValueError("Unknown charge type or billing unit.")
+        from .rate_dimensions import QUANTITY_BASES
+        if self.quantity_basis not in QUANTITY_BASES | {None}:
+            raise ValueError("Unknown quantity basis.")
         for key in ("rate", "quantity", "discount_fraction"):
             if getattr(self, key) is not None:
                 result = decimal_value(getattr(self, key), name=key)
@@ -424,4 +424,6 @@ class RentalCase:
         documents = self.documents_by_id
         if roles is not None and not any(documents[r.document_id].role in roles for r in refs):
             return False
-        return all(documents[r.document_id].status == "ACCEPTED" for r in refs)
+        return all(documents[r.document_id].status in (
+            {"ACCEPTED", "ISSUED"} if documents[r.document_id].role in {"INVOICE", "CREDIT_NOTE"}
+            else {"ACCEPTED"}) for r in refs)

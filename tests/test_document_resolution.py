@@ -7,8 +7,10 @@ import pytest
 from againward.documents.contracts import DocumentError
 from againward.documents.extraction import CanonicalFact, FactCandidate
 from againward.documents.resolution import (
-    MatchPolicy, RelationshipState, entities_from_facts, resolve_entities, review_relationships,
+    MatchPolicy, RelationshipState, entities_from_facts, non_entity_reference_groups,
+    resolve_entities, review_relationships,
 )
+from againward.domains.rental.document_adapter import RENTAL_MATCH
 
 
 POLICY = MatchPolicy(
@@ -50,6 +52,36 @@ def test_exact_reviewed_anchors_confirm_without_copying_attributes():
     assert result.considered_pairs == 1
 
 
+def test_untyped_entity_group_fails_closed_without_business_pack_policy():
+    with pytest.raises(DocumentError, match="ENTITY_AMBIGUOUS"):
+        entities_from_facts(facts("source", invoice_id="INV-991"))
+
+
+def test_source_level_supplier_metadata_stays_in_lineage_without_becoming_entity():
+    source_facts = facts("source", "supplier", supplier_id="SUPPLIER-7")
+    assert entities_from_facts(source_facts, non_entity_fields=frozenset({"supplier_id"})) == ()
+    fragments = non_entity_reference_groups(
+        source_facts, non_entity_fields=frozenset({"supplier_id"}))
+    assert fragments == [{"source_id": "source", "local_id": "supplier",
+                          "record_type": "SOURCE_METADATA_OR_REFERENCE_FRAGMENT",
+                          "fact_ids": [source_facts[0].fact_id]}]
+
+
+def test_source_metadata_fragment_cannot_hide_untyped_commercial_fact():
+    source_facts = (*facts("source", "supplier", supplier_id="SUPPLIER-7"),
+                    *facts("source", "supplier", rate="12.00"))
+    with pytest.raises(DocumentError, match="ENTITY_AMBIGUOUS"):
+        entities_from_facts(source_facts,
+                            non_entity_fields=frozenset({"supplier_id"}))
+
+
+def test_bare_agreement_identifier_is_not_source_metadata():
+    agreement = facts("source", "agreement", agreement_id="AGR-7")
+    with pytest.raises(DocumentError, match="ENTITY_AMBIGUOUS"):
+        entities_from_facts(agreement,
+                            non_entity_fields=frozenset({"agreement_id"}))
+
+
 def test_same_local_model_label_does_not_merge_source_entities():
     entities = pair()
     assert len(entities) == 2
@@ -79,6 +111,28 @@ def test_shared_agreement_without_asset_remains_candidate_no_manufactured_id():
     assert result.relationships[0].state == RelationshipState.CANDIDATE
     invoice = next(e for e in result.entities if e.kind == "INVOICE_LINE")
     assert "asset" not in invoice.values
+
+
+def test_rental_return_without_supplier_links_only_on_unique_exact_anchors():
+    contract = facts("contract", entity_kind="RENTAL_SCOPE", agreement_id="A-7",
+                     supplier_id="SUPPLIER", asset_id="LIFT-5", serial_number="SN-5")
+    returned = facts("return", entity_kind="RETURN", agreement_id="A-7", serial_number="SN-5")
+    unique = resolve_entities(entities_from_facts((*contract, *returned)), RENTAL_MATCH)
+    assert unique.relationships[0].state == RelationshipState.CONFIRMED
+    assert unique.relationships[0].support == ("agreement_id", "serial_number")
+    different_supplier = facts("return-other", entity_kind="RETURN", agreement_id="A-7",
+                               supplier_id="OTHER", serial_number="SN-5")
+    conflict = resolve_entities(entities_from_facts((*contract, *different_supplier)), RENTAL_MATCH)
+    assert conflict.relationships[0].state == RelationshipState.CONTRADICTED
+    second_scope = facts("other-contract", entity_kind="RENTAL_SCOPE", agreement_id="A-7",
+                         supplier_id="OTHER", asset_id="LIFT-5", serial_number="SN-5")
+    ambiguous = resolve_entities(entities_from_facts((*contract, *second_scope, *returned)), RENTAL_MATCH)
+    assert all(link.state == RelationshipState.AMBIGUOUS for link in ambiguous.relationships)
+    invoice_without_supplier = facts("invoice-sparse", entity_kind="INVOICE_LINE",
+                                     agreement_id="A-7", serial_number="SN-5")
+    invoice_match = resolve_entities(entities_from_facts((*contract, *invoice_without_supplier)), RENTAL_MATCH)
+    assert invoice_match.relationships[0].state == RelationshipState.CONFIRMED
+    assert invoice_match.relationships[0].support == ("agreement_id", "serial_number")
 
 
 def test_two_plausible_rentals_abstain_and_do_not_raise_grade_with_more_evidence():

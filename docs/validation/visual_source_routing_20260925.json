@@ -1,0 +1,63 @@
+{
+  "schema_version": "againward-visual-source-routing-regression-v1",
+  "case_id": "c06894c2744f1010",
+  "purpose": "Regression evidence only; this known case is not fresh accuracy evidence.",
+  "starting_commit": "af230678c450e6d936d9123c7279566af94348e3",
+  "production_fix_commit": "7bfb232d855683a1ccdc89df18caa22569b1bfc1",
+  "test_stability_commit": "12af083255a8fdde298086e52627c863addd249d",
+  "model": "gpt-6-luna",
+  "model_binding_source": "Active Codex config.toml model, passed explicitly to the workflow CLI",
+  "codex_cli": "codex-cli 0.156.1",
+  "policy_versions": [
+    "againward-rental-approved-sources-job-v1",
+    "rental-independent-source-reread-v2",
+    "againward-source-adjudication-v5",
+    "againward-codex-analyst-review-v4",
+    "againward-codex-visual-analyst-v2+againward-visual-model-evidence-v1+againward-rental-visual-limitation-routing-v1",
+    "againward-rental-autonomous-report-v4",
+    "againward-rental-autonomous-finding-review-v6",
+    "againward-rental-reviewed-evidence-v2"
+  ],
+  "fresh_workspace": "scratch/visual_route_fix_20260925/case_c06894c2744f1010_fresh",
+  "source_hashes": {
+    "billing.pdf": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+    "commercial.pdf": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+  },
+  "pipeline": {
+    "primary_invoice_candidates": 0,
+    "challenger_invoice_candidates": 0,
+    "material_source_disagreements": 2,
+    "source_qa_sha256": "46b707e5cc46ee33e4c53e19a8d2a5aeecb9313b1d997440e75a91b971728278",
+    "adjudication_sha256": "7bb9c1ed47acfe689ecf4adf0e00473f01bf70375c25b9af92e02b57259bed60",
+    "original_visual_attached_to_multimodal_adjudicator": true,
+    "hash_bound_visual_citations": 0,
+    "unresolved_source_count": 1,
+    "final_status": "WAITING_FOR_REQUIRED_INFORMATION",
+    "final_stage": "SOURCE_ADJUDICATION",
+    "old_failure_reproduced": false,
+    "reason": "Both source passes supplied no invoice candidates. The multimodal adjudicator inspected the image but could not select or cite candidate values and left the visual source unresolved."
+  },
+  "downstream": {
+    "visual_candidate_review_reached": false,
+    "fact_or_link_review_reached": false,
+    "calculation_reached": false,
+    "expected_oracle_discrepancy_EUR": "150.00",
+    "oracle_used_in_prompt_or_retry": false,
+    "EUR_150_deterministic_result_reached": false,
+    "report_produced": false,
+    "human_evidence_created": false
+  },
+  "interpretation": "The previous pre-visual EXTRACTION_INCOMPLETE path is removed for a source pass with pixel-only candidates: targeted tests now route that shape through original-pixel adjudication and visual review. This live Luna replay had zero invoice candidates in both passes, so it safely waited at source adjudication for lack of source-bound candidate evidence. It is a different model-output limitation; the known EUR 150 result was not reached.",
+  "runtime_wall_seconds_from_state_events": 96.1,
+  "validation": {
+    "targeted_visual_and_document_tests": "45 passed",
+    "visual_routing_tests_after_order_fix": "5 passed",
+    "full_pytest": "843 passed in 395.34 seconds",
+    "ruff": "ruff check . passed",
+    "mypy": "passed; 16 source files",
+    "rental_benchmark": "15/15; TP=3, FP=0, FN=0, TN=12",
+    "privacy_benchmark": "19/19; false blocks=0, unsafe passes=0",
+    "pr_5_ci": "two runs passed 8/8 jobs each across Python 3.11, 3.12, 3.13 and 3.14",
+    "pr_state": "OPEN, DRAFT, UNMERGED"
+  }
+}

@@ -1,5 +1,4 @@
 """Minimal evidence export; analyst-authored synthesis remains mandatory."""
-from pathlib import Path
 from againward.core.artifact_store import read_json, write_json, transaction
 from againward.core.client_lifecycle import assert_workflow_action_allowed
 from againward.core.workflow_paths import resolve_analysis_directory
@@ -8,17 +7,20 @@ from againward.evidence.hashing import stable_hash
 
 def evidence_pack(root, findings):
     inventory = read_json(root / "artifact_inventory.json")
+    calculation = read_json(root / "prepared_analysis.json")
     return {"schema_version": "againward-rental-evidence-pack-v1", "ground_truth_used": False,
             "findings": findings, "documents": inventory["documents"],
             **({"document_lineage": inventory["document_lineage"]} if "document_lineage" in inventory else {}),
-            "charge_groups": read_json(root / "prepared_analysis.json")["groups"],
+            "charge_groups": calculation["groups"],
+            "expected_ledger": calculation["expected_ledger"],
+            "actual_ledger": calculation["actual_ledger"],
             "dataset_sha256": read_json(root / "evidence_dataset.json")["dataset_sha256"],
             "review_sha256": stable_hash(read_json(root / "review.json")),
             "investigation_sha256": stable_hash(read_json(root / "investigation.json")),
             "policy": "Claim basis only; human approval and shared delivery gate remain required."}
 
 
-def render_report(case_directory, synthesis):
+def render_report(case_directory, synthesis, *, evaluation_only=False):
     """Compose supplied analyst prose with immutable calculated evidence tables.
 
     Natural-language claims still require human review. No automatic executive
@@ -32,6 +34,9 @@ def render_report(case_directory, synthesis):
     with transaction(root):
         findings = validate_current_review(root)
         write_json(root / "rental_evidence_pack.json", evidence_pack(root, findings))
+    from .pdf_report import validate_synthesis, render_rental_pdf
+    pack = read_json(root / "rental_evidence_pack.json")
+    validate_synthesis(synthesis, pack)
     lines = ["# Rental investigation", "", synthesis.strip(), "", "## Calculated discrepancies", "",
              "Amounts are net of tax. Repeated group IDs share one discrepancy; do not add finding rows.", "",
              "| Finding | Family | Decision | Grade | Currency | Discrepancy | Claim basis |",
@@ -48,5 +53,8 @@ def render_report(case_directory, synthesis):
                   "Evidence: " + ", ".join(f["evidence_handles"]), ""]
     target = root / "report.md"
     target.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    pdf = render_rental_pdf(pack, synthesis, root / "rental_client_report.pdf",
+                            evaluation_only=evaluation_only)
     return {"report": str(target), "evidence_pack": str(root / "rental_evidence_pack.json"),
+            "pdf": pdf,
             "reviewed_artifact_hashes": review_hashes(root), "approved_for_delivery": False}

@@ -45,25 +45,123 @@ class Entity:
         return stable_hash([f.to_dict() for f in self.facts])
 
 
-def entities_from_facts(facts: tuple[CanonicalFact, ...]) -> tuple[Entity, ...]:
-    """Local labels never join documents, even if a model reuses the same label."""
+def entities_from_facts(facts: tuple[CanonicalFact, ...], *,
+                        non_entity_fields: frozenset[str] = frozenset(),
+                        reference_fields_by_kind: dict[str, frozenset[str]] | None = None,
+                        ) -> tuple[Entity, ...]:
+    """Build typed entities without promoting metadata/reference fragments.
+
+    Local labels never join documents, even if a model reuses the same label.
+    Source metadata and identifier-only references stay as reviewed facts in
+    lineage. A typed credit may use a unique, non-excluded target reference for
+    deterministic linking; ambiguous references never enter its value map.
+    """
     grouped: dict[tuple[str, str], list[CanonicalFact]] = defaultdict(list)
     for fact in facts:
         grouped[(fact.candidate.source_id, fact.candidate.entity_id)].append(fact)
     entities = []
+    reference_fields_by_kind = reference_fields_by_kind or {}
     for (source, local), group in sorted(grouped.items()):
+        kinds = {fact.candidate.value for fact in group
+                 if fact.candidate.semantic_type == "entity_kind"}
+        kind_value = next(iter(kinds)) if len(kinds) == 1 else None
+        kind = kind_value if isinstance(kind_value, str) else None
+        reference_fields = (reference_fields_by_kind.get(kind, frozenset())
+                            if kind is not None else frozenset())
+        reference_facts = [fact for fact in group
+                           if fact.candidate.semantic_type in reference_fields]
+        entity_facts = [fact for fact in group
+                        if fact.candidate.semantic_type not in reference_fields]
+        # A unique source-bound target can support an explicit relationship.
+        # Reused model labels, multiple positive values, and explicitly
+        # excluded targets do not select one value by order or convenience.
+        if kind is not None and reference_fields:
+            by_reference: dict[str, list[CanonicalFact]] = defaultdict(list)
+            for fact in reference_facts:
+                flags = {flag.casefold() for flag in fact.candidate.ambiguity_flags}
+                if "excluded_target" not in flags:
+                    by_reference[fact.candidate.semantic_type].append(fact)
+            for field, candidates in by_reference.items():
+                values_for_field = {candidate.candidate.value for candidate in candidates}
+                if len(values_for_field) == 1:
+                    entity_facts.extend(candidates)
         values: dict[str, Any] = {}
-        for fact in group:
+        for fact in entity_facts:
             key, value = fact.candidate.semantic_type, fact.candidate.value
             if key in values and values[key] != value:
                 raise DocumentError("ENTITY_AMBIGUOUS", "Conflicting values on the same source-local entity")
             values[key] = value
         kind = values.get("entity_kind")
         if not isinstance(kind, str):
+            fields = {fact.candidate.semantic_type for fact in group}
+            metadata_only = is_source_metadata_fragment(fields, non_entity_fields)
+            if metadata_only or is_reference_fragment(fields, non_entity_fields):
+                continue
             raise DocumentError("ENTITY_AMBIGUOUS", "Reviewed entity_kind required")
         entities.append(Entity("entity-" + stable_hash({"source": source, "local": local}),
-                               local, source, kind, tuple(sorted(group, key=lambda f: f.fact_id))))
+                               local, source, kind,
+                               tuple(sorted(entity_facts, key=lambda f: f.fact_id))))
     return tuple(entities)
+
+
+def non_entity_reference_groups(facts: tuple[CanonicalFact, ...], *,
+                                non_entity_fields: frozenset[str] = frozenset(),
+                                reference_fields_by_kind: dict[str, frozenset[str]] | None = None
+                                ) -> list[dict[str, Any]]:
+    """Return separately bound references, without treating model labels as IDs."""
+    grouped: dict[tuple[str, str], list[CanonicalFact]] = defaultdict(list)
+    for fact in facts:
+        grouped[(fact.candidate.source_id, fact.candidate.entity_id)].append(fact)
+    rows = []
+    reference_fields_by_kind = reference_fields_by_kind or {}
+    for (source_id, local_id), group in sorted(grouped.items()):
+        fields = {fact.candidate.semantic_type for fact in group}
+        kinds = {fact.candidate.value for fact in group
+                 if fact.candidate.semantic_type == "entity_kind"}
+        kind_value = next(iter(kinds)) if len(kinds) == 1 else None
+        kind = kind_value if isinstance(kind_value, str) else None
+        reference_fields = (reference_fields_by_kind.get(kind, frozenset())
+                            if kind is not None else frozenset())
+        for fact in sorted(group, key=lambda item: item.fact_id):
+            field = fact.candidate.semantic_type
+            if field in reference_fields:
+                rows.append({"source_id": source_id,
+                             "local_id": "reference-" + stable_hash(fact.fact_id)[:20],
+                             "record_type": "SOURCE_REFERENCE_FRAGMENT",
+                             "semantic_type": field, "fact_ids": [fact.fact_id]})
+        metadata_only = is_source_metadata_fragment(fields, non_entity_fields)
+        if "entity_kind" not in fields and (metadata_only or is_reference_fragment(fields, non_entity_fields)):
+            rows.append({"source_id": source_id, "local_id": local_id,
+                         "record_type": "SOURCE_METADATA_OR_REFERENCE_FRAGMENT",
+                         "fact_ids": sorted(fact.fact_id for fact in group)})
+    return rows
+
+
+def is_source_metadata_fragment(fields: set[str], non_entity_fields: frozenset[str]) -> bool:
+    """Recognize narrowly scoped source metadata without creating an entity.
+
+    Supplier identity may be emitted as its own source-envelope observation,
+    just like document role/status. A date is source metadata only when tied to
+    an explicit role or status. Commercial facts and bare agreement identifiers
+    still require a typed occurrence.
+    """
+    if not fields or not fields <= non_entity_fields:
+        return False
+    envelope = {"document_role", "document_status", "supplier_id", "agreement_id"}
+    if fields <= envelope and (fields == {"supplier_id"}
+                               or bool(fields & {"document_role", "document_status"})):
+        return True
+    return ("date" in fields
+            and bool(fields & {"document_role", "document_status"})
+            and fields <= envelope | {"date"})
+
+
+def is_reference_fragment(fields: set[str], non_entity_fields: frozenset[str]) -> bool:
+    """Recognize only anchored invoice-reference groups as non-entities."""
+    references = fields & non_entity_fields
+    return (bool(references) and references <= non_entity_fields
+            and bool(references & {"invoice_id", "invoice_line_id"})
+            and fields <= non_entity_fields)
 
 
 @dataclass(frozen=True)
@@ -76,6 +174,7 @@ class MatchPolicy:
     required_scope_keys: tuple[str, ...]
     exclusive_left_kinds: tuple[str, ...]
     prefix_blocking_keys: tuple[str, ...] = ()
+    scope_optional_left_kinds: tuple[str, ...] = ()
     maximum_pairs: int = 20_000
 
     def __post_init__(self) -> None:
@@ -182,7 +281,8 @@ def resolve_entities(entities: tuple[Entity, ...], policy: MatchPolicy) -> Resol
         contradictions = tuple(sorted(key for key in policy.contradiction_keys
                                       if lv.get(key) is not None and rv.get(key) is not None and lv[key] != rv[key]))
         anchors = any(set(keys) <= set(support) for keys in policy.anchor_keys)
-        scope = set(policy.required_scope_keys) <= set(support)
+        scope = (set(policy.required_scope_keys) <= set(support)
+                 or left.kind in policy.scope_optional_left_kinds)
         state = RelationshipState.CONTRADICTED if contradictions else (
             RelationshipState.CONFIRMED if anchors and scope else RelationshipState.CANDIDATE)
         all_facts = (*left.facts, *right.facts)

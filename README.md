@@ -349,9 +349,19 @@ physique, ni pronostic, ni probabilité postérieure. Voir
 
 ## Tests
 
+Installer les dépendances de développement avec `python -m pip install '.[dev]'`.
+Sur Termux, Ruff/mypy peuvent aussi provenir des paquets système ; installer
+`pytest-xdist` dans le même Python que pytest.
+
 ```sh
 python -m pytest -q
+# Débogage dans un seul processus :
+python -m pytest -q -n 0 tests/test_rental_case_graph_delivery.py
 ```
+
+La configuration utilise deux workers bornés et affiche les tests les plus lents.
+Pendant une modification, lancer les tests concernés ; conserver la suite complète
+au checkpoint. Aucun contrôle de preuve ou HOLDOUT n'est désactivé.
 
 La suite couvre notamment unites, integration kW/kWh, index cumulatif, timestamps, doublons,
 cout partiel, production partielle, division par zero, baselines passe-vers-futur, residuals,

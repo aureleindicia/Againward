@@ -1,0 +1,76 @@
+{
+  "schema_version": "againward-rental-adversarial-cohort-selection-v1",
+  "selected_at_utc": "2026-09-25",
+  "code_commit": "6213430c8bd9dd58ac6c84f4fc33c2cc1fe8f502",
+  "model": "gpt-6-sol",
+  "codex_cli": "codex-cli 0.156.1",
+  "policy_versions": [
+    "againward-rental-approved-sources-job-v1",
+    "rental-independent-source-reread-v2",
+    "againward-source-adjudication-v4",
+    "againward-codex-analyst-review-v3",
+    "againward-codex-visual-analyst-v2",
+    "againward-rental-autonomous-report-v4",
+    "againward-rental-autonomous-finding-review-v6",
+    "againward-rental-reviewed-evidence-v2",
+    "againward-source-facts-v3-3c5241952f9688d9"
+  ],
+  "corpus": "scratch/final_validation_4b536e4/challenge/public",
+  "selection_basis": "Public input filenames, formats, visible source text and source counts only. Private truth/oracles and generator internals were not read for selection.",
+  "previously_attempted_excluded": [
+    "05087e1b56ca9e06",
+    "18626de24ad5b1fc",
+    "f9f8d1c4d1289eb7"
+  ],
+  "selected_cases": [
+    {
+      "case_id": "2bd34c965a660ce2",
+      "selection_role": "clean candidate with an allocated credit",
+      "selection_reason": "The public agreement, invoice and credit note allow the pipeline to test whether an explicitly line-allocated credit is applied once and whether a clean net result avoids an invented finding.",
+      "sources": {
+        "billing.pdf": "e13e0979364564cfb4b2146ffb96a923ae904d1831b464004e6d2d4d4e3222bb",
+        "commercial.pdf": "31a0fd5072a1ad75506e92e68ef982b8a842d8c647e8087b1b0dbf05309051dd",
+        "credit.pdf": "77dfd070f801e31f2d03ec205478e5178d2887a1a1d2221159b6adfdfff302d7"
+      }
+    },
+    {
+      "case_id": "00c53500b09f325e",
+      "selection_role": "credit allocation uncertainty and candidate discrepancy",
+      "selection_reason": "The public pack has an issued credit note whose allocation is explicitly unconfirmed, testing conservative treatment of a credit alongside a billed amount that differs from the visible agreement arithmetic.",
+      "sources": {
+        "billing.pdf": "ab9e5fdfb2e5df42e53accdba286f734aab9c51b4e2666d40109c77bb7559fc3",
+        "commercial.pdf": "7f5fec9976fdc92c1db984778cddf71492f9afec2c17e27f640582497e98c16c",
+        "credit.pdf": "ce0f66073e1d285637688957b98e38a1a5747fa4328373acbe26bbd62232eb03"
+      }
+    },
+    {
+      "case_id": "ae824b441b9bc207",
+      "selection_role": "documented return and quantity review",
+      "selection_reason": "The public source set includes an accepted signed return note for two units and a contract with a return-date stop rule, exercising cross-document quantity and date linkage.",
+      "sources": {
+        "billing.pdf": "31342ee40575afff0237325faf15faac7a2d82f10d68fd8341a6b6c83408cab5",
+        "commercial.pdf": "acf2cdaaac636960d0f74d3df8856519b470849b631d3f12e42d58c463019a6a",
+        "return.pdf": "04cf2d59495684a8037a1a4bc210504cec6e586dff6b717cd93a36f64c206529"
+      }
+    },
+    {
+      "case_id": "c06894c2744f1010",
+      "selection_role": "visual source and scan handling",
+      "selection_reason": "The public billing PDF is much larger than the text agreement and exposes only an attachment cover string through ordinary text extraction, making this a scan/visual-review candidate.",
+      "sources": {
+        "billing.pdf": "2d25acb7869713ad72c6180a458d626d15f8ef1a05864c22710df155b8eb6ea7",
+        "commercial.pdf": "312c2c6d5742c685112669e7c54b8cf8445be620675d34f5b18bbd5128537065"
+      }
+    },
+    {
+      "case_id": "d479ef3c53ea8609",
+      "selection_role": "ambiguous date convention",
+      "selection_reason": "The public agreement prints 01/09/2026 and 08/09/2026 while explicitly leaving the date convention unspecified, testing abstention or a justified stop when date interpretation changes the comparison.",
+      "sources": {
+        "billing.pdf": "9a3e94bd9412d0c7d5494790aede502966c9f5943753616af63ce7cbe2f74425",
+        "commercial.pdf": "0347d26dd5d16589befe7fdd760540fa6837937d3df9169b51fe4b18d8660be7"
+      }
+    }
+  ],
+  "truth_access_before_selection_seal": "NONE"
+}

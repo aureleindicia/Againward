@@ -1,5 +1,15 @@
 # Real-world mission acceptance — IN PROGRESS, not client-ready
 
+Current controlled first-client release authority is
+[FIRST_CLIENT_RELEASE_AUDIT.md](FIRST_CLIENT_RELEASE_AUDIT.md), not this
+historical Giga Goal §0–96 matrix. Since this matrix was written, the draft
+first-client PR has added real model proposals, source-bound visual/fact
+worksheets, an operator playbook and a Rental PDF renderer. However frozen
+DEV/ADV semantic runs do not establish a working full financial dossier, and
+the required independent HOLDOUT and eight-document human rehearsal are still
+open. Preserve the historical rows below as their original-scope evidence;
+do not read their old “OPEN” notes as an up-to-date inventory of every module.
+
 Scope: authoritative Giga Goal sections 0–96. This is a working acceptance map,
 not a completion certificate. `TESTED` refers only to the stated software
 contract; it does not imply unseen-document/model accuracy. `PARTIAL` and `OPEN`

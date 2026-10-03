@@ -1,0 +1,32 @@
+{
+  "schema_version": "againward-rental-posttruth-adjudication-v1",
+  "case_id": "00c53500b09f325e",
+  "pretruth_record": "../sealed/case_00c53500b09f325e.pretruth.json",
+  "pretruth_record_sha256": "224862b420a7457b2bfe0c3a77246c0df380d134475e438fc05cfb35c7792f85",
+  "truth_accessed_after_seal": true,
+  "oracle_family": "unallocated_credit",
+  "oracle_source_hashes_match_selection": true,
+  "expected_material_findings": [],
+  "actual_material_findings": [],
+  "expected_financial_differences": null,
+  "actual_reported_financial_differences": null,
+  "amount_comparison": {
+    "expected_supported_discrepancy_EUR": null,
+    "actual_reported_discrepancy_EUR": null,
+    "amount_error": false,
+    "reason": "The private oracle requires abstention because the issued EUR 150.00 credit is not allocated to this invoice or line."
+  },
+  "abstention_check": {
+    "oracle_requires_abstention": true,
+    "system_waited_before_calculation": true,
+    "result": "PASS"
+  },
+  "classification": [
+    "JUSTIFIED_ABSTENTION"
+  ],
+  "classification_reason": "Source adjudication left the credit allocation unsubstantiated and reported no financial claim. This matches the oracle's required abstention.",
+  "material_error_tags": [],
+  "final_report_qa": "NOT_REACHED",
+  "human_escalation": false,
+  "adjudicated_at_utc": "2026-09-25T19:06:34Z"
+}

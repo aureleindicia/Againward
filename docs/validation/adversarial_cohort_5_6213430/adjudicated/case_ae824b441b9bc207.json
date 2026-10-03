@@ -1,0 +1,44 @@
+{
+  "schema_version": "againward-rental-posttruth-adjudication-v1",
+  "case_id": "ae824b441b9bc207",
+  "pretruth_record": "../sealed/case_ae824b441b9bc207.pretruth.json",
+  "pretruth_record_sha256": "87514a1bd8aa62368cda70b69f643d6751419c8c739902cbb17c5f64b7567eb4",
+  "truth_accessed_after_seal": true,
+  "oracle_family": "partial_return",
+  "oracle_source_hashes_match_selection": true,
+  "expected_material_findings": [
+    {
+      "family": "partial_return",
+      "expected_supported_discrepancy_EUR": "550.00"
+    }
+  ],
+  "actual_material_findings": [
+    {
+      "family": "INCORRECT_QUANTITY",
+      "reported_difference_EUR": "550.00",
+      "reported_return_effect_EUR": "400.00",
+      "reported_other_pricing_excess_EUR": "150.00"
+    }
+  ],
+  "expected_financial_differences": {
+    "EUR": "550.00"
+  },
+  "actual_reported_financial_differences": {
+    "EUR": "550.00"
+  },
+  "amount_comparison": {
+    "expected_discrepancy_EUR": "550.00",
+    "actual_discrepancy_EUR": "550.00",
+    "amount_error": false,
+    "one_group_counted_once": true
+  },
+  "classification": [
+    "JUSTIFIED_STOP"
+  ],
+  "classification_reason": "The authored report identified the expected EUR 550 difference and decomposed it without adding components twice. The pipeline appropriately withheld completion when final report QA twice found reviewer-facing/internal instructions in the PDF narrative. The exact discrepancy is correct, but there is no QA-passed final report.",
+  "material_error_tags": [],
+  "final_report_qa": "REVISE on both attempts; pipeline STOP_REPORT_QA",
+  "human_escalation": false,
+  "oracle_comparison_independent_of_internal_model_qa": true,
+  "adjudicated_at_utc": "2026-09-25T19:16:09Z"
+}

@@ -7,27 +7,27 @@ from __future__ import annotations
 
 from dataclasses import asdict
 from pathlib import Path
+import re
 from typing import Any
 
 from againward.documents.contracts import DocumentError, SourceBatch, closed
-from againward.documents.extraction import promote_facts, replay_extraction
+from againward.documents.codex_provider import prompt_version_for_guidance
+from againward.documents.extraction import (promote_facts, replay_extraction,
+                                            visual_only_limited_extraction)
+from againward.documents.independent_qa import QA_INSTRUCTIONS, RETRY_INSTRUCTIONS, VISUAL_RETRY_INSTRUCTIONS
 from againward.documents.resolution import (
-    Entity, MatchPolicy, RelationshipState, entities_from_facts, resolve_entities,
-    review_relationships,
+    Entity, MatchPolicy, RelationshipState, entities_from_facts, non_entity_reference_groups,
+    resolve_entities, review_relationships,
 )
 from againward.evidence.hashing import stable_hash
-from .models import DOCUMENT_ROLES, RentalCase, decimal_value
+from .semantic_guidance import STRUCTURE_RETRY_INSTRUCTIONS, guidance, visual_guidance
+from .entity_contract import (ANALYTICAL_FIELDS, DOCUMENT_ROLES, DOCUMENT_STATUSES,
+    CREDIT_REFERENCE_FIELDS, NON_ENTITY_OBSERVATION_FIELDS, PACKAGE_SOURCE_REQUIRED,
+    structural_gaps)
+from .models import RentalCase, decimal_value
 
 DOCUMENT_CASE_SCHEMA = "againward-rental-document-case-v1"
-_ANALYTICAL_FIELDS = frozenset({
-    "entity_kind", "document_role", "document_status", "agreement_id", "supplier_id", "client_id",
-    "item_id", "description", "asset_id", "serial_number", "category", "site_id", "cost_center_id",
-    "start", "end", "quantity", "rate", "charge_key", "charge_type", "currency", "billing_unit",
-    "weekends_billable", "minimum_days", "partial_period_policy", "stop_event", "stop_day_billable",
-    "discount_fraction", "percentage_of", "tier_min_days", "tier_max_days", "effective_from",
-    "terms_unchanged", "invoice_id", "invoice_line_id", "net_amount", "unit_rate", "billed_units",
-    "event_type", "date", "verification", "extended_end", "credit_id", "status", "allocated_amount",
-})
+_ANALYTICAL_FIELDS = ANALYTICAL_FIELDS
 RENTAL_MATCH = MatchPolicy(
     "SAME_RENTAL",
     (("INVOICE_LINE", "RENTAL_SCOPE"), ("RETURN", "RENTAL_SCOPE"),
@@ -38,6 +38,10 @@ RENTAL_MATCH = MatchPolicy(
     required_scope_keys=("supplier_id",),
     exclusive_left_kinds=("INVOICE_LINE", "RETURN", "RATE_AMENDMENT"),
     prefix_blocking_keys=("agreement_id",),
+    # A signed return or invoice may omit supplier identity. Exact
+    # agreement+asset/serial remains mandatory, contradictory supplied IDs
+    # still reject the edge, and multiple plausible scopes remain ambiguous.
+    scope_optional_left_kinds=("RETURN", "INVOICE_LINE"),
 )
 CREDIT_MATCH = MatchPolicy(
     "CREDIT_FOR", (("CREDIT", "INVOICE_LINE"),),
@@ -47,6 +51,19 @@ CREDIT_MATCH = MatchPolicy(
     required_scope_keys=("supplier_id",),
     exclusive_left_kinds=("CREDIT",),
 )
+
+
+def _current_extraction_prompt_versions() -> set[str]:
+    """Enumerate only extraction prompts the current source job can issue."""
+    versions: set[str] = set()
+    for source_guidance, retry_guidance in (
+        (guidance(), RETRY_INSTRUCTIONS), (visual_guidance(), VISUAL_RETRY_INSTRUCTIONS),
+    ):
+        for qa_guidance in ("", QA_INSTRUCTIONS):
+            for retry_suffix in ("", retry_guidance,
+                                 retry_guidance + STRUCTURE_RETRY_INSTRUCTIONS):
+                versions.add(prompt_version_for_guidance(source_guidance + qa_guidance + retry_suffix))
+    return versions
 
 
 def _refs(entity: Entity, fields: set[str] | None = None) -> list[dict[str, Any]]:
@@ -73,37 +90,154 @@ def _optional(entity: Entity, keys: tuple[str, ...]) -> dict[str, Any]:
     return {key: entity.values[key] for key in keys if key in entity.values}
 
 
+def _source_document_metadata(source_facts) -> tuple[set[Any], set[Any]]:
+    """Read role/status at their declared source scope, independent of grouping."""
+    roles = {fact.candidate.value for fact in source_facts
+             if fact.candidate.semantic_type == "document_role"}
+    statuses = {fact.candidate.value for fact in source_facts
+                if fact.candidate.semantic_type == "document_status"}
+    return roles, statuses
+
+
+def _line_identifier(entity: Entity) -> tuple[str, dict[str, str] | None]:
+    """Use a reviewed printed line label, else a clearly technical local ID."""
+    source_value = entity.values.get("invoice_line_id")
+    labels = {match.group(1) for fact in entity.facts
+              for match in [re.match(r"(?i)^line\s+([A-Za-z0-9_.:/-]{1,64})(?:\s|:|-|$)",
+                                     fact.candidate.raw_observed_value)] if match}
+    if len(labels) > 1 or (source_value is not None and labels and labels != {source_value}):
+        raise DocumentError("ENTITY_AMBIGUOUS", "Reviewed invoice line labels conflict")
+    if source_value is not None:
+        return str(source_value), None
+    if labels:
+        return next(iter(labels)), {"entity_id": entity.entity_id,
+                                    "field": "invoice_line_id", "rule": "REVIEWED_PRINTED_LINE_LABEL"}
+    from againward.evidence.hashing import stable_hash
+    anchors = sorted((fact.candidate.location, fact.candidate.source_span)
+                     for fact in entity.facts if fact.candidate.semantic_type == "net_amount")
+    identity = {"source_id": entity.source_id, "anchors": anchors,
+                "invoice_id": entity.values.get("invoice_id"),
+                "charge_type": entity.values.get("charge_type"),
+                "visual_occurrence": entity.local_id if any(span is None for _, span in anchors) else None,
+                "net_amount": entity.values.get("net_amount")}
+    return "local-" + stable_hash(identity)[:20], {
+        "entity_id": entity.entity_id, "field": "invoice_line_id",
+        "rule": "SOURCE_LOCAL_TECHNICAL_ID"}
+
+
+def _unique_charge_key(terms: list[dict[str, Any]], *, period_id: str,
+                       charge_type: str, currency: str) -> str:
+    keys = {str(term["charge_key"]) for term in terms if term["period_id"] == period_id
+            and term["charge_type"] == charge_type and term["currency"] == currency}
+    if len(keys) != 1:
+        raise DocumentError("ENTITY_AMBIGUOUS", "No unique reviewed charge scope for technical key")
+    return next(iter(keys))
+
+
 def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, Any]]:
     p = closed(payload, {"schema_version", "batch", "extractions", "fact_review",
-                         "rental_relationship_review", "credit_relationship_review"})
+                         "rental_relationship_review", "credit_relationship_review"}, optional={"scope_review"})
     if p["schema_version"] != DOCUMENT_CASE_SCHEMA:
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Unknown Rental document package")
     batch = SourceBatch.from_dict(p["batch"])
     if not isinstance(p["extractions"], list):
         raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Validated extractions required")
     extractions = tuple(replay_extraction(e, batch, root) for e in p["extractions"])
+    from againward.documents.codex_provider import EXTRACTOR_VERSION
+    approved_prompt_versions = _current_extraction_prompt_versions()
+    for extraction in extractions:
+        if (extraction.extractor_version == EXTRACTOR_VERSION
+                and extraction.prompt_version not in approved_prompt_versions):
+            raise DocumentError("REVIEW_STALE", "Rental extraction prompt is not current", diagnostic={
+                "stage": "RENTAL_DOCUMENT_PACKAGE_VALIDATION", "source_id": extraction.source_id,
+                "source_sha256": extraction.source_sha256, "extractor_version": extraction.extractor_version,
+                "prompt_version": extraction.prompt_version, "schema_path": "$.extractions[].prompt_version",
+                "validation_code": "PROMPT_VERSION_NOT_CURRENT",
+                "current_prompt_version_count": len(approved_prompt_versions),
+            })
     if (len(extractions) != len(batch.documents)
             or {e.source_id for e in extractions} != {d.source_id for d in batch.documents}):
         raise DocumentError("EXTRACTION_INCOMPLETE", "Every source requires one explicit extraction/classification")
     facts = promote_facts(extractions, p["fact_review"], batch, root)
     if any(f.candidate.semantic_type not in _ANALYTICAL_FIELDS for f in facts):
         raise DocumentError("UNSUPPORTED_PROMOTION", "Non-analytical fields must not enter Rental evidence")
-    if any(e.limitations for e in extractions):
-        raise DocumentError("EXTRACTION_INCOMPLETE",
-                            "Unextracted/missing components must be resolved before financial preparation")
-    entities = entities_from_facts(facts)
+    reviewed_visual_hashes = {
+        (row.get("source_sha256"), candidate_hash)
+        for key in ("visual_model_reviews", "visual_attestations")
+        for row in p["fact_review"].get(key, []) if isinstance(row, dict)
+        for candidate_hash in row.get("candidate_hashes", [])
+    }
+    for extraction in extractions:
+        if not extraction.limitations:
+            continue
+        if not visual_only_limited_extraction(extraction, batch, root):
+            raise DocumentError("EXTRACTION_INCOMPLETE",
+                                "Unextracted/missing components must be resolved before financial preparation")
+        required_visual_hashes = {stable_hash(candidate.to_dict()) for candidate in extraction.candidates}
+        if any((extraction.source_sha256, candidate_hash) not in reviewed_visual_hashes
+               for candidate_hash in required_visual_hashes):
+            raise DocumentError("EXTRACTION_INCOMPLETE",
+                                "Visual-only extraction limitation needs review of every original-pixel candidate")
+    gaps = structural_gaps(
+        ((f.candidate.source_id, f.candidate.entity_id, f.candidate.semantic_type) for f in facts),
+        offered=((c.source_id, c.entity_id, c.semantic_type) for e in extractions for c in e.candidates))
+    if gaps:
+        raise DocumentError("EXTRACTION_INCOMPLETE", "Reviewed authority cannot be inherited over rejected metadata",
+            diagnostic={"stage": "DOCUMENT_PACKAGE_VALIDATION", "schema_path": "$.fact_review.decisions",
+                        "validation_code": "REVIEWED_AUTHORITY_INCOMPLETE", "error_category": "REVIEW_REQUIRED",
+                        "structural_gap_count": len(gaps), "source_id": gaps[0]["source_id"]})
+    reference_fields_by_kind = {"CREDIT": CREDIT_REFERENCE_FIELDS}
+    entities = entities_from_facts(facts, non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS,
+                                   reference_fields_by_kind=reference_fields_by_kind)
+    source_reference_fragments = non_entity_reference_groups(
+        facts, non_entity_fields=NON_ENTITY_OBSERVATION_FIELDS,
+        reference_fields_by_kind=reference_fields_by_kind)
     if any(e.kind not in {"RENTAL_SCOPE", "INVOICE_LINE", "RETURN", "RATE_AMENDMENT",
-                          "CREDIT", "IRRELEVANT"} for e in entities):
+                          "CREDIT", "SUPPORTING_DOCUMENT", "IRRELEVANT"} for e in entities):
         raise DocumentError("EXTRACTION_INCOMPLETE", "Unsupported material entity kind")
+    for entity in entities:
+        missing = {field for field in PACKAGE_SOURCE_REQUIRED[entity.kind] if entity.values.get(field) is None}
+        if missing:
+            raise DocumentError("EXTRACTION_INCOMPLETE",
+                                "Reviewed entity lacks package-required source facts: " + ",".join(sorted(missing)),
+                                diagnostic={"stage": "DOCUMENT_PACKAGE_VALIDATION",
+                                    "source_id": entity.source_id, "schema_path": "$.entities[].fields",
+                                    "validation_code": "REVIEWED_ENTITY_INCOMPLETE", "error_category": "SOURCE_EVIDENCE_MISSING",
+                                    "missing_semantic_fields": sorted(missing)})
+    from .scope_review import validate_scope_receipt
+    classifications, classification_decisions = validate_scope_receipt(entities, extractions, p.get("scope_review"))
+    fact_lookup = {f.fact_id: f for f in facts}
+
+    def classification_refs(entity):
+        refs = _refs(entity)
+        for decision in classification_decisions:
+            if decision["entity_id"] != entity.entity_id:
+                continue
+            for fid in decision["supporting_fact_ids"]:
+                fact = fact_lookup[fid]
+                # Preserve the actual source/location of every relationship
+                # premise. These are not observations copied onto the invoice.
+                ref_entity = Entity("proof", "proof", fact.candidate.source_id, "SUPPORTING_DOCUMENT", (fact,))
+                for ref in _refs(ref_entity):
+                    if ref not in refs:
+                        refs.append(ref)
+        return refs
+
+    def charge_classification(entity):
+        value = entity.values.get("charge_type", classifications.get(entity.entity_id))
+        if value is None:
+            raise DocumentError("EXTRACTION_INCOMPLETE", "Reviewed charge classification required")
+        return value
+
     by_source: dict[str, list[Entity]] = {}
     for e in entities:
         by_source.setdefault(e.source_id, []).append(e)
     documents = []
     for source in batch.documents:
         source_entities = by_source.get(source.source_id, [])
-        roles = {e.values.get("document_role") for e in source_entities}
-        statuses = {e.values.get("document_status") for e in source_entities}
-        if len(roles) != 1 or not roles <= DOCUMENT_ROLES or len(statuses) != 1:
+        source_facts = [fact for fact in facts if fact.candidate.source_id == source.source_id]
+        roles, statuses = _source_document_metadata(source_facts)
+        if len(roles) != 1 or not roles <= DOCUMENT_ROLES or len(statuses) != 1 or not statuses <= DOCUMENT_STATUSES:
             raise DocumentError("EXTRACTION_INCOMPLETE", "Reviewed source role/status required without conflict")
         role, status = next(iter(roles)), next(iter(statuses))
         if role in {"IRRELEVANT", "UNKNOWN"} and any(e.kind != "IRRELEVANT" for e in source_entities):
@@ -127,6 +261,8 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
                             "events": [], "actual_charges": [], "credits": []}
     parties: dict[str, dict[str, Any]] = {}
     period_ids = {}
+    technical_derivations: list[dict[str, str]] = []
+    rate_normalizations: list[dict[str, Any]] = []
     for e in entities:
         if e.kind != "RENTAL_SCOPE":
             continue
@@ -148,20 +284,33 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
         case["periods"].append({"period_id": pid, "item_id": iid, **values, "evidence_refs": _refs(e),
                                 **_optional(e, ("site_id", "cost_center_id"))})
         if any(key in e.values for key in ("rate", "billing_unit", "charge_key", "charge_type")):
-            term = _required(e, ("charge_key", "charge_type", "currency"))
-            term.update(_optional(e, ("rate", "billing_unit", "weekends_billable", "minimum_days",
+            term = {**_required(e, ("currency",)), "charge_type": charge_classification(e)}
+            if e.values.get("charge_key") is None:
+                term["charge_key"] = str(term["charge_type"]).lower()
+                technical_derivations.append({"entity_id": e.entity_id, "field": "charge_key",
+                                              "rule": "REVIEWED_TERM_CHARGE_TYPE"})
+            else:
+                term["charge_key"] = e.values["charge_key"]
+            term.update(_optional(e, ("rate", "billing_unit", "quantity_basis", "weekends_billable", "minimum_days",
                                      "partial_period_policy", "stop_event", "stop_day_billable", "discount_fraction")))
             case["terms"].append({"term_id": "term-" + e.entity_id.removeprefix("entity-"),
-                                  "period_id": pid, **term, "evidence_refs": _refs(e)})
+                                  "period_id": pid, **term, "evidence_refs": classification_refs(e)})
     case["parties"] = sorted(parties.values(), key=lambda party: party["party_id"])
     amendments = sorted((e for e in entities if e.kind == "RATE_AMENDMENT"),
                         key=lambda e: (str(e.values.get("effective_from")), e.entity_id))
     for e in amendments:
-        change = _required(e, ("charge_key", "charge_type", "currency", "rate", "effective_from",
+        change = _required(e, ("charge_type", "currency", "rate", "effective_from",
                                "terms_unchanged"))
         if change["terms_unchanged"] is not True:
             raise DocumentError("EXTRACTION_INCOMPLETE", "Amendment must explicitly preserve prior conventions")
         pid = period_ids[links[e.entity_id]]
+        if e.values.get("charge_key") is None:
+            change["charge_key"] = _unique_charge_key(case["terms"], period_id=pid,
+                charge_type=str(change["charge_type"]), currency=str(change["currency"]))
+            technical_derivations.append({"entity_id": e.entity_id, "field": "charge_key",
+                                          "rule": "UNIQUE_REVIEWED_TERM_SCOPE"})
+        else:
+            change["charge_key"] = e.values["charge_key"]
         earlier = [t for t in case["terms"] if t["period_id"] == pid and t["charge_key"] == change["charge_key"]
                    and ("effective_from" not in t or str(t["effective_from"]) < str(change["effective_from"]))]
         if not earlier:
@@ -180,9 +329,20 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
     charges = {}
     for e in entities:
         if e.kind == "INVOICE_LINE":
-            charge = _required(e, ("invoice_id", "invoice_line_id", "charge_key", "charge_type", "currency", "net_amount"))
+            charge = {**_required(e, ("invoice_id", "currency", "net_amount")), "charge_type": charge_classification(e)}
+            charge["invoice_line_id"], derivation = _line_identifier(e)
+            if derivation is not None:
+                technical_derivations.append(derivation)
+            if e.values.get("charge_key") is None:
+                charge["charge_key"] = _unique_charge_key(case["terms"],
+                    period_id=period_ids[links[e.entity_id]],
+                    charge_type=str(charge["charge_type"]), currency=str(charge["currency"]))
+                technical_derivations.append({"entity_id": e.entity_id, "field": "charge_key",
+                                              "rule": "UNIQUE_REVIEWED_TERM_SCOPE"})
+            else:
+                charge["charge_key"] = e.values["charge_key"]
             charge.update(_optional(e, ("start", "end", "quantity", "unit_rate", "billed_units")))
-            case["actual_charges"].append({**charge, "period_id": period_ids[links[e.entity_id]], "evidence_refs": _refs(e)})
+            case["actual_charges"].append({**charge, "period_id": period_ids[links[e.entity_id]], "evidence_refs": classification_refs(e)})
             charges[e.entity_id] = str(charge["invoice_id"]) + "/" + str(charge["invoice_line_id"])
         elif e.kind == "RETURN":
             event = _required(e, ("event_type", "date", "quantity", "verification"))
@@ -212,11 +372,42 @@ def load_document_case(payload: Any, root: Path) -> tuple[RentalCase, dict[str, 
                                         "allocation_state": "PARTIALLY_ALLOCATED_CREDIT" if partial else "CONFIRMED_ALLOCATION",
                                         **({"allocated_amount": allocated} if partial else {}),
                                         "evidence_refs": _refs(e)})
-    canonical = RentalCase.from_dict(case)
+    from .entity_contract import BILLING_UNITS
+    from .rate_dimensions import rate_dimensions, QUANTITY_BASES
+    for index, term in enumerate(case["terms"]):
+        dimensions = rate_dimensions(term.get("billing_unit"))
+        if dimensions:
+            original_unit = term["billing_unit"]
+            for field, value in dimensions.items():
+                if field != "billing_unit" and field in term and term[field] != value:
+                    raise DocumentError("EXTRACTION_CONTRADICTION", "Reviewed rate dimensions conflict",
+                        diagnostic={"stage": "DOCUMENT_PACKAGE_VALIDATION", "validation_code": "RATE_DIMENSION_CONFLICT",
+                            "schema_path": f"$.terms[{index}].{field}", "error_category": "SEMANTIC_CONTRADICTION"})
+                term[field] = value
+            rate_normalizations.append({"term_id": term["term_id"], "original_unit": original_unit,
+                "dimensions": dimensions, "rule": "REVIEWED_RATE_DIMENSIONS",
+                "evidence_refs": term["evidence_refs"]})
+        for field, allowed in (("billing_unit", BILLING_UNITS), ("quantity_basis", QUANTITY_BASES)):
+            if term.get(field) is not None and term[field] not in allowed:
+                raise DocumentError("EXTRACTION_INCOMPLETE", "Unsupported reviewed rate dimension",
+                    diagnostic={"stage": "DOCUMENT_PACKAGE_VALIDATION", "validation_code": "UNSUPPORTED_RATE_DIMENSION",
+                        "schema_path": f"$.terms[{index}].{field}", "error_category": "SOURCE_EVIDENCE_MISSING",
+                        "missing_semantic_fields": [field]})
+    try:
+        canonical = RentalCase.from_dict(case)
+    except ValueError as exc:
+        raise DocumentError("EXTRACTION_SCHEMA_INVALID", "Canonical Rental record failed validation",
+            diagnostic={"stage": "DOCUMENT_PACKAGE_VALIDATION", "schema_path": "$.canonical_case",
+                "validation_code": "CANONICAL_RECORD_INVALID", "error_category": "SCHEMA_ERROR"}) from exc
     lineage = {"schema_version": "againward-rental-document-lineage-v1", "batch_id": batch.batch_id,
                "canonical_case_sha256": stable_hash(canonical.to_dict()),
                "facts": [f.to_dict() for f in facts], "entities": [asdict(e) for e in entities],
                "rental_resolution": resolution.to_dict(), "credit_resolution": credit_resolution.to_dict(),
+               "technical_derivations": technical_derivations,
+               "rate_normalizations": rate_normalizations,
+               "package_classifications": classification_decisions,
+               "unassigned_source_reference_fragments": [row for row in source_reference_fragments
+                   if row["source_id"] in {document.source_id for document in batch.documents}],
                "limitations": sorted({limit for extraction in extractions for limit in extraction.limitations}),
                "queryable_source_units": "Native location and character span retained in every evidence reference",
                "human_delivery_approval": False}

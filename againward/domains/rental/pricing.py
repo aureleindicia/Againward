@@ -203,11 +203,24 @@ def build_expected_ledger(case: RentalCase) -> dict:
         if timeline["contradictions"] or timeline["limitations"]:
             continue
         if term.billing_unit == "PERCENT":
+            if term.quantity_basis is not None:
+                entry["limitations"].append("percentage_quantity_basis_requires_review")
+                continue
             pending_percentages.append((scope, term))
             continue
         units, gaps = billable_units(timeline["start"], timeline["end"], term)
         entry["limitations"].extend(gaps)
         quantity = term.quantity if term.quantity is not None else (period.quantity if term.charge_type == "RENTAL" else None)
+        if term.quantity_basis == "PER_SCOPE":
+            if term.quantity is not None and decimal_value(term.quantity) != 1:
+                entry["limitations"].append("scope_rate_quantity_conflict")
+                continue
+            quantity = "1"
+        elif term.quantity_basis == "PER_ITEM":
+            if term.quantity is not None and decimal_value(term.quantity) != decimal_value(period.quantity):
+                entry["limitations"].append("item_rate_quantity_conflict")
+                continue
+            quantity = period.quantity
         if units is None or quantity is None:
             if quantity is None:
                 entry["limitations"].append("contractual_charge_quantity_missing")

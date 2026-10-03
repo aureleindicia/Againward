@@ -52,6 +52,8 @@ def price_daily_segments(case: RentalCase, period: RentalPeriod, terms: list[Rat
             "RENTAL_AGREEMENT", "PURCHASE_ORDER", "AMENDMENT", "EMAIL_EVIDENCE"}):
         return refuse("rental_period_not_supported_by_accepted_commercial_evidence")
     for term in chain:
+        if term.quantity_basis == "PER_SCOPE":
+            return refuse("scope_rate_daily_segments_requires_review")
         if (term.charge_type != "RENTAL" or term.billing_unit != "DAY"
                 or term.currency != base.currency or term.stop_event != base.stop_event
                 or term.stop_day_billable != base.stop_day_billable):

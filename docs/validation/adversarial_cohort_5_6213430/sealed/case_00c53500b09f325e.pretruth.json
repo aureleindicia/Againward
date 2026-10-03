@@ -1,0 +1,52 @@
+{
+  "schema_version": "againward-rental-pretruth-seal-v1",
+  "case_id": "00c53500b09f325e",
+  "code_commit": "6213430c8bd9dd58ac6c84f4fc33c2cc1fe8f502",
+  "selection_record_commit": "a96540d673456ef512eedadd9fb729f13e583a72",
+  "model": "gpt-6-sol",
+  "codex_cli": "codex-cli 0.156.1",
+  "policy_versions": [
+    "againward-rental-approved-sources-job-v1",
+    "rental-independent-source-reread-v2",
+    "againward-source-adjudication-v4",
+    "againward-codex-analyst-review-v3",
+    "againward-codex-visual-analyst-v2",
+    "againward-rental-autonomous-report-v4",
+    "againward-rental-autonomous-finding-review-v6",
+    "againward-rental-reviewed-evidence-v2",
+    "againward-source-facts-v3-3c5241952f9688d9"
+  ],
+  "private_truth_opened_before_seal": false,
+  "source_hashes": {
+    "billing.pdf": "ab9e5fdfb2e5df42e53accdba286f734aab9c51b4e2666d40109c77bb7559fc3",
+    "commercial.pdf": "7f5fec9976fdc92c1db984778cddf71492f9afec2c17e27f640582497e98c16c",
+    "credit.pdf": "ce0f66073e1d285637688957b98e38a1a5747fa4328373acbe26bbd62232eb03"
+  },
+  "model_runtime": {
+    "primary_source_reads": 3,
+    "independent_rereads": 3,
+    "material_source_disagreements": 2,
+    "material_unresolved_after_adjudication": 1,
+    "facts_approved": 0,
+    "recorded_model_calls": 7,
+    "recorded_model_wall_seconds": 204.935,
+    "model_cost": null
+  },
+  "pipeline_status": "WAITING_FOR_REQUIRED_INFORMATION",
+  "stage": "SOURCE_ADJUDICATION",
+  "report_produced": false,
+  "pdf_sha256": null,
+  "material_findings_reported": [],
+  "financial_differences_reported": null,
+  "limitations_reported": [
+    "The issued EUR 150.00 credit note says its allocation remains unconfirmed; the system could not establish that it offsets this invoice line.",
+    "A separate source-local extraction disagreement also remained advisory; no facts were approved and no calculation/report was run."
+  ],
+  "abstentions": [
+    "No invoice discrepancy amount was reported because source adjudication did not resolve whether the credit belongs to the invoice/line."
+  ],
+  "stop_wait_reason": "Source adjudication left the credit allocation material and unresolved after exact source citations; WAITING_FOR_REQUIRED_INFORMATION.",
+  "human_escalation": false,
+  "final_report_qa": "NOT_REACHED",
+  "sealed_at_utc": "2026-09-25T19:06:34Z"
+}

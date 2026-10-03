@@ -57,6 +57,13 @@ def build_parser() -> argparse.ArgumentParser:
     privacy_validate.add_argument("case_directory")
     privacy_validate.add_argument("review_json")
     privacy_validate.add_argument("--supplemental", action="store_true", help="Revoir de nouvelles pièces sans réinitialiser le dossier")
+    visual_prepare = subparsers.add_parser("privacy-visual-prepare", help="Préparer les pages visuelles après première revue Codex")
+    visual_prepare.add_argument("case_directory")
+    visual_prepare.add_argument("review_json")
+    visual_attest = subparsers.add_parser("privacy-visual-attest", help="Attestation visuelle interactive par opérateur local")
+    visual_attest.add_argument("case_directory")
+    visual_attest.add_argument("review_json")
+    visual_attest.add_argument("--actor-id", required=True)
     retention = subparsers.add_parser("retention-configure", help="Configurer la rétention contractuelle")
     retention.add_argument("case_directory")
     retention.add_argument("policy_json")
@@ -125,6 +132,13 @@ def main(argv: list[str] | None = None) -> int:
             packet = json.loads(Path(args.packet_json).read_text(encoding="utf-8"))
             result = record_contract_policy(args.case_directory, packet["policy"],
                 semantic_extraction=packet["semantic_extraction"], human_review=packet.get("human_review"))
+        elif args.command == "privacy-visual-prepare":
+            from againward.core.visual_review import prepare_visual_packet
+            result = prepare_visual_packet(Path(args.case_directory), Path(args.review_json))
+        elif args.command == "privacy-visual-attest":
+            from againward.core.visual_review import attest_visual_packet
+            result = attest_visual_packet(Path(args.case_directory), Path(args.review_json),
+                                          actor_id=args.actor_id, ask=input, interactive=sys.stdin.isatty())
         elif args.command == "privacy-validate":
             from againward.entrypoints import get_case_domain
             result = validate_codex_privacy_review(args.case_directory, args.review_json,

@@ -1,0 +1,38 @@
+{
+  "schema_version": "againward-rental-posttruth-adjudication-v1",
+  "case_id": "c06894c2744f1010",
+  "pretruth_record": "../sealed/case_c06894c2744f1010.pretruth.json",
+  "pretruth_record_sha256": "536ae604b843d55e344af33b304570c2b5dab71c4ad7e97a25e8a8ec32d2c47f",
+  "truth_accessed_after_seal": true,
+  "oracle_family": "hybrid",
+  "oracle_source_hashes_match_selection": true,
+  "expected_material_findings": [
+    {
+      "supported_discrepancy_EUR": "150.00",
+      "scan_review_required": true
+    }
+  ],
+  "actual_material_findings": [],
+  "expected_financial_differences": {
+    "EUR": "150.00"
+  },
+  "actual_reported_financial_differences": null,
+  "amount_comparison": {
+    "expected_supported_discrepancy_EUR": "150.00",
+    "actual_reported_discrepancy_EUR": null,
+    "amount_error": false,
+    "amount_was_not_computed": true
+  },
+  "classification": [
+    "UNJUSTIFIED_STOP",
+    "MATERIAL_MISS"
+  ],
+  "classification_reason": "The oracle required original scan review and recorded a supported EUR 150 discrepancy without requiring abstention. The system stopped at source adjudication with EXTRACTION_INCOMPLETE before pixel review, calculation or report production, and did not offer a HUMAN escalation.",
+  "material_error_tags": [
+    "MATERIAL_MISS"
+  ],
+  "final_report_qa": "NOT_REACHED",
+  "human_escalation": false,
+  "oracle_comparison_independent_of_internal_model_qa": true,
+  "adjudicated_at_utc": "2026-09-25T19:21:40Z"
+}
