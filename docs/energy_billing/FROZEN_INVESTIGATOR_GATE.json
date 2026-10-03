@@ -1,0 +1,221 @@
+{
+  "schema_version": "energy-billing-investigator-gate-v1",
+  "engine_sha": "0d753490f8c4cf798ea0e8bf5eccc572e0dee03b",
+  "engine_dirty": false,
+  "model": "gpt-6.1-sol",
+  "python_version": "3.14.6",
+  "platform": "Android",
+  "cli_version": "codex-cli 0.159.3",
+  "source_rejects": 0,
+  "observations": 33,
+  "invalid_observations": 0,
+  "occurrences": 2,
+  "relations": 0,
+  "claims": 0,
+  "reviews": 2,
+  "readiness": {
+    "derived_blockers": [
+      "CALCULATION_BLOCKED"
+    ],
+    "ready": false,
+    "root_issues": [
+      {
+        "actual_type": "NoneType",
+        "code": "AUTHORITY_UNRESOLVED",
+        "component": "energy_billing",
+        "expected": "reviewed GOVERNS relation",
+        "path": "$",
+        "schema_version": "energy-billing-model-v1",
+        "stage": "RELATION",
+        "state_mutated": false
+      }
+    ],
+    "schema_version": "energy-billing-consumption-case-v1",
+    "scope": "ONE_CONSUMPTION_HT_LINE",
+    "support_state": "UNRESOLVED"
+  },
+  "root_issues": [
+    {
+      "actual_type": "NoneType",
+      "code": "AUTHORITY_UNRESOLVED",
+      "component": "energy_billing",
+      "expected": "reviewed GOVERNS relation",
+      "path": "$",
+      "schema_version": "energy-billing-model-v1",
+      "stage": "RELATION",
+      "state_mutated": false
+    }
+  ],
+  "derived_blockers": [
+    "CALCULATION_BLOCKED"
+  ],
+  "investigator_turns": 9,
+  "model_calls": 13,
+  "protocol_retries": 0,
+  "diagnostics": [
+    {
+      "actual_type": "NoneType",
+      "cause": "CLI_EXIT",
+      "code": "MODEL_PROVIDER_FAILURE",
+      "component": "energy_billing",
+      "duration_seconds": 3.7748888460046146,
+      "exit_code": 1,
+      "expected": "successful CLI",
+      "invocation_id": "495e5646-2c2b-4b32-8d92-2e026ee8d5d8",
+      "model": "gpt-6.1-sol",
+      "path": "$",
+      "raw_retained": true,
+      "response_bytes": 0,
+      "response_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retry_count": 0,
+      "schema_sha256": "d2ea4c5e751bd70b1acbabb439944ecb01a89834adc74ed467e01f5bc77c1dd8",
+      "schema_version": "energy-billing-model-v1",
+      "source_id": null,
+      "stage": "ACTION",
+      "state_mutated": false,
+      "stream_sha256": {
+        "schema.json": "2e4597031699dbbaa087c1e5ccb506867d23e40c0c5cbbaf853c9afb5d5df898",
+        "stderr.bin": "7978313c91115f95e040d06e9aa10c2f8b38a88969d49ad823b7c6d5ddd2b758",
+        "stdout.bin": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "provider_failures": 1,
+  "calculation_reached": false,
+  "qa_performed": false,
+  "report_reached": false,
+  "terminal_reason": {
+    "actual_type": "NoneType",
+    "cause": "CLI_EXIT",
+    "code": "MODEL_PROVIDER_FAILURE",
+    "component": "energy_billing",
+    "duration_seconds": 3.7748888460046146,
+    "exit_code": 1,
+    "expected": "successful CLI",
+    "invocation_id": "495e5646-2c2b-4b32-8d92-2e026ee8d5d8",
+    "model": "gpt-6.1-sol",
+    "path": "$",
+    "raw_retained": true,
+    "response_bytes": 0,
+    "response_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "retry_count": 0,
+    "schema_sha256": "d2ea4c5e751bd70b1acbabb439944ecb01a89834adc74ed467e01f5bc77c1dd8",
+    "schema_version": "energy-billing-model-v1",
+    "source_id": null,
+    "stage": "ACTION",
+    "state_mutated": false,
+    "stream_sha256": {
+      "schema.json": "2e4597031699dbbaa087c1e5ccb506867d23e40c0c5cbbaf853c9afb5d5df898",
+      "stderr.bin": "7978313c91115f95e040d06e9aa10c2f8b38a88969d49ad823b7c6d5ddd2b758",
+      "stdout.bin": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "wall_seconds": 278.92075755499536,
+  "qualification": "Known synthetic local Investigator development gate; not DEV corpus, sealed HOLDOUT, post-calculation QA or human delivery approval.",
+  "source_hashes": {
+    "src-47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2": "47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2",
+    "src-aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203": "aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203"
+  },
+  "steps": [
+    {
+      "turn": 1,
+      "issue_code": "SOURCE_NOT_READ",
+      "before_semantic_sha256": "bf2d25ceb1903808883d4488603882e5ef3ad37f8d2ca099d84d9686a4bc3272",
+      "after_semantic_sha256": "bf2d25ceb1903808883d4488603882e5ef3ad37f8d2ca099d84d9686a4bc3272",
+      "progress": false,
+      "model_calls_before": 0,
+      "model_calls_after": 1,
+      "wall_seconds": 11.98759469302604,
+      "action_type": "REQUEST_INSPECTION"
+    },
+    {
+      "turn": 2,
+      "issue_code": "SOURCE_NOT_READ",
+      "before_semantic_sha256": "bf2d25ceb1903808883d4488603882e5ef3ad37f8d2ca099d84d9686a4bc3272",
+      "after_semantic_sha256": "f4b3661bd3876d82d063b1b446f44a14a99ff66ddcf7d91d0a015f1994ee2897",
+      "progress": true,
+      "model_calls_before": 1,
+      "model_calls_after": 3,
+      "wall_seconds": 38.6242443099909,
+      "action_type": "REQUEST_REREAD"
+    },
+    {
+      "turn": 3,
+      "issue_code": "SOURCE_OCCURRENCE_MISSING",
+      "before_semantic_sha256": "f4b3661bd3876d82d063b1b446f44a14a99ff66ddcf7d91d0a015f1994ee2897",
+      "after_semantic_sha256": "a736ace33b741ff4580ba90aa8fe8c8af17e770a5bc4ee824d89b44e22031013",
+      "progress": true,
+      "model_calls_before": 3,
+      "model_calls_after": 4,
+      "wall_seconds": 27.076121310004964,
+      "action_type": "DECLARE_INVOICE"
+    },
+    {
+      "turn": 4,
+      "issue_code": "SOURCE_NOT_READ",
+      "before_semantic_sha256": "a736ace33b741ff4580ba90aa8fe8c8af17e770a5bc4ee824d89b44e22031013",
+      "after_semantic_sha256": "a736ace33b741ff4580ba90aa8fe8c8af17e770a5bc4ee824d89b44e22031013",
+      "progress": false,
+      "model_calls_before": 4,
+      "model_calls_after": 5,
+      "wall_seconds": 12.367539155005943,
+      "action_type": "REQUEST_INSPECTION"
+    },
+    {
+      "turn": 5,
+      "issue_code": "SOURCE_NOT_READ",
+      "before_semantic_sha256": "a736ace33b741ff4580ba90aa8fe8c8af17e770a5bc4ee824d89b44e22031013",
+      "after_semantic_sha256": "75147bffb438607716f0825ccf6eababc6c75c9ef2ad008fb63658d24b81e5d0",
+      "progress": true,
+      "model_calls_before": 5,
+      "model_calls_after": 7,
+      "wall_seconds": 43.81735008000396,
+      "action_type": "REQUEST_REREAD"
+    },
+    {
+      "turn": 6,
+      "issue_code": "SOURCE_OCCURRENCE_MISSING",
+      "before_semantic_sha256": "75147bffb438607716f0825ccf6eababc6c75c9ef2ad008fb63658d24b81e5d0",
+      "after_semantic_sha256": "ed95add9f4153b188de2c8a6363d65eebbc18dd45350d83060be88402036c3f5",
+      "progress": true,
+      "model_calls_before": 7,
+      "model_calls_after": 8,
+      "wall_seconds": 34.703106539993314,
+      "action_type": "DECLARE_TARIFF"
+    },
+    {
+      "turn": 7,
+      "issue_code": "MATERIAL_EVIDENCE_MISSING",
+      "before_semantic_sha256": "ed95add9f4153b188de2c8a6363d65eebbc18dd45350d83060be88402036c3f5",
+      "after_semantic_sha256": "63e772d687c68e0fa3064f09e8426b28dd5cd2a97b37efa046d02dcc97219297",
+      "progress": true,
+      "model_calls_before": 8,
+      "model_calls_after": 10,
+      "wall_seconds": 47.66858831001446,
+      "action_type": "REQUEST_REVIEW"
+    },
+    {
+      "turn": 8,
+      "issue_code": "MATERIAL_EVIDENCE_MISSING",
+      "before_semantic_sha256": "63e772d687c68e0fa3064f09e8426b28dd5cd2a97b37efa046d02dcc97219297",
+      "after_semantic_sha256": "6bd194fda274b1ef2a4712617f8b2aa64f6d42542e3e666b14c713fc3aa625b4",
+      "progress": true,
+      "model_calls_before": 10,
+      "model_calls_after": 12,
+      "wall_seconds": 50.612282771995524,
+      "action_type": "REQUEST_REVIEW"
+    }
+  ],
+  "provider_error_observed": "CLI ERROR: You have hit your usage limit; try again at 7:43 PM. This is the observed provider message, not a guarantee of reset time or account entitlement.",
+  "software_validation": {
+    "engine_sha": "0d753490f8c4cf798ea0e8bf5eccc572e0dee03b",
+    "full_tests_passed": 1530,
+    "full_suite_seconds": 671.59,
+    "focused_tests_passed": 118,
+    "focused_suite_seconds": 24.22,
+    "ruff": "PASS",
+    "mypy": "PASS",
+    "mypy_source_files": 36,
+    "qualification": "Full suite and actual-model gate overlapped. Timing is not an isolated performance benchmark; unchanged HOLDOUT integrity guards pass."
+  }
+}

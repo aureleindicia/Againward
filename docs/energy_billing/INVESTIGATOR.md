@@ -83,6 +83,27 @@ physical-expertise and signal-intelligence preparation. They are retained and
 not skipped or weakened. A fresh full suite on the clean committed checkpoint
 is required to verify the final code and both integrity guards.
 
+## Frozen checkpoint outcome
+
+Clean engine `0d753490f8c4cf798ea0e8bf5eccc572e0dee03b` passes **1530 tests
+in 671.59 seconds**, including both unchanged HOLDOUT integrity guards. The
+earlier dirty-tree failures remain historical context, not skipped controls.
+
+Its actual-model gate reaches 33 bound observations, zero quarantine, two
+occurrences and two independent supported facts reviews. The model chooses
+source inspection, re-reading, declaration and independent review through the
+real local action schema. At the missing GOVERNS relation, the thirteenth CLI
+invocation fails with an explicit usage-limit message and no response. Nine
+turns are reserved; eight complete. No relation, calculation or PDF is created.
+There is zero protocol repair. Valid evidence, both occurrences and both
+reviews survive; termination is MODEL_PROVIDER_FAILURE, not UNSUPPORTED.
+
+The run takes 278.92075755499536 seconds; exact timing and hashes are in
+[the frozen gate record](FROZEN_INVESTIGATOR_GATE.json). It does not prove a
+complete Investigator financial E2E. CLI usage availability is external state;
+the observed retry-time message is not an account-entitlement guarantee.
+Full-suite and live-gate timing overlap, so neither is an isolated benchmark.
+
 Frozen actual-model gate, fresh output and clean SHA required:
 
 ```sh
