@@ -56,6 +56,14 @@ def _prerequisites(state: dict[str, Any], root: Path) -> tuple[str, ConsumptionL
     if material:
         raise BillingFailure("MATERIAL_EVIDENCE_MISSING", stage="READINESS", expected="material quarantine resolved",
                              root_issue_ids=sorted(material))
+    # Coverage wording cannot make a known credit or invoice-level total vanish
+    # from a single-line calculation. These need a supported explicit treatment.
+    other_financial = sorted(eid for eid, row in state["observations"].items()
+                             if row["field"] in {"credit_amount", "invoice_total"})
+    if other_financial:
+        raise BillingFailure("MATERIAL_EVIDENCE_MISSING", stage="READINESS",
+                             expected="explicit supported disposition of credit / invoice-level amount",
+                             unresolved_evidence_ids=other_financial)
     invoices = {key: row for key, row in state["occurrences"].items() if row["kind"] == "INVOICE"}
     tariffs = {key: row for key, row in state["occurrences"].items() if row["kind"] == "TARIFF"}
     if len(invoices) != 1:
@@ -157,6 +165,7 @@ def calculate(state: dict[str, Any], root: Path, *, persist: bool = True) -> dic
                 "component": component, "billed_cents": billed,
                 "expected_cents": component["expected_cents"], "discrepancy_cents": billed - component["expected_cents"],
                 "authority": {"relation_id": rid, "contract_id": term.contract_id,
+                              "contract_acceptance_evidence": state["reviews"][rid]["authority_evidence"],
                               "evidence_ids": sorted(set(line.evidence_ids + term.evidence_ids)),
                               "review_receipts": sorted(row["receipt_sha256"] for target, row in state["reviews"].items()
                                                        if target in {rid, state["relations"][rid]["invoice_id"],

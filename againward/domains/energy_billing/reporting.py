@@ -57,6 +57,8 @@ def render_report(root: Path, calculation_sha256: str) -> dict[str, Any]:
     for eid in stored["authority"]["evidence_ids"]:
         row = state["observations"][eid]
         evidence.append({"evidence_id": eid, **row})
+    clause = stored["authority"]["contract_acceptance_evidence"]
+    evidence.append({"evidence_id": "eb-e-" + stable_hash(clause), **clause})
     sections.append(("Preuves", [f"{row['field']} = {row['value']} ; {row['source_id']} ; {row['location']} ; "
                                 f"citation : {row['quote']}" for row in evidence]))
     model = {"schema_version": VERSION, "calculation_sha256": calculation_sha256, "sections": sections,

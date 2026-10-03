@@ -86,6 +86,9 @@ AUTHORITY_REVIEW_SCHEMA = obj({
     # source qualifications, without dropping facts to fit a smaller contract.
     "evidence_ids": {**IDS, "maxItems": 64},
     "authority_kind": enum("ACCEPTED_CONTRACT", "INVOICE_PRICE", "UNRESOLVED"),
+    "authority_source_id": REFERENCE,
+    "authority_location": REFERENCE,
+    "authority_quote": {"type": "string", "minLength": 1, "maxLength": 2000},
 })
 
 

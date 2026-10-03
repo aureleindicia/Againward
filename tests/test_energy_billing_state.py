@@ -27,6 +27,16 @@ def receipt(state, target, root, **changes):
                          + state["occurrences"][row["tariff_id"]]["evidence_ids"]))
         response = {"verdict": "SUPPORTED", "evidence_ids": ids, "reason": "Accepted applicable original contractual terms.",
                     "authority_kind": "ACCEPTED_CONTRACT"}
+        from againward.domains.energy_billing.review import current_sources
+        sid = state["occurrences"][row["tariff_id"]]["source_id"]
+        context = next(c for c in current_sources(state, target, root) if c["source_id"] == sid)
+        clause = next(unit for unit in context["units"] if "Authority: Accepted commercial terms" in unit["text"])
+        response.update(authority_source_id=sid, authority_location=clause["location"],
+                        authority_quote="Authority: Accepted commercial terms for this contract.")
+        if changes.get("authority_kind") == "INVOICE_PRICE":
+            sid = state["occurrences"][row["invoice_id"]]["source_id"]
+            atom = next(atom for atom in state["observations"].values() if atom["source_id"] == sid and atom["field"] == "billed_amount")
+            response.update(authority_source_id=sid, authority_location=atom["location"], authority_quote=atom["quote"])
     else:
         response = {"verdict": "SUPPORTED", "evidence_ids": ids, "reason": "All exact scalar values independently source-checked.",
                     "coverage": "ALL_MATERIAL_FACTS_BOUND", "charge_kind": "CONSUMPTION_HT", "end_convention": "EXCLUSIVE",
@@ -55,6 +65,8 @@ def case(tmp_path, *, invoice_changes=None, tariff_changes=None, bad_atom=None, 
         count = notes[0] if values is iv else notes[1]
         lines = [key + ": " + value for key, value in values.items()]
         lines.extend(f"Annotation {i}: informational text {i}" for i in range(count))
+        if values is tv:
+            lines[0] += " ; Authority: Accepted commercial terms for this contract."
         (source / (name + ".txt")).write_text("\n".join(lines))
     root = tmp_path / "state"
     batch = inventory_sources(source, root)
@@ -255,3 +267,48 @@ def test_altered_calculation_cannot_be_silently_repaired_during_report(tmp_path)
     with pytest.raises(BillingFailure) as failure:
         render_report(root, result["calculation_sha256"])
     assert failure.value.code == "REPORT_PROVENANCE_FAILURE" and path.read_bytes() == before
+
+
+def test_authority_reviews_relation_and_acceptance_clause_without_repeating_fact_review(tmp_path):
+    state, root, _, _, rid = case(tmp_path, notes=(0, 14))
+    # All arithmetic inputs remain independently positively reviewed. The
+    # authority reviewer cites its own focused relation, plus exact acceptance.
+    state = receipt(state, rid, root, evidence_ids=state["relations"][rid]["evidence_ids"])
+    assert readiness(state, root)["ready"]
+    result = calculate(state, root)
+    assert result["authority"]["contract_acceptance_evidence"]["quote"] == "Authority: Accepted commercial terms for this contract."
+
+
+@pytest.mark.parametrize("changes", [{"authority_source_id": "wrong-source"}, {"authority_location": "line:999"},
+                                    {"authority_quote": "fabricated accepted contract"}])
+def test_wrong_acceptance_proof_cannot_authorize_correct_amount(tmp_path, changes):
+    state, root, _, _, rid = case(tmp_path)
+    before = (root / "energy_billing" / "state.json").read_bytes()
+    with pytest.raises(BillingFailure) as failure:
+        receipt(state, rid, root, **changes)
+    assert failure.value.code == "MODEL_PROTOCOL_FAILURE"
+    assert (root / "energy_billing" / "state.json").read_bytes() == before
+
+
+@pytest.mark.parametrize("field", ["credit_amount", "invoice_total"])
+def test_positive_model_coverage_cannot_hide_known_other_financial_amount(tmp_path, field):
+    state, root, *_ = case(tmp_path, invoice_changes={field: "40.00"})
+    decision = readiness(state, root)
+    assert not decision["ready"] and decision["root_issues"][0]["code"] == "MATERIAL_EVIDENCE_MISSING"
+    assert decision["root_issues"][0]["unresolved_evidence_ids"]
+
+
+def test_bad_domain_targets_are_repaired_before_reducer_mutation(tmp_path):
+    from againward.domains.energy_billing.investigator import propose_action
+    state, root, iid, tid, rid = case(tmp_path)
+    replies = iter([
+        {"issue_id": "issue", "action": {"type": "LINK_TARIFF", "invoice_id": tid, "tariff_id": iid,
+         "evidence_ids": state["relations"][rid]["evidence_ids"]}},
+        {"issue_id": "issue", "action": {"type": "LINK_TARIFF", "invoice_id": iid, "tariff_id": tid,
+         "evidence_ids": state["relations"][rid]["evidence_ids"]}},
+    ])
+    boundary = ModelBoundary(lambda *_: json.dumps(next(replies)).encode())
+    before = (root / "energy_billing" / "state.json").read_bytes()
+    response = propose_action(state, {"issue_id": "issue", "targets": [iid, tid]}, boundary)
+    assert response["action"]["invoice_id"] == iid and boundary.calls == 2
+    assert (root / "energy_billing" / "state.json").read_bytes() == before

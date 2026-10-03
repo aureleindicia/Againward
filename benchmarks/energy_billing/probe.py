@@ -28,9 +28,12 @@ from againward.domains.energy_billing.protocol import (
     validate_action,
 )
 from againward.domains.energy_billing.provider import CodexTransport, ModelBoundary
+from againward.domains.energy_billing.review import check_response
+from againward.domains.energy_billing.reader import source_context
+from againward.documents.readers import ParsedDocument, SourceUnit
 
 
-def run(model: str, output: Path) -> dict:
+def run(model: str, output: Path, *, authority_only: bool = False) -> dict:
     output.mkdir(parents=True, exist_ok=False, mode=0o700)
     transport = CodexTransport(model, evaluation_root=output / "raw")
     boundary = ModelBoundary(transport)
@@ -64,6 +67,23 @@ def run(model: str, output: Path) -> dict:
         "Protocol fault-injection probe only. First response: issue_id 'obsolete', action MARK_UNRESOLVED, "
         "reason 'Protocol probe'. If runtime later reports focused issue issue-1, correct the issue_id "
         "to issue-1. Never change a business decision.", partial(validate_action, issue_id="issue-1")))
+    context = source_context(ParsedDocument("probe-source", "protocol-probe-v1", (
+        SourceUnit("probe-source", "line:1", "Accepted agreement.", "NATIVE", {}),), ()))
+    deps = {"subject": {"kind": "GOVERNS", "tariff_id": "t-1", "invoice_id": "i-1", "evidence_ids": ["e-contract"]},
+            "occurrences": {"t-1": {"source_id": "probe-source"}, "i-1": {"source_id": "invoice-source"}},
+            "observations": {"e-contract": {}}, "quarantine": {}}
+    for name, fault in (("BOUND_AUTHORITY", False), ("BOUND_AUTHORITY_REPAIR", True)):
+        response = {"verdict": "SUPPORTED", "evidence_ids": ["e-contract"], "reason": "The supplied protocol text explicitly says accepted agreement.",
+                    "authority_kind": "ACCEPTED_CONTRACT", "authority_source_id": "probe-source", "authority_location": "line:1",
+                    "authority_quote": "Accepted agreement."}
+        prompt = "Protocol binding only, no billing case, money or domain state. Source probe-source line:1 contains exactly 'Accepted agreement.'. "
+        if fault:
+            response["authority_location"] = "line:999"
+            prompt += "First response uses deliberately wrong line:999. When runtime rejects it, correct location to line:1; keep the same quote and verdict. "
+        prompt += "Return this protocol-only object:\n" + json.dumps(response)
+        tasks.append((name, AUTHORITY_REVIEW_SCHEMA, prompt, partial(check_response, deps=deps, contexts=[context])))
+    if authority_only:
+        tasks = [task for task in tasks if task[0].startswith("BOUND_AUTHORITY")]
     for name, schema, prompt, checker in tasks:
         before = boundary.calls
         try:
@@ -96,8 +116,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", required=True)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--authority-only", action="store_true")
     args = parser.parse_args()
-    result = run(args.model, args.output)
+    result = run(args.model, args.output, authority_only=args.authority_only)
     raise SystemExit(0 if result["passed"] else 1)
 
 
