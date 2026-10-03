@@ -31,7 +31,7 @@ select = ["E4", "E7", "E9", "F"]
 
 [tool.mypy]
 python_version = "3.11"
-files = ["againward/domains/energy_billing", "benchmarks/energy_billing/probe.py", "againward/documents", "againward/core/privacy_inspection.py", "againward/core/privacy_rules.py"]
+files = ["againward/domains/energy_billing", "benchmarks/energy_billing", "againward/documents", "againward/core/privacy_inspection.py", "againward/core/privacy_rules.py"]
 follow_imports = "silent"
 ignore_missing_imports = true
 check_untyped_defs = true

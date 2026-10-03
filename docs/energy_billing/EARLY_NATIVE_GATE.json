@@ -1,0 +1,59 @@
+{
+  "schema_version": "energy-billing-native-gate-v1",
+  "engine_sha": "952418424edf0a2d22fd90319694c5464502effd",
+  "engine_dirty": true,
+  "model": "gpt-6.1-sol",
+  "wall_seconds": 110.79775415998301,
+  "gate_a": true,
+  "calculation_reached": false,
+  "report_reached": false,
+  "qualification": "Actual synthetic native PDFs; source binding only, not factual/authority approval or E2E.",
+  "sources": [
+    {
+      "source_id": "src-47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2",
+      "sha256": "47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2",
+      "media_type": "application/pdf"
+    },
+    {
+      "source_id": "src-aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203",
+      "sha256": "aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203",
+      "media_type": "application/pdf"
+    }
+  ],
+  "readings": [
+    {
+      "source_id": "src-47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2",
+      "role": "PRIMARY",
+      "receipt_sha256": "5eee2d1b2896a46fd6d3c6836d6ead86b7a95e32d77a297e1564b2d23705225c",
+      "observations": 12,
+      "quarantine": 0,
+      "limitations": []
+    },
+    {
+      "source_id": "src-47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2",
+      "role": "INDEPENDENT",
+      "receipt_sha256": "757a5474528263fecc58e25967f1c462bfc62cdf83d598a0cb9b76aaae855929",
+      "observations": 16,
+      "quarantine": 0,
+      "limitations": []
+    },
+    {
+      "source_id": "src-aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203",
+      "role": "PRIMARY",
+      "receipt_sha256": "76af03261eac6cfcca007e3334eff3bfd3e63a6982b974a6c315df9af0ef01c8",
+      "observations": 16,
+      "quarantine": 0,
+      "limitations": []
+    },
+    {
+      "source_id": "src-aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203",
+      "role": "INDEPENDENT",
+      "receipt_sha256": "d862733c9011e562bb0ed449d49548de819dba9f12a5c58c9b4f286d31abf9da",
+      "observations": 15,
+      "quarantine": 0,
+      "limitations": []
+    }
+  ],
+  "model_calls": 4,
+  "protocol_failures": 0
+}

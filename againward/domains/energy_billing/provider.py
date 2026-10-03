@@ -107,8 +107,10 @@ class ModelBoundary:
             checker: Callable[[Any], None] | None = None,
             source_id: str | None = None) -> dict[str, Any]:
         """At most one model repair. State mutation belongs to caller after return."""
-        base = prompt + "\nEvidence IDs must be distinct. Never encode a JSON structure inside a string. " \
-            "Return only the direct JSON object defined by this exact schema:\n" + json.dumps(schema)
+        serialized_schema = json.dumps(schema)
+        references = "Evidence IDs must be distinct. " if '"evidence_ids"' in serialized_schema else ""
+        base = prompt + "\n" + references + "Never encode a JSON structure inside a string. " \
+            "Return only the direct JSON object defined by this exact schema:\n" + serialized_schema
         attempt_prompt = base
         for attempt in range(2):
             raw = b""

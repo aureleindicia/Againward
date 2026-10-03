@@ -214,3 +214,14 @@ def test_envelope_error_still_repairs_without_erasing_existing_state():
         validate_read_envelope({"observations": [], "limitations": [], "case": {}})
     with pytest.raises(BillingFailure):
         validate({"observations": [None], "limitations": []}, READ_SCHEMA, stage="READ")
+
+
+def test_reader_prompt_does_not_require_nonexistent_evidence_id_fields():
+    prompts = []
+
+    def transport(prompt, schema):
+        prompts.append(prompt)
+        return b'{"observations":[],"limitations":[]}'
+
+    ModelBoundary(transport).ask("Read source", READ_SCHEMA, stage="READ")
+    assert "Evidence IDs must be distinct" not in prompts[0]
