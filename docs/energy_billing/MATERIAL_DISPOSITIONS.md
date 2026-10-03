@@ -37,6 +37,44 @@ Ruff passes and configured mypy passes for 38 source files. This includes 21
 original-source disposition tests and five source-scenario contract tests.
 Full regression and actual-model evidence are still pending at this commit.
 
+The subsequent terminal record on the same clean implementation SHA `9daed77`
+passes **1576 full tests in 720.10 seconds**, including the unchanged HOLDOUT
+integrity guards and existing Rental/Energy regressions. See
+[exact synthetic measurements](FROZEN_MATERIAL_DISPOSITIONS.json).
+
+Actual native CLI probes pass 3/3 in four calls, including one precise invalid
+proof-location repair. The added-decorative-source run reaches calculation/PDF
+with 33 bound atoms, one independently supported source disposition, two
+occurrences, one relation and three reviews: 19 calls, 13 turns, zero repairs,
+388.34792525399826 seconds. Original financial bytes, facts, authority, exact
+16500/19208/2708-cent result and complete 36-item frontier pass independent checks.
+The internal four-page PDF's pages 1/4 were visually inspected; the raw technical
+proof dump still needs final Codex synthesis.
+
+The competing accepted-price run preserves 50 atoms, both tariff candidates and
+three independent facts reviews, then stops UNRESOLVED with no amount or report:
+19 calls, 13 turns, zero repairs, 382.35501609998755 seconds. The original contracts
+have identical identity/effect periods and different prices, without precedence.
+Independent complete-case abstention checks pass.
+
+The two-PDL run inspects the combined unallocated invoice and abstains in two
+calls/two turns, 23.46047146298224 seconds. It creates no financial claim and makes
+no arbitrary PDL selection. Its **complete-state evaluator remains failed**:
+zero atoms/occurrences were constructed and the other original was not read.
+This verifies early abstention only; it does not prove complete ambiguity state
+or full material inventory. The runtime focus remains SOURCE_NOT_READ even though
+the terminal explanation identifies the actual allocation ambiguity. Structured
+cause/state coverage remains further acceptance work.
+
+The private evaluator is post-terminal, uses manual synthetic truth, independent
+Decimal and direct original PDF spans/hashes; the shared pypdf parser is a known
+limitation. Its reading-summary API assumption was corrected from actual artifacts;
+no pipeline code or frozen input changed. Truth never entered model prompts.
+Full regressions and live gates ran concurrently, so timings are not a controlled
+performance comparison. Invalid-material-atom recovery currently has scripted
+original-source integration plus real native contract evidence; a frozen full
+live recovery scenario is still required.
+
 After targeted checks and a clean implementation commit:
 
 ```sh

@@ -2,6 +2,20 @@
 
 ## Energy Billing isolated thin checkpoint (2026-10-03)
 
+The subsequent clean `9daed77` material-disposition checkpoint passes **1576 full
+tests in 720.10s**, 164 Billing-focused tests, Ruff and configured mypy (38 files).
+An independent original-source reviewer can disposition one invalid atom,
+replacement, duplicate or decorative source while preserving history and unrelated
+reviews. Real-model native disposition/proof/one-repair probes pass 3/3.
+The added-decorative-PDF run reaches calculation/internal PDF in 19 calls and
+13 turns, with all independent source/money/frontier checks passing. Two accepted
+competing tariffs remain UNRESOLVED, both preserved, with no financial claim.
+A two-PDL global invoice stops after inspection in two calls without selecting a
+PDL; its complete-state scorer remains failed because no extracted ambiguity
+state was built. This is early abstention evidence only. See [measured results](energy_billing/FROZEN_MATERIAL_DISPOSITIONS.json)
+and [the boundary](energy_billing/MATERIAL_DISPOSITIONS.md). Post-calculation QA,
+charge expansion, DEV/HOLDOUT and real pilot readiness remain open.
+
 Clean `81497e9` passes **1549 full tests**, 137 Billing-focused tests, Ruff and
 configured mypy. Its bounded local Investigator reaches calculation and a
 four-page internal PDF from blank state with the real model: 32 atoms, two

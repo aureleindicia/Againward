@@ -1,0 +1,432 @@
+{
+  "schema_version": "energy-billing-frozen-material-checkpoint-v1",
+  "engine_sha": "9daed774703812e6f87420e33dd1864ed80aa527",
+  "implementation_parent_sha": "9d757e4b3b72675f69e69bfb48f2802bdcc24b49",
+  "verification": {
+    "focused_tests": 164,
+    "focused_seconds": 40.93,
+    "full_tests": 1576,
+    "full_seconds": 720.1,
+    "ruff": "PASS",
+    "mypy": "PASS",
+    "mypy_source_files": 38,
+    "unchanged_holdout_integrity_guards": "PASS"
+  },
+  "protocol_probe": {
+    "engine_sha": "9daed774703812e6f87420e33dd1864ed80aa527",
+    "engine_dirty": false,
+    "model": "gpt-6.1-sol",
+    "cli_version": "codex-cli 0.159.3",
+    "passed": true,
+    "wall_seconds": 33.175262155011296,
+    "probes": [
+      {
+        "name": "REQUEST_DISPOSITION",
+        "passed": true,
+        "calls": 1
+      },
+      {
+        "name": "DISPOSITION_REVIEW",
+        "passed": true,
+        "calls": 1
+      },
+      {
+        "name": "DISPOSITION_REPAIR",
+        "passed": true,
+        "calls": 2
+      }
+    ]
+  },
+  "runs": [
+    {
+      "scenario": "decorative",
+      "engine_sha": "9daed774703812e6f87420e33dd1864ed80aa527",
+      "engine_dirty": false,
+      "model": "gpt-6.1-sol",
+      "python_version": "3.14.6",
+      "cli_version": "codex-cli 0.159.3",
+      "source_rejects": 0,
+      "observations": 33,
+      "invalid_observations": 0,
+      "occurrences": 2,
+      "relations": 1,
+      "claims": 0,
+      "reviews": 3,
+      "protocol_retries": 0,
+      "provider_failures": 0,
+      "model_calls": 19,
+      "investigator_turns": 13,
+      "calculation_reached": true,
+      "report_reached": true,
+      "qa_performed": false,
+      "qa_objections": [],
+      "wall_seconds": 388.34792525399826,
+      "dispositions": {
+        "src-83a85cd57928f922b16f57c44654b71f9cb4348470eb1818002da3343035b943": {
+          "basis": "DECORATIVE",
+          "disposition": "IRRELEVANT",
+          "receipt_sha256": "7067bfec43f7eaaf30779bf9673189919e4bbae0ee89f7ebd48d59333b5252c8",
+          "verdict": "SUPPORTED"
+        }
+      },
+      "sources": [
+        {
+          "source_id": "src-47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2",
+          "sha256": "47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2"
+        },
+        {
+          "source_id": "src-83a85cd57928f922b16f57c44654b71f9cb4348470eb1818002da3343035b943",
+          "sha256": "83a85cd57928f922b16f57c44654b71f9cb4348470eb1818002da3343035b943"
+        },
+        {
+          "source_id": "src-aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203",
+          "sha256": "aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203"
+        }
+      ],
+      "terminal": {
+        "code": "INTERNAL_SCOPED_REPORT_CREATED",
+        "stage": "REPORT"
+      },
+      "readiness": {
+        "derived_blockers": [],
+        "line": {
+          "billed_amount_eur": "192.08",
+          "currency": "EUR",
+          "evidence_ids": [
+            "eb-e-068f218c828c2c9198717640c157090ac3d4158067b5d74ddbd0417b272c3c1d",
+            "eb-e-083a83ecc047524d7584c384b3f15b85e2ba595f2282a676880be8f5831c1fba",
+            "eb-e-31f4566b4964a3add618e2c60c5379b0723eb542801051e441107780404ee85b",
+            "eb-e-3ec14f4661b2ca0786d30bf5247a4f272df223bcf59cfbcef65fe12f5c297dc6",
+            "eb-e-436c2f31673d72ab309e89acda9fc6875eaa8326dc9e149d26cafd4cb4cdfe0f",
+            "eb-e-4afadd80b1334f06ef11129c0df7a94e4b47c9ef2342d94d2ef0de7b064796c2",
+            "eb-e-5d1151d1c8b6669b19bd15581b92d0706e82e2cd4fe3f42b3223ffd8255b0716",
+            "eb-e-7774d6ffaf1dac85b34f5be5a73267a3dd476d9b5eb76f8ad19a91c3f00de8cc",
+            "eb-e-a7fb14942dd98dd802d08153dccb99a6bc8e03185ec86bf7a3193fff95b8dc6c",
+            "eb-e-cd308dae1270389a2b80e456ba04bec9eb8c17c9448be857e61dcefaaf7df421",
+            "eb-e-d00f218dbff51273ab9ceb6e9d87576dd723684fe0ad4a7718d01a3502e2ce84",
+            "eb-e-da5b3577f23c1db38f6685be04188301f1c73e92800482dfcd6d0044ba979c07",
+            "eb-e-daaca3ba0cfcd37384dfff15248c5d97a801fd1a589f6ecd943cc100bfa59ae6",
+            "eb-e-f028b8650dc3485ab5ee33b9ae2f716bf6ba400630c9fe3c956f245bfa902e7c",
+            "eb-e-f79879c2179a7b9cf47ad9200258d7a3cab595c3de7953fd4513eb2122492ffa",
+            "eb-e-fb3d7fa0012eb3c7bb6cbdfe9d092b49b8d16dd4467330d2b70fbece12d943ba"
+          ],
+          "invoice_id": "EB-2026-09-001",
+          "pdl": "01234567890123",
+          "period": {
+            "end": "2026-10-01",
+            "start": "2026-09-01"
+          },
+          "quantity": "1375",
+          "quantity_unit": "kWh",
+          "supplier_id": "FOURNISSEUR-DEMO"
+        },
+        "ready": true,
+        "relation_id": "eb-r-1366490a2dc9814ced6c1be1a66c6b21c18f069e640fdbea6c39055965a9cd50",
+        "root_issues": [],
+        "schema_version": "energy-billing-consumption-case-v1",
+        "scope": "ONE_CONSUMPTION_HT_LINE",
+        "support_state": "SUPPORTED_DETERMINISTIC",
+        "tariff": {
+          "contract_id": "OFFRE-2026-FIXE",
+          "currency": "EUR",
+          "effective_period": {
+            "end": "2027-01-01",
+            "start": "2026-01-01"
+          },
+          "evidence_ids": [
+            "eb-e-0184cfff799feb2faa0e9311dddcbc46aeed820e6043dbbff04b4feef2ab8353",
+            "eb-e-02864fa3bfca8ffdd45cd0a23257ff963a57941c211c92eb1c316f5c80794910",
+            "eb-e-06635c95cf71cf82a83e852772e5f92ec4a063b1c4dd368910cbf212283d96b6",
+            "eb-e-169f51af42fe2146dd3e2d8449a793884a6d4164ebd63034aec1cd2935df097e",
+            "eb-e-20e217817641a202f565dd7afba510808570018159f08e0e7524fdc9cfc9b41f",
+            "eb-e-3d33d0180b32e6b9f2fd0a3c3fd48de154f6040d11cefdeef99b83bae57437b6",
+            "eb-e-3d920b113a6c7bea539185ff56d774b18d17ca020e082c1d35e3b07a65dc66e5",
+            "eb-e-4352c0cc724da7e98bffce808c87d09394b837d090250cdaf0dabed178a631b7",
+            "eb-e-497007606819e468bdbe95381e761f0ca801b4c2c0194aa312065991fe0124c1",
+            "eb-e-5238ee8f919861189b8c9c5b19b49e60dc66d93f2562f0ab4b183cc1113756fa",
+            "eb-e-5d12dafcab9eb5036fe75334b43c99d00fc8b899138585a3f2cb46339a57aaed",
+            "eb-e-835dec6e153241ca11f4ee8b20bf8ad5bd48af390c38960bc9ce39c108744a9c",
+            "eb-e-92a3f5250d40fd867c1e8f76107c952543d6982d5e72ba7e9832d97b48cab579",
+            "eb-e-a20af709b937cc17ec7623c1713e3eac3eed2d5dedd5354cde3e63e16f6b3c9b",
+            "eb-e-b39555c5f1a6c23da91099492e7c569e0d09d55aa1348fe1d8867c05d52bc015",
+            "eb-e-c5e9a9054b088f3308504e1c0fa0e8dda28cf9fcbd39bebdaf1aa8802ccea968",
+            "eb-e-d726e9456af3924ef66cfd57fd972ca0ea089b7dd1499b178f7132d88fcd8af0"
+          ],
+          "pdl": "01234567890123",
+          "price": "0.120",
+          "price_unit": "EUR/kWh",
+          "rounding_rule": "HALF_UP_PER_LINE",
+          "supplier_id": "FOURNISSEUR-DEMO",
+          "tariff_type": "FIXED"
+        }
+      },
+      "runtime_active_wall_seconds": 384.6933203310182,
+      "model_seconds": 352.64513025191263,
+      "report_seconds": 3.083559307997348,
+      "independent_check": {
+        "schema_version": "energy-billing-independent-frontier-check-v1",
+        "engine_sha": "9daed774703812e6f87420e33dd1864ed80aa527",
+        "scenario": "decorative",
+        "pipeline_received_oracle": false,
+        "strict_pass": true,
+        "checks": {
+          "frozen_fresh_runtime": true,
+          "no_qa_or_human_claim": true,
+          "original_hash_src-47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2": true,
+          "original_hash_src-83a85cd57928f922b16f57c44654b71f9cb4348470eb1818002da3343035b943": true,
+          "original_hash_src-aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203": true,
+          "all_atomic_spans": true,
+          "all_originals_inspected": true,
+          "all_disposition_receipts_and_proofs": true,
+          "financial_terminal_calculation_and_report": true,
+          "financial_line_identity": true,
+          "financial_line_period": true,
+          "financial_quantity": true,
+          "financial_tariff_identity": true,
+          "financial_tariff_period": true,
+          "financial_tariff_rule": true,
+          "financial_exact_expected": true,
+          "financial_exact_actual": true,
+          "financial_exact_difference": true,
+          "financial_calculation_hash": true,
+          "financial_original_source_hashes": true,
+          "financial_source_hashes_valid": true,
+          "financial_all_spans_and_hashes": true,
+          "financial_financial_evidence_source_ownership": true,
+          "financial_selected_invoice_facts": true,
+          "financial_selected_tariff_facts": true,
+          "financial_acceptance_authority_proof": true,
+          "financial_three_current_scoped_reviews": true,
+          "financial_report_hashes": true,
+          "financial_report_model_binding": true,
+          "financial_pdf_money_and_scope": true,
+          "single_decorative_original": true,
+          "independent_decorative_disposition": true,
+          "complete_material_inventory": true,
+          "no_unresolved_material_item": true,
+          "financial_originals_not_dismissed": true
+        },
+        "qualification": "Post-terminal known synthetic acceptance variation; no DEV/HOLDOUT or model post-calc QA claim."
+      },
+      "result_artifact_sha256": "5d36e6eb2ed1c5eb3e9345ba7dbfcc7f2f470c9946b1f5ee08f730bc84b4f04f",
+      "calculation": {
+        "expected_cents": 16500,
+        "billed_cents": 19208,
+        "discrepancy_cents": 2708,
+        "calculation_sha256": "c08f151937db42601b7e2102d44bc22032dab4d3837a1bb09892619706833351"
+      },
+      "material_frontier_count": 36,
+      "report": {
+        "report_sha256": "c4f8f0939734e133dcd3ba7a3826f4fb65eb54423ae069eaf78f7f40aae5994a",
+        "calculation_sha256": "c08f151937db42601b7e2102d44bc22032dab4d3837a1bb09892619706833351",
+        "delivery_state": "INTERNAL_REVIEW_REQUIRED",
+        "qa_state": "NOT_PERFORMED"
+      },
+      "pdf_visual_review": {
+        "pages": [
+          1,
+          4
+        ],
+        "readable": true,
+        "limitation": "Raw technical proof dump is cluttered; final Codex synthesis remains open."
+      }
+    },
+    {
+      "scenario": "competing_tariffs",
+      "engine_sha": "9daed774703812e6f87420e33dd1864ed80aa527",
+      "engine_dirty": false,
+      "model": "gpt-6.1-sol",
+      "python_version": "3.14.6",
+      "cli_version": "codex-cli 0.159.3",
+      "source_rejects": 0,
+      "observations": 50,
+      "invalid_observations": 0,
+      "occurrences": 3,
+      "relations": 0,
+      "claims": 0,
+      "reviews": 3,
+      "protocol_retries": 0,
+      "provider_failures": 0,
+      "model_calls": 19,
+      "investigator_turns": 13,
+      "calculation_reached": false,
+      "report_reached": false,
+      "qa_performed": false,
+      "qa_objections": [],
+      "wall_seconds": 382.35501609998755,
+      "dispositions": {},
+      "sources": [
+        {
+          "source_id": "src-47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2",
+          "sha256": "47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2"
+        },
+        {
+          "source_id": "src-55c64f39c81895040bbc263cdb7e27321c8f3d53a531a55981fe50278e9a83bc",
+          "sha256": "55c64f39c81895040bbc263cdb7e27321c8f3d53a531a55981fe50278e9a83bc"
+        },
+        {
+          "source_id": "src-aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203",
+          "sha256": "aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203"
+        }
+      ],
+      "terminal": {
+        "code": "UNRESOLVED",
+        "stage": "INVESTIGATOR"
+      },
+      "readiness": {
+        "derived_blockers": [
+          "CALCULATION_BLOCKED"
+        ],
+        "ready": false,
+        "root_issues": [
+          {
+            "actual_type": "NoneType",
+            "code": "AUTHORITY_UNRESOLVED",
+            "component": "energy_billing",
+            "count": 2,
+            "expected": "one established applicable tariff",
+            "path": "$",
+            "schema_version": "energy-billing-model-v1",
+            "stage": "AUTHORITY",
+            "state_mutated": false
+          }
+        ],
+        "schema_version": "energy-billing-consumption-case-v1",
+        "scope": "ONE_CONSUMPTION_HT_LINE",
+        "support_state": "UNRESOLVED"
+      },
+      "runtime_active_wall_seconds": 381.763078561984,
+      "model_seconds": 363.83410217703204,
+      "report_seconds": null,
+      "independent_check": {
+        "schema_version": "energy-billing-independent-frontier-check-v1",
+        "engine_sha": "9daed774703812e6f87420e33dd1864ed80aa527",
+        "scenario": "competing_tariffs",
+        "pipeline_received_oracle": false,
+        "strict_pass": true,
+        "checks": {
+          "frozen_fresh_runtime": true,
+          "no_qa_or_human_claim": true,
+          "original_hash_src-47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2": true,
+          "original_hash_src-55c64f39c81895040bbc263cdb7e27321c8f3d53a531a55981fe50278e9a83bc": true,
+          "original_hash_src-aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203": true,
+          "all_atomic_spans": true,
+          "all_originals_inspected": true,
+          "all_disposition_receipts_and_proofs": true,
+          "abstention_no_financial_claim": true,
+          "explicit_business_abstention": true,
+          "no_provider_failure": true,
+          "no_accepted_source_dismissal": true,
+          "both_original_accepted_prices": true,
+          "both_prices_observed": true,
+          "both_tariff_candidates_preserved": true
+        },
+        "qualification": "Post-terminal known synthetic acceptance variation; no DEV/HOLDOUT or model post-calc QA claim."
+      },
+      "result_artifact_sha256": "721564f499886cb710b7a66d3e9f1bce2acd5edaa2c19c2be55bb9640cbb34c2"
+    },
+    {
+      "scenario": "two_pdl",
+      "engine_sha": "9daed774703812e6f87420e33dd1864ed80aa527",
+      "engine_dirty": false,
+      "model": "gpt-6.1-sol",
+      "python_version": "3.14.6",
+      "cli_version": "codex-cli 0.159.3",
+      "source_rejects": 0,
+      "observations": 0,
+      "invalid_observations": 0,
+      "occurrences": 0,
+      "relations": 0,
+      "claims": 0,
+      "reviews": 0,
+      "protocol_retries": 0,
+      "provider_failures": 0,
+      "model_calls": 2,
+      "investigator_turns": 2,
+      "calculation_reached": false,
+      "report_reached": false,
+      "qa_performed": false,
+      "qa_objections": [],
+      "wall_seconds": 23.46047146298224,
+      "dispositions": {},
+      "sources": [
+        {
+          "source_id": "src-4a6455e4a1406186e08d74716acbade1023d3148533bd67d99555b69aa4a0f25",
+          "sha256": "4a6455e4a1406186e08d74716acbade1023d3148533bd67d99555b69aa4a0f25"
+        },
+        {
+          "source_id": "src-aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203",
+          "sha256": "aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203"
+        }
+      ],
+      "terminal": {
+        "code": "UNRESOLVED",
+        "stage": "INVESTIGATOR"
+      },
+      "readiness": {
+        "derived_blockers": [
+          "CALCULATION_BLOCKED"
+        ],
+        "ready": false,
+        "root_issues": [
+          {
+            "actual_type": "NoneType",
+            "code": "MATERIAL_EVIDENCE_MISSING",
+            "component": "energy_billing",
+            "count": 0,
+            "expected": "one scoped invoice consumption line",
+            "path": "$",
+            "schema_version": "energy-billing-model-v1",
+            "stage": "IDENTITY",
+            "state_mutated": false
+          }
+        ],
+        "schema_version": "energy-billing-consumption-case-v1",
+        "scope": "ONE_CONSUMPTION_HT_LINE",
+        "support_state": "UNRESOLVED"
+      },
+      "runtime_active_wall_seconds": 22.54249330901075,
+      "model_seconds": 20.862119462981354,
+      "report_seconds": null,
+      "independent_check": {
+        "schema_version": "energy-billing-independent-frontier-check-v1",
+        "engine_sha": "9daed774703812e6f87420e33dd1864ed80aa527",
+        "scenario": "two_pdl",
+        "pipeline_received_oracle": false,
+        "strict_pass": false,
+        "checks": {
+          "frozen_fresh_runtime": true,
+          "no_qa_or_human_claim": true,
+          "original_hash_src-4a6455e4a1406186e08d74716acbade1023d3148533bd67d99555b69aa4a0f25": true,
+          "original_hash_src-aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203": true,
+          "all_atomic_spans": true,
+          "all_originals_inspected": false,
+          "all_disposition_receipts_and_proofs": true,
+          "abstention_no_financial_claim": true,
+          "explicit_business_abstention": true,
+          "no_provider_failure": true,
+          "no_accepted_source_dismissal": true,
+          "original_two_sites_global_quantity": true,
+          "ambiguity_not_silently_omitted": false
+        },
+        "qualification": "Post-terminal known synthetic acceptance variation; no DEV/HOLDOUT or model post-calc QA claim."
+      },
+      "result_artifact_sha256": "dd118a0e406d316c3658d2a4202890f1324b2508c640635a95424331b76b6aac",
+      "qualification": "Early original inspection and correct explicit no-amount abstention. No atoms or occurrences were constructed. Complete-case evaluator remains FAIL because the material ambiguity is not encoded in extracted state and the contract was not read. This is not full material-frontier validation."
+    }
+  ],
+  "independent_evaluator": {
+    "private_path": "scratch/verify_billing_frontier_gate.py",
+    "sha256": "225236b72e0087d8facdc48494396082f939d65474f5848883d1ccaeebcddbf0",
+    "thin_evaluator_sha256": "9c13781473ae5de7ca64de79bdf732fa3a84afd9d735b72c3fe33fdf4eb459a9",
+    "pipeline_received_oracle": false,
+    "method": "Post-terminal manual synthetic truth + Decimal + direct original PDF spans/hashes + receipt/report checks; state loader for journal replay only.",
+    "limitations": [
+      "Same pypdf parser library as pipeline.",
+      "Private development evaluator was corrected after terminal artifacts exposed reading-summary API differences.",
+      "No frozen DEV/HOLDOUT corpus accuracy.",
+      "Two-PDL complete-state scoring remains failed; early abstention only."
+    ]
+  },
+  "qualification": "Frozen known synthetic acceptance variations; full suite and real native protocol. Full Goal active. No post-calculation model QA, paid pilot, delivery approval or corpus reliability claim."
+}

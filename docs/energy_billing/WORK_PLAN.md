@@ -12,12 +12,12 @@ the objective. This file is a continuation map, not reduced acceptance criteria.
 
 | Phase | State | Evidence / remaining work |
 |---|---|---|
-| 0 Audit | Checkpoint and regressions delivered | CHECKPOINT_0 contains the fifteen requested artifacts, reuse matrix, ADR, scope and research; latest clean full suite passes 1549 tests on 81497e9. |
+| 0 Audit | Checkpoint and regressions delivered | CHECKPOINT_0 contains the fifteen requested artifacts, reuse matrix, ADR, scope and research; latest clean full suite passes 1576 tests on 9daed77. |
 | 1 Skeleton | Thin scope implemented | Dedicated namespace, typed period/line/tariff, exact money and scoped readiness; complete domain intake entrypoint remains open. |
 | 2 Atomic evidence | Native boundary demonstrated | Actual synthetic PDFs → model → source-bound atoms → receipts/replay; invalid sibling quarantine tested. Visual scope, issue recovery and durable state not complete. |
-| 3 Minimal state | Thin scope implemented | Python journal/reducers own INVOICE/TARIFF/GOVERNS, local reviews and exact replay. Supplemental/irrelevant source disposition and recovery remain open. |
+| 3 Minimal state | Thin scope and local dispositions implemented | Python journal/reducers own INVOICE/TARIFF/GOVERNS, independent DISPOSITION receipts and exact replay. Irrelevance/replacement/duplicates preserve history and local reviews. Supplemental intake and expanded grouping remain open. |
 | 4 Thin E2E | Frozen live reaches calculation/PDF | Clean d4a6211: 34 atoms, 2 occurrences, 1 relation, 3 reviews, 9 calls, one actual local repair; independent source/arithmetic/report checks pass. One known synthetic HT line, not corpus quality. |
-| 5 Investigator | Thin fresh runtime E2E and preserved recovery verified; material frontier open | Clean 81497e9 passes 1549 tests. Fresh real-model blank-state run: 32 atoms, 2 occurrences, 1 relation, 3 reviews, 16 calls, 11 turns, calculation/internal PDF, 22 independent checks. Four-call continuation preserves the earlier 33 atoms/reviews/budgets. Material dispositions/replacement, competing authority and multi-PDL acceptance cases remain open. See INVESTIGATOR.md, PROVIDER_CONTINUATION.md and FROZEN_INVESTIGATOR_RECOVERY.json. |
+| 5 Investigator | Local material dispositions; decorative and competing-price live cases verified | Clean 9daed77 passes 1576 tests and 3/3 actual native disposition probes. Added decorative source reaches calculation/PDF in 19 calls/13 turns with complete source/money/frontier checks. Competing accepted prices remain UNRESOLVED with both tariffs preserved. Two-PDL original inspection gives early abstention only: complete-state evaluator still fails. Full live invalid-atom recovery and supplemental/state acceptance remain open. Prior fresh runtime/provider recovery remain evidenced. See MATERIAL_DISPOSITIONS.md and FROZEN_MATERIAL_DISPOSITIONS.json. |
 | 6 Expansion | Open | Subscription, explicit simple periods/bands, dated taxes, issued credit/regularization; one family at a time after stable thin slice. |
 | 7 QA/PDF | Open | Independent bounded objection, local reopening and recalculation, provenance-replayed report/PDF; Gate E. |
 | 8 Frozen DEV | Open | Clean worktree/model/runtime, fresh outputs, hidden scorer truth, case-pass includes authority and evidence. |
@@ -44,10 +44,10 @@ blockers. The raw quotes remain immutable regardless of interpretation.
 | 6 unrelated evidence preserves review | Local review lifetime tests preserve unrelated tariff review after invoice change | Full supplemental-batch live scenario. |
 | 7 prerequisite change invalidates review | Source/subject dependency mutation tests invalidate only dependent reviews | Full live mutation/recovery scenario. |
 | 8 unsupported tariff early | Unsupported units/conventions fail locally | Early envelope tariff decision before long investigation. |
-| 9 competing authority unresolved | No proof yet | Competing valid tariff/amendment case. |
+| 9 competing authority unresolved | Frozen 9daed77 actual model preserves both accepted-price candidates and abstains; independent complete-case checks pass | Additional amendment/precedence and corpus cases. |
 | 10 right amount wrong proof fails | Wrong span/source refuses replay | Strict complete-case evaluator with compensating-error negative. |
-| 11 two PDL no arbitrary selection | No proof yet | Ambiguity in state, relations and readiness. |
-| 12 duplicate no double count | Stable evidence IDs and idempotent duplicate declarations/links; one-line monetary scope | Expanded multi-line/credit monetary ownership. |
+| 11 two PDL no arbitrary selection | Scripted state refuses convenient subset; frozen actual model inspects and abstains without selecting a PDL | Complete extracted ambiguity state/relations/readiness live measurement remains open; full-state evaluator failed on the early stop. |
+| 12 duplicate no double count | Stable evidence IDs/idempotent declarations/links; independently reviewed source duplicate and same-identity citation replacement tested | Expanded multi-line/credit monetary ownership and full live duplicate scenario. |
 
 ## Evaluation and final completion audit
 
