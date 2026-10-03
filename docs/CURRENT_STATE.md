@@ -16,6 +16,13 @@ state was built. This is early abstention evidence only. See [measured results](
 and [the boundary](energy_billing/MATERIAL_DISPOSITIONS.md). Post-calculation QA,
 charge expansion, DEV/HOLDOUT and real pilot readiness remain open.
 
+The documentation-only `68ca673` also runs the same frozen implementation through
+one deliberately appended invalid material location after a real reader call.
+Independent local replacement, facts and authority review reach calculation/PDF
+in 23 calls/15 turns, preserving 34 valid atoms and the one rejected row; all
+independent money/source/history/frontier checks pass. This proves controlled
+fault recovery, not natural model-error rates. See [the recovery record](energy_billing/FROZEN_MATERIAL_RECOVERY.json).
+
 Clean `81497e9` passes **1549 full tests**, 137 Billing-focused tests, Ruff and
 configured mypy. Its bounded local Investigator reaches calculation and a
 four-page internal PDF from blank state with the real model: 32 atoms, two

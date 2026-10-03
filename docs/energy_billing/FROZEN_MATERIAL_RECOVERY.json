@@ -1,0 +1,278 @@
+{
+  "engine_sha": "68ca67398dc2b145390d171e373e6f10c8d7cc16",
+  "engine_dirty": false,
+  "model": "gpt-6.1-sol",
+  "python_version": "3.14.6",
+  "cli_version": "codex-cli 0.159.3",
+  "batch": {
+    "source_hashes": {
+      "src-47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2": "47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2",
+      "src-aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203": "aac76e6a69d40d5f7c48801339d4e8af902f645bfa376c7e4d6f2e85bce9d203"
+    }
+  },
+  "observations": 34,
+  "invalid_observations": 1,
+  "occurrences": 2,
+  "relations": 1,
+  "claims": 0,
+  "reviews": 3,
+  "dispositions": {
+    "eb-i-34feaf2b4543e9c9dabb753e9555f1eb41a673c92d38f04d41f6426db2a0db47": {
+      "basis": "EXTRACTION_ERROR",
+      "disposition": "SUPERSEDED",
+      "receipt_sha256": "8e7ee0f6aabcf26d7f6569570189379647d2ae097839952713f756ec061a4d25",
+      "verdict": "SUPPORTED"
+    }
+  },
+  "readiness": {
+    "derived_blockers": [],
+    "line": {
+      "billed_amount_eur": "192.08",
+      "currency": "EUR",
+      "evidence_ids": [
+        "eb-e-068f218c828c2c9198717640c157090ac3d4158067b5d74ddbd0417b272c3c1d",
+        "eb-e-083a83ecc047524d7584c384b3f15b85e2ba595f2282a676880be8f5831c1fba",
+        "eb-e-0b03a157949a3940d993f3b6d3b7debd70b0d59494907477b66660c22c2e1191",
+        "eb-e-31f4566b4964a3add618e2c60c5379b0723eb542801051e441107780404ee85b",
+        "eb-e-3450233e3d335a7ab0777d637d7dff7a5795b66db18279d3d6038fbe9eedbcef",
+        "eb-e-3ec14f4661b2ca0786d30bf5247a4f272df223bcf59cfbcef65fe12f5c297dc6",
+        "eb-e-436c2f31673d72ab309e89acda9fc6875eaa8326dc9e149d26cafd4cb4cdfe0f",
+        "eb-e-4a7c335054227fe0824b2228011ec1922e035e024d554a67ba06d25043c1cfbd",
+        "eb-e-5d1151d1c8b6669b19bd15581b92d0706e82e2cd4fe3f42b3223ffd8255b0716",
+        "eb-e-7774d6ffaf1dac85b34f5be5a73267a3dd476d9b5eb76f8ad19a91c3f00de8cc",
+        "eb-e-a7fb14942dd98dd802d08153dccb99a6bc8e03185ec86bf7a3193fff95b8dc6c",
+        "eb-e-cd308dae1270389a2b80e456ba04bec9eb8c17c9448be857e61dcefaaf7df421",
+        "eb-e-d00f218dbff51273ab9ceb6e9d87576dd723684fe0ad4a7718d01a3502e2ce84",
+        "eb-e-da5b3577f23c1db38f6685be04188301f1c73e92800482dfcd6d0044ba979c07",
+        "eb-e-daaca3ba0cfcd37384dfff15248c5d97a801fd1a589f6ecd943cc100bfa59ae6",
+        "eb-e-fb3d7fa0012eb3c7bb6cbdfe9d092b49b8d16dd4467330d2b70fbece12d943ba"
+      ],
+      "invoice_id": "EB-2026-09-001",
+      "pdl": "01234567890123",
+      "period": {
+        "end": "2026-10-01",
+        "start": "2026-09-01"
+      },
+      "quantity": "1375",
+      "quantity_unit": "kWh",
+      "supplier_id": "FOURNISSEUR-DEMO"
+    },
+    "ready": true,
+    "relation_id": "eb-r-1366490a2dc9814ced6c1be1a66c6b21c18f069e640fdbea6c39055965a9cd50",
+    "root_issues": [],
+    "schema_version": "energy-billing-consumption-case-v1",
+    "scope": "ONE_CONSUMPTION_HT_LINE",
+    "support_state": "SUPPORTED_DETERMINISTIC",
+    "tariff": {
+      "contract_id": "OFFRE-2026-FIXE",
+      "currency": "EUR",
+      "effective_period": {
+        "end": "2027-01-01",
+        "start": "2026-01-01"
+      },
+      "evidence_ids": [
+        "eb-e-169f51af42fe2146dd3e2d8449a793884a6d4164ebd63034aec1cd2935df097e",
+        "eb-e-1f2ce9de96067e66179b393b6825f15e90d79cc93cecb89ca736be8c4248572c",
+        "eb-e-3132e2f13618e1b9be20343bd289af491c0774ac8f2b656a63d4357bc82e0996",
+        "eb-e-3d920b113a6c7bea539185ff56d774b18d17ca020e082c1d35e3b07a65dc66e5",
+        "eb-e-4352c0cc724da7e98bffce808c87d09394b837d090250cdaf0dabed178a631b7",
+        "eb-e-47a1eededb7de4b441e60cdfab043e3db460586a5966da36d2ec75095e72b25a",
+        "eb-e-5238ee8f919861189b8c9c5b19b49e60dc66d93f2562f0ab4b183cc1113756fa",
+        "eb-e-5d12dafcab9eb5036fe75334b43c99d00fc8b899138585a3f2cb46339a57aaed",
+        "eb-e-92a3f5250d40fd867c1e8f76107c952543d6982d5e72ba7e9832d97b48cab579",
+        "eb-e-95d28d8f8c3c2fbc148a49a98ce7f0e4425b257097bd2d05b49335fb1a849c9e",
+        "eb-e-a20af709b937cc17ec7623c1713e3eac3eed2d5dedd5354cde3e63e16f6b3c9b",
+        "eb-e-b39555c5f1a6c23da91099492e7c569e0d09d55aa1348fe1d8867c05d52bc015",
+        "eb-e-b4a307d8f2e1960ce7e4b54ab36db6e35f618cbf8a4e9eb6f9d8a023cde384fa",
+        "eb-e-b5593f3b9f5a70cdcec9c393461c6a43a81f6a2bfcd8aa265b7709e4b77374cd",
+        "eb-e-c5acfffcc7a123f6639b9ef52c70f255184656445ef01f9fd5a23ca0ba1580db",
+        "eb-e-c5e9a9054b088f3308504e1c0fa0e8dda28cf9fcbd39bebdaf1aa8802ccea968",
+        "eb-e-dad09b7edced89e039349d869cbfcbbdfd6f84eaea65250244080111b9644895"
+      ],
+      "pdl": "01234567890123",
+      "price": "0.120",
+      "price_unit": "EUR/kWh",
+      "rounding_rule": "HALF_UP_PER_LINE",
+      "supplier_id": "FOURNISSEUR-DEMO",
+      "tariff_type": "FIXED"
+    }
+  },
+  "protocol_retries": 0,
+  "provider_failures": 0,
+  "model_calls": 23,
+  "investigator_turns": 15,
+  "calculation_reached": true,
+  "report_reached": true,
+  "qa_objections": [],
+  "qa_performed": false,
+  "wall_seconds": 476.91158833599184,
+  "fault_injection": {
+    "answer_supplied": false,
+    "changed_fields": [
+      "location"
+    ],
+    "driver_sha256": "e5546bd802d32ab73c8263ce4890c300cf0d395a65a568349ae6e9f45753c93e",
+    "field": "quantity",
+    "kind": "APPENDED_MATERIAL_ATOM_INVALID_LOCATION",
+    "original_response_sha256": "0526bfb4a1230eaddfe2b197ef13358a45959b076128afb62d3e334cd508da8c",
+    "original_rows_preserved": true,
+    "processed_response_sha256": "1d8630a7fdc4e3b7f61b18bf541962371cae4fe3b5dd9585d68f13ca685e1e57",
+    "qualification": "Explicit runtime fault, not a naturally observed model extraction failure.",
+    "source_id": "src-47695560570313901c264c6674d4fdcc724bfa9c774b75cbcf6e418592be91a2"
+  },
+  "schema_version": "energy-billing-frozen-explicit-material-recovery-v1",
+  "implementation_sha": "9daed774703812e6f87420e33dd1864ed80aa527",
+  "implementation_difference": "68ca673 adds measured documentation only; againward/benchmarks/tests code identical to 9daed77.",
+  "terminal_reason": {
+    "code": "INTERNAL_SCOPED_REPORT_CREATED",
+    "stage": "REPORT"
+  },
+  "calculation": {
+    "expected_cents": 16500,
+    "billed_cents": 19208,
+    "discrepancy_cents": 2708,
+    "calculation_sha256": "d0c40ed64705b35da72aca4bc803cfc07798e6fe8c8f7538539669f5891d18e6"
+  },
+  "material_frontier_count": 37,
+  "runtime_active_wall_seconds": 473.8667298750079,
+  "model_seconds": 445.94655979797244,
+  "independent_check": {
+    "schema_version": "energy-billing-independent-material-fault-check-v1",
+    "engine_sha": "68ca67398dc2b145390d171e373e6f10c8d7cc16",
+    "pipeline_received_oracle": false,
+    "strict_pass": true,
+    "checks": {
+      "financial_terminal_calculation_and_report": true,
+      "financial_line_identity": true,
+      "financial_line_period": true,
+      "financial_quantity": true,
+      "financial_tariff_identity": true,
+      "financial_tariff_period": true,
+      "financial_tariff_rule": true,
+      "financial_exact_expected": true,
+      "financial_exact_actual": true,
+      "financial_exact_difference": true,
+      "financial_calculation_hash": true,
+      "financial_original_source_hashes": true,
+      "financial_source_hashes_valid": true,
+      "financial_all_spans_and_hashes": true,
+      "financial_financial_evidence_source_ownership": true,
+      "financial_selected_invoice_facts": true,
+      "financial_selected_tariff_facts": true,
+      "financial_acceptance_authority_proof": true,
+      "financial_three_current_scoped_reviews": true,
+      "financial_report_hashes": true,
+      "financial_report_model_binding": true,
+      "financial_pdf_money_and_scope": true,
+      "explicit_one_local_fault": true,
+      "original_model_response_retained": true,
+      "exact_processed_response_hash": true,
+      "exact_processed_reading_receipt": true,
+      "invalid_material_row_preserved": true,
+      "only_location_was_changed": true,
+      "local_independent_resolution": true,
+      "bound_local_rejection_proof": true,
+      "valid_siblings_retained": true,
+      "correct_quantity_retained_and_used": true,
+      "history_replay": true,
+      "complete_frontier": true,
+      "no_unresolved_frontier": true
+    },
+    "qualification": "Explicit single-row reference fault after real reader; no natural extraction-quality or corpus claim."
+  },
+  "evaluator_sha256": "04f43eec9ce9a3513010a5df5fd2dc965c0cb8e8ae0e12375ae3c0ebd24d0947",
+  "result_artifact_sha256": "1e0cf29e75f2c3a8144d3f529993a8b6ee87cc1c1fe8e8150de9ac443ac24bda",
+  "semantic_steps": [
+    {
+      "turn": 1,
+      "issue": "SOURCE_NOT_READ",
+      "action": "REQUEST_INSPECTION",
+      "progress": false
+    },
+    {
+      "turn": 2,
+      "issue": "SOURCE_NOT_READ",
+      "action": "REQUEST_REREAD",
+      "progress": true
+    },
+    {
+      "turn": 3,
+      "issue": "MATERIAL_QUARANTINE",
+      "action": "REQUEST_INSPECTION",
+      "progress": false
+    },
+    {
+      "turn": 4,
+      "issue": "MATERIAL_QUARANTINE",
+      "action": "REQUEST_DISPOSITION",
+      "progress": true
+    },
+    {
+      "turn": 5,
+      "issue": "SOURCE_OCCURRENCE_MISSING",
+      "action": "DECLARE_INVOICE",
+      "progress": true
+    },
+    {
+      "turn": 6,
+      "issue": "SOURCE_NOT_READ",
+      "action": "REQUEST_INSPECTION",
+      "progress": false
+    },
+    {
+      "turn": 7,
+      "issue": "SOURCE_NOT_READ",
+      "action": "REQUEST_REREAD",
+      "progress": true
+    },
+    {
+      "turn": 8,
+      "issue": "SOURCE_OCCURRENCE_MISSING",
+      "action": "DECLARE_TARIFF",
+      "progress": true
+    },
+    {
+      "turn": 9,
+      "issue": "MATERIAL_EVIDENCE_MISSING",
+      "action": "REQUEST_REVIEW",
+      "progress": false
+    },
+    {
+      "turn": 10,
+      "issue": "BUSINESS_AMBIGUITY",
+      "action": "REQUEST_DISPOSITION",
+      "progress": false
+    },
+    {
+      "turn": 11,
+      "issue": "REVIEW_STALE",
+      "action": "REQUEST_REVIEW",
+      "progress": true
+    },
+    {
+      "turn": 12,
+      "issue": "MATERIAL_EVIDENCE_MISSING",
+      "action": "REQUEST_REVIEW",
+      "progress": true
+    },
+    {
+      "turn": 13,
+      "issue": "GOVERNS_MISSING",
+      "action": "LINK_TARIFF",
+      "progress": true
+    },
+    {
+      "turn": 14,
+      "issue": "MATERIAL_EVIDENCE_MISSING",
+      "action": "REQUEST_REVIEW",
+      "progress": true
+    },
+    {
+      "turn": 15,
+      "issue": "READY_PROPOSAL",
+      "action": "PROPOSE_READY",
+      "progress": false
+    }
+  ],
+  "qualification": "Explicit one-row invalid-location fault after real source extraction. Original raw model output and every valid sibling preserved; runtime received one deliberately appended bad row. First independent rejection was refined to a source-bound replacement after an invoice reviewer abstained. No naturally occurring extraction accuracy, DEV/HOLDOUT, post-calculation QA, human approval or pilot claim."
+}

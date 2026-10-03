@@ -72,8 +72,22 @@ limitation. Its reading-summary API assumption was corrected from actual artifac
 no pipeline code or frozen input changed. Truth never entered model prompts.
 Full regressions and live gates ran concurrently, so timings are not a controlled
 performance comparison. Invalid-material-atom recovery currently has scripted
-original-source integration plus real native contract evidence; a frozen full
-live recovery scenario is still required.
+original-source integration plus real native contract evidence. The subsequent
+[explicit material-fault run](FROZEN_MATERIAL_RECOVERY.json) adds a frozen full
+live recovery scenario on `68ca673` (documentation-only changes from `9daed77`).
+
+One quantity row with an invalid `page:999` reference was deliberately appended
+**after** the real reader returned. Its actual raw response, scalar, quote and
+all valid siblings were preserved. The real Investigator inspected the source,
+obtained an independent local rejection, then refined it to an explicit same-field
+replacement after the invoice facts reviewer abstained. Separate facts/authority
+reviews and Python readiness then reached the exact calculation/internal PDF:
+34 bound atoms, one preserved material quarantine, two occurrences, one relation,
+three current reviews, a complete 37-item frontier, 23 calls/15 turns, zero repairs
+or provider failures, 476.91158833599184 seconds. Independent original-span,
+processed/original response hash, selected quantity, money, history and frontier
+checks all pass. This is controlled recovery evidence, not a naturally occurring
+reader-error rate, a DEV/HOLDOUT result or post-calculation QA.
 
 After targeted checks and a clean implementation commit:
 
