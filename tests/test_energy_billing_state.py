@@ -40,7 +40,7 @@ def receipt(state, target, root, **changes):
     return commit_event(state, {"type": "REVIEW", "receipt_sha256": digest}, root)
 
 
-def case(tmp_path, *, invoice_changes=None, tariff_changes=None, bad_atom=None, reviews=True, reader_changes=None):
+def case(tmp_path, *, invoice_changes=None, tariff_changes=None, bad_atom=None, reviews=True, reader_changes=None, notes=(0, 0)):
     iv = {"invoice_id": "INV-Generic", "supplier_id": "SUPPLIER", "pdl": "12345678901234", "currency": "EUR",
           "period_start": "2026-02-01", "period_end": "2026-03-01", "quantity": "1501", "quantity_unit": "kWh",
           "billed_amount": "223.00"}
@@ -52,7 +52,10 @@ def case(tmp_path, *, invoice_changes=None, tariff_changes=None, bad_atom=None, 
     source = tmp_path / "input"
     source.mkdir()
     for name, values in (("invoice", iv), ("tariff", tv)):
-        (source / (name + ".txt")).write_text("\n".join(key + ": " + value for key, value in values.items()))
+        count = notes[0] if values is iv else notes[1]
+        lines = [key + ": " + value for key, value in values.items()]
+        lines.extend(f"Annotation {i}: informational text {i}" for i in range(count))
+        (source / (name + ".txt")).write_text("\n".join(lines))
     root = tmp_path / "state"
     batch = inventory_sources(source, root)
     state = initialize(batch, root)
@@ -60,6 +63,10 @@ def case(tmp_path, *, invoice_changes=None, tariff_changes=None, bad_atom=None, 
         values = iv if "invoice.txt" in doc.original_names else tv
         rows = [{"field": key, "value": value, "group": "document", "location": f"line:{index+1}",
                  "quote": key + ": " + value} for index, (key, value) in enumerate(values.items())]
+        count = notes[0] if values is iv else notes[1]
+        rows.extend({"field": "note", "value": f"informational text {i}", "group": "annotation",
+                     "location": f"line:{len(values)+i+1}", "quote": f"Annotation {i}: informational text {i}"}
+                    for i in range(count))
         if values is iv and reader_changes:
             for row in rows:
                 row.update(reader_changes.get(row["field"], {}))
@@ -211,3 +218,40 @@ def test_ambiguous_review_cannot_be_substituted_for_supported(tmp_path):
     state, root, _, _, rid = case(tmp_path)
     state = receipt(state, rid, root, verdict="AMBIGUOUS", authority_kind="UNRESOLVED")
     assert readiness(state, root)["root_issues"][0]["code"] == "BUSINESS_AMBIGUITY"
+
+
+@pytest.mark.parametrize("notes, count", [((0, 14), 33), ((23, 22), 64)])
+def test_authority_review_can_cite_entire_union_of_two_bounded_subjects(tmp_path, notes, count):
+    state, root, _, _, rid = case(tmp_path, notes=notes)
+    assert len(state["reviews"][rid]["response"]["evidence_ids"]) == count
+    assert readiness(state, root)["ready"]
+    assert calculate(state, root)["expected_cents"] == 18462
+
+
+@pytest.mark.parametrize("gap", ["unread_locations", "parser_limitations"])
+def test_uninspectable_source_scope_cannot_be_approved_by_model(tmp_path, monkeypatch, gap):
+    from againward.domains.energy_billing import review
+    state, root, iid, *_ = case(tmp_path)
+    contexts = review.current_sources(state, iid, root)
+    contexts[0][gap] = ["uninspected component"]
+    monkeypatch.setattr(review, "current_sources", lambda *_: contexts)
+    boundary = ModelBoundary(lambda *_: b'{}')
+    with pytest.raises(BillingFailure) as failure:
+        request_review(state, iid, root, model="SCRIPTED", boundary=boundary)
+    assert failure.value.code == "MATERIAL_EVIDENCE_MISSING"
+    assert boundary.calls == 0
+    with pytest.raises(BillingFailure):
+        current_review(state, iid, root)
+
+
+def test_altered_calculation_cannot_be_silently_repaired_during_report(tmp_path):
+    state, root, *_ = case(tmp_path)
+    result = calculate(state, root)
+    path = root / "energy_billing" / "calculations" / (result["calculation_sha256"] + ".json")
+    value = json.loads(path.read_text())
+    value["expected_cents"] += 1
+    path.write_text(json.dumps(value))
+    before = path.read_bytes()
+    with pytest.raises(BillingFailure) as failure:
+        render_report(root, result["calculation_sha256"])
+    assert failure.value.code == "REPORT_PROVENANCE_FAILURE" and path.read_bytes() == before

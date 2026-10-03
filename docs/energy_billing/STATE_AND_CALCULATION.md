@@ -41,6 +41,10 @@ verdict. Positive responses must cite all selected subject evidence. Raw values
 and quotes remain immutable; canonical tariff/rounding/date conventions are
 explicit reviewed decisions, never alias fallback. Native schema validation and
 known reference checks allow one protocol repair, not business correction.
+Fact reviews cite at most 32 atoms from one occurrence. The authority review
+cites the union of two such occurrences, so its contract allows at most 64.
+Native parser limitations or uninspected locations block approval before a
+model call, and again when an existing review is consumed.
 
 Dependency hashes include the subject, its source-bound observations (including
 financial notes), quarantine and limitations. An invoice fact change stales its
@@ -124,3 +128,30 @@ deliberately wrong focus repaired once, no business fixture or graph mutation.
 These probes used a dirty engineering tree at `99c9694`; they are compatibility
 evidence, not a frozen accuracy benchmark. Full latest-code regressions and the
 frozen thin run are recorded separately when terminal results exist.
+
+## First frozen vertical result and correction
+
+At clean SHA `514dd7a986d29e282824b1be9396d74370d197dc`, the actual-model run
+created 33 bound atoms, two occurrences, one GOVERNS relation and two positive
+independent facts reviews. Its nine calls took 340.155134 seconds. The authority
+review stopped with MODEL_PROTOCOL_FAILURE after one repair: the two selected
+subjects contained 16 + 17 atoms while the response could cite at most 32 and
+the checker required all 33. No calculation or report was reached. Valid state
+and reviews survived; the precise root is a protocol cardinality mismatch, not
+business ambiguity or unsupported tariff. The original runner's
+`protocol_retries=2` counted rejected responses; the actual repair count was one.
+
+The correction derives the authority bound from its two inputs (2 × 32), keeps
+all facts and qualifications, and tests both 33 and 64 atoms. All other evidence
+arrays keep their existing bound. New protocol probes exercise an actual
+64-reference response with no money fixture; 13/13 pass in 14 CLI calls and
+123.863377 seconds on an engineering tree based on `514dd7a`. They are not an
+accuracy campaign. Runner retry instrumentation now counts repair attempts and
+retains per-call timing/hash diagnostics.
+
+The full unchanged `514dd7a` tree passed **1,498 tests in 720.97 seconds**.
+Rental deterministic benchmark: 15/15. Rental privacy: 19/19, zero false blocks,
+zero unsafe passes. Both original worktrees retain their inspected state. No
+Rental/Energy semantics or shared document parser code changed. A fresh frozen
+run on the correction is required; the failed run is never silently relabelled
+successful.

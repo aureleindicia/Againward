@@ -81,6 +81,10 @@ TARIFF_REVIEW_SCHEMA = obj({
 })
 AUTHORITY_REVIEW_SCHEMA = obj({
     **REVIEW_SCHEMA["properties"],
+    # Each of the two declared subjects may carry 32 independently valid atoms.
+    # Their authority review must be able to cite the complete union, including
+    # source qualifications, without dropping facts to fit a smaller contract.
+    "evidence_ids": {**IDS, "maxItems": 64},
     "authority_kind": enum("ACCEPTED_CONTRACT", "INVOICE_PRICE", "UNRESOLVED"),
 })
 

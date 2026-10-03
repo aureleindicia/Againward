@@ -44,6 +44,8 @@ def run(model: str, output: Path) -> dict:
     for name, schema in (("FACT_REVIEW", FACT_REVIEW_SCHEMA), ("TARIFF_REVIEW", TARIFF_REVIEW_SCHEMA),
                          ("AUTHORITY_REVIEW", AUTHORITY_REVIEW_SCHEMA)):
         response = {"verdict": "AMBIGUOUS", "evidence_ids": ["e-1"], "reason": "No business evidence supplied."}
+        if name == "AUTHORITY_REVIEW":
+            response["evidence_ids"] = [f"e-{index}" for index in range(64)]
         for key in schema["properties"]:
             if key not in response:
                 response[key] = [] if key == "nonmaterial_quarantine_ids" else "INCOMPLETE" if key == "coverage" else "UNRESOLVED"

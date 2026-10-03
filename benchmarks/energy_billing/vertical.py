@@ -127,7 +127,10 @@ def run(model: str, output: Path) -> dict:
               "readiness": decision, "root_issues": decision.get("root_issues", []),
               "derived_blockers": decision.get("derived_blockers", []), "turns": turns,
               "investigator_turns": sum(row["event_type"] == "ACTION" for row in turns),
-              "model_calls": calls, "protocol_retries": len(boundary.diagnostics), "diagnostics": boundary.diagnostics,
+              "model_calls": calls,
+              "protocol_retries": sum(row["code"] == "MODEL_PROTOCOL_INVALID" and row["retry_count"] == 0
+                                      for row in boundary.diagnostics),
+              "diagnostics": boundary.diagnostics, "provider_calls": transport.calls,
               "provider_failures": sum(row["code"] == "MODEL_PROVIDER_FAILURE" for row in boundary.diagnostics),
               "calculation_reached": calculation is not None, "calculation": calculation, "qa_objections": [],
               "qa_performed": False, "report_reached": report is not None, "report": report,
